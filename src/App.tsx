@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from 'antd';
 import logo from './logo.svg';
 import './App.css';
 
@@ -9,6 +10,9 @@ const App: React.FC = () => {
         <img src={logo} className="App-logo" alt="logo" />
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
+        </p>
+        <p>
+          <Button type="primary">Button</Button>
         </p>
         <a
           className="App-link"
