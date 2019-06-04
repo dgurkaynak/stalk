@@ -1,7 +1,8 @@
 import * as _ from 'lodash';
 
 
-export class JaegerAPI {
+// https://zipkin.apache.org/zipkin-api/#/
+export class ZipkinAPI {
     private baseUrl: string;
     private headers: { [key: string]: string } = {};
 
@@ -34,7 +35,7 @@ export class JaegerAPI {
         headers?: { [key: string]: string },
         queryParams?: { [key: string]: string }
     }) {
-        let url = `${this.baseUrl}/api${options.path}`;
+        let url = `${this.baseUrl}/zipkin/api/v2${options.path}`;
         if (_.isObject(options.queryParams) && Object.keys(options.queryParams).length > 0) {
             (url as any) = new URL(url);
             (url as any).search = new URLSearchParams(options.queryParams);
@@ -63,51 +64,42 @@ export class JaegerAPI {
     }
 
 
-    async getOperations(serviceName: string) {
-        return this.get(`/services/${serviceName}/operations`);
+    async getSpans(serviceName: string) {
+        return this.get('/spans', { serviceName });
     }
 
 
+    async getRemoteServices(serviceName: string) {
+        return this.get('/remoteServices', { serviceName });
+    }
+
+
+    /**
+     * https://zipkin.apache.org/zipkin-api/#/default/get_traces
+     */
     async searchTraces(options: {
-        serviceName: string,
+        serviceName?: string,
         operationName?: string,
-        startTime?: number,
+        annotationQuery?: string,
+        minDuration?: number,
+        maxDuration?: number,
         finishTime?: number,
-        limit?: number,
-        minDuration?: string,
-        maxDuration?: string,
-        tags?: { [key: string]: string }
+        lookback?: number,
+        limit?: number
     }) {
-        const queryParams: {
-            service: string,
-            operation?: string,
-            start?: string,
-            end?: string,
-            limit?: string,
-            minDuration?: string,
-            maxDuration?: string,
-            tags?: string
-        } = { service: options.serviceName };
-
-        if (options.operationName) queryParams.operation = options.operationName;
-        if (options.startTime) queryParams.start = String(options.startTime * 1000);
-        if (options.finishTime) queryParams.end = String(options.finishTime * 1000);
+        const queryParams: any = {};
+        if (options.serviceName) queryParams.serviceName = options.serviceName;
+        if (options.operationName) queryParams.spanName = options.operationName;
+        if (options.annotationQuery) queryParams.annotationQuery = options.annotationQuery;
+        if (options.minDuration) queryParams.minDuration = String(options.minDuration);
+        if (options.maxDuration) queryParams.maxDuration = String(options.maxDuration);
+        if (options.finishTime) queryParams.endTs = String(options.finishTime);
+        if (options.lookback) queryParams.lookback = String(options.lookback);
         if (options.limit) queryParams.limit = String(options.limit);
-        if (options.minDuration) queryParams.minDuration = options.minDuration;
-        if (options.maxDuration) queryParams.maxDuration = options.maxDuration;
-        if (_.isObject(options.tags) && !_.isEmpty(options.tags)) {
-            queryParams.tags = JSON.stringify(options.tags);
-        }
 
-        return this.get(`/traces`, queryParams as any);
-    }
-
-
-    async getTrace(traceId: string) {
-        // or `/traces/${traceId}`
-        return this.get(`/traces`, { traceID: traceId });
+        return this.get('/traces', queryParams);
     }
 }
 
 
-export default JaegerAPI;
+export default ZipkinAPI;
