@@ -1,57 +1,64 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Layout, Menu, Icon } from 'antd';
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
-import { Datasources } from './datasources/datasources';
+import DataSourcesScreen from './components/datasource/screen';
+import SearchScreen from './components/search/screen';
 import './app.css';
 
-const { Content, Footer, Sider } = Layout;
+const { Content, Sider } = Layout;
 
-const Search: React.FC = () => <div>search</div>;
-const Timeline: React.FC = () => <div>timeline</div>;
-const Settings: React.FC = () => <div>settings</div>;
+
+enum RouteKey {
+  DATA_SOURCES = 'data-sources',
+  SEARCH = 'search',
+  TIMELINE_VIEW = 'timeline-view',
+  SETTINGS = 'settings'
+}
+
 
 const App: React.FC = () => {
+  const [selectedItem, setSelectedItem] = useState(RouteKey.DATA_SOURCES);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+
   return (
-    <Router>
-      <Layout style={{ minHeight: '100vh' }}>
-        <Sider className="app-sider" trigger={null} collapsible collapsed={true}>
-          <div className="logo" />
-          <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
-            <Menu.Item key="1">
-              <Icon type="database" />
-              <span>Data Sources</span>
-              <Link to="/datasources" />
-            </Menu.Item>
-            <Menu.Item key="2">
-              <Icon type="search" />
-              <span>Search</span>
-              <Link to="/search" />
-            </Menu.Item>
-            <Menu.Item key="3">
-              <Icon type="line-chart" />
-              <span>Timeline View</span>
-              <Link to="/timeline" />
-            </Menu.Item>
-            <Menu.Item key="4">
-              <Icon type="setting" />
-              <span>Settings</span>
-              <Link to="/settings" />
-            </Menu.Item>
-          </Menu>
-        </Sider>
-        <Layout>
-          {/* <Header style={{ background: '#fff', padding: 0 }} /> */}
-          <Content>
-            <Route exact path="/" component={Datasources} />
-            <Route path="/datasources" component={Datasources} />
-            <Route path="/search" component={Search} />
-            <Route path="/timeline" component={Timeline} />
-            <Route path="/settings" component={Settings} />
-          </Content>
-          <Footer style={{ textAlign: 'center' }}>Ant Design ©2018 Created by Ant UED</Footer>
-        </Layout>
+    <Layout style={{ minHeight: '100vh' }}>
+      <Sider
+        className="app-sidebar"
+        collapsible
+        collapsed={isSidebarCollapsed}
+        onCollapse={(isCollapsed => setIsSidebarCollapsed(isCollapsed))}
+      >
+        <div className="logo" />
+        <Menu
+          theme="dark"
+          mode="inline"
+          defaultSelectedKeys={[selectedItem]}
+          onClick={(item) => setSelectedItem(item.key as RouteKey)}
+        >
+          <Menu.Item key={RouteKey.DATA_SOURCES}>
+            <Icon type="database" />
+            <span>Data Sources</span>
+          </Menu.Item>
+          <Menu.Item key={RouteKey.SEARCH}>
+            <Icon type="search" />
+            <span>Search</span>
+          </Menu.Item>
+          <Menu.Item key={RouteKey.TIMELINE_VIEW}>
+            <Icon type="line-chart" />
+            <span>Timeline View</span>
+          </Menu.Item>
+          <Menu.Item key={RouteKey.SETTINGS}>
+            <Icon type="setting" />
+            <span>Settings</span>
+          </Menu.Item>
+        </Menu>
+      </Sider>
+      <Layout>
+        <Content>
+          <DataSourcesScreen visible={selectedItem === RouteKey.DATA_SOURCES} />
+          <SearchScreen visible={selectedItem === RouteKey.SEARCH} />
+        </Content>
       </Layout>
-    </Router>
+    </Layout>
   );
 }
 

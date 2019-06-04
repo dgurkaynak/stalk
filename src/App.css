@@ -1,8 +1,12 @@
 @import '~antd/dist/antd.css';
-@import './datasources/datasources.css';
 
-.app-sider .logo {
+.app-sidebar .logo {
     height: 32px;
     background: rgba(255, 255, 255, 0.2);
     margin: 16px;
 }
+
+.header-with-button {
+    line-height: 32px;
+}
+
