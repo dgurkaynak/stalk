@@ -1,4 +1,5 @@
 @import '~antd/dist/antd.css';
+@import './datasources/datasources.css';
 
 .app-sider .logo {
     height: 32px;
