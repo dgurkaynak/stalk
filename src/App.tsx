@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout, Menu, Icon } from 'antd';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
-import './App.css';
+import './app.css';
 
 const { Content, Footer, Sider } = Layout;
 
