@@ -1,18 +1,126 @@
 import React from 'react';
-import { Button, PageHeader, Empty, Modal, Upload, Icon } from 'antd';
+import { Button, PageHeader, Empty, Modal, Upload, Icon, Form, Input, Select, Collapse } from 'antd';
 
 const { Dragger } = Upload;
+const { Option } = Select;
+const { Panel } = Collapse;
+
+
+const DatasourceFormModal: any = Form.create({ name: 'datasource-form' })(
+  class extends React.Component {
+    render() {
+      const { visible, onCancel, onCreate, form } = this.props as any;
+      const { getFieldDecorator } = form;
+
+      const customFormItemStyle = {
+        marginBottom: 16
+      };
+
+      const formItemLayout = {
+        labelCol: { span: 6 },
+        wrapperCol: { span: 16 },
+        style: customFormItemStyle
+      };
+
+      const customPanelStyle = {
+        background: '#f7f7f7',
+        borderRadius: 4,
+        marginBottom: 0,
+        border: 0,
+        overflow: 'hidden',
+      };
+
+      return (
+        <Modal
+          visible={visible}
+          title="Create a data source"
+          okText="Create"
+          onCancel={onCancel}
+          onOk={onCreate}
+          footer={[
+            <Button key="test" type="default">
+              Test
+            </Button>,
+            <Button key="submit" type="primary" onClick={onCreate}>
+              Submit
+            </Button>
+          ]}
+        >
+          <Form layout="horizontal">
+            <Form.Item label="Type" {...formItemLayout}>
+              {getFieldDecorator('type', { initialValue: 'jaeger' })(
+                <Select style={{ width: 120 }}>
+                  <Option value="jaeger">Jaeger</Option>
+                  <Option value="zipkin">Zipkin</Option>
+                </Select>
+              )}
+            </Form.Item>
+            <Form.Item label="Name" {...formItemLayout}>
+              {getFieldDecorator('name', {
+                rules: [{ required: true, message: 'Please input the title of collection!' }],
+              })(<Input style={{ width: '100%' }} />)}
+            </Form.Item>
+            <Form.Item label="API Base URL" {...formItemLayout}>
+              {getFieldDecorator('baseUrl', {
+                rules: [{ required: true, message: 'Please input the title of collection!' }],
+              })(
+              <Input style={{ width: '100%' }} />
+              )}
+            </Form.Item>
+            <Collapse bordered={false} defaultActiveKey={[]}>
+              <Panel header="Basic Authentication" key="1" style={customPanelStyle}>
+                <Form.Item label="Username" {...formItemLayout}>
+                  {getFieldDecorator('username')(<Input style={{ width: '100%' }} />)}
+                </Form.Item>
+                <Form.Item label="Password" {...formItemLayout}>
+                  {getFieldDecorator('password')(<Input type="password" style={{ width: '100%' }} />)}
+                </Form.Item>
+              </Panel>
+            </Collapse>
+          </Form>
+        </Modal>
+      );
+    }
+  },
+);
+
 
 
 export class Datasources extends React.Component {
+  formRef: any;
   state = {
-    isImportJsonModalVisible: false
+    isImportJsonModalVisible: false,
+    isDatasourceFormModalVisible: false
   };
 
 
   onImportJsonButtonClicked() {
     console.log('this.state', this.state);
   }
+
+
+  handleCancel = () => {
+    this.setState({ isDatasourceFormModalVisible: false });
+  };
+
+
+  handleCreate = () => {
+    const form = this.formRef.props.form;
+    form.validateFields((err: Error, values: any[]) => {
+      if (err) {
+        return;
+      }
+
+      console.log('Received values of form: ', values);
+      form.resetFields();
+      this.setState({ isDatasourceFormModalVisible: false });
+    });
+  };
+
+
+  saveFormRef = (formRef: any) => {
+    this.formRef = formRef;
+  };
 
 
   render() {
@@ -31,7 +139,12 @@ export class Datasources extends React.Component {
             >
               Import JSON
             </Button>,
-            <Button key="2" type="primary" icon="plus">
+            <Button
+              key="2"
+              type="primary"
+              icon="plus"
+              onClick={() => this.setState({ isDatasourceFormModalVisible: true })}
+            >
               Create New
             </Button>,
           ]}
@@ -79,6 +192,13 @@ export class Datasources extends React.Component {
             </p>
           </Dragger>
         </Modal>
+
+        <DatasourceFormModal
+          wrappedComponentRef={this.saveFormRef}
+          visible={this.state.isDatasourceFormModalVisible}
+          onCancel={this.handleCancel}
+          onCreate={this.handleCreate}
+        />
 
         <div style={{ background: '#fff', margin: 24, borderRadius: 3 }}>
           <Empty description="No data sources yet" image={Empty.PRESENTED_IMAGE_SIMPLE} style={{ padding: 24 }} />
