@@ -56,6 +56,7 @@ export class DataSourceImportJsonModal extends React.Component<DataSourceImportJ
     return (
       <Modal
         visible={visible}
+        destroyOnClose={true}
         title="Import JSON"
         onOk={onImport}
         onCancel={onCancel}

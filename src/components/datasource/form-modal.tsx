@@ -1,5 +1,10 @@
 import React from 'react';
-import { Button, Modal, Form, Input, Select, Collapse } from 'antd';
+import { Button, Modal, Form, Input, Select, Collapse, message } from 'antd';
+import JaegerAPI from './api/jaeger';
+import ZipkinAPI from './api/zipkin';
+import { DataSourceType, DataSourceEntity } from './interfaces'
+import * as shortid from 'shortid';
+import * as _ from 'lodash';
 
 const { Option } = Select;
 const { Panel } = Collapse;
@@ -30,77 +35,119 @@ const formItemProps = {
 
 export interface DataSourceFormModalProps {
   visible: boolean,
-  onSubmit: () => void,
+  onSave: (dataSource: DataSourceEntity, isNew: boolean) => void,
   onCancel: () => void,
-  form: any
+  form: any,
+  dataSource?: DataSourceEntity
 }
 
 
-export const DataSourceFormModal: any = Form.create({ name: 'datasource-form-modal' })(
+export const DataSourceFormModal: any = Form.create({
+  name: 'datasource-form-modal',
+  mapPropsToFields: (props: any) => _.mapValues(props.dataSource || {}, (value) => Form.createFormField({ value }))
+})(
   class extends React.Component<DataSourceFormModalProps> {
     state = {
       isTesting: false
     };
     binded = {
-      onTest: this.onTest.bind(this)
+      onTest: this.onTest.bind(this),
+      onSave: this.onSave.bind(this)
     };
 
 
     onTest() {
-      this.setState({ isTesting: true });
+      this.props.form.validateFields(async (err: Error, values: any) => {
+        if (err) return;
 
-      this.props.form.validateFields((err: Error, values: any[]) => {
-        if (err) {
-          this.setState({ isTesting: false });
-          return;
+        this.setState({ isTesting: true });
+
+        switch (values.type) {
+          case DataSourceType.JAEGER:
+          case DataSourceType.ZIPKIN: {
+            const options = {
+              baseUrl: values.baseUrl,
+              username: values.username,
+              password: values.password
+            };
+
+            try {
+              const api = values.type === DataSourceType.JAEGER ? new JaegerAPI(options) : new ZipkinAPI(options);
+              await api.getServices();
+              message.success(`Data source is working`);
+            } catch (err) {
+              message.error(`Data source error: "${err.message}"`);
+            }
+
+            break;
+          }
+
+          default: {
+            message.error(`Unsupported data source type "${values.type}"`);
+          }
         }
 
-        // TODO: Make a http request!
-        // this.setState({ isTesting: false });
+        this.setState({ isTesting: false });
       });
     }
 //form.resetFields();
 
+
+    onSave() {
+      this.props.form.validateFields(async (err: Error, values: any) => {
+        if (err) return;
+
+        this.props.onSave({
+          id: (this.props.dataSource && this.props.dataSource.id) || shortid.generate(),
+          type: values.type,
+          name: values.name,
+          baseUrl: values.baseUrl,
+          username: values.username,
+          password: values.password
+        }, !this.props.dataSource);
+      });
+    }
+
     render() {
-      const { visible, onCancel, onSubmit, form } = this.props;
+      const { visible, onCancel, form, dataSource } = this.props;
       const { isTesting } = this.state;
       const { getFieldDecorator } = form;
 
       return (
         <Modal
           visible={visible}
-          title="Create a data source"
-          okText="Create"
+          destroyOnClose={true}
+          title={dataSource ? 'Update data source' : 'Create a data source'}
           onCancel={onCancel}
-          onOk={onSubmit}
+          onOk={this.binded.onSave}
           footer={[
             <Button key="test" type="default" loading={isTesting} onClick={this.binded.onTest}>
               Test
             </Button>,
-            <Button key="submit" type="primary" onClick={onSubmit}>
-              Submit
+            <Button key="submit" type="primary" onClick={this.binded.onSave}>
+              Save
             </Button>
           ]}
         >
           <Form layout="horizontal">
             <Form.Item label="Type" {...formItemProps}>
               {getFieldDecorator('type', { initialValue: 'jaeger' })(
-                <Select style={{ width: 120 }}>
-                  <Option value="jaeger">Jaeger</Option>
-                  <Option value="zipkin">Zipkin</Option>
+                <Select style={{ width: 120 }} disabled={!!dataSource}>
+                  <Option value={DataSourceType.JAEGER}>Jaeger</Option>
+                  <Option value={DataSourceType.ZIPKIN}>Zipkin</Option>
                 </Select>
               )}
             </Form.Item>
             <Form.Item label="Name" {...formItemProps}>
               {getFieldDecorator('name', {
                 rules: [{ required: true, whitespace: true, message: 'Please enter a friendly name' }],
-              })(<Input style={styles.formItemInput} />)}
+              })(<Input style={styles.formItemInput} placeholder="My data source" />)}
             </Form.Item>
             <Form.Item label="API Base URL" {...formItemProps}>
               {getFieldDecorator('baseUrl', {
                 rules: [{ required: true, whitespace: true, message: 'Please enter a valid HTTP/HTTPS url' }],
               })(
-              <Input style={styles.formItemInput} />
+              <Input style={styles.formItemInput} placeholder="http://localhost:16686" />
               )}
             </Form.Item>
             <Collapse bordered={false} defaultActiveKey={[]}>
