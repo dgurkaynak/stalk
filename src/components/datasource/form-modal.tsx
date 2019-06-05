@@ -156,7 +156,7 @@ export const DataSourceFormModal: any = Form.create({
                   {getFieldDecorator('username')(<Input style={styles.formItemInput} />)}
                 </Form.Item>
                 <Form.Item label="Password" {...formItemProps}>
-                  {getFieldDecorator('password')(<Input type="password" style={styles.formItemInput} />)}
+                  {getFieldDecorator('password')(<Input.Password style={styles.formItemInput} />)}
                 </Form.Item>
               </Panel>
             </Collapse>
