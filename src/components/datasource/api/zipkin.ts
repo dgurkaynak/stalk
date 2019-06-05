@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import { SearchQuery } from '../../search/interfaces';
 
 
 // https://zipkin.apache.org/zipkin-api/#/
@@ -96,16 +97,7 @@ export class ZipkinAPI {
     /**
      * https://zipkin.apache.org/zipkin-api/#/default/get_traces
      */
-    async searchTraces(options: {
-        serviceName?: string,
-        operationName?: string,
-        tags?: (string | { [key: string]: string })[],
-        minDuration?: number, // ms
-        maxDuration?: number, // ms
-        finishTime?: number, // ms
-        lookback?: number, // ms
-        limit?: number
-    }) {
+    async searchTraces(options: SearchQuery) {
         const queryParams: any = {};
 
         /**
@@ -174,7 +166,7 @@ export class ZipkinAPI {
          * lookback) in milliseconds. Defaults to endTs, limited to a
          * system parameter QUERY_LOOKBACK
          */
-        if (options.lookback) queryParams.lookback = String(options.lookback);
+        queryParams.lookback = String(options.finishTime - options.startTime);
 
         /**
          * `limit` => Maximum number of traces to return. Defaults to 10

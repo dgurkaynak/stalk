@@ -1,0 +1,12 @@
+.search-form .ant-form-item-label {
+  line-height: 20px;
+}
+
+.search-form .ant-form-item {
+  margin-bottom: 14px;
+}
+
+.search-form.ant-form label {
+  font-size: 0.8em;
+  font-weight: 600;
+}

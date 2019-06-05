@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import { SearchQuery } from '../../search/interfaces';
 
 
 export class JaegerAPI {
@@ -87,16 +88,7 @@ export class JaegerAPI {
     }
 
 
-    async searchTraces(options: {
-        serviceName: string,
-        operationName?: string,
-        startTime?: number, // ms
-        finishTime?: number, // ms
-        limit?: number,
-        minDuration?: number, // ms
-        maxDuration?: number, // ms
-        tags?: (string | { [key: string]: string })[],
-    }) {
+    async searchTraces(options: SearchQuery) {
         const queryParams: {
             service: string,
             operation?: string,

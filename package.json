@@ -12,6 +12,8 @@
     "@types/react-router-dom": "^4.3.3",
     "antd": "^3.19.2",
     "lodash": "^4.17.11",
+    "moment": "^2.24.0",
+    "parse-duration": "^0.1.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "3.0.1",
