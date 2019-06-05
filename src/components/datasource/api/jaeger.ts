@@ -71,12 +71,12 @@ export class JaegerAPI {
     async searchTraces(options: {
         serviceName: string,
         operationName?: string,
-        startTime?: number,
-        finishTime?: number,
+        startTime?: number, // ms
+        finishTime?: number, // ms
         limit?: number,
-        minDuration?: string,
-        maxDuration?: string,
-        tags?: { [key: string]: string }
+        minDuration?: number, // ms
+        maxDuration?: number, // ms
+        tags?: (string | { [key: string]: string })[],
     }) {
         const queryParams: {
             service: string,
@@ -87,16 +87,71 @@ export class JaegerAPI {
             minDuration?: string,
             maxDuration?: string,
             tags?: string
-        } = { service: options.serviceName };
+        } = {
+            /**
+             * `service` is required.
+             * Error: {"data":null,"total":0,"limit":0,"offset":0,"errors":[{"code":400,"msg":"Parameter 'service' is required"}]}
+             */
+            service: options.serviceName
+        };
 
         if (options.operationName) queryParams.operation = options.operationName;
+
+        /**
+         * Neither `start` and `end` is required, it expects microseconds.
+         * There is also `lookback` param valued `1h`, but I think it's unnecessarry.
+         * You can omit it.
+         */
         if (options.startTime) queryParams.start = String(options.startTime * 1000);
         if (options.finishTime) queryParams.end = String(options.finishTime * 1000);
+
+        /** Defaults to 20 */
         if (options.limit) queryParams.limit = String(options.limit);
-        if (options.minDuration) queryParams.minDuration = options.minDuration;
-        if (options.maxDuration) queryParams.maxDuration = options.maxDuration;
-        if (_.isObject(options.tags) && !_.isEmpty(options.tags)) {
-            queryParams.tags = JSON.stringify(options.tags);
+
+        /**
+         * It expects a human readable duration string like `100ms` or `1.2ss` or `10us`.
+         * `minDuration` works, but I guess `maxDuration` is not working. When I search for
+         * max `1s`, it returns traces longer than `1s`? (Update: when I search with some tags, it works)
+         */
+        if (_.isNumber(options.minDuration)) {
+            queryParams.minDuration = `${options.minDuration}ms`;
+        }
+        if (_.isNumber(options.maxDuration)) {
+            queryParams.maxDuration = `${options.maxDuration}ms`;
+        }
+
+        /**
+         * Values should be in the logfmt format.
+         * - Use space for conjunctions
+         * - Values containing whitespace should be enclosed in quotes
+         *
+         * Notes to self:
+         * It expects JSON object string like:
+         * `error` => {"error":"true"}
+         * `error test` => {"error":"true","test":"true"}
+         * `error=false test` => {"error":"false","test":"true"}
+         */
+        if (_.isArray(options.tags) && options.tags.length > 0) {
+            let tags: { [key: string]: string } = {};
+
+            options.tags.forEach((data) => {
+                if (_.isString(data)) {
+                    tags[data] = "true";
+                    return;
+                }
+
+                if (_.isObject(data)) {
+                    tags = {
+                        ...tags,
+                        ...data
+                    };
+                    return;
+                }
+
+                throw new Error(`Unsupported tag, it must be string or an object`);
+            });
+
+            queryParams.tags = JSON.stringify(tags);
         }
 
         return this.get(`/traces`, queryParams as any);

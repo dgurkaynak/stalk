@@ -80,21 +80,86 @@ export class ZipkinAPI {
     async searchTraces(options: {
         serviceName?: string,
         operationName?: string,
-        annotationQuery?: string,
-        minDuration?: number,
-        maxDuration?: number,
-        finishTime?: number,
-        lookback?: number,
+        tags?: (string | { [key: string]: string })[],
+        minDuration?: number, // ms
+        maxDuration?: number, // ms
+        finishTime?: number, // ms
+        lookback?: number, // ms
         limit?: number
     }) {
         const queryParams: any = {};
+
+        /**
+         * `serviceName` => Ex favstar (required) - Lower-case label of a node in the service
+         * graph. The /services endpoint enumerates possible input values.
+         */
         if (options.serviceName) queryParams.serviceName = options.serviceName;
+
+        /**
+         * `spanName` => Ex get - name of a span in a trace. Only return traces that contains
+         * spans with this name.
+         */
         if (options.operationName) queryParams.spanName = options.operationName;
-        if (options.annotationQuery) queryParams.annotationQuery = options.annotationQuery;
-        if (options.minDuration) queryParams.minDuration = String(options.minDuration);
-        if (options.maxDuration) queryParams.maxDuration = String(options.maxDuration);
+
+        /**
+         * `annotationQuery` => Ex. `http.uri=/foo and retried` - If key/value (has an =),
+         * constrains against Span.tags entres. If just a word, constrains
+         * against Span.annotations[].value or Span.tags[].key. Any values are
+         * AND against eachother. This means a span in the trace must match all of these.
+         *
+         * Self notes:
+         * - When passed just a word (not containing `=`), api will get traces that some spans
+         * contains that tag/annotation.
+         * - Tag names and values are case sensitive, so `component=player` and `Component=Player` not working
+         * - `and` is necessary and it's also case sensitive => `AND` is not working.
+         * So, this is not working: `component=Player error=true`.
+         * The valid form: `component=Player and error=true`
+         */
+        if (_.isArray(options.tags) && options.tags.length > 0) {
+            queryParams.annotationQuery = options.tags.map((data) => {
+                if (_.isString(data)) {
+                    return data;
+                }
+
+                if (_.isObject(data)) {
+                    const keys = Object.keys(data);
+                    if (keys.length == 0) throw new Error(`Tag object must contain one key/value pair`);
+                    const name = keys[0];
+                    return `${name}=${data[name]}`; // TODO: Quote or not quote?
+                }
+
+                throw new Error(`Unsupported tag, it must be string or an object that contains one key/value pair`);
+            }).join(' and ');
+        }
+
+        /**
+         * `minDuration` => Ex. 100000 (for 100ms). Only return traces whose Span.duration is
+         * greater than or equal to minDuration microseconds.
+         */
+        if (_.isNumber(options.minDuration)) queryParams.minDuration = String(options.minDuration * 1000);
+
+        /**
+         * `maxDuration` => Only return traces whose Span.duration is less than or equal to
+         * maxDuration microseconds. Only valid with minDuration.
+         */
+        if (_.isNumber(options.maxDuration)) queryParams.maxDuration = String(options.maxDuration * 1000);
+
+        /**
+         * `endTs` => Only return traces where all Span.timestamp are at or before this
+         * time in epoch milliseconds. Defaults to current time.
+         */
         if (options.finishTime) queryParams.endTs = String(options.finishTime);
+
+        /**
+         * `lookback` => Only return traces where all Span.timestamp are at or after (endTs
+         * lookback) in milliseconds. Defaults to endTs, limited to a
+         * system parameter QUERY_LOOKBACK
+         */
         if (options.lookback) queryParams.lookback = String(options.lookback);
+
+        /**
+         * `limit` => Maximum number of traces to return. Defaults to 10
+         */
         if (options.limit) queryParams.limit = String(options.limit);
 
         return this.get('/traces', queryParams);
