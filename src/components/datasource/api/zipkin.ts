@@ -5,6 +5,7 @@ import * as _ from 'lodash';
 export class ZipkinAPI {
     private baseUrl: string;
     private headers: { [key: string]: string } = {};
+    private servicesAndOperationsCache: { [key: string]: string[] } = {};
 
 
     constructor(options: {
@@ -56,6 +57,24 @@ export class ZipkinAPI {
         const res = await this.request({ method: 'get', path, queryParams });
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
         return res.json();
+    }
+
+
+    async updateServicesAndOperationsCache() {
+        const servicesAndOperations: { [key: string]: string[] } = {};
+        const services = await this.getServices();
+        const tasks = services.map((service: string) => this.getSpans(service));
+        const operationsArr = await Promise.all(tasks);
+        services.forEach((service: string, index: number) => {
+            servicesAndOperations[service] = operationsArr[index] as string[];
+        });
+        this.servicesAndOperationsCache = servicesAndOperations;
+        return servicesAndOperations;
+    }
+
+
+    getServicesAndOperations() {
+        return this.servicesAndOperationsCache;
     }
 
 
@@ -123,7 +142,7 @@ export class ZipkinAPI {
 
                 if (_.isObject(data)) {
                     const keys = Object.keys(data);
-                    if (keys.length == 0) throw new Error(`Tag object must contain one key/value pair`);
+                    if (keys.length === 0) throw new Error(`Tag object must contain one key/value pair`);
                     const name = keys[0];
                     return `${name}=${data[name]}`; // TODO: Quote or not quote?
                 }

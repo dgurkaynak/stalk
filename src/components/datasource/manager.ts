@@ -62,6 +62,11 @@ class DataSourceManager {
   getAll() {
     return [...this.entities];
   }
+
+
+  get(id: string) {
+    return _.find(this.entities, e => e.id === id);
+  }
 }
 
 

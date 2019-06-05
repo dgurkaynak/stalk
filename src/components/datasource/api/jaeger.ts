@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 export class JaegerAPI {
     private baseUrl: string;
     private headers: { [key: string]: string } = {};
+    private servicesAndOperationsCache: { [key: string]: string[] } = {};
 
 
     constructor(options: {
@@ -55,6 +56,24 @@ export class JaegerAPI {
         const res = await this.request({ method: 'get', path, queryParams });
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
         return res.json();
+    }
+
+
+    async updateServicesAndOperationsCache() {
+        const servicesAndOperations: { [key: string]: string[] } = {};
+        const { data: services } = await this.getServices();
+        const tasks = services.map((service: string) => this.getOperations(service));
+        const operationsArr = await Promise.all(tasks);
+        services.forEach((service: string, index: number) => {
+            servicesAndOperations[service] = (operationsArr[index] as any).data as string[];
+        });
+        this.servicesAndOperationsCache = servicesAndOperations;
+        return servicesAndOperations;
+    }
+
+
+    getServicesAndOperations() {
+        return this.servicesAndOperationsCache;
     }
 
 
