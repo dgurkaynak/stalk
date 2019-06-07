@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageHeader } from 'antd';
 import SearchForm from './form';
-import { SearchQuery } from './interfaces';
+import { SearchQuery } from '../../model/search/interfaces';
 
 
 export interface SearchScreenProps {

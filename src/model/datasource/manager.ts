@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { DataSourceType, DataSourceEntity } from './interfaces';
-import JaegerAPI from './api/jaeger';
-import ZipkinAPI from './api/zipkin';
+import JaegerAPI from '../search/api/jaeger';
+import ZipkinAPI from '../search/api/zipkin';
 
 
 type API = JaegerAPI | ZipkinAPI;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Select } from 'antd';
-import DataSourceManager from './manager';
-import { DataSourceEntity } from './interfaces';
+import DataSourceManager from '../../model/datasource/manager';
+import { DataSourceEntity } from '../../model/datasource/interfaces';
 
 const { Option } = Select;
 

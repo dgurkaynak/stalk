@@ -1,7 +1,7 @@
 import React from 'react';
 import { TreeSelect } from 'antd';
-import JaegerAPI from '../datasource/api/jaeger';
-import ZipkinAPI from '../datasource/api/zipkin';
+import JaegerAPI from '../../model/search/api/jaeger';
+import ZipkinAPI from '../../model/search/api/zipkin';
 
 
 type API = JaegerAPI | ZipkinAPI;

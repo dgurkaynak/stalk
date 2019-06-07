@@ -2,8 +2,8 @@ import React from 'react';
 import { Button, PageHeader } from 'antd';
 import DataSourceFormModal from './form-modal'
 import DataSourceImportJsonModal from './import-json-modal'
-import { DataSourceEntity } from './interfaces';
-import DataSourceManager from './manager';
+import { DataSourceEntity } from '../../model/datasource/interfaces';
+import DataSourceManager from '../../model/datasource/manager';
 import DataSourceList from './list';
 
 

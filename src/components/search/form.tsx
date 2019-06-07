@@ -1,13 +1,13 @@
 import React from 'react';
 import { Tooltip, Form, Row, Col, Input, Button, Icon, Select, DatePicker, TimePicker, InputNumber, Tag } from 'antd';
-import DataSourceManager from '../datasource/manager';
+import DataSourceManager from '../../model/datasource/manager';
 import DataSourceSelect from '../datasource/select';
-import { DataSourceEntity } from '../datasource/interfaces';
+import { DataSourceEntity } from '../../model/datasource/interfaces';
 import { ServiceOrOperationSelect, ServiceOrOperationEntity } from './service-or-operation-select';
 import moment from 'moment';
 // import _ from 'lodash';
 import parse from 'parse-duration';
-import { SearchQuery } from './interfaces';
+import { SearchQuery } from '../../model/search/interfaces';
 
 
 const { Option } = Select;

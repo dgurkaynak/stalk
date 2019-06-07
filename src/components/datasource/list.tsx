@@ -1,6 +1,6 @@
 import React from 'react';
 import { Empty, List, Tag, Button } from 'antd';
-import { DataSourceEntity, DataSourceType } from './interfaces';
+import { DataSourceEntity, DataSourceType } from '../../model/datasource/interfaces';
 
 
 const styles = {
