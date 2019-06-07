@@ -1,0 +1,47 @@
+import * as _ from 'lodash';
+import { Span } from '../span';
+
+
+export function convertFromZipkinTrace(rawTrace: any) {
+    if (!_.isArray(rawTrace)) throw new Error(`Trace must be array`);
+
+    const spans: Span[] = rawTrace.map((rawSpan: any) => {
+        if (!_.isString(rawSpan.id) && rawSpan.id.length > 0) throw new Error(`"rawSpan.id" must be string`);
+        if (!_.isString(rawSpan.traceId) && rawSpan.traceId.length > 0) throw new Error(`"rawSpan.traceId" must be string`);
+        if (!_.isNumber(rawSpan.timestamp)) throw new Error(`"rawSpan.timestamp" must be number`);
+        if (!_.isNumber(rawSpan.duration)) throw new Error(`"rawSpan.duration" must be number`);
+
+        const span: Span = {
+            id: rawSpan.id,
+            traceId: rawSpan.traceId,
+            operationName: rawSpan.name,
+            startTime: rawSpan.timestamp,
+            finishTime: rawSpan.timestamp + rawSpan.duration,
+            references: [],
+            tags: _.isObject(rawSpan.tags) ? rawSpan.tags : {},
+            logs: [],
+            localEndpoint: _.isObject(rawSpan.localEndpoint) ? rawSpan.localEndpoint : { serviceName: 'unknown' }
+        };
+
+        if (_.isString(rawSpan.parentId) && rawSpan.parentId.length > 0) {
+            span.references.push({
+                type: 'childOf',
+                traceId: rawSpan.traceId,
+                spanId: rawSpan.parentId
+            });
+        }
+
+        if (_.isArray(rawSpan.annotations)) {
+            span.logs = rawSpan.annotations.map((anno: any) => ({
+                timestamp: anno.timestamp,
+                fields: {
+                    annotation: anno.value
+                }
+            }));
+        }
+
+        return span;
+    });
+
+    return spans;
+}
