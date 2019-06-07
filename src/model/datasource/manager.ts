@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { DataSourceType, DataSource } from './interfaces';
-import JaegerAPI from '../search/api/jaeger';
-import ZipkinAPI from '../search/api/zipkin';
+import JaegerAPI from '../jaeger/api';
+import ZipkinAPI from '../zipkin/api';
 
 
 let singletonIns: DataSourceManager;

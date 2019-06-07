@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { SearchQuery } from '../interfaces';
+import { SearchQuery } from '../search/interfaces';
 
 
 const JAEGER_API_MAX_LIMIT = 1500;

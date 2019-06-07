@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Modal, Form, Input, Select, Collapse, message } from 'antd';
-import JaegerAPI from '../../model/search/api/jaeger';
-import ZipkinAPI from '../../model/search/api/zipkin';
+import JaegerAPI from '../../model/jaeger/api';
+import ZipkinAPI from '../../model/zipkin/api';
 import { DataSourceType, DataSource } from '../../model/datasource/interfaces'
 import * as shortid from 'shortid';
 import * as _ from 'lodash';
