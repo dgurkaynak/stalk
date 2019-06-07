@@ -4,17 +4,22 @@ import JaegerAPI from '../search/api/jaeger';
 import ZipkinAPI from '../search/api/zipkin';
 
 
-type API = JaegerAPI | ZipkinAPI;
-
+let singletonIns: DataSourceManager;
 
 class DataSourceManager {
   private entities: DataSourceEntity[] = [];
-  private apis: { [key: string]: API } = {};
+  private apis: { [key: string]: JaegerAPI | ZipkinAPI } = {};
+
+
+  static getSingleton(): DataSourceManager {
+    if (!singletonIns) singletonIns = new DataSourceManager();
+    return singletonIns;
+  }
 
 
   add(entity: DataSourceEntity) {
     const { id, type, baseUrl, username, password } = entity;
-    let api: API;
+    let api: JaegerAPI | ZipkinAPI;
 
     switch (type) {
       case DataSourceType.JAEGER: {
@@ -70,4 +75,4 @@ class DataSourceManager {
 }
 
 
-export default new DataSourceManager();
+export default DataSourceManager;

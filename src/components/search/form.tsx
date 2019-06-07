@@ -273,7 +273,7 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
                 })(
                   <ServiceOrOperationSelect
                     style={{ width: '100%' }}
-                    api={this.state.dataSource ? DataSourceManager.apiFor(this.state.dataSource as any) : null as any}
+                    api={this.state.dataSource ? DataSourceManager.getSingleton().apiFor(this.state.dataSource as any) : null as any}
                     onChange={this.binded.onServiceOrOperationChange}
                   />
                 )}

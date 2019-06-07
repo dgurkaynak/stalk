@@ -4,8 +4,6 @@ import JaegerAPI from '../../model/search/api/jaeger';
 import ZipkinAPI from '../../model/search/api/zipkin';
 
 
-type API = JaegerAPI | ZipkinAPI;
-
 
 export enum ServiceOrOperationType {
   SERVICE = 'service',
@@ -22,7 +20,7 @@ export interface ServiceOrOperationEntity {
 
 export interface ServiceOrOperationSelectProps {
   style?: React.CSSProperties,
-  api?: API,
+  api?: JaegerAPI | ZipkinAPI,
   onChange: (serviceOrOperation: ServiceOrOperationEntity) => void,
   value?: ServiceOrOperationEntity
 }

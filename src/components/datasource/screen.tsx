@@ -13,8 +13,9 @@ export interface DataSourcesScreenProps {
 
 
 export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
+  private dsManager = DataSourceManager.getSingleton();
   state = {
-    dataSources: DataSourceManager.getAll(),
+    dataSources: this.dsManager.getAll(),
     isImportJsonModalVisible: false,
     isFormModalVisible: false,
     formModalDataSource: null
@@ -34,12 +35,12 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
 
   onFormModalSave(dataSource: DataSourceEntity, isNew: boolean) {
     if (isNew) {
-      DataSourceManager.add(dataSource); // Redux action?
+      this.dsManager.add(dataSource); // Redux action?
     } else {
-      DataSourceManager.update(dataSource); // Redux action?
+      this.dsManager.update(dataSource); // Redux action?
     }
     this.setState({
-      dataSources: DataSourceManager.getAll(),
+      dataSources: this.dsManager.getAll(),
       isFormModalVisible: false,
       formModalDataSource: null
     });
@@ -55,8 +56,8 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
 
 
   onDataSourceDelete(dataSource: DataSourceEntity) {
-    DataSourceManager.remove(dataSource); // Redux action?
-    this.setState({ dataSources: DataSourceManager.getAll() });
+    this.dsManager.remove(dataSource); // Redux action?
+    this.setState({ dataSources: this.dsManager.getAll() });
   }
 
 

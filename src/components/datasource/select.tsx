@@ -14,8 +14,9 @@ export interface DataSourceSelectProps {
 
 
 export class DataSourceSelect extends React.Component<DataSourceSelectProps> {
+  private dsManager = DataSourceManager.getSingleton();
   state = {
-    dataSources: DataSourceManager.getAll()
+    dataSources: this.dsManager.getAll()
   };
   binded = {
     onChange: this.onChange.bind(this)
@@ -23,7 +24,7 @@ export class DataSourceSelect extends React.Component<DataSourceSelectProps> {
 
 
   onChange(value: any) {
-    this.props.onChange(DataSourceManager.get(value)!);
+    this.props.onChange(this.dsManager.get(value)!);
   }
 
 
