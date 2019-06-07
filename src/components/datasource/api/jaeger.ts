@@ -2,6 +2,8 @@ import * as _ from 'lodash';
 import { SearchQuery } from '../../search/interfaces';
 
 
+const JAEGER_API_MAX_LIMIT = 1500;
+
 export class JaegerAPI {
     private baseUrl: string;
     private headers: { [key: string]: string } = {};

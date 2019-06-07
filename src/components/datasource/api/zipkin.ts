@@ -2,6 +2,8 @@ import * as _ from 'lodash';
 import { SearchQuery } from '../../search/interfaces';
 
 
+const ZIPKIN_API_MAX_LIMIT = 250;
+
 // https://zipkin.apache.org/zipkin-api/#/
 export class ZipkinAPI {
     private baseUrl: string;
