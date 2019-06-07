@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Layout, Menu, Icon } from 'antd';
 import DataSourcesScreen from './components/datasource/screen';
 import SearchScreen from './components/search/screen';
-import './app.css';
+import './App.css';
 
 const { Content, Sider } = Layout;
 
