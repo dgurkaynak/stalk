@@ -4,7 +4,7 @@ export enum DataSourceType {
 }
 
 
-export interface DataSourceEntity {
+export interface DataSource {
   id: string;
   type: DataSourceType | string;
   name: string;

@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Modal, Form, Input, Select, Collapse, message } from 'antd';
 import JaegerAPI from '../../model/search/api/jaeger';
 import ZipkinAPI from '../../model/search/api/zipkin';
-import { DataSourceType, DataSourceEntity } from '../../model/datasource/interfaces'
+import { DataSourceType, DataSource } from '../../model/datasource/interfaces'
 import * as shortid from 'shortid';
 import * as _ from 'lodash';
 
@@ -35,10 +35,10 @@ const formItemProps = {
 
 export interface DataSourceFormModalProps {
   visible: boolean,
-  onSave: (dataSource: DataSourceEntity, isNew: boolean) => void,
+  onSave: (dataSource: DataSource, isNew: boolean) => void,
   onCancel: () => void,
   form: any,
-  dataSource?: DataSourceEntity
+  dataSource?: DataSource
 }
 
 

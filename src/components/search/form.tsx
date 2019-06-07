@@ -2,7 +2,7 @@ import React from 'react';
 import { Tooltip, Form, Row, Col, Input, Button, Icon, Select, DatePicker, TimePicker, InputNumber, Tag } from 'antd';
 import DataSourceManager from '../../model/datasource/manager';
 import DataSourceSelect from '../datasource/select';
-import { DataSourceEntity } from '../../model/datasource/interfaces';
+import { DataSource } from '../../model/datasource/interfaces';
 import { ServiceOrOperationSelect, ServiceOrOperationEntity } from './service-or-operation-select';
 import moment from 'moment';
 // import _ from 'lodash';
@@ -23,7 +23,7 @@ export interface SearchFormProps {
 
 
 export interface SearchFormState {
-  dataSource: DataSourceEntity | null,
+  dataSource: DataSource | null,
   serviceOrOperation: ServiceOrOperationEntity | null,
   lookback: string,
   limit: number,
@@ -76,7 +76,7 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
     };
 
 
-    onDataSourceChange(dataSource: DataSourceEntity) {
+    onDataSourceChange(dataSource: DataSource) {
       this.setState({ dataSource });
       this.props.form.setFieldsValue({ dataSource });
     }

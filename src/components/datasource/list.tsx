@@ -1,6 +1,6 @@
 import React from 'react';
 import { Empty, List, Tag, Button } from 'antd';
-import { DataSourceEntity, DataSourceType } from '../../model/datasource/interfaces';
+import { DataSource, DataSourceType } from '../../model/datasource/interfaces';
 
 
 const styles = {
@@ -12,9 +12,9 @@ const styles = {
 
 
 interface DataSourceListProps {
-  dataSources: DataSourceEntity[],
-  onItemNameClick: (datasource: DataSourceEntity) => void,
-  onItemDelete: (datasource: DataSourceEntity) => void
+  dataSources: DataSource[],
+  onItemNameClick: (datasource: DataSource) => void,
+  onItemDelete: (datasource: DataSource) => void
 }
 
 

@@ -1,8 +1,8 @@
-import { DataSourceEntity } from "../datasource/interfaces";
+import { DataSource } from "../datasource/interfaces";
 
 
 export interface SearchQuery {
-  dataSource?: DataSourceEntity,
+  dataSource?: DataSource,
   serviceName: string,
   operationName?: string,
   startTime: number,

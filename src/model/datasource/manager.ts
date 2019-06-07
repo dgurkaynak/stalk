@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { DataSourceType, DataSourceEntity } from './interfaces';
+import { DataSourceType, DataSource } from './interfaces';
 import JaegerAPI from '../search/api/jaeger';
 import ZipkinAPI from '../search/api/zipkin';
 
@@ -7,7 +7,7 @@ import ZipkinAPI from '../search/api/zipkin';
 let singletonIns: DataSourceManager;
 
 class DataSourceManager {
-  private entities: DataSourceEntity[] = [];
+  private datasources: DataSource[] = [];
   private apis: { [key: string]: JaegerAPI | ZipkinAPI } = {};
 
 
@@ -17,9 +17,11 @@ class DataSourceManager {
   }
 
 
-  add(entity: DataSourceEntity) {
-    const { id, type, baseUrl, username, password } = entity;
+  add(ds: DataSource) {
+    const { id, type, baseUrl, username, password } = ds;
     let api: JaegerAPI | ZipkinAPI;
+
+    // TODO: Check id is existing
 
     switch (type) {
       case DataSourceType.JAEGER: {
@@ -31,46 +33,52 @@ class DataSourceManager {
         break;
       }
       default: {
-        throw new Error(`Unsupported data source type "${entity.type}"`);
+        throw new Error(`Unsupported data source type "${ds.type}"`);
       }
     }
 
-    this.entities.push(entity);
+    this.datasources.push(ds);
     this.apis[id] = api;
 
-    return entity;
+    return ds;
   }
 
 
-  update(entity: DataSourceEntity) {
-    const index = _.findIndex(this.entities, e => e.id === entity.id);
+  update(ds: DataSource) {
+    const index = _.findIndex(this.datasources, x => x.id === ds.id);
     if (index === -1) return false;
-    this.entities[index] = entity;
-    return entity;
+    this.datasources[index] = ds;
   }
 
 
-  remove(entity: DataSourceEntity) {
-    const index = _.findIndex(this.entities, e => e.id === entity.id);
+  remove(dsOrId: DataSource | string) {
+    const index = this.getIndex(dsOrId);
     if (index === -1) return false;
-    this.entities.splice(index, 1);
-    delete this.apis[entity.id];
-    return entity;
+    const [ ds ] = this.datasources.splice(index, 1);
+    delete this.apis[ds.id];
+    return ds;
   }
 
 
-  apiFor(entity: DataSourceEntity) {
-    return this.apis[entity.id];
+  apiFor(ds: DataSource) {
+    return this.apis[ds.id];
   }
 
 
   getAll() {
-    return [...this.entities];
+    return [...this.datasources];
   }
 
 
-  get(id: string) {
-    return _.find(this.entities, e => e.id === id);
+  get(dsOrId: DataSource | string) {
+    const id = typeof dsOrId == 'object' && dsOrId.id ? dsOrId.id : dsOrId;
+    return _.find(this.datasources, x => x.id === id);
+  }
+
+
+  getIndex(dsOrId: DataSource | string) {
+    const id = typeof dsOrId == 'object' && dsOrId.id ? dsOrId.id : dsOrId;
+    return _.findIndex(this.datasources, x => x.id === id);
   }
 }
 

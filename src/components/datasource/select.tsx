@@ -1,15 +1,15 @@
 import React from 'react';
 import { Select } from 'antd';
 import DataSourceManager from '../../model/datasource/manager';
-import { DataSourceEntity } from '../../model/datasource/interfaces';
+import { DataSource } from '../../model/datasource/interfaces';
 
 const { Option } = Select;
 
 
 export interface DataSourceSelectProps {
   style?: React.CSSProperties,
-  onChange: (dataSource: DataSourceEntity) => void,
-  value?: DataSourceEntity
+  onChange: (dataSource: DataSource) => void,
+  value?: DataSource
 }
 
 

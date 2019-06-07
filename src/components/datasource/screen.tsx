@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, PageHeader } from 'antd';
 import DataSourceFormModal from './form-modal'
 import DataSourceImportJsonModal from './import-json-modal'
-import { DataSourceEntity } from '../../model/datasource/interfaces';
+import { DataSource } from '../../model/datasource/interfaces';
 import DataSourceManager from '../../model/datasource/manager';
 import DataSourceList from './list';
 
@@ -33,7 +33,7 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
   }
 
 
-  onFormModalSave(dataSource: DataSourceEntity, isNew: boolean) {
+  onFormModalSave(dataSource: DataSource, isNew: boolean) {
     if (isNew) {
       this.dsManager.add(dataSource); // Redux action?
     } else {
@@ -47,7 +47,7 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
   }
 
 
-  onDataSourceClick(dataSource: DataSourceEntity) {
+  onDataSourceClick(dataSource: DataSource) {
     this.setState({
       isFormModalVisible: true,
       formModalDataSource: dataSource
@@ -55,7 +55,7 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
   }
 
 
-  onDataSourceDelete(dataSource: DataSourceEntity) {
+  onDataSourceDelete(dataSource: DataSource) {
     this.dsManager.remove(dataSource); // Redux action?
     this.setState({ dataSources: this.dsManager.getAll() });
   }
