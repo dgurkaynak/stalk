@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { Span } from '../span';
+import { Span } from '../../span';
 
 
 export function convertFromZipkinTrace(rawTrace: any) {

@@ -1,4 +1,5 @@
 import { DataSource } from "../datasource/interfaces";
+import { Span } from '../span';
 
 
 export interface SearchQuery {
@@ -12,4 +13,10 @@ export interface SearchQuery {
   maxDuration?: number,
   limit: number,
   offset?: number
+}
+
+
+export interface SearchResulList {
+  query: SearchQuery,
+  data: Span[][];
 }

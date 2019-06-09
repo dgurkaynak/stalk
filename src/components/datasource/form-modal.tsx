@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Modal, Form, Input, Select, Collapse, message } from 'antd';
-import JaegerAPI from '../../model/jaeger/api';
-import ZipkinAPI from '../../model/zipkin/api';
+import JaegerAPI from '../../model/api/jaeger/api';
+import ZipkinAPI from '../../model/api/zipkin/api';
 import { DataSourceType, DataSource } from '../../model/datasource/interfaces'
 import * as shortid from 'shortid';
 import * as _ from 'lodash';
@@ -73,7 +73,7 @@ export const DataSourceFormModal: any = Form.create({
 
             try {
               const api = values.type === DataSourceType.JAEGER ? new JaegerAPI(options) : new ZipkinAPI(options);
-              await api.getServices();
+              await api.test();
               message.success(`Data source is working`);
             } catch (err) {
               message.error(`Data source error: "${err.message}"`);
