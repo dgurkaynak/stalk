@@ -26,8 +26,9 @@ export function convertFromJaegerTrace(rawTrace: any) {
         };
 
         if (_.isArray(rawSpan.references)) {
+            const refTypeMapping: any = { CHILD_OF: 'childOf', FOLLOWS_FROM: 'followsFrom' };
             span.references = rawSpan.references.map((ref: any) => ({
-                type: ref.refType,
+                type: refTypeMapping[ref.refType],
                 traceId: ref.traceID,
                 spanId: ref.spanID
             }));
