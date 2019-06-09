@@ -63,7 +63,7 @@ export class ServiceOrOperationSelect extends React.Component<ServiceOrOperation
         treeData={this.state.treeData}
         placeholder="Select a service or an operation"
         onChange={this.binded.onChange}
-        treeDefaultExpandAll
+        // treeDefaultExpandAll
       />
     );
   }
@@ -77,7 +77,7 @@ function buildSelectKey(service: string, operation?: string) {
 
 
 function convertServicesAndOperationsToTreeData(serviceAndOperations: { [key: string]: string[] }) {
-  return Object.keys(serviceAndOperations).map((service: string) => {
+  return Object.keys(serviceAndOperations).sort().map((service: string) => {
     const operations = serviceAndOperations[service];
     const children = operations.map((operation) => ({
       title: operation,
