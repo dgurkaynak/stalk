@@ -10,5 +10,6 @@ export interface SearchQuery {
   tags: (string | { [key: string]: string })[],
   minDuration?: number,
   maxDuration?: number,
-  limit: number
+  limit: number,
+  offset?: number
 }

@@ -99,7 +99,8 @@ export class JaegerAPI {
             limit?: string,
             minDuration?: string,
             maxDuration?: string,
-            tags?: string
+            tags?: string,
+            offset?: string
         } = {
             /**
              * `service` is required.
@@ -119,7 +120,8 @@ export class JaegerAPI {
         if (options.finishTime) queryParams.end = String(options.finishTime * 1000);
 
         /** Defaults to 20 */
-        if (options.limit) queryParams.limit = String(options.limit);
+        if (_.isNumber(options.limit)) queryParams.limit = String(options.limit);
+        if (_.isNumber(options.offset)) queryParams.offset = String(options.offset);
 
         /**
          * It expects a human readable duration string like `100ms` or `1.2ss` or `10us`.
