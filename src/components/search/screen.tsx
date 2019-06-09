@@ -1,5 +1,5 @@
 import React from 'react';
-// import * as _ from 'lodash';
+import * as _ from 'lodash';
 import { PageHeader, List, Empty, Tag, Typography, Row, Col, Tooltip } from 'antd';
 import SearchForm from './form';
 import { SearchQuery } from '../../model/search/interfaces';
@@ -7,6 +7,7 @@ import DataSourceManager from '../../model/datasource/manager';
 import { Trace } from '../../model/trace';
 import prettyMilliseconds from 'pretty-ms';
 import moment from 'moment';
+import chroma from 'chroma-js';
 
 const { Text } = Typography;
 
@@ -24,15 +25,19 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
   binded = {
     onSearch: this.onSearch.bind(this)
   };
+  chromaScale = chroma.scale(['#000', '#f00']).mode('lab');
 
 
   async onSearch(query: SearchQuery) {
     const api = DataSourceManager.getSingleton().apiFor(query.dataSource!);
     this.setState({ shouldShowResults: false });
     const result = await api.search(query);
+    const traces = result.data.map(spans => new Trace(spans));
+    const longestTrace = _.maxBy(traces, trace => trace.duration);
+    this.chromaScale.domain([0, longestTrace!.duration]);
     this.setState({
       shouldShowResults: true,
-      searchResults: result.data.map(spans => new Trace(spans))
+      searchResults: traces
     });
   }
 
@@ -89,7 +94,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
               title={prettyMilliseconds(item.duration / 1000, { formatSubMilliseconds: true })}
               placement="left"
             >
-              <Text style={{ position: 'absolute', top: 10, right: 10 }}>
+              <Text style={{ position: 'absolute', top: 10, right: 10, color: this.chromaScale(item.duration).hex() }}>
                 {/* TODO: Remove string replace
                     https://github.com/sindresorhus/pretty-ms/issues/32 */}
                 {prettyMilliseconds(item.duration / 1000, { compact: true, formatSubMilliseconds: true }).replace('~', '')}
