@@ -70,7 +70,7 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
       minTime = Math.min(minTime, trace.startTime / 1000); // ms
       maxTime = Math.max(maxTime, trace.finishTime / 1000); // ms
       // TODO: Use the best duration unit for traces (ms, s, us...?)
-      maxDuration = Math.max(maxDuration, trace.duration / 1000 / 1000); // s
+      maxDuration = Math.max(maxDuration, trace.duration / 1000); // ms
     });
 
     // X axis
@@ -89,7 +89,23 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
 
     svg.append('g')
       .attr('transform', `translate(${MARGIN.left}, 0)`)
-      .call(d3.axisLeft(y));
+      .call(
+        d3.axisLeft(y)
+          .ticks(7)
+          .tickFormat((d: any) => {
+            if (d === 0) return `0`;
+            var m = (d / (1000 / 60));
+            var s = (d / 1000);
+            var ms = d;
+            var us = (d * 1000);
+            var ns = (d * 1000 * 1000);
+            if (ns < 1000) return `${ns.toFixed(1)}ns`;
+            if (us < 1000) return `${us.toFixed(1)}μs`;
+            if (ms < 1000) return `${ms.toFixed(1)}ms`;
+            if (s < 60) return `${s.toFixed(1)}s`;
+            return `${m.toFixed(1)}m`;
+          })
+      );
 
     // Dots
     svg.append('g')
@@ -99,7 +115,7 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
       .append('circle')
       .attr('data-traceid', t => t.id)
       .attr('cx', t => x(t.startTime / 1000))
-      .attr('cy', t => y(t.duration / 1000 / 1000))
+      .attr('cy', t => y(t.duration / 1000))
       .attr('r', 7)
       .style('fill', t => ColorManagers.operationName.colorFor(t.name) as string)
       .style('opacity', 0.75)
@@ -109,7 +125,7 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
         this.highlight(t);
         const coords = {
           x: x(t.startTime / 1000),
-          y: y(t.duration / 1000 / 1000)
+          y: y(t.duration / 1000)
         };
         d3
           .select(this.tooltipRef)
