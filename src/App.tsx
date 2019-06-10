@@ -44,7 +44,7 @@ const App: React.FC = () => {
             <Icon type="line-chart" />
             <span>Timeline View</span>
           </Menu.Item>
-          <Menu.Item key={RouteKey.SETTINGS}>
+          <Menu.Item key={RouteKey.SETTINGS} style={{ position: 'absolute', bottom: 0 }}>
             <Icon type="setting" />
             <span>Settings</span>
           </Menu.Item>
