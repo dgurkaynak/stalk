@@ -8,6 +8,7 @@ import { Trace } from '../../model/trace';
 import prettyMilliseconds from 'pretty-ms';
 import moment from 'moment';
 import chroma from 'chroma-js';
+import { TraceDurationScatterPlot } from '../ui/trace-duration-scatter-plot';
 
 const { Text } = Typography;
 
@@ -34,7 +35,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     const result = await api.search(query);
     const traces = result.data.map(spans => new Trace(spans));
     const longestTrace = _.maxBy(traces, trace => trace.duration);
-    this.chromaScale.domain([0, longestTrace!.duration]);
+    if (longestTrace) this.chromaScale.domain([0, longestTrace.duration]);
     this.setState({
       shouldShowResults: true,
       searchResults: traces
@@ -44,7 +45,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
 
   render() {
     const { visible } = this.props;
-    const { shouldShowResults } = this.state;
+    const { shouldShowResults, searchResults } = this.state;
 
     return (
       <div style={{ display: visible ? 'block' : 'none' }}>
@@ -55,6 +56,10 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
         >
           <SearchForm onSearch={this.binded.onSearch} />
         </PageHeader>
+
+        {shouldShowResults && searchResults && searchResults.length > 0 ? (
+          <TraceDurationScatterPlot traces={searchResults} width="100%" height={300} />
+        ) : null}
 
         {shouldShowResults ? (
           <div style={{ background: '#fff', margin: 24, borderRadius: 3 }}>
