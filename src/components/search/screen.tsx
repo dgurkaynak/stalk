@@ -19,9 +19,14 @@ export interface SearchScreenProps {
 
 
 export class SearchScreen extends React.Component<SearchScreenProps> {
-  state = {
+  state: {
+    shouldShowResults: boolean,
+    searchResults: Trace[],
+    scatterPlotHighlightedTrace: Trace | undefined
+  } = {
     shouldShowResults: false,
-    searchResults: [] as Trace[]
+    searchResults: [] as Trace[],
+    scatterPlotHighlightedTrace: undefined
   };
   binded = {
     onSearch: this.onSearch.bind(this)
@@ -44,9 +49,19 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
   }
 
 
+  onMouseEnterOnItem(trace: Trace) {
+    this.setState({ scatterPlotHighlightedTrace: trace });
+  }
+
+
+  onMouseLeaveOnItem(trace: Trace) {
+    this.setState({ scatterPlotHighlightedTrace: null });
+  }
+
+
   render() {
     const { visible } = this.props;
-    const { shouldShowResults, searchResults } = this.state;
+    const { shouldShowResults, searchResults, scatterPlotHighlightedTrace } = this.state;
 
     return (
       <div
@@ -68,6 +83,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
               width="100%"
               height={300}
               style={{ backgroundColor: '#F0F2F5' }}
+              highlightedTrace={scatterPlotHighlightedTrace}
             />
           </Affix>
         ) : null}
@@ -90,7 +106,11 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
         itemLayout="vertical"
         dataSource={searchResults}
         renderItem={item => (
-          <List.Item style={{ padding: 10, position: 'relative' }} >
+          <List.Item
+            style={{ padding: 10, position: 'relative' }}
+            onMouseEnter={() => this.onMouseEnterOnItem(item)}
+            onMouseLeave={() => this.onMouseLeaveOnItem(item)}
+          >
             <List.Item.Meta
               style={{ marginBottom: 0 }}
               title={

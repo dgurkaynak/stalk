@@ -8,6 +8,7 @@ const MARGIN = { top: 20, right: 30, bottom: 30, left: 50 };
 
 export interface TraceDurationScatterPlotProps {
   traces: Trace[],
+  highlightedTrace?: Trace,
   width: number | string,
   height: number | string,
   style?: React.CSSProperties
@@ -23,13 +24,17 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
   }
 
 
-  // shouldComponentUpdate() {
-  //   // TODO:
-  // }
+  shouldComponentUpdate(nextProps: TraceDurationScatterPlotProps) {
+    if (this.props.traces !== nextProps.traces) {
+      this.renderChart();
+    }
 
+    if (this.props.highlightedTrace !== nextProps.highlightedTrace) {
+      if (this.props.highlightedTrace) this.unhighlight(this.props.highlightedTrace);
+      if (nextProps.highlightedTrace) this.highlight(nextProps.highlightedTrace);
+    }
 
-  componentDidUpdate() {
-    this.renderChart();
+    return false;
   }
 
 
@@ -85,12 +90,34 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
       .data(traces)
       .enter()
       .append('circle')
+      .attr('data-traceId', t => t.id)
       .attr('cx', t => x(t.startTime / 1000))
       .attr('cy', t => y(t.duration / 1000 / 1000))
       .attr('r', 7)
       .style('fill', t => ColorManagers.operationName.colorFor(t.name) as string)
-      .style('opacity', 0.75);
+      .style('opacity', 0.75)
+      .on('mouseenter', t => this.highlight(t))
+      .on('mouseleave', t => this.unhighlight(t));
+  }
 
+
+  highlight(trace: Trace) {
+    const svg = d3.select(this.svg);
+    svg.select(`circle[data-traceId="${trace.id}"]`)
+      .transition()
+      .duration(100)
+      .attr('r', 10)
+      .style('opacity', 1);
+  }
+
+
+  unhighlight(trace: Trace) {
+    const svg = d3.select(this.svg);
+    svg.select(`circle[data-traceId="${trace.id}"]`)
+      .transition()
+      .duration(100)
+      .attr('r', 7)
+      .style('opacity', 0.75);
   }
 
 
