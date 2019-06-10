@@ -10,3 +10,21 @@
   font-size: 0.8em;
   font-weight: 600;
 }
+
+svg.trace-duration-scatter-plot {
+  box-shadow: 0px 6px 0px -6px rgba(0, 0, 0, 0);
+  transition: box-shadow 0.25s ease-in-out;
+}
+
+svg.trace-duration-scatter-plot.affixed {
+  box-shadow: 0px 6px 22px -6px rgba(0, 0, 0, 0.75);
+}
+
+.search-result-item-badge .ant-badge-status-dot {
+  width: 7px;
+  height: 7px;
+}
+
+.search-result-item:hover, .search-result-item.highlighted {
+  background-color: #FFFBE6;
+}

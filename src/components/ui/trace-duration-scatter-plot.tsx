@@ -12,6 +12,10 @@ export interface TraceDurationScatterPlotProps {
   width: number | string,
   height: number | string,
   style?: React.CSSProperties
+  className?: string,
+  onItemMouseEnter?: (t: Trace) => void,
+  onItemMouseLeave?: (t: Trace) => void,
+  onItemClick?: (t: Trace) => void
 }
 
 
@@ -90,20 +94,28 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
       .data(traces)
       .enter()
       .append('circle')
-      .attr('data-traceId', t => t.id)
+      .attr('data-traceid', t => t.id)
       .attr('cx', t => x(t.startTime / 1000))
       .attr('cy', t => y(t.duration / 1000 / 1000))
       .attr('r', 7)
       .style('fill', t => ColorManagers.operationName.colorFor(t.name) as string)
       .style('opacity', 0.75)
-      .on('mouseenter', t => this.highlight(t))
-      .on('mouseleave', t => this.unhighlight(t));
+      .style('cursor', 'pointer')
+      .on('click', t => this.props.onItemClick && this.props.onItemClick(t))
+      .on('mouseenter', t => {
+        this.highlight(t);
+        this.props.onItemMouseEnter && this.props.onItemMouseEnter(t);
+      })
+      .on('mouseleave', t => {
+        this.unhighlight(t);
+        this.props.onItemMouseLeave && this.props.onItemMouseLeave(t);
+      });
   }
 
 
   highlight(trace: Trace) {
     const svg = d3.select(this.svg);
-    svg.select(`circle[data-traceId="${trace.id}"]`)
+    svg.select(`circle[data-traceid="${trace.id}"]`)
       .transition()
       .duration(100)
       .attr('r', 10)
@@ -113,7 +125,7 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
 
   unhighlight(trace: Trace) {
     const svg = d3.select(this.svg);
-    svg.select(`circle[data-traceId="${trace.id}"]`)
+    svg.select(`circle[data-traceid="${trace.id}"]`)
       .transition()
       .duration(100)
       .attr('r', 7)
@@ -129,6 +141,7 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
         width={width}
         height={height}
         style={style}
+        className={this.props.className}
       ></svg>
     );
   }

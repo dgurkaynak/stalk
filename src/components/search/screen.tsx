@@ -12,6 +12,7 @@ import { TraceDurationScatterPlot } from '../ui/trace-duration-scatter-plot';
 import ColorManagers from '../color/managers';
 
 const { Text } = Typography;
+const CHART_HEIGHT = 250;
 
 
 export interface SearchScreenProps {
@@ -30,7 +31,11 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     scatterPlotHighlightedTrace: undefined
   };
   binded = {
-    onSearch: this.onSearch.bind(this)
+    onSearch: this.onSearch.bind(this),
+    onAffixStateChange: this.onAffixStateChange.bind(this),
+    onMouseEnterOnScatterPlotDot: this.onMouseEnterOnScatterPlotDot.bind(this),
+    onMouseLeaveOnScatterPlotDot: this.onMouseLeaveOnScatterPlotDot.bind(this),
+    onClickOnScatterPlotDot: this.onClickOnScatterPlotDot.bind(this)
   };
   chromaScale = chroma.scale(['#000', '#f00']).mode('lab');
   container: HTMLDivElement | null = null;
@@ -60,6 +65,50 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
   }
 
 
+  onAffixStateChange(affixed: boolean | undefined) {
+    if (!this.container) return;
+    const svg = this.container.querySelector('svg.trace-duration-scatter-plot') as SVGElement;
+    if (!svg) return;
+    if (affixed) svg.classList.add('affixed');
+    else svg.classList.remove('affixed');
+  }
+
+
+  onMouseEnterOnScatterPlotDot(trace: Trace) {
+    if (!this.container) return;
+    const item = this.container.querySelector(`.search-result-item[data-traceid="${trace.id}"]`) as HTMLLIElement;
+    if (!item) return;
+    item.classList.add('highlighted');
+  }
+
+
+  onMouseLeaveOnScatterPlotDot(trace: Trace) {
+    if (!this.container) return;
+    const item = this.container.querySelector(`.search-result-item[data-traceid="${trace.id}"]`) as HTMLLIElement;
+    if (!item) return;
+    item.classList.remove('highlighted');
+  }
+
+
+  onClickOnScatterPlotDot(trace: Trace) {
+    if (!this.container) return;
+    const item = this.container.querySelector(`.search-result-item[data-traceid="${trace.id}"]`) as HTMLLIElement;
+    if (!item) return;
+
+    // Scroll to
+    const containerBB = this.container.getBoundingClientRect();
+    const itemBB = item.getBoundingClientRect();
+    const snapTo = containerBB.top + CHART_HEIGHT + 50;
+
+    if (itemBB.top > snapTo && itemBB.top < (containerBB.top + containerBB.height)) {
+      // item in desired viewport, no scroll
+    } else {
+      const scrollOffset = itemBB.top - snapTo;
+      this.container.scrollTop += scrollOffset;
+    }
+  }
+
+
   render() {
     const { visible } = this.props;
     const { shouldShowResults, searchResults, scatterPlotHighlightedTrace } = this.state;
@@ -78,19 +127,23 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
         </PageHeader>
 
         {shouldShowResults && searchResults && searchResults.length > 0 ? (
-          <Affix target={() => this.container}>
+          <Affix target={() => this.container} onChange={this.binded.onAffixStateChange}>
             <TraceDurationScatterPlot
               traces={searchResults}
               width="100%"
-              height={300}
+              height={CHART_HEIGHT}
               style={{ backgroundColor: '#F0F2F5' }}
               highlightedTrace={scatterPlotHighlightedTrace}
+              className="trace-duration-scatter-plot"
+              onItemClick={this.binded.onClickOnScatterPlotDot}
+              onItemMouseEnter={this.binded.onMouseEnterOnScatterPlotDot}
+              onItemMouseLeave={this.binded.onMouseLeaveOnScatterPlotDot}
             />
           </Affix>
         ) : null}
 
         {shouldShowResults ? (
-          <div style={{ background: '#fff', margin: 24, borderRadius: 3 }}>
+          <div style={{ background: '#fff', margin: 24, marginTop: 0, borderRadius: 3 }}>
             {this.renderSearchResults()}
           </div>
         ) : null}
@@ -111,12 +164,17 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
             style={{ padding: 10, position: 'relative' }}
             onMouseEnter={() => this.onMouseEnterOnItem(item)}
             onMouseLeave={() => this.onMouseLeaveOnItem(item)}
+            data-traceid={item.id}
+            className="search-result-item"
           >
             <List.Item.Meta
               style={{ marginBottom: 0 }}
               title={
                 <>
-                  <Badge color={ColorManagers.operationName.colorFor(item.name) as string} />
+                  <Badge
+                    color={ColorManagers.operationName.colorFor(item.name) as string}
+                    className="search-result-item-badge"
+                  />
                   {item.name} &nbsp;
                   <Tag>{item.spanCount} {item.spanCount === 1 ? 'Span' : 'Spans'}</Tag>
                   {item.errorCount > 0 ? (
