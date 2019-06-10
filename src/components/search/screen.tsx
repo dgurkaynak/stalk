@@ -1,6 +1,6 @@
 import React from 'react';
 import * as _ from 'lodash';
-import { PageHeader, List, Empty, Tag, Typography, Row, Col, Tooltip, Affix } from 'antd';
+import { PageHeader, List, Empty, Tag, Typography, Row, Col, Tooltip, Affix, Badge } from 'antd';
 import SearchForm from './form';
 import { SearchQuery } from '../../model/search/interfaces';
 import DataSourceManager from '../../model/datasource/manager';
@@ -9,6 +9,7 @@ import prettyMilliseconds from 'pretty-ms';
 import moment from 'moment';
 import chroma from 'chroma-js';
 import { TraceDurationScatterPlot } from '../ui/trace-duration-scatter-plot';
+import ColorManagers from '../color/managers';
 
 const { Text } = Typography;
 
@@ -115,6 +116,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
               style={{ marginBottom: 0 }}
               title={
                 <>
+                  <Badge color={ColorManagers.operationName.colorFor(item.name) as string} />
                   {item.name} &nbsp;
                   <Tag>{item.spanCount} {item.spanCount === 1 ? 'Span' : 'Spans'}</Tag>
                   {item.errorCount > 0 ? (
