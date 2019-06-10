@@ -98,9 +98,9 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     // Scroll to
     const containerBB = this.container.getBoundingClientRect();
     const itemBB = item.getBoundingClientRect();
-    const snapTo = containerBB.top + CHART_HEIGHT + 50;
+    const snapTo = containerBB.top + CHART_HEIGHT;
 
-    if (itemBB.top > snapTo && itemBB.top < (containerBB.top + containerBB.height)) {
+    if (itemBB.top > snapTo && itemBB.bottom < (containerBB.top + containerBB.height)) {
       // item in desired viewport, no scroll
     } else {
       const scrollOffset = itemBB.top - snapTo;
