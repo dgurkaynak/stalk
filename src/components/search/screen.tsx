@@ -10,9 +10,11 @@ import moment from 'moment';
 import chroma from 'chroma-js';
 import { TraceDurationScatterPlot } from '../ui/trace-duration-scatter-plot';
 import ColorManagers from '../color/managers';
+import scroll from 'scroll';
+
 
 const { Text } = Typography;
-const CHART_HEIGHT = 250;
+const CHART_HEIGHT = 200;
 
 
 export interface SearchScreenProps {
@@ -53,6 +55,11 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
       shouldShowResults: true,
       searchResults: traces
     });
+
+    if (traces.length > 0 && this.containerRef) {
+      const chartEl = this.containerRef.querySelector('.trace-duration-scatter-plot') as HTMLDivElement;
+      scroll.top(this.containerRef, chartEl.offsetTop);
+    }
   }
 
 
@@ -68,10 +75,10 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
 
   onAffixStateChange(affixed: boolean | undefined) {
     if (!this.containerRef) return;
-    const svg = this.containerRef.querySelector('svg.trace-duration-scatter-plot') as SVGElement;
-    if (!svg) return;
-    if (affixed) svg.classList.add('affixed');
-    else svg.classList.remove('affixed');
+    const chartContainer = this.containerRef.querySelector('.trace-duration-scatter-plot') as HTMLDivElement;
+    if (!chartContainer) return;
+    if (affixed) chartContainer.classList.add('affixed');
+    else chartContainer.classList.remove('affixed');
     this.setState({ scatterPlotAffixed: affixed });
   }
 
@@ -101,13 +108,13 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     // Scroll to
     const containerBB = this.containerRef.getBoundingClientRect();
     const itemBB = item.getBoundingClientRect();
-    const snapTo = containerBB.top + CHART_HEIGHT;
+    const snapTo = containerBB.top + CHART_HEIGHT + 20; // +10 comes from searchResultContainer.marginTop
 
     if (itemBB.top > snapTo && itemBB.bottom < (containerBB.top + containerBB.height)) {
       // item in desired viewport, no scroll
     } else {
       const scrollOffset = itemBB.top - snapTo;
-      this.containerRef.scrollTop += scrollOffset;
+      scroll.top(this.containerRef, this.containerRef.scrollTop + scrollOffset);
     }
   }
 
@@ -145,7 +152,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
         ) : null}
 
         {shouldShowResults ? (
-          <div style={{ background: '#fff', margin: 24, marginTop: 0, borderRadius: 3 }}>
+          <div style={{ background: '#fff', margin: 24, marginTop: 20, borderRadius: 3 }}>
             {this.renderSearchResults()}
           </div>
         ) : null}

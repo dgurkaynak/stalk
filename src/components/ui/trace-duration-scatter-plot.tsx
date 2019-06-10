@@ -91,7 +91,7 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
       .attr('transform', `translate(${MARGIN.left}, 0)`)
       .call(
         d3.axisLeft(y)
-          .ticks(7)
+          .ticks(5)
           .tickFormat((d: any) => {
             if (d === 0) return `0`;
             var m = (d / (1000 / 60));
@@ -171,7 +171,10 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
   render() {
     const { width, height, style } = this.props;
     return (
-      <div style={{ position: 'relative' }}>
+      <div
+        className={this.props.className}
+        style={{ position: 'relative', ...style }}
+      >
         <div
           className="tooltip"
           ref={ref => { this.tooltipRef = ref }}
@@ -191,8 +194,6 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
           ref={ref => { this.svgRef = ref }}
           width={width}
           height={height}
-          style={style}
-          className={this.props.className}
         ></svg>
       </div>
     );
