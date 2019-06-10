@@ -24,18 +24,19 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
   state: {
     shouldShowResults: boolean,
     searchResults: Trace[],
-    scatterPlotHighlightedTrace: Trace | undefined
+    scatterPlotHighlightedTrace: Trace | undefined,
+    scatterPlotAffixed: boolean
   } = {
     shouldShowResults: false,
     searchResults: [] as Trace[],
-    scatterPlotHighlightedTrace: undefined
+    scatterPlotHighlightedTrace: undefined,
+    scatterPlotAffixed: false
   };
   binded = {
     onSearch: this.onSearch.bind(this),
     onAffixStateChange: this.onAffixStateChange.bind(this),
     onMouseEnterOnScatterPlotDot: this.onMouseEnterOnScatterPlotDot.bind(this),
-    onMouseLeaveOnScatterPlotDot: this.onMouseLeaveOnScatterPlotDot.bind(this),
-    onClickOnScatterPlotDot: this.onClickOnScatterPlotDot.bind(this)
+    onMouseLeaveOnScatterPlotDot: this.onMouseLeaveOnScatterPlotDot.bind(this)
   };
   chromaScale = chroma.scale(['#000', '#f00']).mode('lab');
   containerRef: HTMLDivElement | null = null;
@@ -71,6 +72,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     if (!svg) return;
     if (affixed) svg.classList.add('affixed');
     else svg.classList.remove('affixed');
+    this.setState({ scatterPlotAffixed: affixed });
   }
 
 
@@ -79,6 +81,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     const item = this.containerRef.querySelector(`.search-result-item[data-traceid="${trace.id}"]`) as HTMLLIElement;
     if (!item) return;
     item.classList.add('highlighted');
+    if (this.state.scatterPlotAffixed) this.scrollTo(trace);
   }
 
 
@@ -90,7 +93,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
   }
 
 
-  onClickOnScatterPlotDot(trace: Trace) {
+  scrollTo(trace: Trace) {
     if (!this.containerRef) return;
     const item = this.containerRef.querySelector(`.search-result-item[data-traceid="${trace.id}"]`) as HTMLLIElement;
     if (!item) return;
@@ -135,7 +138,6 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
               style={{ backgroundColor: '#F0F2F5' }}
               highlightedTrace={scatterPlotHighlightedTrace}
               className="trace-duration-scatter-plot"
-              onItemClick={this.binded.onClickOnScatterPlotDot}
               onItemMouseEnter={this.binded.onMouseEnterOnScatterPlotDot}
               onItemMouseLeave={this.binded.onMouseLeaveOnScatterPlotDot}
             />

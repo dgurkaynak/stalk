@@ -119,7 +119,6 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
       .attr('r', 7)
       .style('fill', t => ColorManagers.operationName.colorFor(t.name) as string)
       .style('opacity', 0.75)
-      .style('cursor', 'pointer')
       .on('click', t => this.props.onItemClick && this.props.onItemClick(t))
       .on('mouseenter', t => {
         this.highlight(t);
