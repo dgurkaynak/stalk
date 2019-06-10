@@ -38,7 +38,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     onClickOnScatterPlotDot: this.onClickOnScatterPlotDot.bind(this)
   };
   chromaScale = chroma.scale(['#000', '#f00']).mode('lab');
-  container: HTMLDivElement | null = null;
+  containerRef: HTMLDivElement | null = null;
 
 
   async onSearch(query: SearchQuery) {
@@ -66,8 +66,8 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
 
 
   onAffixStateChange(affixed: boolean | undefined) {
-    if (!this.container) return;
-    const svg = this.container.querySelector('svg.trace-duration-scatter-plot') as SVGElement;
+    if (!this.containerRef) return;
+    const svg = this.containerRef.querySelector('svg.trace-duration-scatter-plot') as SVGElement;
     if (!svg) return;
     if (affixed) svg.classList.add('affixed');
     else svg.classList.remove('affixed');
@@ -75,28 +75,28 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
 
 
   onMouseEnterOnScatterPlotDot(trace: Trace) {
-    if (!this.container) return;
-    const item = this.container.querySelector(`.search-result-item[data-traceid="${trace.id}"]`) as HTMLLIElement;
+    if (!this.containerRef) return;
+    const item = this.containerRef.querySelector(`.search-result-item[data-traceid="${trace.id}"]`) as HTMLLIElement;
     if (!item) return;
     item.classList.add('highlighted');
   }
 
 
   onMouseLeaveOnScatterPlotDot(trace: Trace) {
-    if (!this.container) return;
-    const item = this.container.querySelector(`.search-result-item[data-traceid="${trace.id}"]`) as HTMLLIElement;
+    if (!this.containerRef) return;
+    const item = this.containerRef.querySelector(`.search-result-item[data-traceid="${trace.id}"]`) as HTMLLIElement;
     if (!item) return;
     item.classList.remove('highlighted');
   }
 
 
   onClickOnScatterPlotDot(trace: Trace) {
-    if (!this.container) return;
-    const item = this.container.querySelector(`.search-result-item[data-traceid="${trace.id}"]`) as HTMLLIElement;
+    if (!this.containerRef) return;
+    const item = this.containerRef.querySelector(`.search-result-item[data-traceid="${trace.id}"]`) as HTMLLIElement;
     if (!item) return;
 
     // Scroll to
-    const containerBB = this.container.getBoundingClientRect();
+    const containerBB = this.containerRef.getBoundingClientRect();
     const itemBB = item.getBoundingClientRect();
     const snapTo = containerBB.top + CHART_HEIGHT;
 
@@ -104,7 +104,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
       // item in desired viewport, no scroll
     } else {
       const scrollOffset = itemBB.top - snapTo;
-      this.container.scrollTop += scrollOffset;
+      this.containerRef.scrollTop += scrollOffset;
     }
   }
 
@@ -116,7 +116,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     return (
       <div
         style={{ display: visible ? 'block' : 'none', overflow: 'auto', height: '100vh' }}
-        ref={node => this.container = node}
+        ref={node => this.containerRef = node}
       >
         <PageHeader
           className="pageheader-with-button"
@@ -127,7 +127,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
         </PageHeader>
 
         {shouldShowResults && searchResults && searchResults.length > 0 ? (
-          <Affix target={() => this.container} onChange={this.binded.onAffixStateChange}>
+          <Affix target={() => this.containerRef} onChange={this.binded.onAffixStateChange}>
             <TraceDurationScatterPlot
               traces={searchResults}
               width="100%"

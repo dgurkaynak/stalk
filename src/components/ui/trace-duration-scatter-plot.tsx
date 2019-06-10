@@ -2,6 +2,7 @@ import React from 'react';
 import { Trace } from '../../model/trace';
 import * as d3 from 'd3';
 import ColorManagers from '../color/managers';
+import prettyMilliseconds from 'pretty-ms';
 
 const MARGIN = { top: 20, right: 30, bottom: 30, left: 50 };
 
@@ -20,7 +21,8 @@ export interface TraceDurationScatterPlotProps {
 
 
 export class TraceDurationScatterPlot extends React.Component<TraceDurationScatterPlotProps> {
-  svg: SVGSVGElement | null = null;
+  svgRef: SVGSVGElement | null = null;
+  tooltipRef: HTMLDivElement | null = null;
 
 
   componentDidMount() {
@@ -43,22 +45,22 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
 
 
   renderChart() {
-    if (!this.svg) {
+    if (!this.svgRef) {
       throw new Error('Could not render trace duration scatter plot, svg is not ready');
     }
 
     const { traces } = this.props;
 
     // Get computed style to get actual width & height
-    const computedStyles = window.getComputedStyle(this.svg);
+    const computedStyles = window.getComputedStyle(this.svgRef);
     const [ width, height ] = [ parseInt(computedStyles.width!, 10), parseInt(computedStyles.height!, 10) ];
 
     // Empty the svg
-    while (this.svg.firstChild) {
-      this.svg.removeChild(this.svg.firstChild);
+    while (this.svgRef.firstChild) {
+      this.svgRef.removeChild(this.svgRef.firstChild);
     }
 
-    const svg = d3.select(this.svg);
+    const svg = d3.select(this.svgRef);
 
     // Get min and max time and also max duration
     let minTime = Infinity;
@@ -67,6 +69,7 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
     traces.forEach((trace) => {
       minTime = Math.min(minTime, trace.startTime / 1000); // ms
       maxTime = Math.max(maxTime, trace.finishTime / 1000); // ms
+      // TODO: Use the best duration unit for traces (ms, s, us...?)
       maxDuration = Math.max(maxDuration, trace.duration / 1000 / 1000); // s
     });
 
@@ -104,17 +107,34 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
       .on('click', t => this.props.onItemClick && this.props.onItemClick(t))
       .on('mouseenter', t => {
         this.highlight(t);
+        const coords = {
+          x: x(t.startTime / 1000),
+          y: y(t.duration / 1000 / 1000)
+        };
+        d3
+          .select(this.tooltipRef)
+          .style('display', 'block')
+          .style('opacity', 0)
+          .style('top', `${coords.y - 13}px`)
+          .style('left', `${coords.x + 15}px`)
+          .text(`${t.name}, ${prettyMilliseconds(t.duration / 1000, { formatSubMilliseconds: true })}`)
+          .transition()
+          .duration(100)
+          .style('opacity', 1);
         this.props.onItemMouseEnter && this.props.onItemMouseEnter(t);
       })
       .on('mouseleave', t => {
         this.unhighlight(t);
+        d3
+          .select(this.tooltipRef)
+          .style('display', 'none');
         this.props.onItemMouseLeave && this.props.onItemMouseLeave(t);
       });
   }
 
 
   highlight(trace: Trace) {
-    const svg = d3.select(this.svg);
+    const svg = d3.select(this.svgRef);
     svg.select(`circle[data-traceid="${trace.id}"]`)
       .transition()
       .duration(100)
@@ -124,7 +144,7 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
 
 
   unhighlight(trace: Trace) {
-    const svg = d3.select(this.svg);
+    const svg = d3.select(this.svgRef);
     svg.select(`circle[data-traceid="${trace.id}"]`)
       .transition()
       .duration(100)
@@ -136,13 +156,30 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
   render() {
     const { width, height, style } = this.props;
     return (
-      <svg
-        ref={ref => { this.svg = ref }}
-        width={width}
-        height={height}
-        style={style}
-        className={this.props.className}
-      ></svg>
+      <div style={{ position: 'relative' }}>
+        <div
+          className="tooltip"
+          ref={ref => { this.tooltipRef = ref }}
+          style={{
+            position: 'absolute',
+            lineHeight: '20px',
+            padding: '3px 6px',
+            zIndex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            borderRadius: 3,
+            color: '#fff',
+            display: 'none',
+            fontSize: 12
+          }}
+        ></div>
+        <svg
+          ref={ref => { this.svgRef = ref }}
+          width={width}
+          height={height}
+          style={style}
+          className={this.props.className}
+        ></svg>
+      </div>
     );
   }
 }
