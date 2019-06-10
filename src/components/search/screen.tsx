@@ -1,6 +1,6 @@
 import React from 'react';
 import * as _ from 'lodash';
-import { PageHeader, List, Empty, Tag, Typography, Row, Col, Tooltip } from 'antd';
+import { PageHeader, List, Empty, Tag, Typography, Row, Col, Tooltip, Affix } from 'antd';
 import SearchForm from './form';
 import { SearchQuery } from '../../model/search/interfaces';
 import DataSourceManager from '../../model/datasource/manager';
@@ -27,6 +27,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     onSearch: this.onSearch.bind(this)
   };
   chromaScale = chroma.scale(['#000', '#f00']).mode('lab');
+  container: HTMLDivElement | null = null;
 
 
   async onSearch(query: SearchQuery) {
@@ -48,7 +49,10 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     const { shouldShowResults, searchResults } = this.state;
 
     return (
-      <div style={{ display: visible ? 'block' : 'none' }}>
+      <div
+        style={{ display: visible ? 'block' : 'none', overflow: 'auto', height: '100vh' }}
+        ref={node => this.container = node}
+      >
         <PageHeader
           className="pageheader-with-button"
           backIcon={false}
@@ -58,7 +62,14 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
         </PageHeader>
 
         {shouldShowResults && searchResults && searchResults.length > 0 ? (
-          <TraceDurationScatterPlot traces={searchResults} width="100%" height={300} />
+          <Affix target={() => this.container}>
+            <TraceDurationScatterPlot
+              traces={searchResults}
+              width="100%"
+              height={300}
+              style={{ backgroundColor: '#F0F2F5' }}
+            />
+          </Affix>
         ) : null}
 
         {shouldShowResults ? (

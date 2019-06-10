@@ -16,16 +16,14 @@ enum RouteKey {
 
 
 const App: React.FC = () => {
-  const [selectedItem, setSelectedItem] = useState(RouteKey.DATA_SOURCES);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  const [selectedItem, setSelectedItem] = useState(RouteKey.SEARCH);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider
         className="app-sidebar"
-        collapsible
-        collapsed={isSidebarCollapsed}
-        onCollapse={(isCollapsed => setIsSidebarCollapsed(isCollapsed))}
+        collapsed={true}
+        style={{ overflow: 'auto', height: '100vh', position: 'fixed', left: 0 }}
       >
         <div className="logo" />
         <Menu
@@ -52,7 +50,7 @@ const App: React.FC = () => {
           </Menu.Item>
         </Menu>
       </Sider>
-      <Layout>
+      <Layout style={{ marginLeft: 80 }}>
         <Content>
           <DataSourcesScreen visible={selectedItem === RouteKey.DATA_SOURCES} />
           <SearchScreen visible={selectedItem === RouteKey.SEARCH} />

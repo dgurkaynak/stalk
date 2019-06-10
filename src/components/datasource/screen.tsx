@@ -63,7 +63,7 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
 
   render() {
     return (
-      <div style={{ display: this.props.visible ? 'block' : 'none' }}>
+      <div style={{ display: this.props.visible ? 'block' : 'none', overflow: 'auto', height: '100vh' }}>
         <PageHeader
           className="pageheader-with-button"
           backIcon={false}
