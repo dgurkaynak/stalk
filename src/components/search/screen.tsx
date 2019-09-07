@@ -1,6 +1,6 @@
 import React from 'react';
 import * as _ from 'lodash';
-import { PageHeader, List, Empty, Tag, Typography, Row, Col, Tooltip, Affix, Badge } from 'antd';
+import { PageHeader, List, Empty, Tag, Typography, Row, Col, Tooltip, Affix, Badge, Icon } from 'antd';
 import SearchForm from './form';
 import { SearchQuery } from '../../model/search/interfaces';
 import DataSourceManager from '../../model/datasource/manager';
@@ -170,66 +170,94 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
         dataSource={searchResults}
         renderItem={item => (
           <List.Item
-            style={{ padding: 10, position: 'relative' }}
+            style={{ padding: 0 }}
             onMouseEnter={() => this.onMouseEnterOnItem(item)}
             onMouseLeave={() => this.onMouseLeaveOnItem(item)}
             data-traceid={item.id}
             className="search-result-item"
           >
-            <List.Item.Meta
-              style={{ marginBottom: 0 }}
-              title={
-                <>
-                  <Badge
-                    color={ColorManagers.operationName.colorFor(item.name) as string}
-                    className="search-result-item-badge"
-                  />
-                  {item.name} &nbsp;
-                  <Tag>{item.spanCount} {item.spanCount === 1 ? 'Span' : 'Spans'}</Tag>
-                  {item.errorCount > 0 ? (
-                    <Tag color="red">
-                      {item.errorCount} {item.errorCount === 1 ? 'Error' : 'Errors'}
-                    </Tag>
-                  ) : null}
-                </>
-              }
-            />
+            <Row type="flex">
 
-            <Tooltip
-              title={prettyMilliseconds(item.duration / 1000, { formatSubMilliseconds: true })}
-              placement="left"
-            >
-              <Text style={{ position: 'absolute', top: 10, right: 10, color: this.chromaScale(item.duration).hex() }}>
-                {/* TODO: Remove string replace
-                    https://github.com/sindresorhus/pretty-ms/issues/32 */}
-                {prettyMilliseconds(item.duration / 1000, { compact: true, formatSubMilliseconds: true }).replace('~', '')}
-              </Text>
-            </Tooltip>
-
-            <Row type="flex" justify="space-between" align="bottom">
-              <Col span={20}>
-                <List
-                  itemLayout="horizontal"
-                  dataSource={Object.keys(item.spanCountsByService).sort()}
-                  renderItem={serviceName => (
-                    <Tag style={{ background: '#fff', borderStyle: 'dashed' }}>
-                      {serviceName} ({item.spanCountsByService[serviceName]})
-                    </Tag>
-                  )}
-                />
+              <Col
+                className="search-result-item-add-to-stage"
+                style={{
+                  width: 48,
+                  backgroundColor: 'rgba(0, 0, 0, 0.025)',
+                  borderRight: '1px solid #e8e8e8',
+                  textAlign: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 20,
+                  cursor: 'pointer'
+                }}
+              >
+                <Icon type="plus" />
               </Col>
-              <Col span={4} style={{ textAlign: 'right' }}>
+
+              <Col style={{ flexGrow: 1, padding: 10, position: 'relative' }}>
+
+
+
+                <List.Item.Meta
+                  style={{ marginBottom: 0 }}
+                  title={
+                    <>
+                      <Badge
+                        color={ColorManagers.operationName.colorFor(item.name) as string}
+                        className="search-result-item-badge"
+                      />
+                      {item.name} &nbsp;
+                      <Tag>{item.spanCount} {item.spanCount === 1 ? 'Span' : 'Spans'}</Tag>
+                      {item.errorCount > 0 ? (
+                        <Tag color="red">
+                          {item.errorCount} {item.errorCount === 1 ? 'Error' : 'Errors'}
+                        </Tag>
+                      ) : null}
+                    </>
+                  }
+                />
+
                 <Tooltip
-                  title={moment(item.startTime / 1000).format('ddd, D MMMM, HH:mm:ss.SSS')}
+                  title={prettyMilliseconds(item.duration / 1000, { formatSubMilliseconds: true })}
                   placement="left"
                 >
-                  <Text style={{ fontSize: '0.8em', color: 'rgba(0, 0, 0, 0.25)' }}>
-                    {moment(item.startTime / 1000).fromNow()}
+                  <Text style={{ position: 'absolute', top: 10, right: 10, color: this.chromaScale(item.duration).hex() }}>
+                    {/* TODO: Remove string replace
+                        https://github.com/sindresorhus/pretty-ms/issues/32 */}
+                    {prettyMilliseconds(item.duration / 1000, { compact: true, formatSubMilliseconds: true }).replace('~', '')}
                   </Text>
                 </Tooltip>
 
+                <Row type="flex" justify="space-between" align="bottom">
+                  <Col span={18}>
+                    <List
+                      itemLayout="horizontal"
+                      dataSource={Object.keys(item.spanCountsByService).sort()}
+                      renderItem={serviceName => (
+                        <Tag style={{ background: '#fff', borderStyle: 'dashed' }}>
+                          {serviceName} ({item.spanCountsByService[serviceName]})
+                        </Tag>
+                      )}
+                    />
+                  </Col>
+                  <Col span={6} style={{ textAlign: 'right' }}>
+                    <Tooltip
+                      title={moment(item.startTime / 1000).format('ddd, D MMMM, HH:mm:ss.SSS')}
+                      placement="left"
+                    >
+                      <Text style={{ fontSize: '0.8em', color: 'rgba(0, 0, 0, 0.25)' }}>
+                        {moment(item.startTime / 1000).fromNow()}
+                      </Text>
+                    </Tooltip>
+
+                  </Col>
+                </Row>
+
+
               </Col>
             </Row>
+
           </List.Item>
         )}
       />

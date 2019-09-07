@@ -28,3 +28,7 @@
 .search-result-item:hover, .search-result-item.highlighted {
   background-color: #FFFBE6;
 }
+
+.search-result-item-add-to-stage {
+  /* TODO */
+}
