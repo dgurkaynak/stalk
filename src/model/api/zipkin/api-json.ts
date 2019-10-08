@@ -43,8 +43,8 @@ export class ZipkinJsonAPI implements API {
                 .filter((trace) => {
                     return _.some(trace.spans, (span) => {
                         const serviceName = span.localEndpoint && span.localEndpoint.serviceName;
-                        if (query.serviceName && serviceName && serviceName == query.serviceName) return true;
-                        if (query.operationName && query.operationName == span.operationName) return true;
+                        if (query.serviceName && serviceName && serviceName === query.serviceName) return true;
+                        if (query.operationName && query.operationName === span.operationName) return true;
                         return false;
                     });
                 })
@@ -67,7 +67,7 @@ export class ZipkinJsonAPI implements API {
                 if (!serviceName) return;
                 if (!servicesAndOperations[serviceName]) servicesAndOperations[serviceName] = [];
                 const operationNames = servicesAndOperations[serviceName];
-                if (operationNames.indexOf(span.operationName) == -1) operationNames.push(span.operationName);
+                if (operationNames.indexOf(span.operationName) === -1) operationNames.push(span.operationName);
             });
         });
 

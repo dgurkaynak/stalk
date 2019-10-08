@@ -5,7 +5,7 @@ import { Span } from '../../span';
 export function isJaegerJSON(json: any) {
     if (!_.isObject(json)) return false;
     if (!_.isArray((json as any).data)) return false;
-    if ((json as any).data.length == 0) return true;
+    if ((json as any).data.length === 0) return true;
     const firstTrace = (json as any).data[0];
     if (!_.isObject(firstTrace)) return false;
     return _.isString((firstTrace as any)['traceID']) && _.isArray((firstTrace as any)['spans']);
