@@ -4,6 +4,7 @@ import JaegerAPI from '../api/jaeger/api';
 import JaegerJsonAPI from '../api/jaeger/api-json';
 import ZipkinAPI from '../api/zipkin/api';
 import ZipkinJsonAPI from '../api/zipkin/api-json';
+import db from '../db';
 
 
 let singletonIns: DataSourceManager;
@@ -19,7 +20,15 @@ class DataSourceManager {
   }
 
 
-  add(ds: DataSource) {
+  async init() {
+    await db.open();
+
+    const dataSources = await db.dataSources.toArray();
+    dataSources.forEach(ds => this.add(ds, true));
+  }
+
+
+  async add(ds: DataSource, doNotPersistToDatabase = false) {
     const { id, type } = ds;
     let api: JaegerAPI | JaegerJsonAPI | ZipkinAPI | ZipkinJsonAPI;
 
@@ -49,6 +58,7 @@ class DataSourceManager {
       }
     }
 
+    if (!doNotPersistToDatabase) await db.dataSources.put(ds);
     this.datasources.push(ds);
     this.apis[id] = api;
 
@@ -56,16 +66,18 @@ class DataSourceManager {
   }
 
 
-  update(ds: DataSource) {
+  async update(ds: DataSource) {
     const index = _.findIndex(this.datasources, x => x.id === ds.id);
     if (index === -1) return false;
+    await db.dataSources.update(this.datasources[index].id, ds);
     this.datasources[index] = ds;
   }
 
 
-  remove(dsOrId: DataSource | string) {
+  async remove(dsOrId: DataSource | string) {
     const index = this.getIndex(dsOrId);
     if (index === -1) return false;
+    await db.dataSources.delete(this.datasources[index].id);
     const [ ds ] = this.datasources.splice(index, 1);
     delete this.apis[ds.id];
     return ds;
