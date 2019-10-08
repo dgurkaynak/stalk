@@ -33,11 +33,11 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
   }
 
 
-  onFormModalSave(dataSource: DataSource, isNew: boolean) {
+  async onFormModalSave(dataSource: DataSource, isNew: boolean) {
     if (isNew) {
-      this.dsManager.add(dataSource); // Redux action?
+      await this.dsManager.add(dataSource);
     } else {
-      this.dsManager.update(dataSource); // Redux action?
+      await this.dsManager.update(dataSource);
     }
     this.setState({
       dataSources: this.dsManager.getAll(),
@@ -55,8 +55,8 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
   }
 
 
-  onDataSourceDelete(dataSource: DataSource) {
-    this.dsManager.remove(dataSource); // Redux action?
+  async onDataSourceDelete(dataSource: DataSource) {
+    await this.dsManager.remove(dataSource);
     this.setState({ dataSources: this.dsManager.getAll() });
   }
 
