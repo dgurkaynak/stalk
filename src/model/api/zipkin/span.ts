@@ -19,7 +19,7 @@ export function convertFromZipkinTrace(rawTrace: any) {
         if (!_.isString(rawSpan.id) && rawSpan.id.length > 0) throw new Error(`"rawSpan.id" must be string`);
         if (!_.isString(rawSpan.traceId) && rawSpan.traceId.length > 0) throw new Error(`"rawSpan.traceId" must be string`);
         if (!_.isNumber(rawSpan.timestamp)) throw new Error(`"rawSpan.timestamp" must be number`);
-        if (!_.isNumber(rawSpan.duration)) throw new Error(`"rawSpan.duration" must be number`);
+        if (!_.isNumber(rawSpan.duration)) rawSpan.duration = 0;
 
         const span: Span = {
             id: rawSpan.id,
