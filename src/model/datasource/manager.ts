@@ -5,11 +5,19 @@ import JaegerJsonAPI from '../api/jaeger/api-json';
 import ZipkinAPI from '../api/zipkin/api';
 import ZipkinJsonAPI from '../api/zipkin/api-json';
 import db from '../db';
+import EventEmitterExtra from 'event-emitter-extra';
+
+
+// Maybe seperate events like ADDED, DELETED, UPDATED?
+// Not sure whether if it's gonna worth it
+export enum DataSourceManagerEvent {
+  UPDATED = 'updated'
+}
 
 
 let singletonIns: DataSourceManager;
 
-class DataSourceManager {
+export default class DataSourceManager extends EventEmitterExtra {
   private datasources: DataSource[] = [];
   private apis: { [key: string]: JaegerAPI | JaegerJsonAPI | ZipkinAPI | ZipkinJsonAPI } = {};
 
@@ -68,6 +76,7 @@ class DataSourceManager {
       console.error(`Could not update cache of services/operations`, err);
     }
 
+    this.emit(DataSourceManagerEvent.UPDATED);
     return ds;
   }
 
@@ -77,6 +86,7 @@ class DataSourceManager {
     if (index === -1) return false;
     await db.dataSources.update(this.datasources[index].id, ds);
     this.datasources[index] = ds;
+    this.emit(DataSourceManagerEvent.UPDATED);
   }
 
 
@@ -86,6 +96,7 @@ class DataSourceManager {
     await db.dataSources.delete(this.datasources[index].id);
     const [ ds ] = this.datasources.splice(index, 1);
     delete this.apis[ds.id];
+    this.emit(DataSourceManagerEvent.UPDATED);
     return ds;
   }
 
@@ -111,6 +122,3 @@ class DataSourceManager {
     return _.findIndex(this.datasources, x => x.id === id);
   }
 }
-
-
-export default DataSourceManager;

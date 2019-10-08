@@ -37,6 +37,11 @@ export class ServiceOrOperationSelect extends React.Component<ServiceOrOperation
 
   componentWillReceiveProps(nextProps: any) {
     if (this.props.api !== nextProps.api) {
+      if (!nextProps.api) {
+        this.setState({ treeData: [] });
+        return;
+      }
+
       this.setState({
         treeData: convertServicesAndOperationsToTreeData(nextProps.api.getServicesAndOperations())
       });

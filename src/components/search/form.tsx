@@ -77,7 +77,7 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
     };
 
 
-    onDataSourceChange(dataSource: DataSource) {
+    onDataSourceChange(dataSource: DataSource | null) {
       this.setState({ dataSource, serviceOrOperation: null });
       this.props.form.setFieldsValue({ dataSource, serviceOrOperation: null });
     }

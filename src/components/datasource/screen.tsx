@@ -3,7 +3,7 @@ import { Button, PageHeader } from 'antd';
 import DataSourceFormModal from './form-modal'
 import DataSourceImportJsonModal from './import-json-modal'
 import { DataSource } from '../../model/datasource/interfaces';
-import DataSourceManager from '../../model/datasource/manager';
+import DataSourceManager, { DataSourceManagerEvent } from '../../model/datasource/manager';
 import DataSourceList from './list';
 
 
@@ -24,8 +24,24 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
     onJsonImported: this.onJsonImported.bind(this),
     onFormModalSave: this.onFormModalSave.bind(this),
     onDataSourceClick: this.onDataSourceClick.bind(this),
-    onDataSourceDelete: this.onDataSourceDelete.bind(this)
+    onDataSourceDelete: this.onDataSourceDelete.bind(this),
+    onDataSourceManagerUpdated: this.onDataSourceManagerUpdated.bind(this),
   };
+
+
+  componentDidMount() {
+    this.dsManager.on(DataSourceManagerEvent.UPDATED, this.binded.onDataSourceManagerUpdated);
+  }
+
+
+  componentWillUnmount() {
+    this.dsManager.removeListener(DataSourceManagerEvent.UPDATED, this.binded.onDataSourceManagerUpdated);
+  }
+
+
+  onDataSourceManagerUpdated() {
+    this.setState({ dataSources: this.dsManager.getAll() });
+  }
 
 
   async onJsonImported(dataSources: DataSource[]) {
