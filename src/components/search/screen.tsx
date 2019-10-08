@@ -204,7 +204,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
                   title={
                     <>
                       <Badge
-                        color={ColorManagers.operationName.colorFor(item.name) as string}
+                        color={ColorManagers.traceName.colorFor(item.name) as string}
                         className="search-result-item-badge"
                       />
                       {item.name} &nbsp;
