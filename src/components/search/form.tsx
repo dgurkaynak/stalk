@@ -2,7 +2,7 @@ import React from 'react';
 import { Tooltip, Form, Row, Col, Input, Button, Icon, Select, DatePicker, TimePicker, InputNumber, Tag } from 'antd';
 import DataSourceManager from '../../model/datasource/manager';
 import DataSourceSelect from '../datasource/select';
-import { DataSource } from '../../model/datasource/interfaces';
+import { DataSource, DataSourceType } from '../../model/datasource/interfaces';
 import { ServiceOrOperationSelect, ServiceOrOperationEntity } from './service-or-operation-select';
 import moment from 'moment';
 // import _ from 'lodash';
@@ -73,6 +73,7 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
       showTagInput: this.showTagInput.bind(this),
       onMinDurationChange: this.onMinDurationChange.bind(this),
       onMaxDurationChange: this.onMaxDurationChange.bind(this),
+      isJsonDataSourceSelected: this.isJsonDataSourceSelected.bind(this),
     };
 
 
@@ -179,6 +180,13 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
         const query = this.toQuery();
         this.props.onSearch(query);
       });
+    }
+
+
+    isJsonDataSourceSelected() {
+      return this.state.dataSource ?
+        (this.state.dataSource.type === DataSourceType.JAEGER_JSON) || (this.state.dataSource.type === DataSourceType.ZIPKIN_JSON) :
+        false;
     }
 
 
@@ -289,6 +297,7 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
                   <Select
                     style={{ width: '100%' }}
                     onChange={this.binded.onLookbackChange}
+                    disabled={this.binded.isJsonDataSourceSelected()}
                   >
                     <Option value="1h">Last Hour</Option>
                     <Option value="2h">Last 2 Hours</Option>
@@ -317,8 +326,14 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
                   </span>
                 }
               >
-                <div style={{ border: '1px solid #d9d9d9', borderRadius: 4, lineHeight: '25px', padding: '3px 5px 5px 5px', marginTop: 3 }}>
-                  {this.state.tagItems.map((tag, index) => {
+                <div
+                  className={this.binded.isJsonDataSourceSelected() ? 'ant-input-disabled' : ''}
+                  style={{ border: '1px solid #d9d9d9', borderRadius: 4, lineHeight: '25px', padding: '3px 5px 5px 5px', marginTop: 3 }}
+                >
+                  {this.binded.isJsonDataSourceSelected() && (
+                    <span>Tag searching is not supported for JSON files</span>
+                  )}
+                  {!this.binded.isJsonDataSourceSelected() && this.state.tagItems.map((tag, index) => {
                     const isLongTag = tag.length > 20;
                     const tagElem = (
                       <Tag key={tag} closable={true} onClose={() => this.binded.onTagRemove(tag)}>
@@ -333,7 +348,7 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
                       tagElem
                     );
                   })}
-                  {this.state.tagInputVisible && (
+                  {!this.binded.isJsonDataSourceSelected() && this.state.tagInputVisible && (
                     <Input
                       ref={this.binded.saveTagInputRef}
                       type="text"
@@ -345,7 +360,7 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
                       onPressEnter={this.binded.onTagInputConfirm}
                     />
                   )}
-                  {!this.state.tagInputVisible && (
+                  {!this.binded.isJsonDataSourceSelected() && !this.state.tagInputVisible && (
                     <Tag onClick={this.binded.showTagInput} style={{ background: '#fff', borderStyle: 'dashed' }}>
                       <Icon type="plus" /> Add Tag
                     </Tag>
@@ -355,14 +370,18 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
             </Col>
 
             <Col span={12}>
-              {this.state.lookback === 'custom' ? (
+              {!this.binded.isJsonDataSourceSelected() && this.state.lookback === 'custom' ? (
                 <Row gutter={24}>
                   <Col span={12}>
                     <Form.Item label="Date Range">
                       {getFieldDecorator(`dateRange`, {
                         rules: [{ required: true, message: 'Please select a date range!' }],
                       })(
-                        <RangePicker style={{ width: '100%' }} onChange={this.binded.onDateRangeChanged} />
+                        <RangePicker
+                          style={{ width: '100%' }}
+                          onChange={this.binded.onDateRangeChanged}
+                          disabled={this.binded.isJsonDataSourceSelected()}
+                        />
                       )}
                     </Form.Item>
                   </Col>
@@ -377,6 +396,7 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
                           style={{ width: '100%' }}
                           format={timeFormat}
                           onChange={this.binded.onStartTimeChanged}
+                          disabled={this.binded.isJsonDataSourceSelected()}
                         />
                       )}
                     </Form.Item>
@@ -392,6 +412,7 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
                           style={{ width: '100%' }}
                           format={timeFormat}
                           onChange={this.binded.onEndTimeChanged}
+                          disabled={this.binded.isJsonDataSourceSelected()}
                         />
                       )}
                     </Form.Item>
@@ -405,7 +426,12 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
                     {getFieldDecorator(`minDuration`, {
                       rules: [{ validator: validateDuration, message: 'Cannot parse duration!' }],
                     })(
-                      <Input style={{ width: '100%' }} placeholder="500ms" onChange={this.binded.onMinDurationChange} />
+                      <Input
+                        style={{ width: '100%' }}
+                        placeholder="500ms"
+                        onChange={this.binded.onMinDurationChange}
+                        disabled={this.binded.isJsonDataSourceSelected()}
+                      />
                     )}
                   </Form.Item>
                 </Col>
@@ -415,7 +441,12 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
                     {getFieldDecorator(`maxDuration`, {
                       rules: [{ validator: validateDuration, message: 'Cannot parse duration!' }],
                     })(
-                      <Input style={{ width: '100%' }} placeholder="15.5s" onChange={this.binded.onMaxDurationChange} />
+                      <Input
+                        style={{ width: '100%' }}
+                        placeholder="15.5s"
+                        onChange={this.binded.onMaxDurationChange}
+                        disabled={this.binded.isJsonDataSourceSelected()}
+                      />
                     )}
                   </Form.Item>
                 </Col>
@@ -426,7 +457,13 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
                       initialValue: 20,
                       rules: [{ required: true, message: 'Please enter a valid number!' }],
                     })(
-                      <InputNumber style={{ width: '100%' }} min={1} max={100} onChange={this.binded.onLimitChange} />
+                      <InputNumber
+                        style={{ width: '100%' }}
+                        min={1}
+                        max={100}
+                        onChange={this.binded.onLimitChange}
+                        disabled={this.binded.isJsonDataSourceSelected()}
+                      />
                     )}
                   </Form.Item>
                 </Col>
