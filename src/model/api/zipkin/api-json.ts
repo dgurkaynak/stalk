@@ -16,11 +16,19 @@ export class ZipkinJsonAPI implements API {
             throw new Error('JSON is not in zipkin format');
         }
 
-        this.traces = rawData.map((rawTrace: any) => {
-            const spans = convertFromZipkinTrace(rawTrace);
+        if (_.isArray(rawData[0])) {
+            this.traces = rawData.map((rawTrace: any) => {
+                const spans = convertFromZipkinTrace(rawTrace);
+                const trace = new Trace(spans);
+                return trace;
+            });
+        } else if (_.isObject(rawData[0])) {
+            const spans = convertFromZipkinTrace(rawData);
             const trace = new Trace(spans);
-            return trace;
-        });
+            this.traces = [ trace ];
+        } else {
+            throw new Error('Unexpected zipkin json structure');
+        }
     }
 
 

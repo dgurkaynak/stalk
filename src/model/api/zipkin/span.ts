@@ -5,10 +5,17 @@ import { Span } from '../../span';
 export function isZipkinJSON(json: any) {
     if (!_.isArray(json)) return false;
     const firstTraceSpans = json[0] as any[];
-    if (!_.isArray(firstTraceSpans)) return false;
-    const firstSpan = firstTraceSpans[0] as any;
-    if (!_.isObject(firstSpan)) return false;
-    return _.isString((firstSpan as any)['traceId']) && _.isString((firstSpan as any)['id']);
+
+    if (_.isArray(firstTraceSpans)) {
+        const firstSpan = firstTraceSpans[0] as any;
+        if (!_.isObject(firstSpan)) return false;
+        return _.isString((firstSpan as any)['traceId']) && _.isString((firstSpan as any)['id']);
+    } else if (_.isObject(firstTraceSpans)) {
+        const firstSpan = firstTraceSpans;
+        return _.isString((firstSpan as any)['traceId']) && _.isString((firstSpan as any)['id']);
+    }
+
+    return false;
 }
 
 
