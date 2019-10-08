@@ -28,8 +28,19 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
   };
 
 
-  onJsonImported(dataSources: any) {
-    console.log('json imported', dataSources);
+  async onJsonImported(dataSources: DataSource[]) {
+    this.setState({ isImportJsonModalVisible: false });
+
+    const tasks = dataSources.map(async (ds) => {
+      try {
+        await this.dsManager.add(ds);
+      } catch (err) {
+        // TODO: Show error
+        console.error('Could not add datasource', err);
+      }
+    });
+
+    await Promise.all(tasks);
   }
 
 
@@ -69,14 +80,14 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
           backIcon={false}
           title="Data Sources"
           extra={[
-            // <Button
-            //   key="1"
-            //   type="default"
-            //   icon="import"
-            //   onClick={() => this.setState({ isImportJsonModalVisible: true })}
-            // >
-            //   Import JSON
-            // </Button>,
+            <Button
+              key="1"
+              type="default"
+              icon="import"
+              onClick={() => this.setState({ isImportJsonModalVisible: true })}
+            >
+              Import JSON
+            </Button>,
             <Button
               key="2"
               type="primary"
