@@ -21,8 +21,6 @@ export class JaegerJsonAPI implements API {
             const trace = new Trace(spans);
             return trace;
         });
-
-        this.updateServicesAndOperationsCache();
     }
 
 

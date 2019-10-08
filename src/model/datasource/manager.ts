@@ -62,6 +62,12 @@ class DataSourceManager {
     this.datasources.push(ds);
     this.apis[id] = api;
 
+    try {
+      await api.updateServicesAndOperationsCache();
+    } catch (err) {
+      console.error(`Could not update cache of services/operations`, err);
+    }
+
     return ds;
   }
 
