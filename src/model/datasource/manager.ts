@@ -1,14 +1,16 @@
 import * as _ from 'lodash';
 import { DataSourceType, DataSource } from './interfaces';
 import JaegerAPI from '../api/jaeger/api';
+import JaegerJsonAPI from '../api/jaeger/api-json';
 import ZipkinAPI from '../api/zipkin/api';
+import ZipkinJsonAPI from '../api/zipkin/api-json';
 
 
 let singletonIns: DataSourceManager;
 
 class DataSourceManager {
   private datasources: DataSource[] = [];
-  private apis: { [key: string]: JaegerAPI | ZipkinAPI } = {};
+  private apis: { [key: string]: JaegerAPI | JaegerJsonAPI | ZipkinAPI | ZipkinJsonAPI } = {};
 
 
   static getSingleton(): DataSourceManager {
@@ -18,18 +20,28 @@ class DataSourceManager {
 
 
   add(ds: DataSource) {
-    const { id, type, baseUrl, username, password } = ds;
-    let api: JaegerAPI | ZipkinAPI;
+    const { id, type } = ds;
+    let api: JaegerAPI | JaegerJsonAPI | ZipkinAPI | ZipkinJsonAPI;
 
     // TODO: Check id is existing
 
     switch (type) {
       case DataSourceType.JAEGER: {
-        api = new JaegerAPI({ baseUrl, username, password });
+        api = new JaegerAPI({ baseUrl: ds.baseUrl!, username: ds.username, password: ds.password });
+        break;
+      }
+      case DataSourceType.JAEGER_JSON: {
+        // TODO: Try-catch
+        api = new JaegerJsonAPI(ds.data);
         break;
       }
       case DataSourceType.ZIPKIN: {
-        api = new ZipkinAPI({ baseUrl, username, password });
+        api = new ZipkinAPI({ baseUrl: ds.baseUrl!, username: ds.username, password: ds.password });
+        break;
+      }
+      case DataSourceType.ZIPKIN_JSON: {
+        // TODO: Try-catch
+        api = new ZipkinJsonAPI(ds.data);
         break;
       }
       default: {

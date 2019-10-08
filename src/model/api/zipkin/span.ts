@@ -2,6 +2,16 @@ import * as _ from 'lodash';
 import { Span } from '../../span';
 
 
+export function isZipkinJSON(json: any) {
+    if (!_.isArray(json)) return false;
+    const firstTraceSpans = json[0] as any[];
+    if (!_.isArray(firstTraceSpans)) return false;
+    const firstSpan = firstTraceSpans[0] as any;
+    if (!_.isObject(firstSpan)) return false;
+    return _.isString((firstSpan as any)['traceId']) && _.isString((firstSpan as any)['id']);
+}
+
+
 export function convertFromZipkinTrace(rawTrace: any) {
     if (!_.isArray(rawTrace)) throw new Error(`Trace must be array`);
 

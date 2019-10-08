@@ -1,6 +1,8 @@
 export enum DataSourceType {
   JAEGER = 'jaeger',
-  ZIPKIN = 'zipkin'
+  JAEGER_JSON = 'jaeger_json',
+  ZIPKIN = 'zipkin',
+  ZIPKIN_JSON = 'zipkin_json'
 }
 
 
@@ -8,7 +10,8 @@ export interface DataSource {
   id: string;
   type: DataSourceType | string;
   name: string;
-  baseUrl: string;
+  baseUrl?: string;
   username?: string;
   password?: string;
+  data?: Object|Array<any>;
 }
