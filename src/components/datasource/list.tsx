@@ -31,10 +31,24 @@ export const DataSourceList: React.FC<DataSourceListProps> = (props) => {
             />
             <Button shape="circle" icon="delete" onClick={() => props.onItemDelete(item)} />
           </List.Item>
+        ) : item.type === DataSourceType.JAEGER_JSON ? (
+          <List.Item style={styles.listItem}>
+            <List.Item.Meta
+              title={<a href="#/"><Tag color="blue">JAEGER JSON</Tag>{item.name}</a>}
+            />
+            <Button shape="circle" icon="delete" onClick={() => props.onItemDelete(item)} />
+          </List.Item>
         ) : item.type === DataSourceType.ZIPKIN ? (
           <List.Item style={styles.listItem}>
             <List.Item.Meta
               title={<a href="#/" onClick={() => props.onItemNameClick(item)}><Tag color="orange">ZIPKIN</Tag>{item.name}</a>}
+            />
+            <Button shape="circle" icon="delete" onClick={() => props.onItemDelete(item)} />
+          </List.Item>
+        ) : item.type === DataSourceType.ZIPKIN_JSON ? (
+          <List.Item style={styles.listItem}>
+            <List.Item.Meta
+              title={<a href="#/"><Tag color="orange">ZIPKIN JSON</Tag>{item.name}</a>}
             />
             <Button shape="circle" icon="delete" onClick={() => props.onItemDelete(item)} />
           </List.Item>
