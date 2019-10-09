@@ -5,6 +5,7 @@ import SearchForm from './form';
 import { SearchQuery } from '../../model/search/interfaces';
 import DataSourceManager from '../../model/datasource/manager';
 import { Trace } from '../../model/trace';
+import Stage, { StageEvent } from '../../model/stage';
 import prettyMilliseconds from 'pretty-ms';
 import moment from 'moment';
 import chroma from 'chroma-js';
@@ -15,6 +16,20 @@ import scroll from 'scroll';
 
 const { Text } = Typography;
 const CHART_HEIGHT = 200;
+
+const styles = {
+  searchResultItemStageToggle: {
+    width: 48,
+    backgroundColor: 'rgba(0, 0, 0, 0.025)',
+    borderRight: '1px solid #e8e8e8',
+    textAlign: 'center' as const, // https://github.com/typestyle/typestyle/issues/281
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 20,
+    cursor: 'pointer'
+  }
+};
 
 
 export interface SearchScreenProps {
@@ -38,10 +53,29 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     onSearch: this.onSearch.bind(this),
     onAffixStateChange: this.onAffixStateChange.bind(this),
     onMouseEnterOnScatterPlotDot: this.onMouseEnterOnScatterPlotDot.bind(this),
-    onMouseLeaveOnScatterPlotDot: this.onMouseLeaveOnScatterPlotDot.bind(this)
+    onMouseLeaveOnScatterPlotDot: this.onMouseLeaveOnScatterPlotDot.bind(this),
+    onStageTraceAddedOrRemoved: this.onStageTraceAddedOrRemoved.bind(this),
   };
   chromaScale = chroma.scale(['#000', '#f00']).mode('lab');
   containerRef: HTMLDivElement | null = null;
+  private stage = Stage.getSingleton();
+
+
+  componentDidMount() {
+    this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAddedOrRemoved);
+    this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceAddedOrRemoved);
+  }
+
+
+  componentWillUnmount() {
+    this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onStageTraceAddedOrRemoved);
+    this.stage.removeListener(StageEvent.TRACE_REMOVED, this.binded.onStageTraceAddedOrRemoved);
+  }
+
+
+  onStageTraceAddedOrRemoved() {
+    this.forceUpdate();
+  }
 
 
   async onSearch(query: SearchQuery) {
@@ -119,6 +153,15 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
   }
 
 
+  onItemStageToggle(trace: Trace) {
+    if (this.stage.isTraceAdded(trace.id)) {
+      this.stage.removeTrace(trace.id);
+    } else {
+      this.stage.addTrace(trace);
+    }
+  }
+
+
   render() {
     const { visible } = this.props;
     const { shouldShowResults, searchResults, scatterPlotHighlightedTrace } = this.state;
@@ -178,24 +221,27 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
           >
             <Row type="flex">
 
-              <Col
-                className="search-result-item-add-to-stage"
-                style={{
-                  width: 48,
-                  backgroundColor: 'rgba(0, 0, 0, 0.025)',
-                  borderRight: '1px solid #e8e8e8',
-                  textAlign: 'center',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 20,
-                  cursor: 'pointer'
-                }}
-              >
-                <Icon type="plus" />
-              </Col>
+              {this.stage.isTraceAdded(item.id) ? (
+                <Col
+                  className="search-result-item-remove-from-stage"
+                  onClick={() => this.onItemStageToggle(item)}
+                  style={styles.searchResultItemStageToggle}
+                >
+                  <Icon className="check" type="check-square" theme="filled" style={{ color: '#1890ff' }}  />
+                  <Icon className="minus" type="minus-square" theme="outlined" />
+                </Col>
+              ) : (
+                <Col
+                  className="search-result-item-add-to-stage"
+                  onClick={() => this.onItemStageToggle(item)}
+                  style={styles.searchResultItemStageToggle}
+                >
+                  <Icon type="plus" />
+                </Col>
+              )}
 
-              <Col style={{ flexGrow: 1, padding: 10, position: 'relative' }}>
+
+              <Col className="search-result-item-body">
 
 
 

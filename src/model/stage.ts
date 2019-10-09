@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import { Trace } from './trace';
 import TraceGrouping from './grouping/trace';
 import ServiceNameGrouping from './grouping/service-name';
