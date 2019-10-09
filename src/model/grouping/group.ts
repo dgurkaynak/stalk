@@ -36,11 +36,6 @@ export class Group {
         this._finishTimestamp = Math.max(this._finishTimestamp, span.finishTime);
 
         this.setupNode(span);
-
-        // TODO: Sorting on each added span can be costly
-        // Refer: `sortPriority` => ` active` | `passing` on
-        // https://github.com/techfort/LokiJS/wiki/Indexing-and-Query-Performance#dynamic-view-pipelines
-        // this.spans = this.sortSpans();
     }
 
 
@@ -60,7 +55,6 @@ export class Group {
             if (isStartTimeInvalid) this._startTimestamp = Infinity;
             if (isFinishTimeInvalid) this._finishTimestamp = -Infinity;
 
-            // TODO: If spans are ordered, do this better
             this.spans.forEach(({ startTime, finishTime }) => {
                 if (isStartTimeInvalid) this._startTimestamp = Math.min(this._startTimestamp, startTime);
                 if (isFinishTimeInvalid) this._finishTimestamp = Math.max(this._finishTimestamp, finishTime);
@@ -159,14 +153,14 @@ export class Group {
     }
 
 
-    indexOf(spanOrId: Span | string) {
-        const id = typeof spanOrId === 'object' ? spanOrId.id : spanOrId;
-        return _.findIndex(this.spans, span => span.id === id);
+    getAll() {
+        return this.spans.slice();
     }
 
 
-    find(predicate: (span: Span) => boolean) {
-        return _.find(this.spans, predicate);
+    private indexOf(spanOrId: Span | string) {
+        const id = typeof spanOrId === 'object' ? spanOrId.id : spanOrId;
+        return _.findIndex(this.spans, span => span.id === id);
     }
 
 
