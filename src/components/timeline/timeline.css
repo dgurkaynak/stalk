@@ -1,0 +1,33 @@
+.timeline-sidebar-toggle {
+  font-size: 18px;
+  line-height: 64px;
+  padding: 0 24px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.timeline-sidebar-toggle:hover {
+  color: #1890ff;
+}
+
+.timeline-sidebar {
+  border-left: 1px solid rgb(217, 217, 217);
+}
+
+.timeline-sidebar .ant-tabs-nav {
+  margin-left: 10px;
+}
+
+.timeline-sidebar .ant-tabs-content {
+  padding: 0 10px 10px 10px;
+}
+
+.sidebar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.sidebar-row > span {
+  flex-grow: 1;
+}

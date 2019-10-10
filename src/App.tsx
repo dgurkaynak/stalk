@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Layout, Menu, Icon } from 'antd';
 import DataSourcesScreen from './components/datasource/screen';
 import SearchScreen from './components/search/screen';
+import TimelineScreen from './components/timeline/screen';
 import './App.css';
 
 const { Content, Sider } = Layout;
@@ -10,7 +11,7 @@ const { Content, Sider } = Layout;
 enum RouteKey {
   DATA_SOURCES = 'data-sources',
   SEARCH = 'search',
-  TIMELINE_VIEW = 'timeline-view',
+  TIMELINE = 'timeline',
   SETTINGS = 'settings'
 }
 
@@ -40,9 +41,9 @@ const App: React.FC = () => {
             <Icon type="search" />
             <span>Search</span>
           </Menu.Item>
-          <Menu.Item key={RouteKey.TIMELINE_VIEW}>
+          <Menu.Item key={RouteKey.TIMELINE}>
             <Icon type="line-chart" />
-            <span>Timeline View</span>
+            <span>Timeline</span>
           </Menu.Item>
           <Menu.Item key={RouteKey.SETTINGS} style={{ position: 'absolute', bottom: 0 }}>
             <Icon type="setting" />
@@ -54,6 +55,7 @@ const App: React.FC = () => {
         <Content>
           <DataSourcesScreen visible={selectedItem === RouteKey.DATA_SOURCES} />
           <SearchScreen visible={selectedItem === RouteKey.SEARCH} />
+          <TimelineScreen visible={selectedItem === RouteKey.TIMELINE} />
         </Content>
       </Layout>
     </Layout>
