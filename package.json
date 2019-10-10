@@ -4,30 +4,29 @@
   "private": true,
   "main": "scripts/electron-main.js",
   "dependencies": {
-    "@types/chroma-js": "^1.4.1",
+    "@types/chroma-js": "^1.4.3",
     "@types/d3": "^5.7.2",
-    "@types/jest": "24.0.13",
+    "@types/jest": "24.0.18",
     "@types/lodash": "^4.14.133",
-    "@types/node": "12.0.4",
-    "@types/react": "16.8.19",
-    "@types/react-dom": "16.8.4",
-    "@types/react-router-dom": "^4.3.3",
-    "antd": "^3.19.2",
-    "chroma-js": "^2.0.3",
-    "d3": "^5.9.2",
+    "@types/node": "12.7.12",
+    "@types/react": "16.9.5",
+    "@types/react-dom": "16.9.1",
+    "antd": "^3.23.6",
+    "chroma-js": "^2.0.6",
+    "d3": "^5.12.0",
     "dexie": "^2.0.4",
     "event-emitter-extra": "^0.2.0",
     "google-palette": "^1.1.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "parse-duration": "^0.1.1",
     "pretty-ms": "^5.0.0",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
+    "react": "^16.10.2",
+    "react-dom": "^16.10.2",
     "react-scripts": "3.0.1",
     "scroll": "^3.0.1",
-    "shortid": "^2.2.14",
-    "typescript": "3.5.1"
+    "shortid": "^2.2.15",
+    "typescript": "3.6.4"
   },
   "scripts": {
     "build": "react-scripts build",
@@ -54,7 +53,7 @@
   },
   "devDependencies": {
     "cross-env": "^5.2.0",
-    "electron": "^5.0.2",
+    "electron": "^6.0.12",
     "foreman": "^3.0.1"
   }
 }

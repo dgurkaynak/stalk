@@ -95,6 +95,7 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
           className="pageheader-with-button"
           backIcon={false}
           title="Data Sources"
+          style={{ background: '#fff' }}
           extra={[
             <Button
               key="1"

@@ -175,6 +175,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
           className="pageheader-with-button"
           backIcon={false}
           title="Search Traces"
+          style={{ background: '#fff' }}
         >
           <SearchForm onSearch={this.binded.onSearch} />
         </PageHeader>
