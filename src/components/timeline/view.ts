@@ -1,3 +1,8 @@
+import { Stage } from '../../model/stage';
+import { Grouping } from '../../model/grouping/grouping';
+import SpanView from './span-view';
+import Axis from './axis';
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 
@@ -12,22 +17,31 @@ export default class TimelineView {
 
   private groupNamePanelContainer = document.createElementNS(SVG_NS, 'g');
   private groupNamePanel = document.createElementNS(SVG_NS, 'g');
-  private groupNamePanelTranslateY = 0;
   private timelinePanelContainer = document.createElementNS(SVG_NS, 'g');
   private timelinePanel = document.createElementNS(SVG_NS, 'g');
-  private timelinePanelTranslateX = 0;
-  private timelinePanelTranslateY = 0;
+  private panelTranslateY = 0;
 
   private width = NaN;
   private height = NaN;
+  private get visibleWidth() { return this.svg.parentElement!.offsetWidth; }
 
   private isMouseDown = false;
+
+  private stage?: Stage;
+  private grouping?: Grouping;
+  public axis?: Axis;
+  private spanViews: SpanView[] = [];
+
+  viewSettings = {
+    singleDepthViewHeight: 50,
+  };
 
   private binded = {
     onMouseDown: this.onMouseDown.bind(this),
     onMouseMove: this.onMouseMove.bind(this),
     onMouseUp: this.onMouseUp.bind(this),
-    onMouseLeave: this.onMouseLeave.bind(this)
+    onMouseLeave: this.onMouseLeave.bind(this),
+    onWheel: this.onWheel.bind(this),
   };
 
 
@@ -104,6 +118,7 @@ export default class TimelineView {
     this.svg.addEventListener('mousemove', this.binded.onMouseMove, false);
     this.svg.addEventListener('mouseup', this.binded.onMouseUp, false);
     this.svg.addEventListener('mouseleave', this.binded.onMouseLeave, false);
+    this.svg.addEventListener('wheel', this.binded.onWheel, false);
   }
 
   onMouseDown(e: MouseEvent) {
@@ -113,12 +128,12 @@ export default class TimelineView {
   onMouseMove(e: MouseEvent) {
     if (!this.isMouseDown) return;
 
-    this.groupNamePanelTranslateY += e.movementY;
-    this.timelinePanelTranslateX += e.movementX;
-    this.timelinePanelTranslateY += e.movementY;
+    this.panelTranslateY += e.movementY;
+    this.axis!.translate(e.movementX);
+    this.spanViews.forEach(spanView => spanView.updatePositionAndSize());
 
-    this.groupNamePanel.setAttribute('transform', `translate(0, ${this.groupNamePanelTranslateY})`);
-    this.timelinePanel.setAttribute('transform', `translate(${this.timelinePanelTranslateX}, ${this.timelinePanelTranslateY})`);
+    this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
   }
 
   onMouseUp(e: MouseEvent) {
@@ -129,27 +144,47 @@ export default class TimelineView {
     this.isMouseDown = false;
   }
 
+  onWheel(e: WheelEvent) {
+    if (!this.stage) return;
+
+    this.axis!.zoom(1 - (e.deltaY * 0.025), e.offsetX);
+
+    this.spanViews.forEach(spanView => spanView.updatePositionAndSize());
+  }
+
   unbindEvents() {
     this.svg.removeEventListener('mousedown', this.binded.onMouseDown, false);
     this.svg.removeEventListener('mousemove', this.binded.onMouseMove, false);
     this.svg.removeEventListener('mouseup', this.binded.onMouseUp, false);
     this.svg.removeEventListener('mouseleave', this.binded.onMouseLeave, false);
+    this.svg.removeEventListener('wheel', this.binded.onWheel, false);
   }
 
+  updateData(stage: Stage, grouping: Grouping) {
+    this.stage = stage;
+    this.grouping = grouping;
+
+    const { startTimestamp, finishTimestamp } = stage.group;
+    this.axis = new Axis([startTimestamp, finishTimestamp], [0, this.width]);
+
+    // TODO: Re-use spanviews!
+    this.spanViews.forEach(v => v.unmount());
+    this.spanViews = [];
+
+    const groups = this.grouping.getAllGroups();
+    groups.forEach((group) => {
+      group.calculateDepthMap();
+
+      group.getAll().forEach((span) => {
+        const spanView = new SpanView(this);
+        spanView.prepare(span);
+        this.spanViews.push(spanView);
+        spanView.mount(this.timelinePanel);
+      });
+    });
+  }
 
   draw() {
-    const text = document.createElementNS(SVG_NS, 'text');
-    text.textContent = 'TEST';
-    text.setAttribute('x', '10');
-    text.setAttribute('y', '20');
-    this.groupNamePanel.appendChild(text);
-
-    const rect = document.createElementNS(SVG_NS, 'rect');
-    rect.setAttribute('x', `10`);
-    rect.setAttribute('y', '10');
-    rect.setAttribute('width', '100');
-    rect.setAttribute('height', '10');
-    rect.setAttribute('fill', '#000');
-    this.timelinePanel.appendChild(rect);
+    // this.spanViews.forEach(v => v.);
   }
 }

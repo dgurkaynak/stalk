@@ -15,7 +15,7 @@ export enum StageEvent {
 let _singletonIns: Stage;
 
 export class Stage extends EventEmitterEXtra {
-    private spanGroup = new Group('stage', 'Stage'); // One little span group for all
+    readonly group = new Group('stage', 'Stage'); // One little span group for all
     readonly grouping = {
         trace: new TraceGrouping(),
         serviceName: new ServiceNameGrouping(),
@@ -31,7 +31,7 @@ export class Stage extends EventEmitterEXtra {
 
     addTrace(trace: Trace) {
         trace.spans.forEach((span) => {
-            this.spanGroup.add(span);
+            this.group.add(span);
             this.grouping.process.addSpan(span);
             this.grouping.serviceName.addSpan(span);
             this.grouping.trace.addSpan(span, trace);
@@ -45,7 +45,7 @@ export class Stage extends EventEmitterEXtra {
         if (!traceGroup) return;
 
         traceGroup.getAll().forEach((span) => {
-            this.spanGroup.remove(span);
+            this.group.remove(span);
             this.grouping.process.removeSpan(span);
             this.grouping.serviceName.removeSpan(span);
             this.grouping.trace.removeSpan(span);

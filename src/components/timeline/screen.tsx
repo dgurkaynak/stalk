@@ -24,7 +24,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   state = {
     traceGroups: this.stage.grouping.trace.getAllGroups(),
     groupingMode: 'trace',
-    isSidebarVisible: true,
+    isSidebarVisible: false,
     sidebarSelectedTab: 'general',
   };
   binded = {
@@ -45,7 +45,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       width: innerWidth - 80,
       height: innerHeight - 80
     });
-    this.timelineView.draw();
   }
 
 
@@ -64,6 +63,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   onStageUpdated() {
     this.setState({ traceGroups: this.stage.grouping.trace.getAllGroups() });
+    this.timelineView.updateData(this.stage, this.stage.grouping.process);
   }
 
 
