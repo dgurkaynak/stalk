@@ -223,22 +223,27 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
             <Row type="flex">
 
               {this.stage.isTraceAdded(item.id) ? (
-                <Col
-                  className="search-result-item-remove-from-stage"
-                  onClick={() => this.onItemStageToggle(item)}
-                  style={styles.searchResultItemStageToggle}
-                >
-                  <Icon className="check" type="check-square" theme="filled" style={{ color: '#1890ff' }}  />
-                  <Icon className="minus" type="minus-square" theme="outlined" />
-                </Col>
+                <Tooltip title="Remove from timeline" mouseEnterDelay={1}>
+                  <Col
+                    className="search-result-item-remove-from-stage"
+                    onClick={() => this.onItemStageToggle(item)}
+                    style={styles.searchResultItemStageToggle}
+                  >
+                    <Icon className="check" type="check-square" theme="filled" style={{ color: '#1890ff' }}  />
+                    <Icon className="minus" type="minus-square" theme="outlined" />
+                  </Col>
+                </Tooltip>
+
               ) : (
-                <Col
-                  className="search-result-item-add-to-stage"
-                  onClick={() => this.onItemStageToggle(item)}
-                  style={styles.searchResultItemStageToggle}
-                >
-                  <Icon type="plus" />
-                </Col>
+                <Tooltip title="Add to timeline" mouseEnterDelay={1}>
+                  <Col
+                    className="search-result-item-add-to-stage"
+                    onClick={() => this.onItemStageToggle(item)}
+                    style={styles.searchResultItemStageToggle}
+                  >
+                    <Icon type="plus" />
+                  </Col>
+                </Tooltip>
               )}
 
 
