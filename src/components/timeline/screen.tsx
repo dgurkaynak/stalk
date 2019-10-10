@@ -1,7 +1,9 @@
+import * as _ from 'lodash';
 import React from 'react';
 import { PageHeader, Icon, Layout, Tabs, Select, Divider, Badge, Empty } from 'antd';
 import { Stage, StageEvent } from '../../model/stage';
 import ColorManagers from '../color/managers';
+import TimelineView from './view';
 
 
 import './timeline.css';
@@ -17,6 +19,8 @@ export interface TimelineScreenProps {
 
 export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private stage = Stage.getSingleton();
+  private timelineContainerRef = React.createRef();
+  private timelineView = new TimelineView();
   state = {
     traceGroups: this.stage.grouping.trace.getAllGroups(),
     groupingMode: 'trace',
@@ -26,18 +30,34 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   binded = {
     onStageUpdated: this.onStageUpdated.bind(this),
     onGroupingModeChange: this.onGroupingModeChange.bind(this),
+    onWindowResize: _.throttle(this.onWindowResize.bind(this), 500),
   };
 
 
   componentDidMount() {
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageUpdated);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageUpdated);
+    window.addEventListener('resize', this.binded.onWindowResize, false);
+
+    const containerEl = this.timelineContainerRef.current as HTMLDivElement;
+    const { innerWidth, innerHeight } = window;
+    this.timelineView.render(containerEl, {
+      width: innerWidth - 80,
+      height: innerHeight - 80
+    });
+  }
+
+
+  onWindowResize() {
+    const { innerWidth, innerHeight } = window;
+    this.timelineView.resize(innerWidth - 80, innerHeight - 80);
   }
 
 
   componentWillUnmount() {
     this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onStageUpdated);
     this.stage.removeListener(StageEvent.TRACE_REMOVED, this.binded.onStageUpdated);
+    window.removeEventListener('resize', this.binded.onWindowResize, false);
   }
 
 
@@ -54,8 +74,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   render() {
     return (
       <div style={{ display: this.props.visible ? 'block' : 'none', overflow: 'auto', height: '100vh' }}>
-        <Layout style={{ minHeight: '100%' }}>
-          <Content>
+        <Layout style={{ height: '100%', overflow: 'hidden' }}>
+          <Content style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <PageHeader
               className="pageheader-with-button"
               backIcon={false}
@@ -70,6 +90,12 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
                 />
               ]}
             ></PageHeader>
+
+            <div
+              id="timeline-container"
+              ref={this.timelineContainerRef as any}
+              style={{ flexGrow: 1 }}
+            ></div>
           </Content>
 
           <Sider
