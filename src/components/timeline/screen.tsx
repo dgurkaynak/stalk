@@ -41,10 +41,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
     const containerEl = this.timelineContainerRef.current as HTMLDivElement;
     const { innerWidth, innerHeight } = window;
-    this.timelineView.render(containerEl, {
+    this.timelineView.init(containerEl, {
       width: innerWidth - 80,
       height: innerHeight - 80
     });
+    this.timelineView.draw();
   }
 
 
