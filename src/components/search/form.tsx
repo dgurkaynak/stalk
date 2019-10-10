@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tooltip, Form, Row, Col, Input, Button, Icon, Select, DatePicker, TimePicker, InputNumber, Tag } from 'antd';
+import { Tooltip, Form, Row, Col, Input, Button, Icon, Select, DatePicker, TimePicker, InputNumber, Tag, message } from 'antd';
 import DataSourceManager from '../../model/datasource/manager';
 import DataSourceSelect from '../datasource/select';
 import { DataSource, DataSourceType } from '../../model/datasource/interfaces';
@@ -77,9 +77,18 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
     };
 
 
-    onDataSourceChange(dataSource: DataSource | null) {
+    async onDataSourceChange(dataSource: DataSource | null) {
       this.setState({ dataSource, serviceOrOperation: null });
       this.props.form.setFieldsValue({ dataSource, serviceOrOperation: null });
+
+      if (dataSource) {
+        try {
+          const api = DataSourceManager.getSingleton().apiFor(dataSource);
+          await api.updateServicesAndOperationsCache();
+        } catch (err) {
+          message.error(`Could not access to "${dataSource.name}": ${err.message}`);
+        }
+      }
     }
 
 

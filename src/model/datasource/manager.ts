@@ -70,12 +70,6 @@ export default class DataSourceManager extends EventEmitterExtra {
     this.datasources.push(ds);
     this.apis[id] = api;
 
-    try {
-      await api.updateServicesAndOperationsCache();
-    } catch (err) {
-      console.error(`Could not update cache of services/operations`, err);
-    }
-
     this.emit(DataSourceManagerEvent.UPDATED);
     return ds;
   }
