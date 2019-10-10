@@ -2,7 +2,7 @@ import React from 'react';
 import * as _ from 'lodash';
 import { PageHeader, List, Empty, Tag, Typography, Row, Col, Tooltip, Affix, Badge, Icon } from 'antd';
 import SearchForm from './form';
-import { SearchQuery } from '../../model/search/interfaces';
+import { SearchQuery } from '../../model/api/interfaces';
 import DataSourceManager from '../../model/datasource/manager';
 import { Trace } from '../../model/trace';
 import Stage, { StageEvent } from '../../model/stage';

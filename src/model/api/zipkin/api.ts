@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { SearchQuery, SearchResulList } from '../../search/interfaces';
+import { SearchQuery, SearchResulList } from '../interfaces';
 import { convertFromZipkinTrace } from './span';
 import { API } from '../interfaces';
 

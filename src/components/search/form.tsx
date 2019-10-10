@@ -7,7 +7,7 @@ import { ServiceOrOperationSelect, ServiceOrOperationEntity } from './service-or
 import moment from 'moment';
 // import _ from 'lodash';
 import parse from 'parse-duration';
-import { SearchQuery } from '../../model/search/interfaces';
+import { SearchQuery } from '../../model/api/interfaces';
 
 
 const { Option } = Select;
