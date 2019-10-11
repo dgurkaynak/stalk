@@ -174,7 +174,10 @@ export default class TimelineView {
     const grouping = stage.grouping[this.viewSettings.grouping];
 
     const { startTimestamp, finishTimestamp } = stage.group;
-    this.viewSettings.axis = new Axis([startTimestamp, finishTimestamp], [0, this.viewSettings.width]);
+    this.viewSettings.axis = new Axis(
+      [startTimestamp, finishTimestamp],
+      [this.viewSettings.barViewportMargin, this.viewSettings.width - this.viewSettings.barViewportMargin]
+    );
 
     _.forEach(this.groupViews, v => v.dispose());
     this.groupViews = {};
