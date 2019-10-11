@@ -9,11 +9,13 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 export default class SpanView {
   span?: Span;
   viewSettings: ViewSettings;
-  g = document.createElementNS(SVG_NS, 'g');
-  rect = document.createElementNS(SVG_NS, 'rect');
   options = {
     isCollapsed: false
   };
+
+  private g = document.createElementNS(SVG_NS, 'g');
+  private rect = document.createElementNS(SVG_NS, 'rect');
+  private widthInPx = 0;
 
   constructor(options: {
     viewSettings: ViewSettings
@@ -38,5 +40,19 @@ export default class SpanView {
     this.rect.setAttribute('fill', ColorManagers.operationName.colorFor(this.span.operationName) + '');
     this.rect.setAttribute('rx', this.viewSettings.barRadius + '');
     this.rect.setAttribute('ry', this.viewSettings.barRadius + '');
+  }
+
+  updatePosition(options: {
+    rowIndex: number
+  }) {
+    if (!this.span) return false;
+
+    const { axis, barHeight, barSpacing } = this.viewSettings;
+    const startX = axis.input2output(this.span.startTime);
+    this.widthInPx = axis.input2output(this.span.finishTime) - startX;
+    this.rect.setAttribute('width',  this.widthInPx + '');
+    this.rect.setAttribute('height', barHeight + '');
+    const startY = (options.rowIndex * (barHeight + (2 * barSpacing))) + barSpacing;
+    this.g.setAttribute('transform', `translate(${startX}, ${startY})`);
   }
 }

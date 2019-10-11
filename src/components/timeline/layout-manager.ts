@@ -105,13 +105,8 @@ export default class LayoutManager {
   }
 
   updateSpanPlacement(spanView: SpanView) {
-    const { axis, barHeight, barSpacing } = this.groupView.viewSettings;
-    const startX = axis!.input2output(spanView.span!.startTime);
     const rowIndex = this.spanIdToRowIndex[spanView.span!.id];
-    spanView.rect.setAttribute('width', axis!.input2output(spanView.span!.finishTime) - startX + '');
-    spanView.rect.setAttribute('height', barHeight + '');
-    const startY = (rowIndex * (barHeight + (2 * barSpacing))) + barSpacing;
-    spanView.g.setAttribute('transform', `translate(${startX}, ${startY})`);
+    spanView.updatePosition({ rowIndex });
   }
 
   updateVisibleSpansPlacement() {
