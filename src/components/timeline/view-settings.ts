@@ -13,10 +13,10 @@ export default class TimelineViewSettings extends EventEmitterExtra {
 
   groupSeperatorLineColor = '#cccccc';
   groupSeperatorLineWidth = 1;
-  groupTextOffsetX = 3;
-  groupTextOffsetY = 13;
-  groupTextFontSize = 12;
-  groupTextColor = '#999999';
+  groupLabelOffsetX = 3;
+  groupLabelOffsetY = 13;
+  groupLabelFontSize = 12;
+  groupLabelColor = '#999999';
   groupPaddingTop = 20;
   groupPaddingBottom = 10;
 

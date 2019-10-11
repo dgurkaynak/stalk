@@ -7,7 +7,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 
 export default class SpanView {
-  span?: Span;
+  span: Span;
   viewSettings: ViewSettings;
   options = {
     isCollapsed: false
@@ -18,8 +18,10 @@ export default class SpanView {
   private widthInPx = 0;
 
   constructor(options: {
+    span: Span,
     viewSettings: ViewSettings
   }) {
+    this.span = options.span;
     this.viewSettings = options.viewSettings;
     this.rect.setAttribute('x', '0');
     this.rect.setAttribute('y', '0');

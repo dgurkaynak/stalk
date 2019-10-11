@@ -78,9 +78,7 @@ export default class TimelineView {
     this.timelinePanelClipPathRect.setAttribute('width', `${width}`);
     this.timelinePanelClipPathRect.setAttribute('height', `${height}`);
 
-    _.forEach(this.groupViews, (groupView) => {
-      groupView.groupNameLine.setAttribute('x2', width + '');
-    });
+    _.forEach(this.groupViews, v => v.updateSeperatorLineWidths());
   }
 
 
@@ -130,7 +128,7 @@ export default class TimelineView {
 
     this.panelTranslateY += e.movementY;
     this.viewSettings.axis.translate(e.movementX);
-    _.forEach(this.groupViews, v => v.layout.updateVisibleSpansPlacement());
+    _.forEach(this.groupViews, v => v.updateVisibleSpanPositions());
 
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
@@ -151,7 +149,7 @@ export default class TimelineView {
       1 - (this.viewSettings.scrollToZoomFactor * e.deltaY),
       e.offsetX
     );
-    _.forEach(this.groupViews, v => v.layout.updateVisibleSpansPlacement());
+    _.forEach(this.groupViews, v => v.updateVisibleSpanPositions());
   }
 
   unbindEvents() {
@@ -184,30 +182,16 @@ export default class TimelineView {
       this.groupViews[group.id] = groupView;
     });
 
-    this.refreshGroupPositions();
+    this.updateGroupPositions();
   }
 
-  refreshGroupPositions() {
-    const {
-      groupPaddingTop,
-      groupPaddingBottom,
-      groupTextOffsetX,
-      groupTextOffsetY,
-      barHeight,
-      barSpacing
-    } = this.viewSettings;
+  updateGroupPositions() {
+    const { groupPaddingTop, groupPaddingBottom, barHeight, barSpacing } = this.viewSettings;
     let y = 0;
 
     _.forEach(this.groupViews, (groupView, i) => {
-      groupView.g.setAttribute('transform', `translate(0, ${y + groupPaddingTop})`);
-      groupView.groupNameLine.setAttribute('transform', `translate(0, ${y})`);
-      groupView.groupNameText.setAttribute('transform', `translate(${groupTextOffsetX}, ${y + groupTextOffsetY})`);
-
-      y += groupPaddingTop + groupPaddingBottom + groupView.layout.height * (2 * barSpacing + barHeight);
+      groupView.updatePosition({ y });
+      y += groupPaddingTop + groupPaddingBottom + groupView.height * (2 * barSpacing + barHeight);
     });
-  }
-
-  draw() {
-    // this.spanViews.forEach(v => v.);
   }
 }
