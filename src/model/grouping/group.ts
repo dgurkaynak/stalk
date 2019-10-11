@@ -20,9 +20,6 @@ export class Group {
         return _.flatten(sets.map(set => Array.from(set))).map(spanId => this.nodes[spanId]);
     }
 
-    spanIdToDepth: { [key: string]: number } = {};
-    depthToSpanIds: string[][] = [];
-
 
     constructor(id: string, name: string) {
         this.id = id;
@@ -137,31 +134,6 @@ export class Group {
         const dependencies = this.missingNodeDependents[span.id];
         delete this.missingNodeDependents[span.id];
         if (dependencies) dependencies.forEach(spanId => this.setupNode(spanId));
-    }
-
-
-    calculateDepthMap() {
-        this.spanIdToDepth = {};
-        this.depthToSpanIds = [];
-
-        // Breadth-first traversal
-        const nodeQueue: GroupSpanNode[] = [...this.rootNodes, ...this.orphanNodes];
-
-        while (nodeQueue.length > 0) {
-            const node = nodeQueue.shift()!;
-            let depth = 0;
-
-            if (node.parent) {
-                depth = this.spanIdToDepth[node.parent.spanId] + 1;
-            }
-
-            this.spanIdToDepth[node.spanId] = depth;
-
-            if (!this.depthToSpanIds[depth]) this.depthToSpanIds[depth] = [];
-            this.depthToSpanIds[depth].push(node.spanId);
-
-            node.children.forEach(childNode => nodeQueue.push(childNode));
-        }
     }
 
 

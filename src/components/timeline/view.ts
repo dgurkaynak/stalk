@@ -1,7 +1,9 @@
+import * as _ from 'lodash';
 import { Stage } from '../../model/stage';
 import { Grouping } from '../../model/grouping/grouping';
-import SpanView from './span-view';
+import GroupView from './group-view';
 import Axis from './axis';
+import ViewSettings from './view-settings';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -21,20 +23,12 @@ export default class TimelineView {
   private timelinePanel = document.createElementNS(SVG_NS, 'g');
   private panelTranslateY = 0;
 
-  private width = NaN;
-  private height = NaN;
-  private get visibleWidth() { return this.svg.parentElement!.offsetWidth; }
-
   private isMouseDown = false;
 
   private stage?: Stage;
   private grouping?: Grouping;
-  public axis?: Axis;
-  private spanViews: SpanView[] = [];
-
-  viewSettings = {
-    singleDepthViewHeight: 50,
-  };
+  private viewSettings = new ViewSettings();
+  private groupViews: { [key: string]: GroupView} = {};
 
   private binded = {
     onMouseDown: this.onMouseDown.bind(this),
@@ -47,6 +41,7 @@ export default class TimelineView {
 
   constructor() {
     this.svg.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
+    this.svg.id = 'timeline-svg';
   }
 
 
@@ -70,35 +65,40 @@ export default class TimelineView {
 
 
   resize(width: number, height: number) {
-    this.width = width;
-    this.height = height;
+    this.viewSettings.width = width;
+    this.viewSettings.height = height;
 
     this.svg.setAttribute('width', `${width}`);
     this.svg.setAttribute('height', `${height}`);
     this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-    this.groupNamePanelClipPathRect.setAttribute('width', `${this.width}`);
-    this.groupNamePanelClipPathRect.setAttribute('height', `${this.height}`);
+    this.groupNamePanelClipPathRect.setAttribute('width', `${width}`);
+    this.groupNamePanelClipPathRect.setAttribute('height', `${height}`);
 
-    this.timelinePanelClipPathRect.setAttribute('width', `${this.width}`);
-    this.timelinePanelClipPathRect.setAttribute('height', `${this.height}`);
+    this.timelinePanelClipPathRect.setAttribute('width', `${width}`);
+    this.timelinePanelClipPathRect.setAttribute('height', `${height}`);
+
+    _.forEach(this.groupViews, (groupView) => {
+      groupView.groupNameLine.setAttribute('x2', width + '');
+    });
   }
 
 
   setupPanels() {
+    const { width, height } = this.viewSettings;
     this.groupNamePanelClipPath.id = 'group-name-panel-clip-path';
     this.groupNamePanelClipPathRect.setAttribute('x', `0`);
     this.groupNamePanelClipPathRect.setAttribute('y', `0`);
-    this.groupNamePanelClipPathRect.setAttribute('width', `${this.width}`);
-    this.groupNamePanelClipPathRect.setAttribute('height', `${this.height}`);
+    this.groupNamePanelClipPathRect.setAttribute('width', `${width}`);
+    this.groupNamePanelClipPathRect.setAttribute('height', `${height}`);
     this.groupNamePanelClipPath.appendChild(this.groupNamePanelClipPathRect);
     this.defs.appendChild(this.groupNamePanelClipPath);
 
     this.timelinePanelClipPath.id = 'timeline-panel-clip-path';
     this.timelinePanelClipPathRect.setAttribute('x', `0`);
     this.timelinePanelClipPathRect.setAttribute('y', `0`);
-    this.timelinePanelClipPathRect.setAttribute('width', `${this.width}`);
-    this.timelinePanelClipPathRect.setAttribute('height', `${this.height}`);
+    this.timelinePanelClipPathRect.setAttribute('width', `${width}`);
+    this.timelinePanelClipPathRect.setAttribute('height', `${height}`);
     this.timelinePanelClipPath.appendChild(this.timelinePanelClipPathRect);
     this.defs.appendChild(this.timelinePanelClipPath);
 
@@ -129,8 +129,8 @@ export default class TimelineView {
     if (!this.isMouseDown) return;
 
     this.panelTranslateY += e.movementY;
-    this.axis!.translate(e.movementX);
-    this.spanViews.forEach(spanView => spanView.updatePositionAndSize());
+    this.viewSettings.axis.translate(e.movementX);
+    _.forEach(this.groupViews, v => v.layout.updateVisibleSpansPlacement());
 
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
@@ -147,9 +147,11 @@ export default class TimelineView {
   onWheel(e: WheelEvent) {
     if (!this.stage) return;
 
-    this.axis!.zoom(1 - (e.deltaY * 0.025), e.offsetX);
-
-    this.spanViews.forEach(spanView => spanView.updatePositionAndSize());
+    this.viewSettings.axis.zoom(
+      1 - (this.viewSettings.scrollToZoomFactor * e.deltaY),
+      e.offsetX
+    );
+    _.forEach(this.groupViews, v => v.layout.updateVisibleSpansPlacement());
   }
 
   unbindEvents() {
@@ -165,22 +167,43 @@ export default class TimelineView {
     this.grouping = grouping;
 
     const { startTimestamp, finishTimestamp } = stage.group;
-    this.axis = new Axis([startTimestamp, finishTimestamp], [0, this.width]);
+    this.viewSettings.axis = new Axis([startTimestamp, finishTimestamp], [0, this.viewSettings.width]);
 
-    // TODO: Re-use spanviews!
-    this.spanViews.forEach(v => v.unmount());
-    this.spanViews = [];
+    _.forEach(this.groupViews, v => v.dispose());
+    this.groupViews = {};
 
     const groups = this.grouping.getAllGroups();
     groups.forEach((group) => {
-      group.calculateDepthMap();
-
-      group.getAll().forEach((span) => {
-        const spanView = new SpanView(this);
-        spanView.prepare(span);
-        this.spanViews.push(spanView);
-        spanView.mount(this.timelinePanel);
+      const groupView = new GroupView({ group, viewSettings: this.viewSettings });
+      groupView.mount({
+        groupNamePanel: this.groupNamePanel,
+        timelinePanel: this.timelinePanel
       });
+      groupView.setupSpans();
+
+      this.groupViews[group.id] = groupView;
+    });
+
+    this.refreshGroupPositions();
+  }
+
+  refreshGroupPositions() {
+    const {
+      groupPaddingTop,
+      groupPaddingBottom,
+      groupTextOffsetX,
+      groupTextOffsetY,
+      barHeight,
+      barSpacing
+    } = this.viewSettings;
+    let y = 0;
+
+    _.forEach(this.groupViews, (groupView, i) => {
+      groupView.g.setAttribute('transform', `translate(0, ${y + groupPaddingTop})`);
+      groupView.groupNameLine.setAttribute('transform', `translate(0, ${y})`);
+      groupView.groupNameText.setAttribute('transform', `translate(${groupTextOffsetX}, ${y + groupTextOffsetY})`);
+
+      y += groupPaddingTop + groupPaddingBottom + groupView.layout.height * (2 * barSpacing + barHeight);
     });
   }
 

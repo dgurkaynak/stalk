@@ -1,5 +1,5 @@
 import { Span } from '../../model/span';
-import TimelineView from './view';
+import ViewSettings from './view-settings';
 import ColorManagers from '../color/managers';
 
 
@@ -8,11 +8,19 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export default class SpanView {
   span?: Span;
+  viewSettings: ViewSettings;
   g = document.createElementNS(SVG_NS, 'g');
   rect = document.createElementNS(SVG_NS, 'rect');
-  isCollapsed = false;
+  options = {
+    isCollapsed: false
+  };
 
-  constructor(private timelineView: TimelineView) {
+  constructor(options: {
+    viewSettings: ViewSettings
+  }) {
+    this.viewSettings = options.viewSettings;
+    this.rect.setAttribute('x', '0');
+    this.rect.setAttribute('y', '0');
     this.g.appendChild(this.rect);
   }
 
@@ -25,18 +33,10 @@ export default class SpanView {
     parentElement && parentElement.removeChild(this.g);
   }
 
-  prepare(span: Span) {
+  reuse(span: Span) {
     this.span = span;
-    this.updatePositionAndSize();
     this.rect.setAttribute('fill', ColorManagers.operationName.colorFor(this.span.operationName) + '');
-  }
-
-  updatePositionAndSize() {
-    const { axis, viewSettings } = this.timelineView;
-    const startX = axis!.input2output(this.span!.startTime);
-    this.rect.setAttribute('x', startX + '');
-    this.rect.setAttribute('y', '0');
-    this.rect.setAttribute('width', axis!.input2output(this.span!.finishTime) - startX + '');
-    this.rect.setAttribute('height', viewSettings.singleDepthViewHeight + '');
+    this.rect.setAttribute('rx', this.viewSettings.barRadius + '');
+    this.rect.setAttribute('ry', this.viewSettings.barRadius + '');
   }
 }
