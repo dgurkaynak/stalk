@@ -6,6 +6,7 @@ export default class TimelineViewSettings extends EventEmitterExtra {
   axis = new Axis([0, 0], [0, 0]);
   width = NaN;
   height = NaN;
+  grouping = 'process';
 
   barHeight = 20;
   barSpacing = 3;

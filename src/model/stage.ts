@@ -4,6 +4,7 @@ import ServiceNameGrouping from './grouping/service-name';
 import ProcessGrouping from './grouping/process';
 import { Group } from './grouping/group';
 import EventEmitterEXtra from 'event-emitter-extra';
+import { Grouping } from './grouping/grouping';
 
 
 export enum StageEvent {
@@ -16,7 +17,7 @@ let _singletonIns: Stage;
 
 export class Stage extends EventEmitterEXtra {
     readonly group = new Group('stage', 'Stage'); // One little span group for all
-    readonly grouping = {
+    readonly grouping: { [key: string]: Grouping } = {
         trace: new TraceGrouping(),
         serviceName: new ServiceNameGrouping(),
         process: new ProcessGrouping()

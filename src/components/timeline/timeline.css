@@ -32,7 +32,7 @@
   flex-grow: 1;
 }
 
-svg#timeline-svg text {
+svg.timeline-svg text {
   cursor: default;
   -webkit-user-select: none;
   -moz-user-select: none;

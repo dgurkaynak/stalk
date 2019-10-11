@@ -1,6 +1,5 @@
 import * as _ from 'lodash';
 import { Stage } from '../../model/stage';
-import { Grouping } from '../../model/grouping/grouping';
 import GroupView from './group-view';
 import Axis from './axis';
 import ViewSettings from './view-settings';
@@ -26,7 +25,6 @@ export default class TimelineView {
   private isMouseDown = false;
 
   private stage?: Stage;
-  private grouping?: Grouping;
   private viewSettings = new ViewSettings();
   private groupViews: { [key: string]: GroupView} = {};
 
@@ -39,9 +37,12 @@ export default class TimelineView {
   };
 
 
-  constructor() {
+  constructor(options?: {
+    viewSettings?: ViewSettings
+  }) {
+    if (options && options.viewSettings) this.viewSettings = options.viewSettings;
     this.svg.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
-    this.svg.id = 'timeline-svg';
+    this.svg.classList.add('timeline-svg');
   }
 
 
@@ -160,9 +161,9 @@ export default class TimelineView {
     this.svg.removeEventListener('wheel', this.binded.onWheel, false);
   }
 
-  updateData(stage: Stage, grouping: Grouping) {
+  updateData(stage: Stage) {
     this.stage = stage;
-    this.grouping = grouping;
+    const grouping = stage.grouping[this.viewSettings.grouping];
 
     const { startTimestamp, finishTimestamp } = stage.group;
     this.viewSettings.axis = new Axis([startTimestamp, finishTimestamp], [0, this.viewSettings.width]);
@@ -170,7 +171,7 @@ export default class TimelineView {
     _.forEach(this.groupViews, v => v.dispose());
     this.groupViews = {};
 
-    const groups = this.grouping.getAllGroups();
+    const groups = grouping.getAllGroups();
     groups.forEach((group) => {
       const groupView = new GroupView({ group, viewSettings: this.viewSettings });
       groupView.mount({

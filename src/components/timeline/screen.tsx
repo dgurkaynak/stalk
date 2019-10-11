@@ -63,7 +63,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   onStageUpdated() {
     this.setState({ traceGroups: this.stage.grouping.trace.getAllGroups() });
-    this.timelineView.updateData(this.stage, this.stage.grouping.process);
+    this.timelineView.updateData(this.stage);
   }
 
 
