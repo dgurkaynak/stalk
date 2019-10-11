@@ -27,6 +27,7 @@ export default class TimelineView {
   private stage?: Stage;
   private viewSettings = new ViewSettings();
   private groupViews: { [key: string]: GroupView} = {};
+  private height = 0;
 
   private binded = {
     onMouseDown: this.onMouseDown.bind(this),
@@ -127,7 +128,14 @@ export default class TimelineView {
   onMouseMove(e: MouseEvent) {
     if (!this.isMouseDown) return;
 
-    this.panelTranslateY += e.movementY;
+    const { height: viewportHeight } = this.viewSettings;
+    if (this.height <= viewportHeight) {
+      // No vertical panning
+    } else {
+      const newTranslateY = this.panelTranslateY + e.movementY;
+      this.panelTranslateY = Math.min(Math.max(newTranslateY, viewportHeight - this.height), 0);
+    }
+
     this.viewSettings.axis.translate(e.movementX);
     _.forEach(this.groupViews, v => v.updateVisibleSpanPositions());
 
@@ -194,5 +202,7 @@ export default class TimelineView {
       groupView.updatePosition({ y });
       y += groupPaddingTop + groupPaddingBottom + groupView.height * (2 * barSpacing + barHeight);
     });
+
+    this.height = y;
   }
 }
