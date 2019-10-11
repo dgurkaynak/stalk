@@ -192,6 +192,11 @@ export default class TimelineView {
     });
 
     this.updateGroupPositions();
+
+    // Reset vertical panning
+    this.panelTranslateY = 0;
+    this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
   }
 
   updateGroupPositions() {
