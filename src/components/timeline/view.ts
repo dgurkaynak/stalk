@@ -187,6 +187,7 @@ export default class TimelineView {
         timelinePanel: this.timelinePanel
       });
       groupView.setupSpans();
+      groupView.layout();
 
       this.groupViews[group.id] = groupView;
     });

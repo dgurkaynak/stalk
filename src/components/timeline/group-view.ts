@@ -86,8 +86,6 @@ export default class GroupView {
         spanView.reuse(span);
         this.spanViews[span.id] = spanView;
     });
-
-    this.layout();
   }
 
   updatePosition(options: { y: number }) {
