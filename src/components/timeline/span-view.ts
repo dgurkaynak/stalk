@@ -49,9 +49,9 @@ export default class SpanView {
   }) {
     if (!this.span) return false;
 
-    const { axis, barHeight, barSpacing } = this.viewSettings;
+    const { axis, barHeight, barSpacing, barMinWidth } = this.viewSettings;
     const startX = axis.input2output(this.span.startTime);
-    this.widthInPx = axis.input2output(this.span.finishTime) - startX;
+    this.widthInPx = Math.max(axis.input2output(this.span.finishTime) - startX, barMinWidth);
     this.rect.setAttribute('width',  this.widthInPx + '');
     this.rect.setAttribute('height', barHeight + '');
     const startY = (options.rowIndex * (barHeight + (2 * barSpacing))) + barSpacing;

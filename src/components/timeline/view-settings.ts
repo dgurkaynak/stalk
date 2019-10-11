@@ -11,6 +11,7 @@ export default class TimelineViewSettings extends EventEmitterExtra {
   barHeight = 20;
   barSpacing = 3;
   barRadius = 3;
+  barMinWidth = 2;
   barViewportMargin = 5;
 
   groupSeperatorLineColor = '#cccccc';
