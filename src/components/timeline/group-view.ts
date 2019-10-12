@@ -18,14 +18,14 @@ export default class GroupView {
   group: Group;
   viewSettings: ViewSettings;
   spanViews: { [key: string]: SpanView} = {};
-  get height() { return this.rowsAndSpanIntervals.length; }
+  get heightInRows() { return this.rowsAndSpanIntervals.length; } // How many rows containing
   options = {
     isCollapsed: false
   };
 
-  private g = document.createElementNS(SVG_NS, 'g');
+  private container = document.createElementNS(SVG_NS, 'g');
   private seperatorLine = document.createElementNS(SVG_NS, 'line');
-  private groupLabelText = document.createElementNS(SVG_NS, 'text');
+  private labelText = document.createElementNS(SVG_NS, 'text');
 
   private rowsAndSpanIntervals: number[][][] = [];
   private spanIdToRowIndex: { [key: string]: number } = {};
@@ -44,30 +44,30 @@ export default class GroupView {
     this.seperatorLine.setAttribute('stroke', this.viewSettings.groupSeperatorLineColor);
     this.seperatorLine.setAttribute('stroke-width', this.viewSettings.groupSeperatorLineWidth + '');
 
-    this.groupLabelText.textContent = this.group.name;
-    this.groupLabelText.setAttribute('fill', this.viewSettings.groupLabelColor);
-    this.groupLabelText.setAttribute('x', '0');
-    this.groupLabelText.setAttribute('y', '0');
-    this.groupLabelText.setAttribute('font-size', `${this.viewSettings.groupLabelFontSize}px`);
+    this.labelText.textContent = this.group.name;
+    this.labelText.setAttribute('fill', this.viewSettings.groupLabelColor);
+    this.labelText.setAttribute('x', '0');
+    this.labelText.setAttribute('y', '0');
+    this.labelText.setAttribute('font-size', `${this.viewSettings.groupLabelFontSize}px`);
   }
 
   mount(options: {
     groupNamePanel: SVGGElement,
     timelinePanel: SVGGElement
   }) {
-    options.timelinePanel.appendChild(this.g);
+    options.timelinePanel.appendChild(this.container);
     options.groupNamePanel.appendChild(this.seperatorLine);
-    options.groupNamePanel.appendChild(this.groupLabelText);
+    options.groupNamePanel.appendChild(this.labelText);
   }
 
   dispose() {
     // Unmount self
-    const parent1 = this.g.parentElement;
-    parent1 && parent1.removeChild(this.g);
+    const parent1 = this.container.parentElement;
+    parent1 && parent1.removeChild(this.container);
     const parent2 = this.seperatorLine.parentElement;
     parent2 && parent2.removeChild(this.seperatorLine);
-    const parent3 = this.groupLabelText.parentElement;
-    parent3 && parent3.removeChild(this.groupLabelText);
+    const parent3 = this.labelText.parentElement;
+    parent3 && parent3.removeChild(this.labelText);
 
     // Unmount spans
     const spanViews = Object.values(this.spanViews);
@@ -90,9 +90,9 @@ export default class GroupView {
 
   updatePosition(options: { y: number }) {
     const { groupPaddingTop, groupLabelOffsetX: groupTextOffsetX, groupLabelOffsetY: groupTextOffsetY } = this.viewSettings;
-    this.g.setAttribute('transform', `translate(0, ${options.y + groupPaddingTop})`);
+    this.container.setAttribute('transform', `translate(0, ${options.y + groupPaddingTop})`);
     this.seperatorLine.setAttribute('transform', `translate(0, ${options.y})`);
-    this.groupLabelText.setAttribute('transform', `translate(${groupTextOffsetX}, ${options.y + groupTextOffsetY})`);
+    this.labelText.setAttribute('transform', `translate(${groupTextOffsetX}, ${options.y + groupTextOffsetY})`);
   }
 
   updateSeperatorLineWidths() {
@@ -102,7 +102,7 @@ export default class GroupView {
   layout() {
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
-    const { group, spanViews, g } = this;
+    const { group, spanViews, container: g } = this;
     const nodeQueue: GroupSpanNode[] = [...group.rootNodes, ...group.orphanNodes].sort((a, b) => {
       const spanA = group.get(a.spanId);
       const spanB = group.get(b.spanId);
@@ -165,7 +165,11 @@ export default class GroupView {
           this.rowsAndSpanIntervals[availableRowIndex].push([startTime, finishTime]);
           this.spanIdToRowIndex[node.spanId] = availableRowIndex;
 
-          spanView.updatePosition({ rowIndex: availableRowIndex });
+          spanView.updateHeight();
+          spanView.updateWidth();
+          spanView.updateVerticalPosition(availableRowIndex, true);
+          spanView.updateHorizontalPosition();
+
           spanView.mount(g);
           break;
         }
@@ -183,11 +187,22 @@ export default class GroupView {
     } // while loop ended
   }
 
-  updateVisibleSpanPositions() {
+  handleAxisTranslate() {
+    // Traverse just visible spans
+    Object.keys(this.spanIdToRowIndex).forEach((spanId) => {
+      const spanView = this.spanViews[spanId];
+      spanView.updateHorizontalPosition();
+    });
+  }
+
+  handleAxisZoom() {
+    // Traverse just visible spans
     Object.keys(this.spanIdToRowIndex).forEach((spanId) => {
       const spanView = this.spanViews[spanId];
       const rowIndex = this.spanIdToRowIndex[spanId];
-      spanView.updatePosition({ rowIndex });
+      spanView.updateVerticalPosition(rowIndex, true);
+      spanView.updateHorizontalPosition();
+      spanView.updateWidth();
     });
   }
 

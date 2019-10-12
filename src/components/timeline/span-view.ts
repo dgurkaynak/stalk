@@ -1,6 +1,7 @@
 import { Span } from '../../model/span';
 import ViewSettings from './view-settings';
 import ColorManagers from '../color/managers';
+import invert from 'invert-color';
 
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -13,9 +14,15 @@ export default class SpanView {
     isCollapsed: false
   };
 
-  private g = document.createElementNS(SVG_NS, 'g');
-  private rect = document.createElementNS(SVG_NS, 'rect');
-  private widthInPx = 0;
+  private containaer = document.createElementNS(SVG_NS, 'g');
+  private barRect = document.createElementNS(SVG_NS, 'rect');
+  private labelText = document.createElementNS(SVG_NS, 'text');
+
+  private viewPropertiesCache = {
+    width: 0,
+    x: 0,
+    y: 0,
+  };
 
   constructor(options: {
     span: Span,
@@ -23,38 +30,84 @@ export default class SpanView {
   }) {
     this.span = options.span;
     this.viewSettings = options.viewSettings;
-    this.rect.setAttribute('x', '0');
-    this.rect.setAttribute('y', '0');
-    this.g.appendChild(this.rect);
+
+    this.barRect.setAttribute('x', '0');
+    this.barRect.setAttribute('y', '0');
+    this.barRect.setAttribute('rx', this.viewSettings.spanBarRadius + '');
+    this.barRect.setAttribute('ry', this.viewSettings.spanBarRadius + '');
+    this.containaer.appendChild(this.barRect);
+
+    this.labelText.setAttribute('x', '0');
+    this.labelText.setAttribute('y', '0');
+    this.labelText.setAttribute('font-size', this.viewSettings.spanLabelFontSize + '');
   }
 
   mount(parentElement: SVGGElement) {
-    parentElement.appendChild(this.g);
+    parentElement.appendChild(this.containaer);
   }
 
   unmount() {
-    const parentElement = this.g.parentElement;
-    parentElement && parentElement.removeChild(this.g);
+    const parentElement = this.containaer.parentElement;
+    parentElement && parentElement.removeChild(this.containaer);
   }
 
   reuse(span: Span) {
     this.span = span;
-    this.rect.setAttribute('fill', ColorManagers.operationName.colorFor(this.span.operationName) + '');
-    this.rect.setAttribute('rx', this.viewSettings.barRadius + '');
-    this.rect.setAttribute('ry', this.viewSettings.barRadius + '');
+    this.updateColoring();
+    this.updateLabelText();
+    this.hideLabel();
   }
 
-  updatePosition(options: {
-    rowIndex: number
-  }) {
-    if (!this.span) return false;
+  updateLabelText() {
+    this.labelText.textContent = this.span.operationName;
+  }
 
-    const { axis, barHeight, barSpacing, barMinWidth } = this.viewSettings;
+  updateColoring() {
+    const barColor = ColorManagers.operationName.colorFor(this.span.operationName) as string;
+    this.barRect.setAttribute('fill', barColor);
+    this.labelText.setAttribute('fill', invert(barColor, true));
+  }
+
+  updateVerticalPosition(rowIndex: number, dontApplyTransform = false) {
+    const { spanBarSpacing, rowHeight } = this.viewSettings;
+    const { x } = this.viewPropertiesCache;
+    const y = (rowIndex * rowHeight) + spanBarSpacing;
+    this.viewPropertiesCache.y = y;
+    !dontApplyTransform && this.containaer.setAttribute('transform', `translate(${x}, ${y})`);
+  }
+
+  updateHorizontalPosition() {
+    const { axis } = this.viewSettings;
+    const { y } = this.viewPropertiesCache;
+    const x = axis.input2output(this.span.startTime);
+    this.viewPropertiesCache.x = x;
+    this.containaer.setAttribute('transform', `translate(${x}, ${y})`);
+  }
+
+  updateWidth() {
+    const { axis, spanBarMinWidth } = this.viewSettings;
     const startX = axis.input2output(this.span.startTime);
-    this.widthInPx = Math.max(axis.input2output(this.span.finishTime) - startX, barMinWidth);
-    this.rect.setAttribute('width',  this.widthInPx + '');
-    this.rect.setAttribute('height', barHeight + '');
-    const startY = (options.rowIndex * (barHeight + (2 * barSpacing))) + barSpacing;
-    this.g.setAttribute('transform', `translate(${startX}, ${startY})`);
+    const width = Math.max(axis.input2output(this.span.finishTime) - startX, spanBarMinWidth);
+    this.viewPropertiesCache.width = width;
+    this.barRect.setAttribute('width',  width + '');
+  }
+
+  updateHeight() {
+    const { spanBarHeight, spanBarSpacing, spanLabelOffsetLeft, spanLabelOffsetTop } = this.viewSettings;
+
+    // Update bar height
+    this.barRect.setAttribute('height', spanBarHeight + '');
+
+    // Update label text positioning
+    this.labelText.setAttribute('x', spanLabelOffsetLeft + '');
+    this.labelText.setAttribute('y', (spanBarHeight / 2 + spanBarSpacing + spanLabelOffsetTop) + '');
+  }
+
+  showLabel() {
+    if (!this.labelText.parentElement) this.containaer.appendChild(this.labelText);
+  }
+
+  hideLabel() {
+    if (this.labelText.parentElement) this.containaer.removeChild(this.labelText);
   }
 }

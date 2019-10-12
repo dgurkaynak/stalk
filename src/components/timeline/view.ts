@@ -27,7 +27,7 @@ export default class TimelineView {
   private stage?: Stage;
   private viewSettings = new ViewSettings();
   private groupViews: { [key: string]: GroupView} = {};
-  private height = 0;
+  private height = 0; // in pixels
 
   private binded = {
     onMouseDown: this.onMouseDown.bind(this),
@@ -137,7 +137,7 @@ export default class TimelineView {
     }
 
     this.viewSettings.axis.translate(e.movementX);
-    _.forEach(this.groupViews, v => v.updateVisibleSpanPositions());
+    _.forEach(this.groupViews, v => v.handleAxisTranslate());
 
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
@@ -158,7 +158,7 @@ export default class TimelineView {
       1 - (this.viewSettings.scrollToZoomFactor * e.deltaY),
       e.offsetX
     );
-    _.forEach(this.groupViews, v => v.updateVisibleSpanPositions());
+    _.forEach(this.groupViews, v => v.handleAxisZoom());
   }
 
   unbindEvents() {
@@ -176,7 +176,7 @@ export default class TimelineView {
     const { startTimestamp, finishTimestamp } = stage.group;
     this.viewSettings.axis = new Axis(
       [startTimestamp, finishTimestamp],
-      [this.viewSettings.barViewportMargin, this.viewSettings.width - this.viewSettings.barViewportMargin]
+      [this.viewSettings.spanBarViewportMargin, this.viewSettings.width - this.viewSettings.spanBarViewportMargin]
     );
 
     _.forEach(this.groupViews, v => v.dispose());
@@ -204,12 +204,12 @@ export default class TimelineView {
   }
 
   updateGroupPositions() {
-    const { groupPaddingTop, groupPaddingBottom, barHeight, barSpacing } = this.viewSettings;
+    const { groupPaddingTop, groupPaddingBottom, rowHeight } = this.viewSettings;
     let y = 0;
 
     _.forEach(this.groupViews, (groupView, i) => {
       groupView.updatePosition({ y });
-      y += groupPaddingTop + groupPaddingBottom + groupView.height * (2 * barSpacing + barHeight);
+      y += groupPaddingTop + groupPaddingBottom + (groupView.heightInRows * rowHeight);
     });
 
     this.height = y;
