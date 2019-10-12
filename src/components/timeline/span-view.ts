@@ -84,6 +84,10 @@ export default class SpanView {
     this.labelText.setAttribute('fill', invert(barColor, true));
   }
 
+  updateLabelTextDecoration() {
+    this.labelText.setAttribute('text-decoration', this.options.isCollapsed ? 'underline': '');
+  }
+
   updateVerticalPosition(rowIndex: number, dontApplyTransform = false) {
     const { spanBarSpacing, rowHeight, groupPaddingTop } = this.viewSettings;
     const { x } = this.viewPropertiesCache;

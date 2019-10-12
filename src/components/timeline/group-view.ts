@@ -109,12 +109,14 @@ export default class GroupView extends EventEmitterExtra {
     const spanId = spanContainer.getAttribute('data-span-id')!;
     const spanView = this.spanViews[spanId];
     spanView.options.isCollapsed = !spanView.options.isCollapsed;
+    spanView.updateLabelTextDecoration();
 
     this.layout();
   }
 
   onLabelTextDoubleClick(e: MouseEvent) {
     this.options.isCollapsed = !this.options.isCollapsed;
+    this.updateLabelTextDecoration();
     this.layout();
   }
 
@@ -136,6 +138,10 @@ export default class GroupView extends EventEmitterExtra {
 
   updateSeperatorLineWidths() {
     this.seperatorLine.setAttribute('x2', this.viewSettings.width + '');
+  }
+
+  updateLabelTextDecoration() {
+    this.labelText.setAttribute('text-decoration', this.options.isCollapsed ? 'underline': '');
   }
 
   layout() {
