@@ -102,6 +102,12 @@ export default class SpanView {
     const x = axis.input2output(this.span.startTime);
     this.viewPropertiesCache.x = x;
     this.container.setAttribute('transform', `translate(${x}, ${y})`);
+
+    if (x < 0) {
+      this.labelText.setAttribute('x', (-x + this.viewSettings.spanLabelOffsetLeft) + '');
+    } else {
+      this.labelText.setAttribute('x', this.viewSettings.spanLabelOffsetLeft + '');
+    }
   }
 
   updateWidth() {
