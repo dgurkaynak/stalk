@@ -14,7 +14,7 @@ export default class SpanView {
     isCollapsed: false
   };
 
-  private containaer = document.createElementNS(SVG_NS, 'g');
+  private container = document.createElementNS(SVG_NS, 'g');
   private barRect = document.createElementNS(SVG_NS, 'rect');
   private labelText = document.createElementNS(SVG_NS, 'text');
   private clipPath = document.createElementNS(SVG_NS, 'clipPath');
@@ -37,7 +37,7 @@ export default class SpanView {
     this.barRect.setAttribute('y', '0');
     this.barRect.setAttribute('rx', this.viewSettings.spanBarRadius + '');
     this.barRect.setAttribute('ry', this.viewSettings.spanBarRadius + '');
-    this.containaer.appendChild(this.barRect);
+    this.container.appendChild(this.barRect);
 
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
@@ -51,13 +51,13 @@ export default class SpanView {
     groupContainer: SVGGElement,
     svgDefs: SVGDefsElement
   }) {
-    options.groupContainer.appendChild(this.containaer);
+    options.groupContainer.appendChild(this.container);
     options.svgDefs.appendChild(this.clipPath);
   }
 
   unmount() {
-    const parent1 = this.containaer.parentElement;
-    parent1 && parent1.removeChild(this.containaer);
+    const parent1 = this.container.parentElement;
+    parent1 && parent1.removeChild(this.container);
 
     const parent2 = this.clipPath.parentElement;
     parent2 && parent2.removeChild(this.clipPath);
@@ -69,6 +69,7 @@ export default class SpanView {
     this.updateLabelText();
     this.hideLabel();
 
+    this.container.setAttribute('data-span-id', span.id);
     this.clipPath.id = `clip-path-span-${span.id}`;
     this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
   }
@@ -88,7 +89,7 @@ export default class SpanView {
     const { x } = this.viewPropertiesCache;
     const y = groupPaddingTop + (rowIndex * rowHeight) + spanBarSpacing; // Relative y in pixels to group container
     this.viewPropertiesCache.y = y;
-    !dontApplyTransform && this.containaer.setAttribute('transform', `translate(${x}, ${y})`);
+    !dontApplyTransform && this.container.setAttribute('transform', `translate(${x}, ${y})`);
   }
 
   updateHorizontalPosition() {
@@ -96,7 +97,7 @@ export default class SpanView {
     const { y } = this.viewPropertiesCache;
     const x = axis.input2output(this.span.startTime);
     this.viewPropertiesCache.x = x;
-    this.containaer.setAttribute('transform', `translate(${x}, ${y})`);
+    this.container.setAttribute('transform', `translate(${x}, ${y})`);
   }
 
   updateWidth() {
@@ -126,10 +127,10 @@ export default class SpanView {
   }
 
   showLabel() {
-    if (!this.labelText.parentElement) this.containaer.appendChild(this.labelText);
+    if (!this.labelText.parentElement) this.container.appendChild(this.labelText);
   }
 
   hideLabel() {
-    if (this.labelText.parentElement) this.containaer.removeChild(this.labelText);
+    if (this.labelText.parentElement) this.container.removeChild(this.labelText);
   }
 }

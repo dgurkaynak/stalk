@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { Stage } from '../../model/stage';
-import GroupView from './group-view';
+import GroupView, { GroupViewEvent } from './group-view';
 import Axis from './axis';
 import ViewSettings from './view-settings';
 
@@ -179,7 +179,7 @@ export default class TimelineView {
       [this.viewSettings.spanBarViewportMargin, this.viewSettings.width - this.viewSettings.spanBarViewportMargin]
     );
 
-    _.forEach(this.groupViews, v => v.dispose());
+    _.forEach(this.groupViews, v => v.dispose()); // This will unbind events
     this.groupViews = {};
 
     const groups = grouping.getAllGroups();
@@ -193,6 +193,9 @@ export default class TimelineView {
       groupView.setupSpans();
       groupView.layout();
 
+      // Bind layout events after initial layout
+      groupView.on(GroupViewEvent.LAYOUT, this.onGroupLayout.bind(this));
+
       this.groupViews[group.id] = groupView;
     });
 
@@ -202,6 +205,10 @@ export default class TimelineView {
     this.panelTranslateY = 0;
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+  }
+
+  onGroupLayout() {
+    this.updateGroupPositions();
   }
 
   updateGroupPositions() {

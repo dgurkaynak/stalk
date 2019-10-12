@@ -3,6 +3,7 @@ import { Group } from '../../model/grouping/group';
 import SpanView from './span-view';
 import GroupSpanNode from '../../model/grouping/group-span-node';
 import ViewSettings from './view-settings';
+import EventEmitterExtra from 'event-emitter-extra';
 
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -13,8 +14,12 @@ enum Visibility {
   HIDDEN
 }
 
+export enum GroupViewEvent {
+  LAYOUT = 'layout'
+}
 
-export default class GroupView {
+
+export default class GroupView extends EventEmitterExtra {
   group: Group;
   viewSettings: ViewSettings;
   spanViews: { [key: string]: SpanView} = {};
@@ -32,10 +37,16 @@ export default class GroupView {
 
   private svgDefs?: SVGDefsElement;
 
+  private binded = {
+    onSpanDoubleClick: this.onSpanDoubleClick.bind(this),
+  };
+
   constructor(options: {
     group: Group,
     viewSettings: ViewSettings
   }) {
+    super();
+
     this.group = options.group;
     this.viewSettings = options.viewSettings;
 
@@ -62,6 +73,8 @@ export default class GroupView {
     options.groupNamePanel.appendChild(this.seperatorLine);
     options.groupNamePanel.appendChild(this.labelText);
     this.svgDefs = options.svgDefs;
+
+    this.container.addEventListener('dblclick', this.binded.onSpanDoubleClick, false);
   }
 
   dispose() {
@@ -81,6 +94,20 @@ export default class GroupView {
 
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
+
+    this.container.removeEventListener('dblclick', this.binded.onSpanDoubleClick, false);
+    this.removeAllListeners();
+  }
+
+  onSpanDoubleClick(e: MouseEvent) {
+    const clickedEl = e.target as Element;
+    const spanContainer = clickedEl.closest('[data-span-id]');
+    if (!spanContainer) return;
+    const spanId = spanContainer.getAttribute('data-span-id')!;
+    const spanView = this.spanViews[spanId];
+    spanView.options.isCollapsed = !spanView.options.isCollapsed;
+
+    this.layout();
   }
 
   setupSpans() {
@@ -193,6 +220,8 @@ export default class GroupView {
         })
         .forEach(childNode => nodeQueue.unshift(childNode));
     } // while loop ended
+
+    this.emit(GroupViewEvent.LAYOUT);
   }
 
   handleAxisTranslate() {
