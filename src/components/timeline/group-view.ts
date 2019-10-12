@@ -39,6 +39,7 @@ export default class GroupView extends EventEmitterExtra {
 
   private binded = {
     onSpanDoubleClick: this.onSpanDoubleClick.bind(this),
+    onLabelTextDoubleClick: this.onLabelTextDoubleClick.bind(this),
   };
 
   constructor(options: {
@@ -75,6 +76,7 @@ export default class GroupView extends EventEmitterExtra {
     this.svgDefs = options.svgDefs;
 
     this.container.addEventListener('dblclick', this.binded.onSpanDoubleClick, false);
+    this.labelText.addEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
   }
 
   dispose() {
@@ -96,6 +98,7 @@ export default class GroupView extends EventEmitterExtra {
     this.spanIdToRowIndex = {};
 
     this.container.removeEventListener('dblclick', this.binded.onSpanDoubleClick, false);
+    this.labelText.removeEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
     this.removeAllListeners();
   }
 
@@ -107,6 +110,11 @@ export default class GroupView extends EventEmitterExtra {
     const spanView = this.spanViews[spanId];
     spanView.options.isCollapsed = !spanView.options.isCollapsed;
 
+    this.layout();
+  }
+
+  onLabelTextDoubleClick(e: MouseEvent) {
+    this.options.isCollapsed = !this.options.isCollapsed;
     this.layout();
   }
 
@@ -143,6 +151,11 @@ export default class GroupView extends EventEmitterExtra {
     // If collapsed, hide all the spans
     if (this.options.isCollapsed) {
       _.forEach(spanViews, v => v.unmount());
+
+      this.rowsAndSpanIntervals = [];
+      this.spanIdToRowIndex = {};
+      this.emit(GroupViewEvent.LAYOUT);
+
       return;
     }
 
