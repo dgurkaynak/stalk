@@ -30,6 +30,8 @@ export default class GroupView {
   private rowsAndSpanIntervals: number[][][] = [];
   private spanIdToRowIndex: { [key: string]: number } = {};
 
+  private svgDefs?: SVGDefsElement;
+
   constructor(options: {
     group: Group,
     viewSettings: ViewSettings
@@ -53,11 +55,13 @@ export default class GroupView {
 
   mount(options: {
     groupNamePanel: SVGGElement,
-    timelinePanel: SVGGElement
+    timelinePanel: SVGGElement,
+    svgDefs: SVGDefsElement
   }) {
     options.timelinePanel.appendChild(this.container);
     options.groupNamePanel.appendChild(this.seperatorLine);
     options.groupNamePanel.appendChild(this.labelText);
+    this.svgDefs = options.svgDefs;
   }
 
   dispose() {
@@ -89,8 +93,8 @@ export default class GroupView {
   }
 
   updatePosition(options: { y: number }) {
-    const { groupPaddingTop, groupLabelOffsetX: groupTextOffsetX, groupLabelOffsetY: groupTextOffsetY } = this.viewSettings;
-    this.container.setAttribute('transform', `translate(0, ${options.y + groupPaddingTop})`);
+    const { groupLabelOffsetX: groupTextOffsetX, groupLabelOffsetY: groupTextOffsetY } = this.viewSettings;
+    this.container.setAttribute('transform', `translate(0, ${options.y})`);
     this.seperatorLine.setAttribute('transform', `translate(0, ${options.y})`);
     this.labelText.setAttribute('transform', `translate(${groupTextOffsetX}, ${options.y + groupTextOffsetY})`);
   }
@@ -102,7 +106,7 @@ export default class GroupView {
   layout() {
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
-    const { group, spanViews, container: g } = this;
+    const { group, spanViews, container } = this;
     const nodeQueue: GroupSpanNode[] = [...group.rootNodes, ...group.orphanNodes].sort((a, b) => {
       const spanA = group.get(a.spanId);
       const spanB = group.get(b.spanId);
@@ -165,12 +169,16 @@ export default class GroupView {
           this.rowsAndSpanIntervals[availableRowIndex].push([startTime, finishTime]);
           this.spanIdToRowIndex[node.spanId] = availableRowIndex;
 
+          spanView.showLabel();
           spanView.updateHeight();
           spanView.updateWidth();
           spanView.updateVerticalPosition(availableRowIndex, true);
           spanView.updateHorizontalPosition();
 
-          spanView.mount(g);
+          spanView.mount({
+            groupContainer: container,
+            svgDefs: this.svgDefs!
+          });
           break;
         }
 

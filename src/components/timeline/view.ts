@@ -187,7 +187,8 @@ export default class TimelineView {
       const groupView = new GroupView({ group, viewSettings: this.viewSettings });
       groupView.mount({
         groupNamePanel: this.groupNamePanel,
-        timelinePanel: this.timelinePanel
+        timelinePanel: this.timelinePanel,
+        svgDefs: this.defs
       });
       groupView.setupSpans();
       groupView.layout();

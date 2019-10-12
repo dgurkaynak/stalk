@@ -17,6 +17,8 @@ export default class SpanView {
   private containaer = document.createElementNS(SVG_NS, 'g');
   private barRect = document.createElementNS(SVG_NS, 'rect');
   private labelText = document.createElementNS(SVG_NS, 'text');
+  private clipPath = document.createElementNS(SVG_NS, 'clipPath');
+  private clipPathRect = document.createElementNS(SVG_NS, 'rect');
 
   private viewPropertiesCache = {
     width: 0,
@@ -40,15 +42,25 @@ export default class SpanView {
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
     this.labelText.setAttribute('font-size', this.viewSettings.spanLabelFontSize + '');
+
+    this.clipPathRect.setAttribute('fill', 'rgba(255, 0, 0, 0.5)');
+    this.clipPath.appendChild(this.clipPathRect);
   }
 
-  mount(parentElement: SVGGElement) {
-    parentElement.appendChild(this.containaer);
+  mount(options: {
+    groupContainer: SVGGElement,
+    svgDefs: SVGDefsElement
+  }) {
+    options.groupContainer.appendChild(this.containaer);
+    options.svgDefs.appendChild(this.clipPath);
   }
 
   unmount() {
-    const parentElement = this.containaer.parentElement;
-    parentElement && parentElement.removeChild(this.containaer);
+    const parent1 = this.containaer.parentElement;
+    parent1 && parent1.removeChild(this.containaer);
+
+    const parent2 = this.clipPath.parentElement;
+    parent2 && parent2.removeChild(this.clipPath);
   }
 
   reuse(span: Span) {
@@ -56,6 +68,9 @@ export default class SpanView {
     this.updateColoring();
     this.updateLabelText();
     this.hideLabel();
+
+    this.clipPath.id = `clip-path-span-${span.id}`;
+    this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
   }
 
   updateLabelText() {
@@ -69,9 +84,9 @@ export default class SpanView {
   }
 
   updateVerticalPosition(rowIndex: number, dontApplyTransform = false) {
-    const { spanBarSpacing, rowHeight } = this.viewSettings;
+    const { spanBarSpacing, rowHeight, groupPaddingTop } = this.viewSettings;
     const { x } = this.viewPropertiesCache;
-    const y = (rowIndex * rowHeight) + spanBarSpacing;
+    const y = groupPaddingTop + (rowIndex * rowHeight) + spanBarSpacing; // Relative y in pixels to group container
     this.viewPropertiesCache.y = y;
     !dontApplyTransform && this.containaer.setAttribute('transform', `translate(${x}, ${y})`);
   }
@@ -90,13 +105,20 @@ export default class SpanView {
     const width = Math.max(axis.input2output(this.span.finishTime) - startX, spanBarMinWidth);
     this.viewPropertiesCache.width = width;
     this.barRect.setAttribute('width',  width + '');
+    this.clipPathRect.setAttribute('width',  width + '');
   }
 
   updateHeight() {
-    const { spanBarHeight, spanBarSpacing, spanLabelOffsetLeft, spanLabelOffsetTop } = this.viewSettings;
+    const {
+      spanBarHeight,
+      spanBarSpacing,
+      spanLabelOffsetLeft,
+      spanLabelOffsetTop,
+    } = this.viewSettings;
 
     // Update bar height
     this.barRect.setAttribute('height', spanBarHeight + '');
+    this.clipPathRect.setAttribute('height', spanBarHeight + '');
 
     // Update label text positioning
     this.labelText.setAttribute('x', spanLabelOffsetLeft + '');
