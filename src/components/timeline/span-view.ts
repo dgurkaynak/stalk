@@ -33,6 +33,9 @@ export default class SpanView {
     this.span = options.span;
     this.viewSettings = options.viewSettings;
 
+    this.container.style.cursor = 'pointer';
+    this.labelText.style.cursor = 'pointer';
+
     this.barRect.setAttribute('x', '0');
     this.barRect.setAttribute('y', '0');
     this.barRect.setAttribute('rx', this.viewSettings.spanBarRadius + '');

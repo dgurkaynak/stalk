@@ -65,6 +65,7 @@ export default class GroupView extends EventEmitterExtra {
     this.seperatorLine.setAttribute('stroke-width', this.viewSettings.groupSeperatorLineWidth + '');
 
     this.labelText.textContent = this.group.name;
+    this.labelText.style.cursor = 'pointer';
     this.labelText.setAttribute('fill', this.viewSettings.groupLabelColor);
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
