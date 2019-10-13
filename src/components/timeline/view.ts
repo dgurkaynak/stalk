@@ -251,7 +251,11 @@ export default class TimelineView {
 
     _.forEach(this.groupViews, (groupView, i) => {
       groupView.updatePosition({ y });
-      y += groupPaddingTop + groupPaddingBottom + (groupView.heightInRows * rowHeight);
+      if (groupView.options.isCollapsed) {
+        y += groupPaddingTop;
+      } else {
+        y += groupPaddingTop + groupPaddingBottom + (groupView.heightInRows * rowHeight);
+      }
     });
 
     this.height = y;
