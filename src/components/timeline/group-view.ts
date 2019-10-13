@@ -237,6 +237,7 @@ export default class GroupView extends EventEmitterExtra {
           const spanB = group.get(b.spanId);
           return spanA.startTime - spanB.startTime;
         })
+        .reverse()
         .forEach(childNode => nodeQueue.unshift(childNode));
     } // while loop ended
 
