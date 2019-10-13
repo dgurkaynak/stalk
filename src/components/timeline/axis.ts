@@ -1,5 +1,12 @@
+import EventEmitterExtra from 'event-emitter-extra';
 
-export default class Axis {
+export enum AxisEvent {
+  TRANSLATED = 'translated',
+  ZOOMED = 'zoomed',
+  UPDATED = 'updated'
+}
+
+export default class Axis extends EventEmitterExtra {
   private scale: number;
   private offset: number;
   private minScale: number;
@@ -8,6 +15,8 @@ export default class Axis {
     private inputRange: [number, number],
     private outputRange: [number, number]
   ) {
+    super();
+
     this.scale = (outputRange[1] - outputRange[0]) / (inputRange[1] - inputRange[0]);
     this.offset = outputRange[0] - (this.scale * inputRange[0]);
     this.minScale = this.scale;
@@ -16,6 +25,14 @@ export default class Axis {
   updateOutputRange(outputRange: [number, number]) {
     this.outputRange = outputRange;
     this.minScale = (outputRange[1] - outputRange[0]) / (this.inputRange[1] - this.inputRange[0]);
+
+    if (this.scale < this.minScale) {
+      this.scale = this.minScale;
+      this.offset = outputRange[0] - (this.scale * this.inputRange[0]);
+    }
+
+    this.preventTranslatingOutOfRange();
+    this.emit(AxisEvent.UPDATED);
   }
 
   input2output(x: number) {
@@ -32,11 +49,13 @@ export default class Axis {
     this.scale = newScale;
     this.offset = anchorOutputPoint * (1 - factor) + (this.offset * factor);
     this.preventTranslatingOutOfRange();
+    this.emit(AxisEvent.ZOOMED);
   }
 
   translate(delta: number) {
     this.offset += delta;
     this.preventTranslatingOutOfRange();
+    this.emit(AxisEvent.TRANSLATED);
   }
 
   preventTranslatingOutOfRange() {

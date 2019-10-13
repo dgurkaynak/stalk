@@ -4,6 +4,7 @@ import SpanView from './span-view';
 import GroupSpanNode from '../../model/grouping/group-span-node';
 import ViewSettings from './view-settings';
 import EventEmitterExtra from 'event-emitter-extra';
+import { AxisEvent } from './axis';
 
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -42,6 +43,9 @@ export default class GroupView extends EventEmitterExtra {
     onSpanClick: this.onSpanClick.bind(this),
     onSpanDoubleClick: this.onSpanDoubleClick.bind(this),
     onLabelTextDoubleClick: this.onLabelTextDoubleClick.bind(this),
+    handleAxisTranslate: this.handleAxisTranslate.bind(this),
+    handleAxisZoom: this.handleAxisZoom.bind(this),
+    handleAxisUpdate: this.handleAxisUpdate.bind(this),
   };
 
   constructor(options: {
@@ -67,7 +71,7 @@ export default class GroupView extends EventEmitterExtra {
     this.labelText.setAttribute('font-size', `${this.viewSettings.groupLabelFontSize}px`);
   }
 
-  mount(options: {
+  init(options: {
     groupNamePanel: SVGGElement,
     timelinePanel: SVGGElement,
     svgDefs: SVGDefsElement
@@ -80,6 +84,18 @@ export default class GroupView extends EventEmitterExtra {
     this.container.addEventListener('click', this.binded.onSpanClick, false);
     this.container.addEventListener('dblclick', this.binded.onSpanDoubleClick, false);
     this.labelText.addEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
+
+    this.viewSettings.axis.on(AxisEvent.UPDATED, this.binded.handleAxisUpdate);
+    this.viewSettings.axis.on(AxisEvent.TRANSLATED, this.binded.handleAxisTranslate);
+    this.viewSettings.axis.on(AxisEvent.ZOOMED, this.binded.handleAxisZoom);
+
+    // Set-up span views
+    this.group.getAll().forEach((span) => {
+      // TODO: Reuse spanviews
+      const spanView = new SpanView({ span, viewSettings: this.viewSettings });
+      spanView.reuse(span);
+      this.spanViews[span.id] = spanView;
+    });
   }
 
   dispose() {
@@ -104,6 +120,10 @@ export default class GroupView extends EventEmitterExtra {
     this.container.removeEventListener('dblclick', this.binded.onSpanDoubleClick, false);
     this.labelText.removeEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
     this.removeAllListeners();
+
+    this.viewSettings.axis.removeListener(AxisEvent.UPDATED, [ this.binded.handleAxisUpdate ] as any);
+    this.viewSettings.axis.removeListener(AxisEvent.TRANSLATED, [ this.binded.handleAxisTranslate ] as any);
+    this.viewSettings.axis.removeListener(AxisEvent.ZOOMED, [ this.binded.handleAxisZoom ] as any);
   }
 
   onSpanClick(e: MouseEvent) {
@@ -135,15 +155,6 @@ export default class GroupView extends EventEmitterExtra {
 
   findSpanView(spanId: string) {
     return this.spanViews[spanId];
-  }
-
-  setupSpanViews() {
-    this.group.getAll().forEach((span) => {
-        // TODO: Reuse spanviews
-        const spanView = new SpanView({ span, viewSettings: this.viewSettings });
-        spanView.reuse(span);
-        this.spanViews[span.id] = spanView;
-    });
   }
 
   updatePosition(options: { y: number }) {
@@ -270,6 +281,17 @@ export default class GroupView extends EventEmitterExtra {
   }
 
   handleAxisZoom() {
+    // Traverse just visible spans
+    Object.keys(this.spanIdToRowIndex).forEach((spanId) => {
+      const spanView = this.spanViews[spanId];
+      const rowIndex = this.spanIdToRowIndex[spanId];
+      spanView.updateVerticalPosition(rowIndex, true);
+      spanView.updateHorizontalPosition();
+      spanView.updateWidth();
+    });
+  }
+
+  handleAxisUpdate() {
     // Traverse just visible spans
     Object.keys(this.spanIdToRowIndex).forEach((spanId) => {
       const spanView = this.spanViews[spanId];

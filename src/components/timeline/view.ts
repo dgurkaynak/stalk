@@ -158,7 +158,6 @@ export default class TimelineView {
     }
 
     this.viewSettings.axis.translate(e.movementX);
-    _.forEach(this.groupViews, v => v.handleAxisTranslate());
 
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
@@ -179,7 +178,6 @@ export default class TimelineView {
       1 - (this.viewSettings.scrollToZoomFactor * e.deltaY),
       e.offsetX
     );
-    _.forEach(this.groupViews, v => v.handleAxisZoom());
   }
 
   unbindEvents() {
@@ -209,12 +207,11 @@ export default class TimelineView {
     const groups = grouping.getAllGroups();
     groups.forEach((group) => {
       const groupView = new GroupView({ group, viewSettings: this.viewSettings });
-      groupView.mount({
+      groupView.init({
         groupNamePanel: this.groupNamePanel,
         timelinePanel: this.timelinePanel,
         svgDefs: this.defs
       });
-      groupView.setupSpanViews();
       groupView.layout();
 
       // Bind layout event after initial layout
