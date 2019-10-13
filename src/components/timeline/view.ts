@@ -17,15 +17,12 @@ export default class TimelineView extends EventEmitterExtra {
   svg = document.createElementNS(SVG_NS, 'svg');
 
   private defs = document.createElementNS(SVG_NS, 'defs');
-  private groupNamePanelClipPath = document.createElementNS(SVG_NS, 'clipPath');
-  private groupNamePanelClipPathRect = document.createElementNS(SVG_NS, 'rect');
-  private timelinePanelClipPath = document.createElementNS(SVG_NS, 'clipPath');
-  private timelinePanelClipPathRect = document.createElementNS(SVG_NS, 'rect');
+  private viewportClipPath = document.createElementNS(SVG_NS, 'clipPath');
+  private viewportClipPathRect = document.createElementNS(SVG_NS, 'rect');
   private cursorLine = document.createElementNS(SVG_NS, 'line');
 
-  private groupNamePanelContainer = document.createElementNS(SVG_NS, 'g');
+  private viewportContainer = document.createElementNS(SVG_NS, 'g');
   private groupNamePanel = document.createElementNS(SVG_NS, 'g');
-  private timelinePanelContainer = document.createElementNS(SVG_NS, 'g');
   private timelinePanel = document.createElementNS(SVG_NS, 'g');
   private panelTranslateY = 0;
 
@@ -95,11 +92,8 @@ export default class TimelineView extends EventEmitterExtra {
 
     this.cursorLine.setAttribute('y2', this.viewSettings.height + '');
 
-    this.groupNamePanelClipPathRect.setAttribute('width', `${width}`);
-    this.groupNamePanelClipPathRect.setAttribute('height', `${height}`);
-
-    this.timelinePanelClipPathRect.setAttribute('width', `${width}`);
-    this.timelinePanelClipPathRect.setAttribute('height', `${height}`);
+    this.viewportClipPathRect.setAttribute('width', `${width}`);
+    this.viewportClipPathRect.setAttribute('height', `${height}`);
 
     this.viewSettings.axis.updateOutputRange([
       this.viewSettings.spanBarViewportMargin,
@@ -112,31 +106,21 @@ export default class TimelineView extends EventEmitterExtra {
 
   setupPanels() {
     const { width, height } = this.viewSettings;
-    this.groupNamePanelClipPath.id = 'group-name-panel-clip-path';
-    this.groupNamePanelClipPathRect.setAttribute('x', `0`);
-    this.groupNamePanelClipPathRect.setAttribute('y', `0`);
-    this.groupNamePanelClipPathRect.setAttribute('width', `${width}`);
-    this.groupNamePanelClipPathRect.setAttribute('height', `${height}`);
-    this.groupNamePanelClipPath.appendChild(this.groupNamePanelClipPathRect);
-    this.defs.appendChild(this.groupNamePanelClipPath);
 
-    this.timelinePanelClipPath.id = 'timeline-panel-clip-path';
-    this.timelinePanelClipPathRect.setAttribute('x', `0`);
-    this.timelinePanelClipPathRect.setAttribute('y', `0`);
-    this.timelinePanelClipPathRect.setAttribute('width', `${width}`);
-    this.timelinePanelClipPathRect.setAttribute('height', `${height}`);
-    this.timelinePanelClipPath.appendChild(this.timelinePanelClipPathRect);
-    this.defs.appendChild(this.timelinePanelClipPath);
+    this.viewportClipPath.id = 'viewport-clip-path';
+    this.viewportClipPathRect.setAttribute('x', `0`);
+    this.viewportClipPathRect.setAttribute('y', `0`);
+    this.viewportClipPathRect.setAttribute('width', `${width}`);
+    this.viewportClipPathRect.setAttribute('height', `${height}`);
+    this.viewportClipPath.appendChild(this.viewportClipPathRect);
+    this.defs.appendChild(this.viewportClipPath);
 
     this.svg.appendChild(this.defs);
 
-    this.groupNamePanelContainer.setAttribute('clip-path', 'url(#group-name-panel-clip-path)');
-    this.groupNamePanelContainer.appendChild(this.groupNamePanel);
-    this.svg.appendChild(this.groupNamePanelContainer);
-
-    this.timelinePanelContainer.setAttribute('clip-path', 'url(#timeline-panel-clip-path)');
-    this.timelinePanelContainer.appendChild(this.timelinePanel);
-    this.svg.appendChild(this.timelinePanelContainer);
+    this.viewportContainer.setAttribute('clip-path', 'url(#viewport-clip-path)');
+    this.viewportContainer.appendChild(this.groupNamePanel);
+    this.viewportContainer.appendChild(this.timelinePanel);
+    this.svg.appendChild(this.viewportContainer);
   }
 
   bindEvents() {
