@@ -29,4 +29,5 @@ export default class TimelineViewSettings extends EventEmitterExtra {
   readonly spanLabelOffsetLeft = 5;
   readonly spanLabelOffsetTop = 1;
   spanLabeling = 'operation-name'; // TODO
+  readonly spanLogCircleRadius = 3;
 }

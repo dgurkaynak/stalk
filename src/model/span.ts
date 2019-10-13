@@ -1,3 +1,8 @@
+export interface SpanLog {
+  timestamp: number,
+  fields: { [key: string]: string }
+}
+
 export interface Span {
   id: string,
   traceId: string,
@@ -10,10 +15,7 @@ export interface Span {
     traceId: string
   }[],
   tags: { [key: string]: string },
-  logs: {
-    timestamp: number,
-    fields: { [key: string]: string }
-  }[],
+  logs: SpanLog[],
   // Jaeger-specific `process`
   process?: {
     serviceName: string,

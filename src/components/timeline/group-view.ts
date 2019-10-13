@@ -261,6 +261,7 @@ export default class GroupView extends EventEmitterExtra {
           this.spanIdToRowIndex[node.spanId] = availableRowIndex;
 
           spanView.showLabel();
+          spanView.showLogs();
           spanView.updateHeight();
           spanView.updateWidth();
           spanView.updateVerticalPosition(availableRowIndex, true);

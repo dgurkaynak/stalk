@@ -1,10 +1,15 @@
-import { Span } from '../../model/span';
+import { Span, SpanLog } from '../../model/span';
 import ViewSettings from './view-settings';
 import ColorManagers from '../color/managers';
 import invert from 'invert-color';
 
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
+
+interface SpanLogViewObject {
+  circle: SVGCircleElement,
+  log: SpanLog
+}
 
 
 export default class SpanView {
@@ -19,6 +24,7 @@ export default class SpanView {
   private labelText = document.createElementNS(SVG_NS, 'text');
   private clipPath = document.createElementNS(SVG_NS, 'clipPath');
   private clipPathRect = document.createElementNS(SVG_NS, 'rect');
+  private logViews: SpanLogViewObject[] = [];
 
   private viewPropertiesCache = {
     width: 0,
@@ -46,7 +52,8 @@ export default class SpanView {
     this.labelText.setAttribute('y', '0');
     this.labelText.setAttribute('font-size', this.viewSettings.spanLabelFontSize + '');
 
-    this.clipPathRect.setAttribute('fill', 'rgba(255, 0, 0, 0.5)');
+    this.clipPathRect.setAttribute('rx', this.viewSettings.spanBarRadius + '');
+    this.clipPathRect.setAttribute('ry', this.viewSettings.spanBarRadius + '');
     this.clipPath.appendChild(this.clipPathRect);
   }
 
@@ -75,6 +82,8 @@ export default class SpanView {
     this.container.setAttribute('data-span-id', span.id);
     this.clipPath.id = `clip-path-span-${span.id}`;
     this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
+
+    this.hideLogs();
   }
 
   dispose() {
@@ -110,11 +119,18 @@ export default class SpanView {
     this.viewPropertiesCache.x = x;
     this.container.setAttribute('transform', `translate(${x}, ${y})`);
 
+    // Snap the label text to left of the screen
     if (x < 0) {
       this.labelText.setAttribute('x', (-x + this.viewSettings.spanLabelOffsetLeft) + '');
     } else {
       this.labelText.setAttribute('x', this.viewSettings.spanLabelOffsetLeft + '');
     }
+
+    // Update logs
+    this.logViews.forEach((logView) => {
+      const logX = axis.input2output(logView.log.timestamp) - x;
+      logView.circle.setAttribute('cx', logX + '');
+    });
   }
 
   updateWidth() {
@@ -149,5 +165,26 @@ export default class SpanView {
 
   hideLabel() {
     if (this.labelText.parentElement) this.container.removeChild(this.labelText);
+  }
+
+  showLogs() {
+    const { spanBarHeight, spanLogCircleRadius } = this.viewSettings;
+    const centerY = spanBarHeight / 2;
+    this.logViews = this.span.logs.map((log) => {
+      const circle = document.createElementNS(SVG_NS, 'circle');
+      circle.setAttribute('r', spanLogCircleRadius + '');
+      circle.setAttribute('cy', centerY + '');
+      circle.setAttribute('fill', '#fff');
+      circle.setAttribute('stroke', '#000');
+      circle.setAttribute('stroke-width', '1');
+      circle.setAttribute('clip-path', `url(#${this.clipPath.id})`);
+      this.container.appendChild(circle);
+      return { log, circle };
+    });
+  }
+
+  hideLogs() {
+    this.logViews.forEach(l => this.container.removeChild(l.circle));
+    this.logViews = [];
   }
 }
