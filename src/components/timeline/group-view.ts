@@ -41,7 +41,6 @@ export default class GroupView extends EventEmitterExtra {
 
   private binded = {
     onSpanClick: this.onSpanClick.bind(this),
-    onSpanDoubleClick: this.onSpanDoubleClick.bind(this),
     onLabelTextDoubleClick: this.onLabelTextDoubleClick.bind(this),
     handleAxisTranslate: this.handleAxisTranslate.bind(this),
     handleAxisZoom: this.handleAxisZoom.bind(this),
@@ -83,7 +82,6 @@ export default class GroupView extends EventEmitterExtra {
     this.svgDefs = options.svgDefs;
 
     this.container.addEventListener('click', this.binded.onSpanClick, false);
-    this.container.addEventListener('dblclick', this.binded.onSpanDoubleClick, false);
     this.labelText.addEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
 
     this.viewSettings.axis.on(AxisEvent.UPDATED, this.binded.handleAxisUpdate);
@@ -118,7 +116,6 @@ export default class GroupView extends EventEmitterExtra {
     this.spanIdToRowIndex = {};
 
     this.container.removeEventListener('click', this.binded.onSpanClick, false);
-    this.container.removeEventListener('dblclick', this.binded.onSpanDoubleClick, false);
     this.labelText.removeEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
     this.removeAllListeners();
 
@@ -127,13 +124,27 @@ export default class GroupView extends EventEmitterExtra {
     this.viewSettings.axis.removeListener(AxisEvent.ZOOMED, [ this.binded.handleAxisZoom ] as any);
   }
 
+  private clickWaitTimeout: any;
+
   onSpanClick(e: MouseEvent) {
-    const clickedEl = e.target as Element;
-    const spanContainer = clickedEl.closest('[data-span-id]');
-    if (!spanContainer) return;
-    const spanId = spanContainer.getAttribute('data-span-id')!;
-    const spanView = this.spanViews[spanId];
-    this.emit(GroupViewEvent.SPAN_CLICKED, spanView);
+    if (this.clickWaitTimeout) {
+      clearTimeout(this.clickWaitTimeout);
+      this.clickWaitTimeout = null;
+      this.onSpanDoubleClick(e);
+      return;
+    }
+
+    this.clickWaitTimeout = setTimeout(() => {
+      this.clickWaitTimeout = null;
+
+      // Click event
+      const clickedEl = e.target as Element;
+      const spanContainer = clickedEl.closest('[data-span-id]');
+      if (!spanContainer) return;
+      const spanId = spanContainer.getAttribute('data-span-id')!;
+      const spanView = this.spanViews[spanId];
+      this.emit(GroupViewEvent.SPAN_CLICKED, spanView);
+    }, 300);
   }
 
   onSpanDoubleClick(e: MouseEvent) {
