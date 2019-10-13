@@ -31,6 +31,8 @@ export default class TimelineView {
   private groupViews: { [key: string]: GroupView} = {};
   private height = 0; // in pixels
 
+  private sidebarWidth = 0;
+
   private binded = {
     onMouseDown: this.onMouseDown.bind(this),
     onMouseMove: this.onMouseMove.bind(this),
@@ -195,7 +197,10 @@ export default class TimelineView {
     const { startTimestamp, finishTimestamp } = stage.group;
     this.viewSettings.axis = new Axis(
       [startTimestamp, finishTimestamp],
-      [this.viewSettings.spanBarViewportMargin, this.viewSettings.width - this.viewSettings.spanBarViewportMargin]
+      [
+        this.viewSettings.spanBarViewportMargin,
+        this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
+      ]
     );
 
     _.forEach(this.groupViews, v => v.dispose()); // This will unbind all handlers, no need to manually remove listener
@@ -248,5 +253,13 @@ export default class TimelineView {
     });
 
     this.height = y;
+  }
+
+  updateSidebarWidth(width: number) {
+    this.sidebarWidth = width;
+    this.viewSettings.axis.updateOutputRange([
+      this.viewSettings.spanBarViewportMargin,
+      this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
+    ]);
   }
 }

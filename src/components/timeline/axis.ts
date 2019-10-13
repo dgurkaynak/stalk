@@ -13,6 +13,11 @@ export default class Axis {
     this.minScale = this.scale;
   }
 
+  updateOutputRange(outputRange: [number, number]) {
+    this.outputRange = outputRange;
+    this.minScale = (outputRange[1] - outputRange[0]) / (this.inputRange[1] - this.inputRange[0]);
+  }
+
   input2output(x: number) {
     return x * this.scale + this.offset;
   }

@@ -71,6 +71,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.setState({ groupingMode: value });
   }
 
+  toggleSidebarVisibility(isVisible: boolean) {
+    this.setState({ isSidebarVisible: isVisible });
+    this.timelineView.updateSidebarWidth(isVisible ? 256 : 0);
+  }
 
   render() {
     return (
@@ -87,7 +91,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
                   key="0"
                   className="timeline-sidebar-toggle"
                   type={this.state.isSidebarVisible ? 'menu-unfold' : 'menu-fold'}
-                  onClick={() => this.setState({ isSidebarVisible: !this.state.isSidebarVisible })}
+                  onClick={() => this.toggleSidebarVisibility(!this.state.isSidebarVisible)}
                 />
               ]}
             ></PageHeader>
