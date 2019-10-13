@@ -1,9 +1,9 @@
-import Axis from './axis';
+import Axis, { AxisEvent } from './axis';
 import EventEmitterExtra from 'event-emitter-extra';
 
 
 export default class TimelineViewSettings extends EventEmitterExtra {
-  axis = new Axis([0, 0], [0, 0]);
+  private axis = new Axis([0, 0], [0, 0]);
   width = NaN; // In pixels
   height = NaN; // In pixels
   grouping = 'process';
@@ -30,4 +30,16 @@ export default class TimelineViewSettings extends EventEmitterExtra {
   readonly spanLabelOffsetTop = 1;
   spanLabeling = 'operation-name'; // TODO
   readonly spanLogCircleRadius = 3;
+
+  getAxis() {
+    return this.axis;
+  }
+
+  setAxis(axis: Axis) {
+    this.axis.removeAllListeners();
+    this.axis = axis;
+    axis.on(AxisEvent.TRANSLATED, () => this.emit(AxisEvent.TRANSLATED));
+    axis.on(AxisEvent.ZOOMED, () => this.emit(AxisEvent.ZOOMED));
+    axis.on(AxisEvent.UPDATED, () => this.emit(AxisEvent.UPDATED));
+  }
 }

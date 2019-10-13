@@ -5,6 +5,7 @@ import Axis from './axis';
 import ViewSettings from './view-settings';
 import SpanView from './span-view';
 import EventEmitterExtra from 'event-emitter-extra';
+import AnnotationManager from './annotation';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -14,7 +15,7 @@ export enum TimelineViewEvent {
 
 
 export default class TimelineView extends EventEmitterExtra {
-  svg = document.createElementNS(SVG_NS, 'svg');
+  private svg = document.createElementNS(SVG_NS, 'svg');
 
   private defs = document.createElementNS(SVG_NS, 'defs');
   private viewportClipPath = document.createElementNS(SVG_NS, 'clipPath');
@@ -24,6 +25,8 @@ export default class TimelineView extends EventEmitterExtra {
   private viewportContainer = document.createElementNS(SVG_NS, 'g');
   private groupNamePanel = document.createElementNS(SVG_NS, 'g');
   private timelinePanel = document.createElementNS(SVG_NS, 'g');
+  private annotationUnderlayPanel = document.createElementNS(SVG_NS, 'g');
+  private annotationOverlayPanel = document.createElementNS(SVG_NS, 'g');
   private panelTranslateY = 0;
 
   private isMouseDown = false;
@@ -31,9 +34,15 @@ export default class TimelineView extends EventEmitterExtra {
   private stage?: Stage;
   private viewSettings = new ViewSettings();
   private groupViews: { [key: string]: GroupView} = {};
-  private height = 0; // in pixels
-
+  private contentHeight = 0; // in pixels
   private sidebarWidth = 0;
+
+  annotation = new AnnotationManager({
+    timelineView: this,
+    underlayPanel: this.annotationUnderlayPanel,
+    overlayPanel: this.annotationOverlayPanel,
+    viewSettings: this.viewSettings
+  });
 
   private binded = {
     onMouseDown: this.onMouseDown.bind(this),
@@ -95,7 +104,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.viewportClipPathRect.setAttribute('width', `${width}`);
     this.viewportClipPathRect.setAttribute('height', `${height}`);
 
-    this.viewSettings.axis.updateOutputRange([
+    this.viewSettings.getAxis().updateOutputRange([
       this.viewSettings.spanBarViewportMargin,
       this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
     ]);
@@ -119,7 +128,9 @@ export default class TimelineView extends EventEmitterExtra {
 
     this.viewportContainer.setAttribute('clip-path', 'url(#viewport-clip-path)');
     this.viewportContainer.appendChild(this.groupNamePanel);
+    this.viewportContainer.appendChild(this.annotationUnderlayPanel);
     this.viewportContainer.appendChild(this.timelinePanel);
+    this.viewportContainer.appendChild(this.annotationOverlayPanel);
     this.svg.appendChild(this.viewportContainer);
   }
 
@@ -146,17 +157,19 @@ export default class TimelineView extends EventEmitterExtra {
     if (!this.isMouseDown) return;
 
     const { height: viewportHeight } = this.viewSettings;
-    if (this.height <= viewportHeight) {
+    if (this.contentHeight <= viewportHeight) {
       // No vertical panning
     } else {
       const newTranslateY = this.panelTranslateY + e.movementY;
-      this.panelTranslateY = Math.min(Math.max(newTranslateY, viewportHeight - this.height), 0);
+      this.panelTranslateY = Math.min(Math.max(newTranslateY, viewportHeight - this.contentHeight), 0);
     }
 
-    this.viewSettings.axis.translate(e.movementX);
+    this.viewSettings.getAxis().translate(e.movementX);
 
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
   }
 
   onMouseUp(e: MouseEvent) {
@@ -170,7 +183,7 @@ export default class TimelineView extends EventEmitterExtra {
   onWheel(e: WheelEvent) {
     if (!this.stage) return;
 
-    this.viewSettings.axis.zoom(
+    this.viewSettings.getAxis().zoom(
       1 - (this.viewSettings.scrollToZoomFactor * e.deltaY),
       e.offsetX
     );
@@ -189,13 +202,13 @@ export default class TimelineView extends EventEmitterExtra {
     const grouping = stage.grouping[this.viewSettings.grouping];
 
     const { startTimestamp, finishTimestamp } = stage.group;
-    this.viewSettings.axis = new Axis(
+    this.viewSettings.setAxis(new Axis(
       [startTimestamp, finishTimestamp],
       [
         this.viewSettings.spanBarViewportMargin,
         this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
       ]
-    );
+    ));
 
     _.forEach(this.groupViews, v => v.dispose()); // This will unbind all handlers, no need to manually remove listener
     this.groupViews = {};
@@ -219,10 +232,15 @@ export default class TimelineView extends EventEmitterExtra {
 
     this.updateGroupPositions();
 
+    // Annotations
+    this.annotation.updateData(Object.values(this.groupViews));
+
     // Reset vertical panning
     this.panelTranslateY = 0;
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
 
     // Show & hide cursor line
     this.cursorLine.style.display = groups.length > 0 ? '' : 'none';
@@ -249,22 +267,18 @@ export default class TimelineView extends EventEmitterExtra {
       }
     });
 
-    this.height = y;
+    this.contentHeight = y;
+  }
+
+  getContentHeight() {
+    return this.contentHeight;
   }
 
   updateSidebarWidth(width: number) {
     this.sidebarWidth = width;
-    this.viewSettings.axis.updateOutputRange([
+    this.viewSettings.getAxis().updateOutputRange([
       this.viewSettings.spanBarViewportMargin,
       this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
     ]);
-  }
-
-  findSpanView(spanId: string) {
-    const groupView = _.find(this.groupViews, v => !!v.findSpanView(spanId));
-    return [
-      groupView,
-      groupView && groupView.findSpanView(spanId)
-    ];
   }
 }

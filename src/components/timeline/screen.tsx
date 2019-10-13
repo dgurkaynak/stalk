@@ -109,14 +109,15 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     const element = e.target as Element;
     const logContainerElement = element.closest(`div[id^='log-panel']`);
     if (!logContainerElement) {
-      // selectedSpanView.toggleHighlightLogView(this.state.timelineHighlightedLogId, false);
+      // TODO: Clear just the log annotation
+      this.timelineView.annotation.clear();
       this.setState({ timelineHighlightedLogId: '' });
       return;
     }
     const logId = logContainerElement.id.replace('log-panel-', '');
     if (logId === this.state.timelineHighlightedLogId) return;
-    // selectedSpanView.toggleHighlightLogView(this.state.timelineHighlightedLogId, false);
-    // selectedSpanView.toggleHighlightLogView(logId, true);
+    this.timelineView.annotation.clear();
+    this.timelineView.annotation.highlightLog(selectedSpanView, logId);
     this.setState({ timelineHighlightedLogId: logId });
   }
 
@@ -124,7 +125,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     const selectedSpanView = this.state.selectedSpanView! as SpanView;
     if (!selectedSpanView) return;
 
-    // selectedSpanView.toggleHighlightLogView(this.state.timelineHighlightedLogId, false);
+    // TODO: Clear just the log annotation
+    this.timelineView.annotation.clear();
     this.setState({ timelineHighlightedLogId: '' });
   }
 

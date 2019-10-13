@@ -88,9 +88,10 @@ export default class GroupView extends EventEmitterExtra {
     this.container.addEventListener('click', this.binded.onSpanClick, false);
     this.labelText.addEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
 
-    this.viewSettings.axis.on(AxisEvent.UPDATED, this.binded.handleAxisUpdate);
-    this.viewSettings.axis.on(AxisEvent.TRANSLATED, this.binded.handleAxisTranslate);
-    this.viewSettings.axis.on(AxisEvent.ZOOMED, this.binded.handleAxisZoom);
+    const axis = this.viewSettings.getAxis();
+    axis.on(AxisEvent.UPDATED, this.binded.handleAxisUpdate);
+    axis.on(AxisEvent.TRANSLATED, this.binded.handleAxisTranslate);
+    axis.on(AxisEvent.ZOOMED, this.binded.handleAxisZoom);
 
     // Set-up span views
     this.group.getAll().forEach((span) => {
@@ -123,9 +124,10 @@ export default class GroupView extends EventEmitterExtra {
     this.labelText.removeEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
     this.removeAllListeners();
 
-    this.viewSettings.axis.removeListener(AxisEvent.UPDATED, [ this.binded.handleAxisUpdate ] as any);
-    this.viewSettings.axis.removeListener(AxisEvent.TRANSLATED, [ this.binded.handleAxisTranslate ] as any);
-    this.viewSettings.axis.removeListener(AxisEvent.ZOOMED, [ this.binded.handleAxisZoom ] as any);
+    const axis = this.viewSettings.getAxis();
+    axis.removeListener(AxisEvent.UPDATED, [ this.binded.handleAxisUpdate ] as any);
+    axis.removeListener(AxisEvent.TRANSLATED, [ this.binded.handleAxisTranslate ] as any);
+    axis.removeListener(AxisEvent.ZOOMED, [ this.binded.handleAxisZoom ] as any);
   }
 
   private clickWaitTimeout: any;
@@ -169,8 +171,12 @@ export default class GroupView extends EventEmitterExtra {
     this.layout();
   }
 
-  findSpanView(spanId: string) {
+  getSpanViewById(spanId: string) {
     return this.spanViews[spanId];
+  }
+
+  getAllSpanViews() {
+    return Object.values(this.spanViews);
   }
 
   updatePosition(options: { y: number }) {
@@ -344,5 +350,9 @@ export default class GroupView extends EventEmitterExtra {
     }
 
     return rowIndex;
+  }
+
+  getViewPropertiesCache() {
+    return { ...this.viewPropertiesCache };
   }
 }

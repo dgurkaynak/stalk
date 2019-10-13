@@ -8,7 +8,7 @@ import * as shortid from 'shortid';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-interface SpanLogViewObject {
+export interface SpanLogViewObject {
   id: string,
   circle: SVGCircleElement,
   log: SpanLog
@@ -116,7 +116,7 @@ export default class SpanView {
   }
 
   updateHorizontalPosition() {
-    const { axis } = this.viewSettings;
+    const axis = this.viewSettings.getAxis();
     const { y } = this.viewPropertiesCache;
     const x = axis.input2output(this.span.startTime);
     this.viewPropertiesCache.x = x;
@@ -137,7 +137,8 @@ export default class SpanView {
   }
 
   updateWidth() {
-    const { axis, spanBarMinWidth } = this.viewSettings;
+    const { spanBarMinWidth } = this.viewSettings;
+    const axis = this.viewSettings.getAxis();
     const startX = axis.input2output(this.span.startTime);
     const width = Math.max(axis.input2output(this.span.finishTime) - startX, spanBarMinWidth);
     this.viewPropertiesCache.width = width;
@@ -193,7 +194,15 @@ export default class SpanView {
     this.logViews = [];
   }
 
+  getLogViewById(logId: string) {
+    return _.find(this.logViews, l => l.id === logId);
+  }
+
   getLogViews() {
     return this.logViews;
+  }
+
+  getViewPropertiesCache() {
+    return { ...this.viewPropertiesCache };
   }
 }

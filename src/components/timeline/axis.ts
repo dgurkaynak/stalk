@@ -1,9 +1,9 @@
 import EventEmitterExtra from 'event-emitter-extra';
 
 export enum AxisEvent {
-  TRANSLATED = 'translated',
-  ZOOMED = 'zoomed',
-  UPDATED = 'updated'
+  TRANSLATED = 'axis_translated',
+  ZOOMED = 'axis_zoomed',
+  UPDATED = 'axis_updated'
 }
 
 export default class Axis extends EventEmitterExtra {
