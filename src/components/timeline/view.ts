@@ -275,4 +275,12 @@ export default class TimelineView extends EventEmitterExtra {
       this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
     ]);
   }
+
+  findSpanView(spanId: string) {
+    const groupView = _.find(this.groupViews, v => !!v.findSpanView(spanId));
+    return [
+      groupView,
+      groupView && groupView.findSpanView(spanId)
+    ];
+  }
 }

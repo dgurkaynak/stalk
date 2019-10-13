@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import { Span, SpanLog } from '../../model/span';
 import ViewSettings from './view-settings';
 import ColorManagers from '../color/managers';

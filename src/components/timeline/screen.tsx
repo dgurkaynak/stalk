@@ -31,7 +31,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     groupingMode: 'trace',
     isSidebarVisible: false,
     sidebarSelectedTab: 'general',
-    selectedSpanView: null
+    selectedSpanView: null,
+    timelineHighlightedLogId: ''
   };
   binded = {
     onStageUpdated: this.onStageUpdated.bind(this),
@@ -39,6 +40,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onWindowResize: _.throttle(this.onWindowResize.bind(this), 500),
     handleSpanSelect: this.handleSpanSelect.bind(this),
     onTabChange: this.onTabChange.bind(this),
+    onLogsContainerMouseMove: this.onLogsContainerMouseMove.bind(this),
+    onLogsContainerMouseLeave: this.onLogsContainerMouseLeave.bind(this),
   };
 
 
@@ -97,6 +100,32 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       selectedSpanView: spanView
     });
     console.log('span selected');
+  }
+
+  onLogsContainerMouseMove(e: MouseEvent) {
+    const selectedSpanView = this.state.selectedSpanView! as SpanView;
+    if (!selectedSpanView) return;
+
+    const element = e.target as Element;
+    const logContainerElement = element.closest(`div[id^='log-panel']`);
+    if (!logContainerElement) {
+      // selectedSpanView.toggleHighlightLogView(this.state.timelineHighlightedLogId, false);
+      this.setState({ timelineHighlightedLogId: '' });
+      return;
+    }
+    const logId = logContainerElement.id.replace('log-panel-', '');
+    if (logId === this.state.timelineHighlightedLogId) return;
+    // selectedSpanView.toggleHighlightLogView(this.state.timelineHighlightedLogId, false);
+    // selectedSpanView.toggleHighlightLogView(logId, true);
+    this.setState({ timelineHighlightedLogId: logId });
+  }
+
+  onLogsContainerMouseLeave(e: MouseEvent) {
+    const selectedSpanView = this.state.selectedSpanView! as SpanView;
+    if (!selectedSpanView) return;
+
+    // selectedSpanView.toggleHighlightLogView(this.state.timelineHighlightedLogId, false);
+    this.setState({ timelineHighlightedLogId: '' });
   }
 
   render() {
@@ -251,25 +280,30 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
                     <h4>Logs</h4>
 
-                    {spanLogViews.length == 0 ? (
+                    {spanLogViews.length === 0 ? (
                       <span>No logs</span>
                     ) : (
-                      <Collapse>
-                        {_.map(spanLogViews, (logView) => (
-                          <Panel
-                            header={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}
-                            key={logView.id}
-                            data-log-id={logView.id}
-                          >
-                            {_.map(logView.log.fields, (value, name) => (
-                              <div className="sidebar-row mono" key={name}>
-                                <span>{name}:</span>
-                                <span>{value}</span>
-                              </div>
-                            ))}
-                          </Panel>
-                        ))}
-                      </Collapse>
+                      <div
+                        onMouseMove={this.binded.onLogsContainerMouseMove as any}
+                        onMouseLeave={this.binded.onLogsContainerMouseLeave as any}
+                      >
+                        <Collapse>
+                          {_.map(spanLogViews, (logView) => (
+                            <Panel
+                              header={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}
+                              key={logView.id}
+                              id={`log-panel-${logView.id}`}
+                            >
+                              {_.map(logView.log.fields, (value, name) => (
+                                <div className="sidebar-row mono" key={name}>
+                                  <span>{name}:</span>
+                                  <span>{value}</span>
+                                </div>
+                              ))}
+                            </Panel>
+                          ))}
+                        </Collapse>
+                      </div>
                     )}
 
 
