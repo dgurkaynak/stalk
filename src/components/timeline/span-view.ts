@@ -9,7 +9,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export default class SpanView {
   span: Span;
-  viewSettings: ViewSettings;
+  private viewSettings: ViewSettings;
   options = {
     isCollapsed: false
   };

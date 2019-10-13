@@ -15,14 +15,15 @@ enum Visibility {
 }
 
 export enum GroupViewEvent {
-  LAYOUT = 'layout'
+  LAYOUT = 'layout',
+  SPAN_CLICKED = 'span_clicked'
 }
 
 
 export default class GroupView extends EventEmitterExtra {
-  group: Group;
-  viewSettings: ViewSettings;
-  spanViews: { [key: string]: SpanView} = {};
+  private group: Group;
+  private viewSettings: ViewSettings;
+  private spanViews: { [key: string]: SpanView} = {};
   get heightInRows() { return this.rowsAndSpanIntervals.length; } // How many rows containing
   options = {
     isCollapsed: false
@@ -38,6 +39,7 @@ export default class GroupView extends EventEmitterExtra {
   private svgDefs?: SVGDefsElement;
 
   private binded = {
+    onSpanClick: this.onSpanClick.bind(this),
     onSpanDoubleClick: this.onSpanDoubleClick.bind(this),
     onLabelTextDoubleClick: this.onLabelTextDoubleClick.bind(this),
   };
@@ -75,6 +77,7 @@ export default class GroupView extends EventEmitterExtra {
     options.groupNamePanel.appendChild(this.labelText);
     this.svgDefs = options.svgDefs;
 
+    this.container.addEventListener('click', this.binded.onSpanClick, false);
     this.container.addEventListener('dblclick', this.binded.onSpanDoubleClick, false);
     this.labelText.addEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
   }
@@ -97,9 +100,19 @@ export default class GroupView extends EventEmitterExtra {
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
 
+    this.container.removeEventListener('click', this.binded.onSpanClick, false);
     this.container.removeEventListener('dblclick', this.binded.onSpanDoubleClick, false);
     this.labelText.removeEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
     this.removeAllListeners();
+  }
+
+  onSpanClick(e: MouseEvent) {
+    const clickedEl = e.target as Element;
+    const spanContainer = clickedEl.closest('[data-span-id]');
+    if (!spanContainer) return;
+    const spanId = spanContainer.getAttribute('data-span-id')!;
+    const spanView = this.spanViews[spanId];
+    this.emit(GroupViewEvent.SPAN_CLICKED, spanView);
   }
 
   onSpanDoubleClick(e: MouseEvent) {
@@ -120,7 +133,11 @@ export default class GroupView extends EventEmitterExtra {
     this.layout();
   }
 
-  setupSpans() {
+  findSpanView(spanId: string) {
+    return this.spanViews[spanId];
+  }
+
+  setupSpanViews() {
     this.group.getAll().forEach((span) => {
         // TODO: Reuse spanviews
         const spanView = new SpanView({ span, viewSettings: this.viewSettings });

@@ -3,6 +3,7 @@ import { Stage } from '../../model/stage';
 import GroupView, { GroupViewEvent } from './group-view';
 import Axis from './axis';
 import ViewSettings from './view-settings';
+import SpanView from './span-view';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -197,7 +198,7 @@ export default class TimelineView {
       [this.viewSettings.spanBarViewportMargin, this.viewSettings.width - this.viewSettings.spanBarViewportMargin]
     );
 
-    _.forEach(this.groupViews, v => v.dispose()); // This will unbind events
+    _.forEach(this.groupViews, v => v.dispose()); // This will unbind all handlers, no need to manually remove listener
     this.groupViews = {};
 
     const groups = grouping.getAllGroups();
@@ -208,11 +209,12 @@ export default class TimelineView {
         timelinePanel: this.timelinePanel,
         svgDefs: this.defs
       });
-      groupView.setupSpans();
+      groupView.setupSpanViews();
       groupView.layout();
 
-      // Bind layout events after initial layout
+      // Bind layout event after initial layout
       groupView.on(GroupViewEvent.LAYOUT, this.onGroupLayout.bind(this));
+      groupView.on(GroupViewEvent.SPAN_CLICKED, this.onSpanClicked.bind(this));
 
       this.groupViews[group.id] = groupView;
     });
@@ -230,6 +232,10 @@ export default class TimelineView {
 
   onGroupLayout() {
     this.updateGroupPositions();
+  }
+
+  onSpanClicked(spanView: SpanView) {
+    console.log('span clicked', spanView);
   }
 
   updateGroupPositions() {
