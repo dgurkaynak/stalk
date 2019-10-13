@@ -2,11 +2,13 @@ import { Span, SpanLog } from '../../model/span';
 import ViewSettings from './view-settings';
 import ColorManagers from '../color/managers';
 import invert from 'invert-color';
+import * as shortid from 'shortid';
 
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 interface SpanLogViewObject {
+  id: string,
   circle: SVGCircleElement,
   log: SpanLog
 }
@@ -171,6 +173,7 @@ export default class SpanView {
     const { spanBarHeight, spanLogCircleRadius } = this.viewSettings;
     const centerY = spanBarHeight / 2;
     this.logViews = this.span.logs.map((log) => {
+      const id = shortid.generate();
       const circle = document.createElementNS(SVG_NS, 'circle');
       circle.setAttribute('r', spanLogCircleRadius + '');
       circle.setAttribute('cy', centerY + '');
@@ -178,13 +181,18 @@ export default class SpanView {
       circle.setAttribute('stroke', '#000');
       circle.setAttribute('stroke-width', '1');
       circle.setAttribute('clip-path', `url(#${this.clipPath.id})`);
+      circle.setAttribute('data-log-id', id);
       this.container.appendChild(circle);
-      return { log, circle };
+      return { id, log, circle };
     });
   }
 
   hideLogs() {
     this.logViews.forEach(l => this.container.removeChild(l.circle));
     this.logViews = [];
+  }
+
+  getLogViews() {
+    return this.logViews;
   }
 }

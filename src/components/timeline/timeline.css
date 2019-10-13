@@ -12,24 +12,35 @@
 
 .timeline-sidebar {
   border-left: 1px solid rgb(217, 217, 217);
+  overflow-y: auto;
 }
 
 .timeline-sidebar .ant-tabs-nav {
   margin-left: 10px;
 }
 
-.timeline-sidebar .ant-tabs-content {
-  padding: 0 10px 10px 10px;
-}
-
 .sidebar-row {
   display: flex;
   align-items: center;
   margin-bottom: 5px;
+  flex-flow: wrap;
 }
 
-.sidebar-row > span {
+.sidebar-row > span:first-child {
   flex-grow: 1;
+}
+
+.sidebar-row.mono {
+  padding: 2px 5px;
+}
+
+.sidebar-row.mono > span:last-child {
+  font-family: monospace;
+  color: teal;
+}
+
+.sidebar-row.even-odd:nth-child(2n+1) {
+  background: #f5f5f5;
 }
 
 svg.timeline-svg text {

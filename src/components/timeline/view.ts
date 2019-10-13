@@ -4,11 +4,16 @@ import GroupView, { GroupViewEvent } from './group-view';
 import Axis from './axis';
 import ViewSettings from './view-settings';
 import SpanView from './span-view';
+import EventEmitterExtra from 'event-emitter-extra';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
+export enum TimelineViewEvent {
+  SPAN_SELECTED = 'span_selected'
+}
 
-export default class TimelineView {
+
+export default class TimelineView extends EventEmitterExtra {
   svg = document.createElementNS(SVG_NS, 'svg');
 
   private defs = document.createElementNS(SVG_NS, 'defs');
@@ -45,6 +50,8 @@ export default class TimelineView {
   constructor(options?: {
     viewSettings?: ViewSettings
   }) {
+    super();
+
     if (options && options.viewSettings) this.viewSettings = options.viewSettings;
     this.svg.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
     this.svg.classList.add('timeline-svg');
@@ -242,7 +249,7 @@ export default class TimelineView {
   }
 
   onSpanClicked(spanView: SpanView) {
-    console.log('span clicked', spanView);
+    this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
   }
 
   updateGroupPositions() {
