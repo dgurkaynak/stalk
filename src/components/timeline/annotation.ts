@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import GroupView from './group-view';
 import TimelineView from './view';
 import TimelineViewSettings from './view-settings';
+import { AxisEvent } from './axis';
 import SpanView from './span-view';
 import shortid from 'shortid';
 
@@ -15,13 +16,16 @@ export default class AnnotationManager {
   private viewSettings: TimelineViewSettings;
   private groupViews: GroupView[] = [];
   private annotations: { [key: string]: BaseAnnotation } = {};
-  private annotationDeps = {
-    timelineView: this.timelineView,
-    underlayPanel: this.underlayPanel,
-    overlayPanel: this.overlayPanel,
-    viewSettings: this.viewSettings,
-    findSpanView : this.findSpanView.bind(this),
-    findSpanViews : this.findSpanViews.bind(this)
+  private annotationDeps: {
+    timelineView: TimelineView,
+    underlayPanel: SVGGElement,
+    overlayPanel: SVGGElement,
+    viewSettings: TimelineViewSettings,
+    findSpanView : (spanId: string | ((spanView: SpanView) => boolean)) => [GroupView?, SpanView?],
+    findSpanViews : (predicate: (spanView: SpanView) => boolean) => [GroupView, SpanView][]
+  };
+  private binded = {
+    updateAllAnnotations: this.updateAllAnnotations.bind(this)
   };
 
   constructor(options: {
@@ -34,6 +38,25 @@ export default class AnnotationManager {
     this.underlayPanel = options.underlayPanel;
     this.overlayPanel = options.overlayPanel;
     this.viewSettings = options.viewSettings;
+
+    this.annotationDeps = {
+      timelineView: this.timelineView,
+      underlayPanel: this.underlayPanel,
+      overlayPanel: this.overlayPanel,
+      viewSettings: this.viewSettings,
+      findSpanView : this.findSpanView.bind(this),
+      findSpanViews : this.findSpanViews.bind(this)
+    };
+
+    options.viewSettings.on(AxisEvent.TRANSLATED, this.binded.updateAllAnnotations);
+    options.viewSettings.on(AxisEvent.ZOOMED, this.binded.updateAllAnnotations);
+    options.viewSettings.on(AxisEvent.UPDATED, this.binded.updateAllAnnotations);
+  }
+
+  dispose() {
+    this.viewSettings.removeListener(AxisEvent.TRANSLATED, [ this.binded.updateAllAnnotations ] as any);
+    this.viewSettings.removeListener(AxisEvent.ZOOMED, [ this.binded.updateAllAnnotations ] as any);
+    this.viewSettings.removeListener(AxisEvent.UPDATED, [ this.binded.updateAllAnnotations ] as any);
   }
 
   updateData(groupViews: GroupView[]) {
@@ -60,6 +83,10 @@ export default class AnnotationManager {
     const annotationId = shortid.generate();
     this.annotations[annotationId] = annotation;
     return annotation;
+  }
+
+  updateAllAnnotations() {
+    _.forEach(this.annotations, a => a.update);
   }
 
   findSpanView(spanId: string | ((spanView: SpanView) => boolean)): [
