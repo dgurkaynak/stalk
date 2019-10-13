@@ -15,6 +15,7 @@ export default class TimelineView {
   private groupNamePanelClipPathRect = document.createElementNS(SVG_NS, 'rect');
   private timelinePanelClipPath = document.createElementNS(SVG_NS, 'clipPath');
   private timelinePanelClipPathRect = document.createElementNS(SVG_NS, 'rect');
+  private cursorLine = document.createElementNS(SVG_NS, 'line');
 
   private groupNamePanelContainer = document.createElementNS(SVG_NS, 'g');
   private groupNamePanel = document.createElementNS(SVG_NS, 'g');
@@ -44,6 +45,14 @@ export default class TimelineView {
     if (options && options.viewSettings) this.viewSettings = options.viewSettings;
     this.svg.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
     this.svg.classList.add('timeline-svg');
+
+    this.cursorLine.setAttribute('x1', '0');
+    this.cursorLine.setAttribute('x2', '0');
+    this.cursorLine.setAttribute('y1', '0');
+    this.cursorLine.setAttribute('stroke', '#cccccc');
+    this.cursorLine.setAttribute('stroke-width', '1');
+    this.cursorLine.style.display = 'none';
+    this.svg.appendChild(this.cursorLine);
   }
 
 
@@ -73,6 +82,8 @@ export default class TimelineView {
     this.svg.setAttribute('width', `${width}`);
     this.svg.setAttribute('height', `${height}`);
     this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+    this.cursorLine.setAttribute('y2', this.viewSettings.height + '');
 
     this.groupNamePanelClipPathRect.setAttribute('width', `${width}`);
     this.groupNamePanelClipPathRect.setAttribute('height', `${height}`);
@@ -126,6 +137,13 @@ export default class TimelineView {
   }
 
   onMouseMove(e: MouseEvent) {
+    // Update the cursor line
+    this.cursorLine.setAttribute('transform', `translate(${e.offsetX}, 0)`);
+
+    this.handlePanning(e);
+  }
+
+  handlePanning(e: MouseEvent) {
     if (!this.isMouseDown) return;
 
     const { height: viewportHeight } = this.viewSettings;
@@ -205,6 +223,9 @@ export default class TimelineView {
     this.panelTranslateY = 0;
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+
+    // Show & hide cursor line
+    this.cursorLine.style.display = groups.length > 0 ? '' : 'none';
   }
 
   onGroupLayout() {
