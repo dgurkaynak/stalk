@@ -15,6 +15,14 @@ export default class AnnotationManager {
   private viewSettings: TimelineViewSettings;
   private groupViews: GroupView[] = [];
   private annotations: { [key: string]: BaseAnnotation } = {};
+  private annotationDeps = {
+    timelineView: this.timelineView,
+    underlayPanel: this.underlayPanel,
+    overlayPanel: this.overlayPanel,
+    viewSettings: this.viewSettings,
+    findSpanView : this.findSpanView.bind(this),
+    findSpanViews : this.findSpanViews.bind(this)
+  };
 
   constructor(options: {
     timelineView: TimelineView,
@@ -33,26 +41,25 @@ export default class AnnotationManager {
     this.groupViews = groupViews;
   }
 
-  clear() {
-    _.forEach(this.annotations, a => a.unmount());
-    this.annotations = {};
+  clear(annotationId?: string) {
+    if (annotationId) {
+      const annotation = this.annotations[annotationId];
+      if (!annotation) return false;
+      annotation.unmount();
+      return true;
+    } else {
+      _.forEach(this.annotations, a => a.unmount());
+      this.annotations = {};
+      return true;
+    }
   }
 
-  highlightLog(spanView: SpanView, logId: string) {
-    const deps = {
-      timelineView: this.timelineView,
-      underlayPanel: this.underlayPanel,
-      overlayPanel: this.overlayPanel,
-      viewSettings: this.viewSettings,
-      findSpanView : this.findSpanView.bind(this)
-    };
-    const annotation = new LogHighlightAnnotation(deps);
+  createLogHighlightAnnotation(spanView: SpanView, logId: string) {
+    const annotation = new LogHighlightAnnotation(this.annotationDeps);
     annotation.prepare({ spanView, logId });
-    annotation.mount();
-    annotation.update();
     const annotationId = shortid.generate();
     this.annotations[annotationId] = annotation;
-    return annotationId;
+    return annotation;
   }
 
   findSpanView(spanId: string | ((spanView: SpanView) => boolean)): [
@@ -78,6 +85,19 @@ export default class AnnotationManager {
       throw new Error('Unsupported argument type');
     }
   }
+
+  findSpanViews(predicate: (spanView: SpanView) => boolean): [GroupView, SpanView][] {
+    const acc: [GroupView, SpanView][] = [];
+    for (let groupView of this.groupViews) {
+      const spanViews = groupView.getAllSpanViews();
+      spanViews
+        .filter(predicate)
+        .forEach((spanView) => {
+          acc.push([groupView, spanView]);
+        });
+    }
+    return acc;
+  }
 }
 
 
@@ -90,7 +110,8 @@ export class BaseAnnotation {
     underlayPanel: SVGGElement,
     overlayPanel: SVGGElement,
     viewSettings: TimelineViewSettings,
-    findSpanView : (spanId: string | ((spanView: SpanView) => boolean)) => [GroupView?, SpanView?]
+    findSpanView : (spanId: string | ((spanView: SpanView) => boolean)) => [GroupView?, SpanView?],
+    findSpanViews : (predicate: (spanView: SpanView) => boolean) => [GroupView, SpanView][]
   }) {
     // Noop
   }
@@ -105,8 +126,8 @@ export class BaseAnnotation {
   }
 
   unmount() {
-    this.underlayElements.forEach(el => this.deps.underlayPanel.removeChild(el));
-    this.overlayElements.forEach(el => this.deps.overlayPanel.removeChild(el));
+    this.underlayElements.forEach(el => el.parentElement && el.parentElement.removeChild(el));
+    this.overlayElements.forEach(el => el.parentElement && el.parentElement.removeChild(el));
   }
 
   update(): void {

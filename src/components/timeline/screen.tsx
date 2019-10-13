@@ -5,6 +5,7 @@ import { Stage, StageEvent } from '../../model/stage';
 import ColorManagers from '../color/managers';
 import TimelineView, { TimelineViewEvent } from './view';
 import prettyMilliseconds from 'pretty-ms';
+import { LogHighlightAnnotation } from './annotation';
 
 
 import './timeline.css';
@@ -26,13 +27,14 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private timelineContainerRef = React.createRef();
   private timelineView = new TimelineView();
   private sidebarWidth = 320;
+  private logHighlightAnnotation?: LogHighlightAnnotation;
+
   state = {
     traceGroups: this.stage.grouping.trace.getAllGroups(),
     groupingMode: 'trace',
     isSidebarVisible: false,
     sidebarSelectedTab: 'general',
-    selectedSpanView: null,
-    timelineHighlightedLogId: ''
+    selectedSpanView: null
   };
   binded = {
     onStageUpdated: this.onStageUpdated.bind(this),
@@ -109,25 +111,24 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     const element = e.target as Element;
     const logContainerElement = element.closest(`div[id^='log-panel']`);
     if (!logContainerElement) {
-      // TODO: Clear just the log annotation
-      this.timelineView.annotation.clear();
-      this.setState({ timelineHighlightedLogId: '' });
+      this.logHighlightAnnotation && this.logHighlightAnnotation.unmount();
       return;
     }
     const logId = logContainerElement.id.replace('log-panel-', '');
-    if (logId === this.state.timelineHighlightedLogId) return;
-    this.timelineView.annotation.clear();
-    this.timelineView.annotation.highlightLog(selectedSpanView, logId);
-    this.setState({ timelineHighlightedLogId: logId });
+
+    if (this.logHighlightAnnotation) {
+      this.logHighlightAnnotation.prepare({ spanView: selectedSpanView, logId });
+      this.logHighlightAnnotation.mount();
+      this.logHighlightAnnotation.update();
+    } else {
+      this.logHighlightAnnotation = this.timelineView.annotation.createLogHighlightAnnotation(selectedSpanView, logId);
+      this.logHighlightAnnotation.mount();
+      this.logHighlightAnnotation.update();
+    }
   }
 
   onLogsContainerMouseLeave(e: MouseEvent) {
-    const selectedSpanView = this.state.selectedSpanView! as SpanView;
-    if (!selectedSpanView) return;
-
-    // TODO: Clear just the log annotation
-    this.timelineView.annotation.clear();
-    this.setState({ timelineHighlightedLogId: '' });
+    this.logHighlightAnnotation && this.logHighlightAnnotation.unmount();
   }
 
   render() {
