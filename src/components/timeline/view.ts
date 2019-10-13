@@ -94,6 +94,11 @@ export default class TimelineView {
     this.timelinePanelClipPathRect.setAttribute('width', `${width}`);
     this.timelinePanelClipPathRect.setAttribute('height', `${height}`);
 
+    this.viewSettings.axis.updateOutputRange([
+      this.viewSettings.spanBarViewportMargin,
+      this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
+    ]);
+
     _.forEach(this.groupViews, v => v.updateSeperatorLineWidths());
   }
 
