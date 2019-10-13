@@ -77,6 +77,10 @@ export default class SpanView {
     this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
   }
 
+  dispose() {
+    this.unmount();
+  }
+
   updateLabelText() {
     this.labelText.textContent = this.span.operationName;
   }

@@ -39,6 +39,10 @@ export default class GroupView extends EventEmitterExtra {
 
   private svgDefs?: SVGDefsElement;
 
+  private viewPropertiesCache = {
+    y: 0,
+  };
+
   private binded = {
     onSpanClick: this.onSpanClick.bind(this),
     onLabelTextDoubleClick: this.onLabelTextDoubleClick.bind(this),
@@ -108,7 +112,7 @@ export default class GroupView extends EventEmitterExtra {
 
     // Unmount spans
     const spanViews = Object.values(this.spanViews);
-    spanViews.forEach(v => v.unmount());
+    spanViews.forEach(v => v.dispose());
     this.spanViews = {};
     // TODO: Re-use spanviews!
 
@@ -174,6 +178,7 @@ export default class GroupView extends EventEmitterExtra {
     this.container.setAttribute('transform', `translate(0, ${options.y})`);
     this.seperatorLine.setAttribute('transform', `translate(0, ${options.y})`);
     this.labelText.setAttribute('transform', `translate(${groupTextOffsetX}, ${options.y + groupTextOffsetY})`);
+    this.viewPropertiesCache.y = options.y;
   }
 
   updateSeperatorLineWidths() {
