@@ -6,6 +6,7 @@ import ViewSettings from './view-settings';
 import SpanView from './span-view';
 import EventEmitterExtra from 'event-emitter-extra';
 import AnnotationManager from './annotation';
+import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -29,6 +30,7 @@ export default class TimelineView extends EventEmitterExtra {
   private annotationOverlayPanel = document.createElementNS(SVG_NS, 'g');
   private panelTranslateY = 0;
 
+  private mouseHandler = new MouseHandler(this.svg);
   private isMouseDown = false;
 
   private stage?: Stage;
@@ -45,11 +47,11 @@ export default class TimelineView extends EventEmitterExtra {
   });
 
   private binded = {
-    onMouseDown: this.onMouseDown.bind(this),
-    onMouseMove: this.onMouseMove.bind(this),
-    onMouseUp: this.onMouseUp.bind(this),
-    onMouseLeave: this.onMouseLeave.bind(this),
+    onMouseIdleMove: this.onMouseIdleMove.bind(this),
+    onMouseIdleLeave: this.onMouseIdleLeave.bind(this),
     onWheel: this.onWheel.bind(this),
+    onMousePanStart: this.onMousePanStart.bind(this),
+    onMousePanMove: this.onMousePanMove.bind(this),
   };
 
 
@@ -86,6 +88,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.resize(width, height);
     this.setupPanels();
     this.bindEvents();
+    this.mouseHandler.init();
 
     parentElement.appendChild(this.svg);
   }
@@ -135,27 +138,29 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   bindEvents() {
-    this.svg.addEventListener('mousedown', this.binded.onMouseDown, false);
-    this.svg.addEventListener('mousemove', this.binded.onMouseMove, false);
-    this.svg.addEventListener('mouseup', this.binded.onMouseUp, false);
-    this.svg.addEventListener('mouseleave', this.binded.onMouseLeave, false);
-    this.svg.addEventListener('wheel', this.binded.onWheel, false);
+    this.mouseHandler.on(MouseHandlerEvent.IDLE_MOVE, this.binded.onMouseIdleMove);
+    this.mouseHandler.on(MouseHandlerEvent.IDLE_LEAVE, this.binded.onMouseIdleLeave);
+    this.mouseHandler.on(MouseHandlerEvent.PAN_START, this.binded.onMousePanStart);
+    this.mouseHandler.on(MouseHandlerEvent.PAN_MOVE, this.binded.onMousePanMove);
+    this.mouseHandler.on(MouseHandlerEvent.WHEEL, this.binded.onWheel);
   }
 
-  onMouseDown(e: MouseEvent) {
-    this.isMouseDown = true;
-  }
-
-  onMouseMove(e: MouseEvent) {
+  onMouseIdleMove(e: MouseEvent) {
     // Update the cursor line
     this.cursorLine.setAttribute('transform', `translate(${e.offsetX}, 0)`);
-
-    this.handlePanning(e);
   }
 
-  handlePanning(e: MouseEvent) {
-    if (!this.isMouseDown) return;
+  onMouseIdleLeave(e: MouseEvent) {
+    // Hide cursor line
+    this.cursorLine.setAttribute('transform', `translate(-1, 0)`);
+  }
 
+  onMousePanStart(e: MouseEvent) {
+    // Hide cursor line
+    this.cursorLine.setAttribute('transform', `translate(-1, 0)`);
+  }
+
+  onMousePanMove(e: MouseEvent) {
     const { height: viewportHeight } = this.viewSettings;
     if (this.contentHeight <= viewportHeight) {
       // No vertical panning
@@ -172,14 +177,6 @@ export default class TimelineView extends EventEmitterExtra {
     this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
   }
 
-  onMouseUp(e: MouseEvent) {
-    this.isMouseDown = false;
-  }
-
-  onMouseLeave(e: MouseEvent) {
-    this.isMouseDown = false;
-  }
-
   onWheel(e: WheelEvent) {
     if (!this.stage) return;
 
@@ -189,12 +186,8 @@ export default class TimelineView extends EventEmitterExtra {
     );
   }
 
-  unbindEvents() {
-    this.svg.removeEventListener('mousedown', this.binded.onMouseDown, false);
-    this.svg.removeEventListener('mousemove', this.binded.onMouseMove, false);
-    this.svg.removeEventListener('mouseup', this.binded.onMouseUp, false);
-    this.svg.removeEventListener('mouseleave', this.binded.onMouseLeave, false);
-    this.svg.removeEventListener('wheel', this.binded.onWheel, false);
+  dispose() {
+    this.mouseHandler.dispose();
   }
 
   updateData(stage: Stage) {
