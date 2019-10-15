@@ -184,7 +184,8 @@ export default class SpanView {
       circle.setAttribute('stroke', '#000');
       circle.setAttribute('stroke-width', '1');
       circle.setAttribute('clip-path', `url(#${this.clipPath.id})`);
-      circle.setAttribute('data-log-id', id);
+      circle.setAttribute('data-view-type', 'log-view');
+      circle.setAttribute('data-view-id', id);
       this.container.appendChild(circle);
       return { id, log, circle };
     });
