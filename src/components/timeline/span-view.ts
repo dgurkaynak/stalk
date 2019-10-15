@@ -82,7 +82,8 @@ export default class SpanView {
     this.updateLabelText();
     this.hideLabel();
 
-    this.container.setAttribute('data-span-id', span.id);
+    this.container.setAttribute('data-view-type', 'span-container');
+    this.container.setAttribute('data-view-id', span.id);
     this.clipPath.id = `clip-path-span-${span.id}`;
     this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
 

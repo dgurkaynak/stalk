@@ -16,8 +16,8 @@ enum Visibility {
 }
 
 export enum GroupViewEvent {
-  LAYOUT = 'layout',
-  SPAN_CLICKED = 'span_clicked'
+  // TODO: Make this more optimized HEIGHT_CHANGED?
+  LAYOUT = 'layout'
 }
 
 
@@ -44,8 +44,6 @@ export default class GroupView extends EventEmitterExtra {
   };
 
   private binded = {
-    onSpanClick: this.onSpanClick.bind(this),
-    onLabelTextDoubleClick: this.onLabelTextDoubleClick.bind(this),
     handleAxisTranslate: this.handleAxisTranslate.bind(this),
     handleAxisZoom: this.handleAxisZoom.bind(this),
     handleAxisUpdate: this.handleAxisUpdate.bind(this),
@@ -73,6 +71,11 @@ export default class GroupView extends EventEmitterExtra {
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
     this.labelText.setAttribute('font-size', `${this.viewSettings.groupLabelFontSize}px`);
+    this.labelText.setAttribute('data-view-type', 'group-label-text');
+    this.labelText.setAttribute('data-view-id', this.group.id);
+
+    this.container.setAttribute('data-view-type', 'group-container');
+    this.container.setAttribute('data-view-id', this.group.id);
   }
 
   init(options: {
@@ -84,9 +87,6 @@ export default class GroupView extends EventEmitterExtra {
     options.groupNamePanel.appendChild(this.seperatorLine);
     options.groupNamePanel.appendChild(this.labelText);
     this.svgDefs = options.svgDefs;
-
-    this.container.addEventListener('click', this.binded.onSpanClick, false);
-    this.labelText.addEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
 
     const axis = this.viewSettings.getAxis();
     axis.on(AxisEvent.UPDATED, this.binded.handleAxisUpdate);
@@ -120,8 +120,6 @@ export default class GroupView extends EventEmitterExtra {
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
 
-    this.container.removeEventListener('click', this.binded.onSpanClick, false);
-    this.labelText.removeEventListener('dblclick', this.binded.onLabelTextDoubleClick, false);
     this.removeAllListeners();
 
     const axis = this.viewSettings.getAxis();
@@ -130,42 +128,14 @@ export default class GroupView extends EventEmitterExtra {
     axis.removeListener(AxisEvent.ZOOMED, [ this.binded.handleAxisZoom ] as any);
   }
 
-  private clickWaitTimeout: any;
-
-  onSpanClick(e: MouseEvent) {
-    if (this.clickWaitTimeout) {
-      clearTimeout(this.clickWaitTimeout);
-      this.clickWaitTimeout = null;
-      this.onSpanDoubleClick(e);
-      return;
-    }
-
-    this.clickWaitTimeout = setTimeout(() => {
-      this.clickWaitTimeout = null;
-
-      // Click event
-      const clickedEl = e.target as Element;
-      const spanContainer = clickedEl.closest('[data-span-id]');
-      if (!spanContainer) return;
-      const spanId = spanContainer.getAttribute('data-span-id')!;
-      const spanView = this.spanViews[spanId];
-      this.emit(GroupViewEvent.SPAN_CLICKED, spanView);
-    }, 300);
-  }
-
-  onSpanDoubleClick(e: MouseEvent) {
-    const clickedEl = e.target as Element;
-    const spanContainer = clickedEl.closest('[data-span-id]');
-    if (!spanContainer) return;
-    const spanId = spanContainer.getAttribute('data-span-id')!;
+  toggleSpanView(spanId: string) {
     const spanView = this.spanViews[spanId];
     spanView.options.isCollapsed = !spanView.options.isCollapsed;
     spanView.updateLabelTextDecoration();
-
     this.layout();
   }
 
-  onLabelTextDoubleClick(e: MouseEvent) {
+  toggleView() {
     this.options.isCollapsed = !this.options.isCollapsed;
     this.updateLabelTextDecoration();
     this.layout();

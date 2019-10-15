@@ -3,7 +3,6 @@ import { Stage } from '../../model/stage';
 import GroupView, { GroupViewEvent } from './group-view';
 import Axis from './axis';
 import ViewSettings from './view-settings';
-import SpanView from './span-view';
 import EventEmitterExtra from 'event-emitter-extra';
 import AnnotationManager from './annotation';
 import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
@@ -52,6 +51,8 @@ export default class TimelineView extends EventEmitterExtra {
     onWheel: this.onWheel.bind(this),
     onMousePanStart: this.onMousePanStart.bind(this),
     onMousePanMove: this.onMousePanMove.bind(this),
+    onClick: this.onClick.bind(this),
+    onDoubleClick: this.onDoubleClick.bind(this),
   };
 
 
@@ -143,6 +144,8 @@ export default class TimelineView extends EventEmitterExtra {
     this.mouseHandler.on(MouseHandlerEvent.PAN_START, this.binded.onMousePanStart);
     this.mouseHandler.on(MouseHandlerEvent.PAN_MOVE, this.binded.onMousePanMove);
     this.mouseHandler.on(MouseHandlerEvent.WHEEL, this.binded.onWheel);
+    this.mouseHandler.on(MouseHandlerEvent.CLICK, this.binded.onClick);
+    this.mouseHandler.on(MouseHandlerEvent.DOUBLE_CLICK, this.binded.onDoubleClick);
   }
 
   onMouseIdleMove(e: MouseEvent) {
@@ -186,6 +189,55 @@ export default class TimelineView extends EventEmitterExtra {
     );
   }
 
+  getViewsFromMouseEvent(e: MouseEvent) {
+    let element = e.target as (Element | null);
+    const matches: { viewType: string, id: string }[] = [];
+
+    while (element && element !== this.svg) {
+      if (element.hasAttribute('data-view-type') && element.hasAttribute('data-view-id')) {
+        matches.push({
+          viewType: element.getAttribute('data-view-type')!,
+          id: element.getAttribute('data-view-id')!
+        });
+      }
+      element = element.parentElement;
+    }
+
+    return matches;
+  }
+
+  onClick(e: MouseEvent) {
+    const matches = this.getViewsFromMouseEvent(e);
+
+    for (let {viewType, id} of matches) {
+      if (viewType === 'span-container') {
+        const spanView = this.annotation.findSpanView(id)[1];
+        spanView && this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
+        return;
+      }
+    }
+  }
+
+  onDoubleClick(e: MouseEvent) {
+    const matches = this.getViewsFromMouseEvent(e);
+
+    for (let {viewType, id} of matches) {
+      if (viewType === 'group-label-text') {
+        const groupView = this.groupViews[id];
+        if (!groupView) return;
+        groupView.toggleView();
+        return;
+      }
+
+      if (viewType === 'span-container') {
+        const [groupView] = this.annotation.findSpanView(id);
+        if (!groupView) return;
+        groupView.toggleSpanView(id);
+        return;
+      }
+    }
+  }
+
   dispose() {
     this.mouseHandler.dispose();
   }
@@ -218,7 +270,6 @@ export default class TimelineView extends EventEmitterExtra {
 
       // Bind layout event after initial layout
       groupView.on(GroupViewEvent.LAYOUT, this.onGroupLayout.bind(this));
-      groupView.on(GroupViewEvent.SPAN_CLICKED, this.onSpanClicked.bind(this));
 
       this.groupViews[group.id] = groupView;
     });
@@ -241,10 +292,6 @@ export default class TimelineView extends EventEmitterExtra {
 
   onGroupLayout() {
     this.updateGroupPositions();
-  }
-
-  onSpanClicked(spanView: SpanView) {
-    this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
   }
 
   updateGroupPositions() {
