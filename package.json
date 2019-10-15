@@ -27,7 +27,8 @@
     "react-scripts": "3.0.1",
     "scroll": "^3.0.1",
     "shortid": "^2.2.15",
-    "typescript": "3.6.4"
+    "typescript": "3.6.4",
+    "xstate": "^4.6.7"
   },
   "scripts": {
     "build": "react-scripts build",
