@@ -22,12 +22,13 @@ export interface TimelineScreenProps {
   visible: boolean
 }
 
+const SIDEBAR_WIDTH = 320;
+const SIDEBAR_RESIZE_HANDLE_WIDTH = 6;
 
 export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private stage = Stage.getSingleton();
   private timelineContainerRef = React.createRef();
   private timelineView = new TimelineView();
-  private sidebarWidth = 320;
 
   state = {
     traceGroups: this.stage.grouping.trace.getAllGroups(),
@@ -36,7 +37,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     sidebarSelectedTab: 'general',
     selectedSpanView: null,
     expandedLogIds: [] as string[],
-    highlightedLogId: ''
+    highlightedLogId: '',
+    sidebarWidth: SIDEBAR_WIDTH,
+    sidebarResizeHandleTranslateX: -SIDEBAR_WIDTH + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2),
+    isSidebarResizing: false
   };
   binded = {
     onStageUpdated: this.onStageUpdated.bind(this),
@@ -49,6 +53,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onLogsCollapseChange: this.onLogsCollapseChange.bind(this),
     handleLogClick: this.handleLogClick.bind(this),
     handleHoverChange: this.handleHoverChange.bind(this),
+    onMouseDown: this.onMouseDown.bind(this),
+    onMouseMove: this.onMouseMove.bind(this),
+    onMouseUp: this.onMouseUp.bind(this),
+    onMouseLeave: this.onMouseLeave.bind(this),
   };
 
 
@@ -95,7 +103,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   toggleSidebarVisibility(isVisible: boolean) {
     this.setState({ isSidebarVisible: isVisible });
-    this.timelineView.updateSidebarWidth(isVisible ? this.sidebarWidth : 0);
+    this.timelineView.updateSidebarWidth(isVisible ? this.state.sidebarWidth : 0);
   }
 
   onTabChange(activeKey: string) {
@@ -182,12 +190,52 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.setState({ highlightedLogId: logId });
   }
 
+  onMouseDown(e: MouseEvent) {
+    // Sidebar resize handle element contains just one child
+    const targetEl = e.target as Element;
+    const parentEl = targetEl.parentElement!;
+    if ([targetEl.id, parentEl.id].indexOf('timeline-sidebar-resize-handle') === -1) {
+      this.setState({ isSidebarResizing: false });
+      return;
+    }
+
+    this.setState({ isSidebarResizing: true });
+  }
+
+  onMouseMove(e: MouseEvent) {
+    if (!this.state.isSidebarResizing) return;
+    this.setState({
+      sidebarResizeHandleTranslateX: e.clientX - window.innerWidth + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2)
+    });
+  }
+
+  onMouseUp(e: MouseEvent) {
+    // Apply!
+    const sidebarWidth = -this.state.sidebarResizeHandleTranslateX + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2);
+    this.setState({ isSidebarResizing: false, sidebarWidth });
+    this.timelineView.updateSidebarWidth(sidebarWidth);
+  }
+
+  onMouseLeave(e: MouseEvent) {
+    // Reset the position
+    this.setState({
+      isSidebarResizing: false,
+      sidebarResizeHandleTranslateX: -this.state.sidebarWidth + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2)
+    });
+  }
+
   render() {
     const span: Span = this.state.selectedSpanView ? (this.state.selectedSpanView as any).span : {};
     const spanLogViews = this.state.selectedSpanView ? (this.state.selectedSpanView! as SpanView).getLogViews() : [];
 
     return (
-      <div style={{ display: this.props.visible ? 'block' : 'none', overflow: 'auto', height: '100vh' }}>
+      <div
+        style={{ display: this.props.visible ? 'block' : 'none', overflow: 'auto', height: '100vh' }}
+        onMouseDown={this.binded.onMouseDown as any}
+        onMouseMove={this.binded.onMouseMove as any}
+        onMouseUp={this.binded.onMouseUp as any}
+        onMouseLeave={this.binded.onMouseLeave as any}
+      >
         <Layout style={{ height: '100%', overflow: 'hidden' }}>
           <Content style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <PageHeader
@@ -218,7 +266,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
             collapsedWidth={0}
             collapsed={!this.state.isSidebarVisible}
             className="timeline-sidebar"
-            width={this.sidebarWidth}
+            width={this.state.sidebarWidth}
             theme="light"
           >
             <Tabs activeKey={this.state.sidebarSelectedTab} onChange={this.binded.onTabChange}>
@@ -367,6 +415,18 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               </TabPane>
             </Tabs>
           </Sider>
+
+          <div
+            id="timeline-sidebar-resize-handle"
+            style={{
+              display: this.state.isSidebarVisible ? 'block' : 'none',
+              opacity: this.state.isSidebarResizing ? 1 : 0,
+              transform: `translate3d(${this.state.sidebarResizeHandleTranslateX}px, 0, 0)`
+            }}
+          >
+            <div></div>
+          </div>
+
       </Layout>
 
       </div>

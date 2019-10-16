@@ -49,4 +49,21 @@ svg.timeline-svg text {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  }
+}
+
+#timeline-sidebar-resize-handle {
+  position: absolute;
+  width: 6px;
+  height: 100%;
+  right: 0;
+  top: 0;
+  cursor: col-resize;
+}
+
+#timeline-sidebar-resize-handle > div {
+  width: 2px;
+  height: 100%;
+  position: relative;
+  left: 2px;
+  background: #000;
+}
