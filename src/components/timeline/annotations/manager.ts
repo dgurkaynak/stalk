@@ -1,13 +1,13 @@
 import * as _ from 'lodash';
-import GroupView from './group-view';
-import TimelineView from './view';
-import TimelineViewSettings from './view-settings';
-import { AxisEvent } from './axis';
-import SpanView from './span-view';
+import GroupView from '../group-view';
+import TimelineView from '../view';
+import TimelineViewSettings from '../view-settings';
+import { AxisEvent } from '../axis';
+import SpanView from '../span-view';
 import shortid from 'shortid';
+import BaseAnnotation from './base';
+import LogHighlightAnnotation from './log-highlight';
 
-
-const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export default class AnnotationManager {
   private timelineView: TimelineView;
@@ -132,95 +132,3 @@ export default class AnnotationManager {
   }
 }
 
-
-export class BaseAnnotation {
-  protected underlayElements: SVGElement[] = [];
-  protected overlayElements: SVGElement[] = [];
-
-  constructor(protected deps: {
-    timelineView: TimelineView,
-    underlayPanel: SVGGElement,
-    overlayPanel: SVGGElement,
-    viewSettings: TimelineViewSettings,
-    findSpanView : (spanId: string | ((spanView: SpanView) => boolean)) => [GroupView?, SpanView?],
-    findSpanViews : (predicate: (spanView: SpanView) => boolean) => [GroupView, SpanView][]
-  }) {
-    // Noop
-  }
-
-  prepare(...args: any[]): void {
-    // To be implemented
-  }
-
-  mount() {
-    this.underlayElements.forEach(el => this.deps.underlayPanel.appendChild(el));
-    this.overlayElements.forEach(el => this.deps.overlayPanel.appendChild(el));
-  }
-
-  unmount() {
-    this.underlayElements.forEach(el => el.parentElement && el.parentElement.removeChild(el));
-    this.overlayElements.forEach(el => el.parentElement && el.parentElement.removeChild(el));
-  }
-
-  update(): void {
-    // To be implemented
-  }
-}
-
-
-
-interface LogHighlightAnnotationSettings {
-  spanView: SpanView,
-  logId: string,
-  lineColor?: string,
-  circleColor?: string,
-  circleRadius?: string,
-}
-export class LogHighlightAnnotation extends BaseAnnotation {
-  private settings?: LogHighlightAnnotationSettings;
-  private logTimestamp = 0;
-  private line = document.createElementNS(SVG_NS, 'line');
-  private circle = document.createElementNS(SVG_NS, 'circle');
-
-  prepare(settings: LogHighlightAnnotationSettings) {
-    this.settings = _.defaults(settings, {
-      lineColor: '#1890ff',
-      circleColor: '#1890ff',
-      circleRadius: this.deps.viewSettings.spanLogCircleRadius
-    });
-    const logView = settings.spanView.getLogViewById(settings.logId);
-    if (!logView) return false;
-    this.logTimestamp = logView.log.timestamp;
-
-    this.line.setAttribute('x1', '0');
-    this.line.setAttribute('x2', '0');
-    this.line.setAttribute('y1', '0');
-    const height = Math.max(this.deps.timelineView.getContentHeight(), this.deps.viewSettings.height);
-    this.line.setAttribute('y2', height + '');
-    this.line.setAttribute('stroke', this.settings.lineColor!);
-
-    this.circle.setAttribute('cx', '0');
-    this.circle.setAttribute('cy', '0');
-    this.circle.setAttribute('r', (this.settings.circleRadius! + 1) + '');
-    this.circle.setAttribute('fill', this.settings.circleColor!);
-    this.circle.setAttribute('data-view-type', 'log-highlight-annotation');
-    this.circle.setAttribute('data-view-id', logView.id);
-
-    this.overlayElements = [this.line, this.circle];
-  }
-
-  update() {
-    if (!this.settings) return;
-    const axis = this.deps.viewSettings.getAxis();
-    const span = this.settings.spanView.span;
-    const [ groupView ] = this.deps.findSpanView(span.id);
-    if (!groupView) return;
-    const groupViewProps = groupView.getViewPropertiesCache();
-    const spanViewProps = this.settings.spanView.getViewPropertiesCache();
-
-    const x = axis.input2output(this.logTimestamp);
-    this.line.setAttribute('transform', `translate(${x}, 0)`);
-    const y = groupViewProps.y + spanViewProps.y + (this.deps.viewSettings.spanBarHeight / 2);
-    this.circle.setAttribute('transform', `translate(${x}, ${y})`);
-  }
-}

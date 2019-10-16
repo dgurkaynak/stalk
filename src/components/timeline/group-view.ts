@@ -20,8 +20,14 @@ export enum GroupViewEvent {
   LAYOUT = 'layout'
 }
 
+enum ViewType {
+  LABEL_TEXT = 'g_label_text'
+}
+
 
 export default class GroupView extends EventEmitterExtra {
+  static ViewType = ViewType;
+
   private group: Group;
   private viewSettings: ViewSettings;
   private spanViews: { [key: string]: SpanView} = {};
@@ -71,11 +77,8 @@ export default class GroupView extends EventEmitterExtra {
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
     this.labelText.setAttribute('font-size', `${this.viewSettings.groupLabelFontSize}px`);
-    this.labelText.setAttribute('data-view-type', 'group-label-text');
-    this.labelText.setAttribute('data-view-id', this.group.id);
-
-    this.container.setAttribute('data-view-type', 'group-container');
-    this.container.setAttribute('data-view-id', this.group.id);
+    this.labelText.setAttribute('data-view-type', ViewType.LABEL_TEXT);
+    this.labelText.setAttribute('data-group-id', this.group.id);
   }
 
   init(options: {

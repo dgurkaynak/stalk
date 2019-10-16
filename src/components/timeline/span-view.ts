@@ -14,8 +14,14 @@ export interface SpanLogViewObject {
   log: SpanLog
 }
 
+enum ViewType {
+  CONTAINER = 's_container',
+  LOG_CIRCLE = 's_log_circle'
+}
 
 export default class SpanView {
+  static ViewType = ViewType;
+
   span: Span;
   private viewSettings: ViewSettings;
   options = {
@@ -82,8 +88,8 @@ export default class SpanView {
     this.updateLabelText();
     this.hideLabel();
 
-    this.container.setAttribute('data-view-type', 'span-container');
-    this.container.setAttribute('data-view-id', span.id);
+    this.container.setAttribute('data-view-type', ViewType.CONTAINER);
+    this.container.setAttribute('data-span-id', span.id);
     this.clipPath.id = `clip-path-span-${span.id}`;
     this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
 
@@ -184,8 +190,9 @@ export default class SpanView {
       circle.setAttribute('stroke', '#000');
       circle.setAttribute('stroke-width', '1');
       circle.setAttribute('clip-path', `url(#${this.clipPath.id})`);
-      circle.setAttribute('data-view-type', 'log-view');
-      circle.setAttribute('data-view-id', id);
+      circle.setAttribute('data-view-type', ViewType.LOG_CIRCLE);
+      circle.setAttribute('data-log-id', id);
+      circle.setAttribute('data-span-id', this.span.id);
       this.container.appendChild(circle);
       return { id, log, circle };
     });

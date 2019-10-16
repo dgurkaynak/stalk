@@ -4,8 +4,10 @@ import GroupView, { GroupViewEvent } from './group-view';
 import Axis from './axis';
 import ViewSettings from './view-settings';
 import EventEmitterExtra from 'event-emitter-extra';
-import AnnotationManager from './annotation';
+import AnnotationManager from './annotations/manager';
+import LogHighlightAnnotation from './annotations/log-highlight';
 import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
+import SpanView from './span-view';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -153,34 +155,26 @@ export default class TimelineView extends EventEmitterExtra {
 
     // TODO: Maybe debounce below?
     const matches = this.getViewsFromMouseEvent(e);
-    let logId = '';
-    let spanId = '';
-    let groupId = '';
-    let isMouseOnLogHighlightAnnotation = false;
 
-    matches.forEach(({ viewType, id }) => {
-      switch (viewType) {
-        case 'log-view': logId = id; return;
-        case 'span-container': spanId = id; return;
-        case 'group-container': groupId = id; return;
-        case 'log-highlight-annotation': isMouseOnLogHighlightAnnotation = true; return;
+    this.showOrHideLogHighlightAnnotation(null);
+
+    matches.forEach(({ type, element }) => {
+      switch (type) {
+
+        case SpanView.ViewType.LOG_CIRCLE:
+        case LogHighlightAnnotation.ViewType.CIRCLE: {
+          const spanId = element.getAttribute('data-span-id');
+          const logId = element.getAttribute('data-log-id');
+          if (!spanId || !logId) return;
+          const spanView = this.annotation.findSpanView(spanId)[1];
+          if (!spanView) return;
+          this.showOrHideLogHighlightAnnotation({ spanView: spanView, logId });
+          return;
+        }
+
       }
     });
 
-    // If mouse on log highlight annotation, noop
-    if (!isMouseOnLogHighlightAnnotation) {
-      // If hovering a log view, show highlight annotation
-      if (logId && spanId) {
-        const spanView = this.annotation.findSpanView(spanId)[1];
-        if (spanView) {
-          this.annotation.logHighlightAnnotation.prepare({ spanView, logId });
-          this.annotation.logHighlightAnnotation.update();
-          this.annotation.logHighlightAnnotation.mount();
-        }
-      } else { // Hide it
-        this.annotation.logHighlightAnnotation.unmount();
-      }
-    }
   }
 
   onMouseIdleLeave(e: MouseEvent) {
@@ -222,13 +216,13 @@ export default class TimelineView extends EventEmitterExtra {
   // Array order is from deepest element to root
   getViewsFromMouseEvent(e: MouseEvent) {
     let element = e.target as (Element | null);
-    const matches: { viewType: string, id: string }[] = [];
+    const matches: { type: string, element: Element }[] = [];
 
     while (element && element !== this.svg) {
-      if (element.hasAttribute('data-view-type') && element.hasAttribute('data-view-id')) {
+      if (element.hasAttribute('data-view-type')) {
         matches.push({
-          viewType: element.getAttribute('data-view-type')!,
-          id: element.getAttribute('data-view-id')!
+          type: element.getAttribute('data-view-type')!,
+          element: element
         });
       }
       element = element.parentElement;
@@ -239,34 +233,59 @@ export default class TimelineView extends EventEmitterExtra {
 
   onClick(e: MouseEvent) {
     const matches = this.getViewsFromMouseEvent(e);
+    matches.forEach(({ type, element }) => {
+      switch (type) {
 
-    for (let {viewType, id} of matches) {
-      if (viewType === 'span-container') {
-        const spanView = this.annotation.findSpanView(id)[1];
-        spanView && this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
-        return;
+        case SpanView.ViewType.LOG_CIRCLE:
+        case LogHighlightAnnotation.ViewType.CIRCLE: {
+          // TODO
+          return;
+        }
+
+        case SpanView.ViewType.CONTAINER: {
+          const spanId = element.getAttribute('data-span-id');
+          if (!spanId) return;
+          const spanView = this.annotation.findSpanView(spanId)[1];
+          spanView && this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
+          return;
+        }
+
       }
-    }
+    });
+
   }
 
   onDoubleClick(e: MouseEvent) {
     const matches = this.getViewsFromMouseEvent(e);
+    matches.forEach(({ type, element }) => {
+      switch (type) {
 
-    for (let {viewType, id} of matches) {
-      if (viewType === 'group-label-text') {
-        const groupView = this.groupViews[id];
-        if (!groupView) return;
-        groupView.toggleView();
-        return;
-      }
+        case SpanView.ViewType.LOG_CIRCLE:
+        case LogHighlightAnnotation.ViewType.CIRCLE: {
+          // NOOP
+          return;
+        }
 
-      if (viewType === 'span-container') {
-        const [groupView] = this.annotation.findSpanView(id);
-        if (!groupView) return;
-        groupView.toggleSpanView(id);
-        return;
+        case GroupView.ViewType.LABEL_TEXT: {
+          const groupId = element.getAttribute('data-group-id');
+          if (!groupId) return;
+          const groupView = this.groupViews[groupId];
+          if (!groupView) return;
+          groupView && groupView.toggleView();
+          return;
+        }
+
+        case SpanView.ViewType.CONTAINER: {
+          const spanId = element.getAttribute('data-span-id');
+          if (!spanId) return;
+          const [groupView, spanView] = this.annotation.findSpanView(spanId);
+          groupView && groupView.toggleSpanView(spanId);
+          return;
+        }
+
       }
-    }
+    });
+
   }
 
   dispose() {
@@ -351,5 +370,12 @@ export default class TimelineView extends EventEmitterExtra {
       this.viewSettings.spanBarViewportMargin,
       this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
     ]);
+  }
+
+  showOrHideLogHighlightAnnotation(options: { spanView: SpanView, logId: string } | null) {
+    if (!options) return this.annotation.logHighlightAnnotation.unmount();
+    this.annotation.logHighlightAnnotation.prepare({ spanView: options.spanView, logId: options.logId });
+    this.annotation.logHighlightAnnotation.update();
+    this.annotation.logHighlightAnnotation.mount();
   }
 }
