@@ -13,7 +13,8 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export enum TimelineViewEvent {
   SPAN_CLICKED = 't_span_selected',
-  LOG_CLICKED = 't_log_clicked'
+  LOG_CLICKED = 't_log_clicked',
+  HOVER_CHANGED = 't_hover_changed',
 }
 
 
@@ -33,6 +34,7 @@ export default class TimelineView extends EventEmitterExtra {
   private panelTranslateY = 0;
 
   private mouseHandler = new MouseHandler(this.svg);
+  private hoveredElements: { type: string, element: Element }[] = [];
 
   private stage?: Stage;
   private viewSettings = new ViewSettings();
@@ -176,6 +178,20 @@ export default class TimelineView extends EventEmitterExtra {
       }
     });
 
+    const previousHoveredElements = this.hoveredElements;
+    this.hoveredElements = matches;
+
+    const removed: {
+      type: string,
+      element: Element
+    }[] = _.differenceBy(previousHoveredElements, matches, ({element}) => element);
+    const added: {
+      type: string,
+      element: Element
+    }[] = _.differenceBy(matches, previousHoveredElements, ({element}) => element);
+
+    if (removed.length === 0 && added.length === 0) return;
+    this.emit(TimelineViewEvent.HOVER_CHANGED, { added, removed, current: matches });
   }
 
   onMouseIdleLeave(e: MouseEvent) {
@@ -233,15 +249,17 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   onClick(e: MouseEvent) {
+    if (!e) return;
     const matches = this.getViewsFromMouseEvent(e);
     matches.forEach(({ type, element }) => {
       switch (type) {
 
-        case SpanView.ViewType.LOG_CIRCLE:
         case LogHighlightAnnotation.ViewType.CIRCLE: {
           const spanId = element.getAttribute('data-span-id');
           const logId = element.getAttribute('data-log-id');
           if (!spanId || !logId) return;
+          const spanView = this.annotation.findSpanView(spanId)[1];
+          this.emit(TimelineViewEvent.SPAN_CLICKED, spanView);
           this.emit(TimelineViewEvent.LOG_CLICKED, { spanId, logId });
           return;
         }
@@ -260,6 +278,7 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   onDoubleClick(e: MouseEvent) {
+    if (!e) return;
     const matches = this.getViewsFromMouseEvent(e);
     matches.forEach(({ type, element }) => {
       switch (type) {

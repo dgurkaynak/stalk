@@ -6,6 +6,7 @@ import ColorManagers from '../color/managers';
 import TimelineView, { TimelineViewEvent } from './view';
 import prettyMilliseconds from 'pretty-ms';
 import scroll from 'scroll';
+import LogHighlightAnnotation from './annotations/log-highlight';
 
 
 import './timeline.css';
@@ -47,6 +48,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onLogsContainerMouseLeave: this.onLogsContainerMouseLeave.bind(this),
     onLogsCollapseChange: this.onLogsCollapseChange.bind(this),
     handleLogClick: this.handleLogClick.bind(this),
+    handleHoverChange: this.handleHoverChange.bind(this),
   };
 
 
@@ -63,6 +65,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     });
     this.timelineView.on(TimelineViewEvent.SPAN_CLICKED, this.binded.handleSpanSelect);
     this.timelineView.on(TimelineViewEvent.LOG_CLICKED, this.binded.handleLogClick);
+    this.timelineView.on(TimelineViewEvent.HOVER_CHANGED, this.binded.handleHoverChange);
   }
 
 
@@ -105,7 +108,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       sidebarSelectedTab: spanView ? 'span-info' : 'general',
       selectedSpanView: spanView
     });
-    console.log('span selected');
   }
 
   handleLogClick(data: { spanId: string, logId: string }) {
@@ -113,7 +115,28 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     if (!selectedSpanView) return;
     if (selectedSpanView.span.id !== data.spanId) return;
     if (this.state.expandedLogIds.indexOf(data.logId) > -1) return;
-    this.setState({ expandedLogIds: [ ...this.state.expandedLogIds, data.logId ] });
+    this.setState({ expandedLogIds: [ ...this.state.expandedLogIds, data.logId ] }, () => {
+      setTimeout(() => this.highlightAndScrollToLog(data.logId), 250);
+    });
+  }
+
+  handleHoverChange(data: {
+    added: { type: string, element: Element }[],
+    removed: { type: string, element: Element }[]
+  }) {
+    const selectedSpanView = this.state.selectedSpanView! as SpanView;
+    if (!selectedSpanView) return;
+
+    this.setState({ highlightedLogId: '' });
+
+    data.added.forEach(({ type, element }) => {
+      if (type !== SpanView.ViewType.LOG_CIRCLE && type !== LogHighlightAnnotation.ViewType.CIRCLE) return;
+      const spanId = element.getAttribute('data-span-id');
+      const logId = element.getAttribute('data-log-id');
+      if (!spanId || !logId) return;
+      if (spanId !== selectedSpanView.span.id) return;
+      this.highlightAndScrollToLog(logId);
+    });
   }
 
   onLogsContainerMouseMove(e: MouseEvent) {
@@ -152,10 +175,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
     if (clientRect.top >= 0 && clientRect.bottom <= innerHeight) {
       // Log panel is completely visible, NOOP
-      console.log('visible noop');
     } else {
       scroll.top(sidebarEl, offsetTop);
-      console.log('scroll to', offsetTop);
     }
 
     this.setState({ highlightedLogId: logId });
