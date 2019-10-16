@@ -30,7 +30,6 @@ export default class TimelineView extends EventEmitterExtra {
   private panelTranslateY = 0;
 
   private mouseHandler = new MouseHandler(this.svg);
-  private isMouseDown = false;
 
   private stage?: Stage;
   private viewSettings = new ViewSettings();
@@ -151,6 +150,37 @@ export default class TimelineView extends EventEmitterExtra {
   onMouseIdleMove(e: MouseEvent) {
     // Update the cursor line
     this.cursorLine.setAttribute('transform', `translate(${e.offsetX}, 0)`);
+
+    // TODO: Maybe debounce below?
+    const matches = this.getViewsFromMouseEvent(e);
+    let logId = '';
+    let spanId = '';
+    let groupId = '';
+    let isMouseOnLogHighlightAnnotation = false;
+
+    matches.forEach(({ viewType, id }) => {
+      switch (viewType) {
+        case 'log-view': logId = id; return;
+        case 'span-container': spanId = id; return;
+        case 'group-container': groupId = id; return;
+        case 'log-highlight-annotation': isMouseOnLogHighlightAnnotation = true; return;
+      }
+    });
+
+    // If mouse on log highlight annotation, noop
+    if (!isMouseOnLogHighlightAnnotation) {
+      // If hovering a log view, show highlight annotation
+      if (logId && spanId) {
+        const spanView = this.annotation.findSpanView(spanId)[1];
+        if (spanView) {
+          this.annotation.logHighlightAnnotation.prepare({ spanView, logId });
+          this.annotation.logHighlightAnnotation.update();
+          this.annotation.logHighlightAnnotation.mount();
+        }
+      } else { // Hide it
+        this.annotation.logHighlightAnnotation.unmount();
+      }
+    }
   }
 
   onMouseIdleLeave(e: MouseEvent) {
@@ -189,6 +219,7 @@ export default class TimelineView extends EventEmitterExtra {
     );
   }
 
+  // Array order is from deepest element to root
   getViewsFromMouseEvent(e: MouseEvent) {
     let element = e.target as (Element | null);
     const matches: { viewType: string, id: string }[] = [];

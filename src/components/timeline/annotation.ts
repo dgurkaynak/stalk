@@ -203,6 +203,8 @@ export class LogHighlightAnnotation extends BaseAnnotation {
     this.circle.setAttribute('cy', '0');
     this.circle.setAttribute('r', (this.settings.circleRadius! + 1) + '');
     this.circle.setAttribute('fill', this.settings.circleColor!);
+    this.circle.setAttribute('data-view-type', 'log-highlight-annotation');
+    this.circle.setAttribute('data-view-id', logView.id);
 
     this.overlayElements = [this.line, this.circle];
   }
