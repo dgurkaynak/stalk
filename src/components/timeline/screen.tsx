@@ -5,6 +5,7 @@ import { Stage, StageEvent } from '../../model/stage';
 import ColorManagers from '../color/managers';
 import TimelineView, { TimelineViewEvent } from './view';
 import prettyMilliseconds from 'pretty-ms';
+import scroll from 'scroll';
 
 
 import './timeline.css';
@@ -33,7 +34,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     isSidebarVisible: false,
     sidebarSelectedTab: 'general',
     selectedSpanView: null,
-    expandedLogIds: [] as string[]
+    expandedLogIds: [] as string[],
+    highlightedLogId: ''
   };
   binded = {
     onStageUpdated: this.onStageUpdated.bind(this),
@@ -136,6 +138,27 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   onLogsCollapseChange(expandedLogIds: string[]) {
     this.setState({ expandedLogIds });
+  }
+
+  highlightAndScrollToLog(logId: string) {
+    const logPanelEl = document.getElementById(`log-panel-${logId}`);
+    if (!logPanelEl) return;
+    const sidebarEl = document.getElementsByClassName('timeline-sidebar')[0];
+    if (!sidebarEl) return;
+    const { innerHeight } = window;
+    const { offsetTop } = logPanelEl;
+    const clientRect = logPanelEl.getBoundingClientRect();
+
+
+    if (clientRect.top >= 0 && clientRect.bottom <= innerHeight) {
+      // Log panel is completely visible, NOOP
+      console.log('visible noop');
+    } else {
+      scroll.top(sidebarEl, offsetTop);
+      console.log('scroll to', offsetTop);
+    }
+
+    this.setState({ highlightedLogId: logId });
   }
 
   render() {
@@ -303,6 +326,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
                               header={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}
                               key={logView.id}
                               id={`log-panel-${logView.id}`}
+                              style={{ background: logView.id === this.state.highlightedLogId ? 'rgba(230, 247, 255, 0.5)' : 'none' }}
                             >
                               {_.map(logView.log.fields, (value, name) => (
                                 <div className="sidebar-row mono" key={name}>
