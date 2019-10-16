@@ -32,7 +32,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     groupingMode: 'trace',
     isSidebarVisible: false,
     sidebarSelectedTab: 'general',
-    selectedSpanView: null
+    selectedSpanView: null,
+    expandedLogIds: [] as string[]
   };
   binded = {
     onStageUpdated: this.onStageUpdated.bind(this),
@@ -42,6 +43,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onTabChange: this.onTabChange.bind(this),
     onLogsContainerMouseMove: this.onLogsContainerMouseMove.bind(this),
     onLogsContainerMouseLeave: this.onLogsContainerMouseLeave.bind(this),
+    onLogsCollapseChange: this.onLogsCollapseChange.bind(this),
+    handleLogClick: this.handleLogClick.bind(this),
   };
 
 
@@ -56,7 +59,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       width: innerWidth - 80,
       height: innerHeight - 80
     });
-    this.timelineView.on(TimelineViewEvent.SPAN_SELECTED, this.binded.handleSpanSelect);
+    this.timelineView.on(TimelineViewEvent.SPAN_CLICKED, this.binded.handleSpanSelect);
+    this.timelineView.on(TimelineViewEvent.LOG_CLICKED, this.binded.handleLogClick);
   }
 
 
@@ -70,7 +74,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onStageUpdated);
     this.stage.removeListener(StageEvent.TRACE_REMOVED, this.binded.onStageUpdated);
     window.removeEventListener('resize', this.binded.onWindowResize, false);
-    this.timelineView.removeListener(TimelineViewEvent.SPAN_SELECTED, [this.binded.handleSpanSelect] as any);
+    this.timelineView.removeListener(TimelineViewEvent.SPAN_CLICKED, [this.binded.handleSpanSelect] as any);
   }
 
 
@@ -102,6 +106,14 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     console.log('span selected');
   }
 
+  handleLogClick(data: { spanId: string, logId: string }) {
+    const selectedSpanView = this.state.selectedSpanView! as SpanView;
+    if (!selectedSpanView) return;
+    if (selectedSpanView.span.id !== data.spanId) return;
+    if (this.state.expandedLogIds.indexOf(data.logId) > -1) return;
+    this.setState({ expandedLogIds: [ ...this.state.expandedLogIds, data.logId ] });
+  }
+
   onLogsContainerMouseMove(e: MouseEvent) {
     const selectedSpanView = this.state.selectedSpanView! as SpanView;
     if (!selectedSpanView) return;
@@ -120,6 +132,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   onLogsContainerMouseLeave(e: MouseEvent) {
     this.timelineView.annotation.logHighlightAnnotation.unmount();
+  }
+
+  onLogsCollapseChange(expandedLogIds: string[]) {
+    this.setState({ expandedLogIds });
   }
 
   render() {
@@ -281,7 +297,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
                         onMouseMove={this.binded.onLogsContainerMouseMove as any}
                         onMouseLeave={this.binded.onLogsContainerMouseLeave as any}
                       >
-                        <Collapse>
+                        <Collapse activeKey={this.state.expandedLogIds} onChange={this.binded.onLogsCollapseChange as any}>
                           {_.map(spanLogViews, (logView) => (
                             <Panel
                               header={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}

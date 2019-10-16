@@ -44,6 +44,7 @@ export default class LogHighlightAnnotation extends BaseAnnotation {
     this.circle.setAttribute('cy', '0');
     this.circle.setAttribute('r', (this.settings.circleRadius! + 1) + '');
     this.circle.setAttribute('fill', this.settings.circleColor!);
+    this.circle.setAttribute('cursor', 'pointer');
     this.circle.setAttribute('data-view-type', ViewType.CIRCLE);
     this.circle.setAttribute('data-log-id', logView.id);
     this.circle.setAttribute('data-span-id', this.settings.spanView.span.id);

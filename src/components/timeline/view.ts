@@ -12,7 +12,8 @@ import SpanView from './span-view';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export enum TimelineViewEvent {
-  SPAN_SELECTED = 'span_selected'
+  SPAN_CLICKED = 't_span_selected',
+  LOG_CLICKED = 't_log_clicked'
 }
 
 
@@ -238,7 +239,10 @@ export default class TimelineView extends EventEmitterExtra {
 
         case SpanView.ViewType.LOG_CIRCLE:
         case LogHighlightAnnotation.ViewType.CIRCLE: {
-          // TODO
+          const spanId = element.getAttribute('data-span-id');
+          const logId = element.getAttribute('data-log-id');
+          if (!spanId || !logId) return;
+          this.emit(TimelineViewEvent.LOG_CLICKED, { spanId, logId });
           return;
         }
 
@@ -246,7 +250,7 @@ export default class TimelineView extends EventEmitterExtra {
           const spanId = element.getAttribute('data-span-id');
           if (!spanId) return;
           const spanView = this.annotation.findSpanView(spanId)[1];
-          spanView && this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
+          spanView && this.emit(TimelineViewEvent.SPAN_CLICKED, spanView);
           return;
         }
 
@@ -278,7 +282,7 @@ export default class TimelineView extends EventEmitterExtra {
         case SpanView.ViewType.CONTAINER: {
           const spanId = element.getAttribute('data-span-id');
           if (!spanId) return;
-          const [groupView, spanView] = this.annotation.findSpanView(spanId);
+          const [groupView] = this.annotation.findSpanView(spanId);
           groupView && groupView.toggleSpanView(spanId);
           return;
         }
