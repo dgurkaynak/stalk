@@ -228,6 +228,8 @@ export default class TimelineView extends EventEmitterExtra {
       1 - (this.viewSettings.scrollToZoomFactor * e.deltaY),
       e.offsetX
     );
+
+    this.showOrHideLogHighlightAnnotation(null);
   }
 
   // Array order is from deepest element to root
