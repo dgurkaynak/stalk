@@ -20,12 +20,12 @@ export default class TimelineViewSettings extends EventEmitterExtra {
 
   readonly spanBarHeight = 20;
   readonly spanBarSpacing = 3;
-  readonly spanBarRadius = 3;
+  readonly spanBarRadius = 5;
   readonly spanBarMinWidth = 2;
   readonly spanBarViewportMargin = 5;
   get rowHeight() { return (2 * this.spanBarSpacing) + this.spanBarHeight; };
 
-  readonly spanLabelFontSize = 12;
+  readonly spanLabelFontSize = 10;
   readonly spanLabelOffsetLeft = 5;
   readonly spanLabelOffsetTop = 1;
   spanLabeling = 'operation-name'; // TODO
