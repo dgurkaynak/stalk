@@ -5,7 +5,6 @@ import { Stage, StageEvent } from '../../model/stage';
 import ColorManagers from '../color/managers';
 import TimelineView, { TimelineViewEvent } from './view';
 import prettyMilliseconds from 'pretty-ms';
-import { LogHighlightAnnotation } from './annotation';
 
 
 import './timeline.css';
@@ -27,7 +26,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private timelineContainerRef = React.createRef();
   private timelineView = new TimelineView();
   private sidebarWidth = 320;
-  private logHighlightAnnotation?: LogHighlightAnnotation;
 
   state = {
     traceGroups: this.stage.grouping.trace.getAllGroups(),
@@ -111,24 +109,17 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     const element = e.target as Element;
     const logContainerElement = element.closest(`div[id^='log-panel']`);
     if (!logContainerElement) {
-      this.logHighlightAnnotation && this.logHighlightAnnotation.unmount();
       return;
     }
     const logId = logContainerElement.id.replace('log-panel-', '');
 
-    if (this.logHighlightAnnotation) {
-      this.logHighlightAnnotation.prepare({ spanView: selectedSpanView, logId });
-      this.logHighlightAnnotation.mount();
-      this.logHighlightAnnotation.update();
-    } else {
-      this.logHighlightAnnotation = this.timelineView.annotation.createLogHighlightAnnotation(selectedSpanView, logId);
-      this.logHighlightAnnotation.mount();
-      this.logHighlightAnnotation.update();
-    }
+    this.timelineView.annotation.logHighlightAnnotation.prepare({ spanView: selectedSpanView, logId });
+    this.timelineView.annotation.logHighlightAnnotation.mount();
+    this.timelineView.annotation.logHighlightAnnotation.update();
   }
 
   onLogsContainerMouseLeave(e: MouseEvent) {
-    this.logHighlightAnnotation && this.logHighlightAnnotation.unmount();
+    this.timelineView.annotation.logHighlightAnnotation.unmount();
   }
 
   render() {

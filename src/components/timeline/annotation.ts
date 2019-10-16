@@ -24,6 +24,9 @@ export default class AnnotationManager {
     findSpanView : (spanId: string | ((spanView: SpanView) => boolean)) => [GroupView?, SpanView?],
     findSpanViews : (predicate: (spanView: SpanView) => boolean) => [GroupView, SpanView][]
   };
+
+  logHighlightAnnotation: LogHighlightAnnotation;
+
   private binded = {
     updateAllAnnotations: this.updateAllAnnotations.bind(this)
   };
@@ -47,6 +50,8 @@ export default class AnnotationManager {
       findSpanView : this.findSpanView.bind(this),
       findSpanViews : this.findSpanViews.bind(this)
     };
+
+    this.logHighlightAnnotation = new LogHighlightAnnotation(this.annotationDeps);
 
     options.viewSettings.on(AxisEvent.TRANSLATED, this.binded.updateAllAnnotations);
     options.viewSettings.on(AxisEvent.ZOOMED, this.binded.updateAllAnnotations);
