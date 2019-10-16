@@ -181,6 +181,9 @@ export default class SpanView {
   showLogs() {
     const { spanBarHeight, spanLogCircleRadius } = this.viewSettings;
     const centerY = spanBarHeight / 2;
+
+    this.logViews.forEach(l => this.container.removeChild(l.circle));
+
     this.logViews = this.span.logs.map((log) => {
       const id = shortid.generate();
       const circle = document.createElementNS(SVG_NS, 'circle');
