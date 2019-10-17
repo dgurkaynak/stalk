@@ -7,11 +7,11 @@ import TimelineView, { TimelineViewEvent } from './view';
 import prettyMilliseconds from 'pretty-ms';
 import scroll from 'scroll';
 import LogHighlightAnnotation from './annotations/log-highlight';
+import SpanView from './span-view';
+import { Span } from '../../model/span';
 
 
 import './timeline.css';
-import SpanView from './span-view';
-import { Span } from '../../model/span';
 const { Sider, Content } = Layout;
 const { TabPane } = Tabs;
 const { Option } = Select;

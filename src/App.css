@@ -1,15 +1,4 @@
 @import '~antd/dist/antd.css';
-@import './components/search/search.css';
-
-.app-sidebar .logo {
-  height: 32px;
-  background: rgba(255, 255, 255, 0.2);
-  margin: 16px;
-}
-
-.pageheader-with-button {
-  line-height: 32px;
-}
 
 /*
   This disables text/element selection
@@ -24,4 +13,14 @@
 }
 input, button, textarea, :focus {
     outline: none;
+}
+
+.app-sidebar .logo {
+  height: 32px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 16px;
+}
+
+.pageheader-with-button {
+  line-height: 32px;
 }

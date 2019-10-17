@@ -13,7 +13,7 @@ import { TraceDurationScatterPlot } from '../ui/trace-duration-scatter-plot';
 import ColorManagers from '../color/managers';
 import scroll from 'scroll';
 
-
+import './search.css';
 const { Text } = Typography;
 const CHART_HEIGHT = 200;
 
