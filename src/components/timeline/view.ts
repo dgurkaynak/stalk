@@ -324,7 +324,7 @@ export default class TimelineView extends EventEmitterExtra {
     if (!e) return;
     const matches = this.getViewsFromMouseEvent(e);
 
-    matches.forEach(({ type, element }) => {
+    _.forEachRight(matches, ({ type, element }) => {
       switch (type) {
 
         case SpanView.ViewType.LOG_CIRCLE: {
