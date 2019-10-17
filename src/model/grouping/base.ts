@@ -5,20 +5,17 @@ import { Group } from '../group/group';
 
 
 export class BaseGrouping {
-    readonly key: string; // group key, like `trace`
-    readonly name: string; // human readable name, `Trace`
+    static KEY = 'base';  // grouping unique key, like `trace`
+    static NAME = 'Base Grouping'; // human readable name, `Trace`
+
     protected groupBy: (span: Span, trace: Trace) => [ string, string ]; // [ group id, human readable group name ]
     protected groups: { [key: string]: Group } = {};
     protected spanIdToGroupId: { [key: string]: string } = {};
 
 
     constructor(options: {
-        key: string,
-        name: string,
         groupBy: (span: Span, trace: Trace) => [ string, string ]
     }) {
-        this.key = options.key;
-        this.name = options.name;
         this.groupBy = options.groupBy;
     }
 

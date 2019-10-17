@@ -11,7 +11,7 @@ import EventEmitterExtra from 'event-emitter-extra';
 // Maybe seperate events like ADDED, DELETED, UPDATED?
 // Not sure whether if it's gonna worth it
 export enum DataSourceManagerEvent {
-  UPDATED = 'updated'
+  UPDATED = 'dsm_updated'
 }
 
 

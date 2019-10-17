@@ -3,10 +3,11 @@ import { Span } from '../span';
 
 
 export class ProcessGrouping extends BaseGrouping {
+    static KEY = 'process';
+    static NAME = 'Process';
+
     constructor() {
         super({
-            key: 'process',
-            name: 'Process',
             groupBy: (span: Span) => {
                 let processId = 'unknown';
                 let processName = 'unknown';
