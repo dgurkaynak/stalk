@@ -98,6 +98,17 @@ export default class TimelineView extends EventEmitterExtra {
     );
     this.defs.appendChild(spanShadowFilter);
 
+    const arrowMarker = document.createElementNS(SVG_NS, 'marker');
+    arrowMarker.id = 'arrow-head';
+    arrowMarker.setAttribute('viewBox', '0 0 10 10');
+    arrowMarker.setAttribute('refX', '5');
+    arrowMarker.setAttribute('refY', '5');
+    arrowMarker.setAttribute('markerWidth', '6');
+    arrowMarker.setAttribute('markerHeight', '6');
+    arrowMarker.setAttribute('orient', 'auto-start-reverse');
+    arrowMarker.innerHTML = `<path d="M 0 0 L 10 5 L 0 10 z" />`;
+    this.defs.appendChild(arrowMarker);
+
     // Set-up grouping
     const GroupingClass = this.groupingManager.getGroupingClass(this.viewSettings.groupingKey) as any;
     if (!GroupingClass) throw new Error(`Grouping "${this.viewSettings.groupingKey}" not found`);
@@ -336,6 +347,10 @@ export default class TimelineView extends EventEmitterExtra {
           // Select this one
           spanView.updateColorStyle('selected');
           this.selectedSpanView = spanView;
+
+          this.annotation.spanConnectionsAnnotation.prepare({ spanView });
+          this.annotation.spanConnectionsAnnotation.update();
+          this.annotation.spanConnectionsAnnotation.mount();
 
           this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
           return;

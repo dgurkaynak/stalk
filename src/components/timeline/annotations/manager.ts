@@ -7,6 +7,7 @@ import SpanView from '../span-view';
 import shortid from 'shortid';
 import BaseAnnotation from './base';
 import LogHighlightAnnotation from './log-highlight';
+import SpanConnectionsAnnotation from './span-connections';
 
 
 export default class AnnotationManager {
@@ -26,6 +27,7 @@ export default class AnnotationManager {
   };
 
   logHighlightAnnotation: LogHighlightAnnotation;
+  spanConnectionsAnnotation: SpanConnectionsAnnotation;
 
   private binded = {
     updateAllAnnotations: this.updateAllAnnotations.bind(this)
@@ -51,7 +53,9 @@ export default class AnnotationManager {
       findSpanViews : this.findSpanViews.bind(this)
     };
 
+    // Do not forget to add these to `.updateAllAnnotations()` method
     this.logHighlightAnnotation = new LogHighlightAnnotation(this.annotationDeps);
+    this.spanConnectionsAnnotation = new SpanConnectionsAnnotation(this.annotationDeps);
 
     options.viewSettings.on(AxisEvent.TRANSLATED, this.binded.updateAllAnnotations);
     options.viewSettings.on(AxisEvent.ZOOMED, this.binded.updateAllAnnotations);
@@ -92,7 +96,8 @@ export default class AnnotationManager {
 
   updateAllAnnotations() {
     _.forEach([
-      this.logHighlightAnnotation
+      this.logHighlightAnnotation,
+      this.spanConnectionsAnnotation
     ], a => a.update());
     _.forEach(this.annotations, a => a.update());
   }
