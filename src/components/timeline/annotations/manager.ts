@@ -30,7 +30,7 @@ export default class AnnotationManager {
   spanConnectionsAnnotation: SpanConnectionsAnnotation;
 
   private binded = {
-    updateAllAnnotations: this.updateAllAnnotations.bind(this)
+    updateAllAnnotations: _.throttle(this.updateAllAnnotations.bind(this), 10)
   };
 
   constructor(options: {
@@ -95,11 +95,13 @@ export default class AnnotationManager {
   }
 
   updateAllAnnotations() {
-    _.forEach([
-      this.logHighlightAnnotation,
-      this.spanConnectionsAnnotation
-    ], a => a.update());
-    _.forEach(this.annotations, a => a.update());
+    setTimeout(() => {
+      _.forEach([
+        this.logHighlightAnnotation,
+        this.spanConnectionsAnnotation
+      ], a => a.update());
+      _.forEach(this.annotations, a => a.update());
+    }, 0);
   }
 
   findSpanView(spanId: string | ((spanView: SpanView) => boolean)): [
