@@ -91,7 +91,10 @@ export default class AnnotationManager {
   }
 
   updateAllAnnotations() {
-    _.forEach(this.annotations, a => a.update);
+    _.forEach([
+      this.logHighlightAnnotation
+    ], a => a.update());
+    _.forEach(this.annotations, a => a.update());
   }
 
   findSpanView(spanId: string | ((spanView: SpanView) => boolean)): [
