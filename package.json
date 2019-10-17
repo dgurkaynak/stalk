@@ -1,5 +1,5 @@
 {
-  "name": "stalk-ui",
+  "name": "stalk-studio",
   "version": "0.1.0",
   "private": true,
   "main": "scripts/electron-main.js",
