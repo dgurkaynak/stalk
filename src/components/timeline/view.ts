@@ -8,6 +8,7 @@ import AnnotationManager from './annotations/manager';
 import LogHighlightAnnotation from './annotations/log-highlight';
 import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
 import SpanView from './span-view';
+import { Trace } from '../../model/trace';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -320,53 +321,61 @@ export default class TimelineView extends EventEmitterExtra {
     this.mouseHandler.dispose();
   }
 
-  updateData(stage: Stage) {
-    this.stage = stage;
-    const grouping = stage.grouping[this.viewSettings.grouping];
+  addTrace(trace: Trace) {
 
-    const { startTimestamp, finishTimestamp } = stage.group;
-    this.viewSettings.setAxis(new Axis(
-      [startTimestamp, finishTimestamp],
-      [
-        this.viewSettings.spanBarViewportMargin,
-        this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
-      ]
-    ));
-
-    this.groupViews.forEach(v => v.dispose()); // This will unbind all handlers, no need to manually remove listener
-    this.groupViews = [];
-
-    const groups = grouping.getAllGroups().sort((a, b) => a.startTimestamp - b.startTimestamp);
-    groups.forEach((group) => {
-      const groupView = new GroupView({ group, viewSettings: this.viewSettings });
-      groupView.init({
-        groupNamePanel: this.groupNamePanel,
-        timelinePanel: this.timelinePanel,
-        svgDefs: this.defs
-      });
-      groupView.layout();
-
-      // Bind layout event after initial layout
-      groupView.on(GroupViewEvent.LAYOUT, this.onGroupLayout.bind(this));
-
-      this.groupViews.push(groupView);
-    });
-
-    this.updateGroupPositions();
-
-    // Annotations
-    this.annotation.updateData(this.groupViews);
-
-    // Reset vertical panning
-    this.panelTranslateY = 0;
-    this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-
-    // Show & hide cursor line
-    this.cursorLine.style.display = groups.length > 0 ? '' : 'none';
   }
+
+  removeTrace(trace: Trace) {
+
+  }
+
+  // updateData(stage: Stage) {
+  //   this.stage = stage;
+  //   const grouping = stage.grouping[this.settings.grouping];
+
+  //   const { startTimestamp, finishTimestamp } = stage.group;
+  //   this.settings.setAxis(new Axis(
+  //     [startTimestamp, finishTimestamp],
+  //     [
+  //       this.settings.spanBarViewportMargin,
+  //       this.settings.width - this.settings.spanBarViewportMargin - this.sidebarWidth
+  //     ]
+  //   ));
+
+  //   this.groupViews.forEach(v => v.dispose()); // This will unbind all handlers, no need to manually remove listener
+  //   this.groupViews = [];
+
+  //   const groups = grouping.getAllGroups().sort((a, b) => a.startTimestamp - b.startTimestamp);
+  //   groups.forEach((group) => {
+  //     const groupView = new GroupView({ group, viewSettings: this.settings });
+  //     groupView.init({
+  //       groupNamePanel: this.groupNamePanel,
+  //       timelinePanel: this.timelinePanel,
+  //       svgDefs: this.defs
+  //     });
+  //     groupView.layout();
+
+  //     // Bind layout event after initial layout
+  //     groupView.on(GroupViewEvent.LAYOUT, this.onGroupLayout.bind(this));
+
+  //     this.groupViews.push(groupView);
+  //   });
+
+  //   this.updateGroupPositions();
+
+  //   // Annotations
+  //   this.annotation.updateData(this.groupViews);
+
+  //   // Reset vertical panning
+  //   this.panelTranslateY = 0;
+  //   this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+  //   this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+  //   this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+  //   this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+
+  //   // Show & hide cursor line
+  //   this.cursorLine.style.display = groups.length > 0 ? '' : 'none';
+  // }
 
   onGroupLayout() {
     this.updateGroupPositions();

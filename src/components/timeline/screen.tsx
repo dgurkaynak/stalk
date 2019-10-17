@@ -31,7 +31,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private timelineView = new TimelineView();
 
   state = {
-    traceGroups: this.stage.grouping.trace.getAllGroups(),
+    stageTraces: this.stage.getAll(),
     groupingMode: 'trace',
     isSidebarVisible: false,
     sidebarSelectedTab: 'general',
@@ -43,7 +43,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     isSidebarResizing: false
   };
   binded = {
-    onStageUpdated: this.onStageUpdated.bind(this),
+    onStageTraceAdded: this.onStageTraceAdded.bind(this),
+    onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
     onGroupingModeChange: this.onGroupingModeChange.bind(this),
     onWindowResize: _.throttle(this.onWindowResize.bind(this), 500),
     handleSpanSelect: this.handleSpanSelect.bind(this),
@@ -61,8 +62,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
 
   componentDidMount() {
-    this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageUpdated);
-    this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageUpdated);
+    this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
+    this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
     window.addEventListener('resize', this.binded.onWindowResize, false);
 
     const containerEl = this.timelineContainerRef.current as HTMLDivElement;
@@ -84,16 +85,21 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
 
   componentWillUnmount() {
-    this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onStageUpdated);
-    this.stage.removeListener(StageEvent.TRACE_REMOVED, this.binded.onStageUpdated);
+    this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
+    this.stage.removeListener(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
     window.removeEventListener('resize', this.binded.onWindowResize, false);
     this.timelineView.removeListener(TimelineViewEvent.SPAN_CLICKED, [this.binded.handleSpanSelect] as any);
   }
 
 
-  onStageUpdated() {
-    this.setState({ traceGroups: this.stage.grouping.trace.getAllGroups() });
-    this.timelineView.updateData(this.stage);
+  onStageTraceAdded() {
+    this.setState({ stageTraces: this.stage.getAll() });
+    // this.timelineView.updateData(this.stage);
+  }
+
+  onStageTraceRemoved() {
+    this.setState({ stageTraces: this.stage.getAll() });
+    // this.timelineView.updateData(this.stage);
   }
 
 
@@ -315,23 +321,23 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
                   <Divider style={{ margin: '10px 0' }} />
 
-                  {this.state.traceGroups.length === 0 ? (
+                  {this.state.stageTraces.length === 0 ? (
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No trace added to timeline" />
                   ) : (
                     <h4>Traces</h4>
                   )}
-                  {this.state.traceGroups.map((traceGroup, i) => (
+                  {this.state.stageTraces.map((trace, i) => (
                     <div className="sidebar-row" key={i}>
                       <span>
                         <Badge
-                          color={ColorManagers.traceName.colorFor(traceGroup.id) as string}
+                          color={ColorManagers.traceName.colorFor(trace.id) as string}
                           className="search-result-item-badge"
                         />
-                        {traceGroup.name}
+                        {trace.name}
                       </span>
                       <Icon
                         type="close"
-                        onClick={() => this.stage.removeTrace(traceGroup.id)}
+                        onClick={() => this.stage.remove(trace.id)}
                       />
                     </div>
                   ))}
