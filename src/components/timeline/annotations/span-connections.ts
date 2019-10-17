@@ -130,6 +130,26 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
         default: throw new Error(`Could not draw connection, reference type "${ref.type} not supported"`);
       }
 
+      const angle = Math.atan2(toY - fromY, toX - fromX) / Math.PI * 180;
+      let isVertical = false;
+
+      if (angle > 45 && angle < 135) {
+        isVertical = true;
+      } else if (angle < -45 && angle > -135) {
+        isVertical = true;
+      }
+
+      // If it's vertical line, put an offset so that they dont collide with span bar rect
+      if (isVertical) {
+        if (fromY < toY) {
+          fromY += halfBarHeight;
+          toY -= halfBarHeight;
+        } else if (fromY > toY) {
+          fromY -= halfBarHeight;
+          toY += halfBarHeight;
+        }
+      }
+
       line.setAttribute('x1', fromX + '');
       line.setAttribute('y1', fromY + '');
       line.setAttribute('x2', toX + '');
