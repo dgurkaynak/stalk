@@ -4,11 +4,14 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import DatasourceManager from './model/datasource/manager';
+import GroupingManager from './model/grouping/manager';
 
 
 async function main() {
-    const datasourceManager = DatasourceManager.getSingleton();
-    await datasourceManager.init();
+    await Promise.all([
+        DatasourceManager.getSingleton().init(),
+        GroupingManager.getSingleton().init(),
+    ]);
 
     ReactDOM.render(<App />, document.getElementById('root'));
 }
