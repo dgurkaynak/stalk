@@ -51,7 +51,7 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       if (!refGroupView || !refSpanView) return;
 
       const path = document.createElementNS(SVG_NS, 'path');
-      // TODO
+      path.setAttribute('fill', 'transparent');
       path.setAttribute('stroke-width', settings.strokeWidth + '');
       path.setAttribute('stroke', settings.strokeColor!);
       path.setAttribute('marker-end', `url(#arrow-head)`);
@@ -72,6 +72,7 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
 
     childrenMatches.forEach(([ refGroupView, refSpanView ]) => {
       const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('fill', 'transparent');
       path.setAttribute('stroke-width', settings.strokeWidth + '');
       path.setAttribute('stroke', settings.strokeColor!);
       path.setAttribute('marker-end', `url(#arrow-head)`);
@@ -134,6 +135,11 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       const angle = Math.atan2(toY - fromY, toX - fromX) / Math.PI * 180;
       let isVertical = false;
 
+      let fromControlX = 0;
+      let fromControlY = 0;
+      let toControlX = 0;
+      let toControlY = 0;
+
       if (angle > 45 && angle < 135) {
         isVertical = true;
       } else if (angle < -45 && angle > -135) {
@@ -144,14 +150,27 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       if (isVertical) {
         if (fromY < toY) {
           fromY += halfBarHeight;
-          toY -= halfBarHeight;
         } else if (fromY > toY) {
           fromY -= halfBarHeight;
-          toY += halfBarHeight;
         }
+
+        fromControlX = fromX - 10;
+        fromControlY = fromY + 5;
+        toControlX = toX - 10;
+        toControlY = toY;
+
+        // If y distance is higher than 1 row, increase the control point offset
+        if (Math.abs(toControlY - fromControlY) > 25) {
+          toControlX = toX - 50;
+        }
+      } else {
+        fromControlX = fromX + 50;
+        fromControlY = fromY;
+        toControlX = toX - 50;
+        toControlY = toY;
       }
 
-      path.setAttribute('d', `M ${fromX} ${fromY} L ${toX} ${toY}`);
+      path.setAttribute('d', `M ${fromX} ${fromY} C ${fromControlX} ${fromControlY}, ${toControlX}  ${toControlY}, ${toX} ${toY}`);
 
     }); // forEach end
 
