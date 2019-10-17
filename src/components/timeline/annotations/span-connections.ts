@@ -19,14 +19,14 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
     groupView: GroupView,
     refType: 'childOf' | 'followsFrom',
     type: 'parent' | 'child',
-    line: SVGLineElement
+    path: SVGPathElement
   }[] = [];
   private children: {
     spanView: SpanView,
     groupView: GroupView,
     refType: 'childOf' | 'followsFrom',
     type: 'parent' | 'child',
-    line: SVGLineElement
+    path: SVGPathElement
   }[] = [];
   private groupView?: GroupView;
 
@@ -37,9 +37,9 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       barHeight: 20
     });
 
-    this.parents.forEach(({ line }) => line.parentElement && line.parentElement.removeChild(line));
+    this.parents.forEach(({ path }) => path.parentElement && path.parentElement.removeChild(path));
     this.parents = [];
-    this.children.forEach(({ line }) => line.parentElement && line.parentElement.removeChild(line));
+    this.children.forEach(({ path }) => path.parentElement && path.parentElement.removeChild(path));
     this.children = [];
 
     const [groupView, spanView] = this.deps.findSpanView(this.settings.spanView.span.id);
@@ -50,17 +50,18 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       const [refGroupView, refSpanView] = this.deps.findSpanView(ref.spanId);
       if (!refGroupView || !refSpanView) return;
 
-      const line = document.createElementNS(SVG_NS, 'line');
-      line.setAttribute('stroke-width', settings.strokeWidth + '');
-      line.setAttribute('stroke', settings.strokeColor!);
-      line.setAttribute('marker-end', `url(#arrow-head)`);
+      const path = document.createElementNS(SVG_NS, 'path');
+      // TODO
+      path.setAttribute('stroke-width', settings.strokeWidth + '');
+      path.setAttribute('stroke', settings.strokeColor!);
+      path.setAttribute('marker-end', `url(#arrow-head)`);
 
       this.parents.push({
         spanView: refSpanView,
         groupView: refGroupView,
         refType: ref.type,
         type: 'parent',
-        line
+        path
       });
     });
 
@@ -70,10 +71,10 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
     });
 
     childrenMatches.forEach(([ refGroupView, refSpanView ]) => {
-      const line = document.createElementNS(SVG_NS, 'line');
-      line.setAttribute('stroke-width', settings.strokeWidth + '');
-      line.setAttribute('stroke', settings.strokeColor!);
-      line.setAttribute('marker-end', `url(#arrow-head)`);
+      const path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('stroke-width', settings.strokeWidth + '');
+      path.setAttribute('stroke', settings.strokeColor!);
+      path.setAttribute('marker-end', `url(#arrow-head)`);
       const ref = _.find(refSpanView.span.references, r => r.spanId === spanView.span.id);
 
       this.children.push({
@@ -81,13 +82,13 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
         groupView: refGroupView,
         refType: ref!.type,
         type: 'child',
-        line
+        path
       });
     });
 
-    const parentLines = this.parents.map(p => p.line);
-    const childrenLines = this.children.map(p => p.line);
-    this.overlayElements = [ ...parentLines, ...childrenLines ];
+    const parentPaths = this.parents.map(p => p.path);
+    const childrenPaths = this.children.map(p => p.path);
+    this.overlayElements = [ ...parentPaths, ...childrenPaths ];
   }
 
   update() {
@@ -103,7 +104,7 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       const refSpanViewProps = ref.spanView.getViewPropertiesCache();
       const refGroupView = ref.groupView;
       const refGroupViewProps = ref.groupView.getViewPropertiesCache();
-      const line = ref.line;
+      const path = ref.path;
 
       let fromX = 0;
       let fromY = 0;
@@ -150,10 +151,7 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
         }
       }
 
-      line.setAttribute('x1', fromX + '');
-      line.setAttribute('y1', fromY + '');
-      line.setAttribute('x2', toX + '');
-      line.setAttribute('y2', toY + '');
+      path.setAttribute('d', `M ${fromX} ${fromY} L ${toX} ${toY}`);
 
     }); // forEach end
 
