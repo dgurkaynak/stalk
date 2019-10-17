@@ -320,12 +320,6 @@ export default class TimelineView extends EventEmitterExtra {
           const spanId = element.getAttribute('data-span-id');
           const logId = element.getAttribute('data-log-id');
           if (!spanId || !logId) return;
-          const spanView = this.annotation.findSpanView(spanId)[1];
-          if (!spanView) return;
-          this.selectedSpanView && this.selectedSpanView.updateColorStyle('normal');
-          this.selectedSpanView = spanView;
-          spanView.updateColorStyle('selected');
-          this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
           this.emit(TimelineViewEvent.LOG_CLICKED, { spanId, logId });
           return;
         }
@@ -335,9 +329,14 @@ export default class TimelineView extends EventEmitterExtra {
           if (!spanId) return;
           const spanView = this.annotation.findSpanView(spanId)[1];
           if (!spanView) return;
+
+          // Unselect previous one
           this.selectedSpanView && this.selectedSpanView.updateColorStyle('normal');
-          this.selectedSpanView = spanView;
+
+          // Select this one
           spanView.updateColorStyle('selected');
+          this.selectedSpanView = spanView;
+
           this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
           return;
         }
