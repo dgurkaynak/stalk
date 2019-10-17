@@ -97,12 +97,24 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
 
   onStageTraceAdded(trace: Trace) {
-    this.setState({ stageTraces: this.stage.getAll() });
+    this.setState({
+      stageTraces: this.stage.getAll(),
+      sidebarSelectedTab: 'general',
+      selectedSpanView: null,
+      expandedLogIds: [] as string[],
+      highlightedLogId: '',
+    });
     this.timelineView.addTrace(trace);
   }
 
   onStageTraceRemoved(trace: Trace) {
-    this.setState({ stageTraces: this.stage.getAll() });
+    this.setState({
+      stageTraces: this.stage.getAll(),
+      sidebarSelectedTab: 'general',
+      selectedSpanView: null,
+      expandedLogIds: [] as string[],
+      highlightedLogId: '',
+    });
     this.timelineView.removeTrace(trace);
   }
 

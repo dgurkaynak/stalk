@@ -406,6 +406,8 @@ export default class TimelineView extends EventEmitterExtra {
     this.grouping = new GroupingClass();
     this.traces.forEach(t => t.spans.forEach(s => this.grouping.addSpan(s, t)));
     this.layout();
+    this.annotation.logHighlightAnnotation.unmount();
+    this.annotation.spanConnectionsAnnotation.unmount();
   }
 
   addTrace(trace: Trace) {
@@ -414,6 +416,8 @@ export default class TimelineView extends EventEmitterExtra {
     this.traces.push(trace);
     trace.spans.forEach(s => this.grouping.addSpan(s, trace));
     this.layout();
+    this.annotation.logHighlightAnnotation.unmount();
+    this.annotation.spanConnectionsAnnotation.unmount();
     return true;
   }
 
@@ -422,6 +426,8 @@ export default class TimelineView extends EventEmitterExtra {
     if (removeds.length === 0) return false;
     trace.spans.forEach(s => this.grouping.removeSpan(s));
     this.layout();
+    this.annotation.logHighlightAnnotation.unmount();
+    this.annotation.spanConnectionsAnnotation.unmount();
     return true;
   }
 
