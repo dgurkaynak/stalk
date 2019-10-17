@@ -1,8 +1,13 @@
 import * as _ from 'lodash';
 import { Span, SpanLog } from '../../model/span';
 import ViewSettings from './view-settings';
-// import invert from 'invert-color';
 import * as shortid from 'shortid';
+// import { RandomColorAssigner } from '../color/assigners/randomcolor';
+import { MPN65ColorAssigner } from '../color/assigners/mpn65';
+import { getSpanColors } from '../color/helper';
+
+// const randomColorAssigner = new RandomColorAssigner();
+const randomColorAssigner = new MPN65ColorAssigner();
 
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -38,6 +43,9 @@ export default class SpanView {
     width: 0,
     x: 0,
     y: 0,
+    barColor: '',
+    labelColor: '',
+    borderColor: ''
   };
 
   constructor(options: {
@@ -59,7 +67,7 @@ export default class SpanView {
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
     this.labelText.setAttribute('font-size', this.viewSettings.spanLabelFontSize + '');
-    this.labelText.setAttribute('font-weight', '600');
+    // this.labelText.setAttribute('font-weight', '600');
 
     this.clipPathRect.setAttribute('rx', this.viewSettings.spanBarRadius + '');
     this.clipPathRect.setAttribute('ry', this.viewSettings.spanBarRadius + '');
@@ -84,6 +92,12 @@ export default class SpanView {
 
   reuse(span: Span) {
     this.span = span;
+
+    this.viewPropertiesCache.barColor = randomColorAssigner.colorFor(span.operationName) as string;
+    const { textColor, darkColor } = getSpanColors(this.viewPropertiesCache.barColor);
+    this.viewPropertiesCache.labelColor = textColor;
+    this.viewPropertiesCache.borderColor = darkColor;
+
     this.updateColorStyle('normal');
     this.updateLabelText();
     this.hideLabel();
@@ -92,6 +106,7 @@ export default class SpanView {
     this.container.setAttribute('data-span-id', span.id);
     this.clipPath.id = `clip-path-span-${span.id}`;
     this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
+    this.barRect.removeAttribute('filter');
 
     this.hideLogs();
   }
@@ -105,26 +120,26 @@ export default class SpanView {
   }
 
   updateColorStyle(style: 'normal' | 'hover' | 'selected') {
-    let barColor = '#b3b3b3';
-    let labelTextColor = '#fff';
+    let barColor = this.viewPropertiesCache.barColor;
+    let labelTextColor = this.viewPropertiesCache.labelColor;
     let strokeWidth = 0;
     let strokeColor = 'transparent';
+    let filter = '';
 
     if (style === 'hover') {
       strokeWidth = 2;
-      strokeColor = '#1890ff';
-      barColor = '#fff';
-      labelTextColor = '#000';
+      strokeColor = this.viewPropertiesCache.borderColor;
+      filter = '';
     } else if (style === 'selected') {
-      strokeWidth = 0;
-      strokeColor = 'transparent';
-      barColor = '#1890ff';
-      labelTextColor = '#fff';
+      strokeWidth = 2;
+      strokeColor = this.viewPropertiesCache.borderColor;
+      filter = 'url(#span-shadow)';
     }
 
     this.barRect.setAttribute('fill', barColor);
     this.barRect.setAttribute('stroke-width', strokeWidth + '');
     this.barRect.setAttribute('stroke', strokeColor);
+    filter ? this.barRect.setAttribute('filter', filter) : this.barRect.removeAttribute('filter');
     this.labelText.setAttribute('fill', labelTextColor);
   }
 

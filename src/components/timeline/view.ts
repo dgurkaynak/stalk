@@ -75,6 +75,8 @@ export default class TimelineView extends EventEmitterExtra {
     this.svg.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
     this.svg.classList.add('timeline-svg');
 
+    this.svg.appendChild(this.defs);
+
     this.cursorLine.setAttribute('x1', '0');
     this.cursorLine.setAttribute('x2', '0');
     this.cursorLine.setAttribute('y1', '0');
@@ -82,6 +84,19 @@ export default class TimelineView extends EventEmitterExtra {
     this.cursorLine.setAttribute('stroke-width', '1');
     this.cursorLine.style.display = 'none';
     this.svg.appendChild(this.cursorLine);
+
+    const spanShadowFilter = document.createElementNS(SVG_NS, 'filter');
+    spanShadowFilter.id = 'span-shadow';
+    spanShadowFilter.setAttribute('x', '-50%');
+    spanShadowFilter.setAttribute('y', '-50%');
+    spanShadowFilter.setAttribute('width', '200%');
+    spanShadowFilter.setAttribute('height', '200%');
+    spanShadowFilter.innerHTML = (
+      `<feOffset result="offOut" in="SourceAlpha" dx="0" dy="0"></feOffset>
+      <feGaussianBlur result="blurOut" in="offOut" stdDeviation="3"></feGaussianBlur>
+      <feBlend in="SourceGraphic" in2="blurOut" mode="normal"></feBlend>`
+    );
+    this.defs.appendChild(spanShadowFilter);
 
     // Set-up grouping
     const GroupingClass = this.groupingManager.getGroupingClass(this.viewSettings.groupingKey) as any;
@@ -142,8 +157,6 @@ export default class TimelineView extends EventEmitterExtra {
     this.viewportClipPathRect.setAttribute('height', `${height}`);
     this.viewportClipPath.appendChild(this.viewportClipPathRect);
     this.defs.appendChild(this.viewportClipPath);
-
-    this.svg.appendChild(this.defs);
 
     this.viewportContainer.setAttribute('clip-path', 'url(#viewport-clip-path)');
     this.viewportContainer.appendChild(this.groupNamePanel);
