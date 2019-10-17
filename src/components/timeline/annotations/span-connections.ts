@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import BaseAnnotation from './base';
 import SpanView from '../span-view';
+import GroupView from '../group-view';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -13,7 +14,21 @@ interface SpanConnectionsAnnotationSettings {
 
 export default class SpanConnectionsAnnotation extends BaseAnnotation {
   private settings?: SpanConnectionsAnnotationSettings;
-  private lines: SVGLineElement[] = [];
+  private parents: {
+    spanView: SpanView,
+    groupView: GroupView,
+    refType: 'childOf' | 'followsFrom',
+    type: 'parent' | 'child',
+    line: SVGLineElement
+  }[] = [];
+  private children: {
+    spanView: SpanView,
+    groupView: GroupView,
+    refType: 'childOf' | 'followsFrom',
+    type: 'parent' | 'child',
+    line: SVGLineElement
+  }[] = [];
+  private groupView?: GroupView;
 
   prepare(settings: SpanConnectionsAnnotationSettings) {
     this.settings = _.defaults(settings, {
@@ -22,42 +37,105 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       barHeight: 20
     });
 
-    this.lines.forEach(l => l.parentElement && l.parentElement.removeChild(l));
-    this.lines = [];
+    this.parents.forEach(({ line }) => line.parentElement && line.parentElement.removeChild(line));
+    this.parents = [];
+    this.children.forEach(({ line }) => line.parentElement && line.parentElement.removeChild(line));
+    this.children = [];
 
     const [groupView, spanView] = this.deps.findSpanView(this.settings.spanView.span.id);
     if (!groupView || !spanView) return;
+    this.groupView = groupView;
 
     this.settings.spanView.span.references.forEach((ref) => {
+      const [refGroupView, refSpanView] = this.deps.findSpanView(ref.spanId);
+      if (!refGroupView || !refSpanView) return;
+
       const line = document.createElementNS(SVG_NS, 'line');
       line.setAttribute('stroke-width', settings.strokeWidth + '');
       line.setAttribute('stroke', settings.strokeColor!);
       line.setAttribute('marker-end', `url(#arrow-head)`);
-      this.lines.push(line);
+
+      this.parents.push({
+        spanView: refSpanView,
+        groupView: refGroupView,
+        refType: ref.type,
+        type: 'parent',
+        line
+      });
     });
 
-    this.overlayElements = this.lines;
+    const childrenMatches = this.deps.findSpanViews((v) => {
+      const selfReferences = _.find(v.span.references, r => r.spanId === spanView.span.id);
+      return !!selfReferences;
+    });
+
+    childrenMatches.forEach(([ refGroupView, refSpanView ]) => {
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('stroke-width', settings.strokeWidth + '');
+      line.setAttribute('stroke', settings.strokeColor!);
+      line.setAttribute('marker-end', `url(#arrow-head)`);
+      const ref = _.find(refSpanView.span.references, r => r.spanId === spanView.span.id);
+
+      this.children.push({
+        spanView: refSpanView,
+        groupView: refGroupView,
+        refType: ref!.type,
+        type: 'child',
+        line
+      });
+    });
+
+    const parentLines = this.parents.map(p => p.line);
+    const childrenLines = this.children.map(p => p.line);
+    this.overlayElements = [ ...parentLines, ...childrenLines ];
   }
 
   update() {
     if (!this.settings) return;
+    if (!this.groupView) return;
 
-    const [groupView, spanView] = this.deps.findSpanView(this.settings.spanView.span.id);
-    if (!groupView || !spanView) return;
-    const spanViewProps = spanView.getViewPropertiesCache();
-    const groupViewProps = groupView.getViewPropertiesCache();
+    const spanViewProps = this.settings.spanView.getViewPropertiesCache();
+    const groupViewProps = this.groupView.getViewPropertiesCache();
+    const halfBarHeight = this.settings!.barHeight! / 2;
 
-    this.settings.spanView.span.references.forEach((ref, i) => {
-      const [referencedGroupView, referencedSpanView] = this.deps.findSpanView(ref.spanId);
-      if (!referencedGroupView || !referencedSpanView) return;
-      const refSpanViewProps = referencedSpanView.getViewPropertiesCache();
-      const refGroupViewProps = referencedGroupView.getViewPropertiesCache();
+    [ ...this.parents, ...this.children ].forEach((ref) => {
+      const refSpanView = ref.spanView;
+      const refSpanViewProps = ref.spanView.getViewPropertiesCache();
+      const refGroupView = ref.groupView;
+      const refGroupViewProps = ref.groupView.getViewPropertiesCache();
+      const line = ref.line;
 
-      const line = this.lines[i];
-      line.setAttribute('x1', (spanViewProps.x) + '');
-      line.setAttribute('y1', (spanViewProps.y + groupViewProps.y + (this.settings!.barHeight! / 2)) + '');
-      line.setAttribute('x2', (refSpanViewProps.x) + '');
-      line.setAttribute('y2', (refSpanViewProps.y + refGroupViewProps.y + (this.settings!.barHeight! / 2)) + '');
-    });
+      let fromX = 0;
+      let fromY = 0;
+      let toX = 0;
+      let toY = 0;
+
+      switch(ref.type) {
+        case 'parent': {
+            fromX = Math.min(refSpanViewProps.x + refSpanViewProps.width, spanViewProps.x);
+            fromY = refGroupViewProps.y + refSpanViewProps.y + halfBarHeight;
+            toX = spanViewProps.x;
+            toY = groupViewProps.y + spanViewProps.y + halfBarHeight;
+          break;
+        }
+
+        case 'child': {
+          fromX = Math.min(spanViewProps.x + spanViewProps.width, refSpanViewProps.x);
+          fromY = groupViewProps.y + spanViewProps.y + halfBarHeight;
+          toX = refSpanViewProps.x;
+          toY = refGroupViewProps.y + refSpanViewProps.y + halfBarHeight;
+          break;
+        }
+
+        default: throw new Error(`Could not draw connection, reference type "${ref.type} not supported"`);
+      }
+
+      line.setAttribute('x1', fromX + '');
+      line.setAttribute('y1', fromY + '');
+      line.setAttribute('x2', toX + '');
+      line.setAttribute('y2', toY + '');
+
+    }); // forEach end
+
   }
 }
