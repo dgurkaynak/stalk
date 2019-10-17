@@ -2,8 +2,8 @@ import * as _ from 'lodash';
 import EventEmitterExtra from 'event-emitter-extra';
 import { BaseGrouping } from './base';
 import TraceGrouping from './trace';
-import ProcessGrouping from './trace';
-import ServiceNameGrouping from './trace';
+import ProcessGrouping from './process';
+import ServiceNameGrouping from './service-name';
 import { Span } from '../span';
 import { Trace } from '../trace';
 

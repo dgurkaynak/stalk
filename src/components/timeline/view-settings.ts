@@ -1,12 +1,18 @@
 import Axis, { AxisEvent } from './axis';
 import EventEmitterExtra from 'event-emitter-extra';
+import ProcessGrouping from '../../model/grouping/process';
 
+
+export enum TimelineViewSettingsEvent {
+  GROUPING_KEY_CHANGED = 'tvs_grouping_key_changed'
+}
 
 export default class TimelineViewSettings extends EventEmitterExtra {
   private axis = new Axis([0, 0], [0, 0]);
   width = NaN; // In pixels
   height = NaN; // In pixels
-  grouping = 'process';
+  private _groupingKey = ProcessGrouping.KEY; // Do not forget to change default value of timeline sidebar dropdown
+  get groupingKey() { return this._groupingKey; };
   readonly scrollToZoomFactor = 0.01;
 
   readonly groupSeperatorLineColor = '#cccccc';
@@ -42,4 +48,10 @@ export default class TimelineViewSettings extends EventEmitterExtra {
     axis.on(AxisEvent.ZOOMED, () => this.emit(AxisEvent.ZOOMED));
     axis.on(AxisEvent.UPDATED, () => this.emit(AxisEvent.UPDATED));
   }
+
+  setGroupingKey(groupingKey: string) {
+    if (groupingKey === this._groupingKey) return false;
+    this._groupingKey = groupingKey;
+    this.emit(TimelineViewSettingsEvent.GROUPING_KEY_CHANGED);
+  };
 }

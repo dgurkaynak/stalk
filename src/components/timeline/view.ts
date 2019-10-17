@@ -1,14 +1,15 @@
 import * as _ from 'lodash';
-import { Stage } from '../../model/stage';
 import GroupView, { GroupViewEvent } from './group-view';
 import Axis from './axis';
-import ViewSettings from './view-settings';
+import ViewSettings, { TimelineViewSettingsEvent } from './view-settings';
 import EventEmitterExtra from 'event-emitter-extra';
 import AnnotationManager from './annotations/manager';
 import LogHighlightAnnotation from './annotations/log-highlight';
 import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
 import SpanView from './span-view';
 import { Trace } from '../../model/trace';
+import { BaseGrouping } from '../../model/grouping/base';
+import GroupingManager from '../../model/grouping/manager';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -37,8 +38,10 @@ export default class TimelineView extends EventEmitterExtra {
   private mouseHandler = new MouseHandler(this.svg);
   private hoveredElements: { type: string, element: Element }[] = [];
 
-  private stage?: Stage;
-  private viewSettings = new ViewSettings();
+  private traces: Trace[] = [];
+  readonly viewSettings = new ViewSettings();
+  private groupingManager = GroupingManager.getSingleton();
+  private grouping: BaseGrouping;
   private groupViews: GroupView[] = [];
   private contentHeight = 0; // in pixels
   private sidebarWidth = 0;
@@ -58,6 +61,7 @@ export default class TimelineView extends EventEmitterExtra {
     onMousePanMove: this.onMousePanMove.bind(this),
     onClick: this.onClick.bind(this),
     onDoubleClick: this.onDoubleClick.bind(this),
+    onGroupingKeyChanged: this.onGroupingKeyChanged.bind(this),
   };
 
 
@@ -77,6 +81,11 @@ export default class TimelineView extends EventEmitterExtra {
     this.cursorLine.setAttribute('stroke-width', '1');
     this.cursorLine.style.display = 'none';
     this.svg.appendChild(this.cursorLine);
+
+    // Set-up grouping
+    const GroupingClass = this.groupingManager.getGroupingClass(this.viewSettings.groupingKey) as any;
+    if (!GroupingClass) throw new Error(`Grouping "${this.viewSettings.groupingKey}" not found`);
+    this.grouping = new GroupingClass();
   }
 
 
@@ -151,6 +160,8 @@ export default class TimelineView extends EventEmitterExtra {
     this.mouseHandler.on(MouseHandlerEvent.WHEEL, this.binded.onWheel);
     this.mouseHandler.on(MouseHandlerEvent.CLICK, this.binded.onClick);
     this.mouseHandler.on(MouseHandlerEvent.DOUBLE_CLICK, this.binded.onDoubleClick);
+
+    this.viewSettings.on(TimelineViewSettingsEvent.GROUPING_KEY_CHANGED, this.binded.onGroupingKeyChanged)
   }
 
   onMouseIdleMove(e: MouseEvent) {
@@ -223,7 +234,7 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   onWheel(e: WheelEvent) {
-    if (!this.stage) return;
+    if (this.traces.length === 0) return;
 
     this.viewSettings.getAxis().zoom(
       1 - (this.viewSettings.scrollToZoomFactor * e.deltaY),
@@ -321,67 +332,89 @@ export default class TimelineView extends EventEmitterExtra {
     this.mouseHandler.dispose();
   }
 
-  addTrace(trace: Trace) {
+  onGroupingKeyChanged() {
+    const GroupingClass = this.groupingManager.getGroupingClass(this.viewSettings.groupingKey) as any;
+    if (!GroupingClass) throw new Error(`Grouping "${this.viewSettings.groupingKey}" not found`);
+    // TODO: Dispose previous grouping maybe?
+    this.grouping = new GroupingClass();
+    this.traces.forEach(t => t.spans.forEach(s => this.grouping.addSpan(s, t)));
+    this.layout();
+  }
 
+  addTrace(trace: Trace) {
+    const idMatch = _.find(this.traces, t => t.id === trace.id);
+    if (idMatch) return false;
+    this.traces.push(trace);
+    trace.spans.forEach(s => this.grouping.addSpan(s, trace));
+    this.layout();
+    return true;
   }
 
   removeTrace(trace: Trace) {
-
+    const removeds = _.remove(this.traces, t => t.id === trace.id);
+    if (removeds.length === 0) return false;
+    trace.spans.forEach(s => this.grouping.removeSpan(s));
+    this.layout();
+    return true;
   }
 
-  // updateData(stage: Stage) {
-  //   this.stage = stage;
-  //   const grouping = stage.grouping[this.settings.grouping];
+  layout() {
+    let startTimestamp = Infinity;
+    let finishTimestamp = -Infinity;
+    this.traces.forEach((trace) => {
+      startTimestamp = Math.min(startTimestamp, trace.startTime);
+      finishTimestamp = Math.max(finishTimestamp, trace.finishTime);
+    });
 
-  //   const { startTimestamp, finishTimestamp } = stage.group;
-  //   this.settings.setAxis(new Axis(
-  //     [startTimestamp, finishTimestamp],
-  //     [
-  //       this.settings.spanBarViewportMargin,
-  //       this.settings.width - this.settings.spanBarViewportMargin - this.sidebarWidth
-  //     ]
-  //   ));
+    this.viewSettings.setAxis(new Axis(
+      [startTimestamp, finishTimestamp],
+      [
+        this.viewSettings.spanBarViewportMargin,
+        this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
+      ]
+    ));
 
-  //   this.groupViews.forEach(v => v.dispose()); // This will unbind all handlers, no need to manually remove listener
-  //   this.groupViews = [];
+    this.groupViews.forEach(v => v.dispose()); // This will unmount self, unbind all handlers,
+                                               // no need to manually remove listener here
+    this.groupViews = [];
 
-  //   const groups = grouping.getAllGroups().sort((a, b) => a.startTimestamp - b.startTimestamp);
-  //   groups.forEach((group) => {
-  //     const groupView = new GroupView({ group, viewSettings: this.settings });
-  //     groupView.init({
-  //       groupNamePanel: this.groupNamePanel,
-  //       timelinePanel: this.timelinePanel,
-  //       svgDefs: this.defs
-  //     });
-  //     groupView.layout();
+    const groups = this.grouping.getAllGroups().sort((a, b) => a.startTimestamp - b.startTimestamp);
+    groups.forEach((group) => {
+      const groupView = new GroupView({ group, viewSettings: this.viewSettings });
+      groupView.init({
+        groupNamePanel: this.groupNamePanel,
+        timelinePanel: this.timelinePanel,
+        svgDefs: this.defs
+      });
+      groupView.layout();
 
-  //     // Bind layout event after initial layout
-  //     groupView.on(GroupViewEvent.LAYOUT, this.onGroupLayout.bind(this));
+      // Bind layout event after initial layout
+      groupView.on(GroupViewEvent.LAYOUT, this.onGroupLayout.bind(this));
 
-  //     this.groupViews.push(groupView);
-  //   });
+      this.groupViews.push(groupView);
+    });
 
-  //   this.updateGroupPositions();
+    this.updateGroupVerticalPositions();
 
-  //   // Annotations
-  //   this.annotation.updateData(this.groupViews);
+    // Annotations
+    this.annotation.updateData(this.groupViews);
 
-  //   // Reset vertical panning
-  //   this.panelTranslateY = 0;
-  //   this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-  //   this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-  //   this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-  //   this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    // Reset vertical panning
+    this.panelTranslateY = 0;
+    this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
 
-  //   // Show & hide cursor line
-  //   this.cursorLine.style.display = groups.length > 0 ? '' : 'none';
-  // }
+    // Show & hide cursor line
+    this.cursorLine.style.display = groups.length > 0 ? '' : 'none';
+  }
 
   onGroupLayout() {
-    this.updateGroupPositions();
+    this.updateGroupVerticalPositions();
   }
 
-  updateGroupPositions() {
+  updateGroupVerticalPositions() {
     const { groupPaddingTop, groupPaddingBottom, rowHeight } = this.viewSettings;
     let y = 0;
 

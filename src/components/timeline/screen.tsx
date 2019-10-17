@@ -9,9 +9,13 @@ import scroll from 'scroll';
 import LogHighlightAnnotation from './annotations/log-highlight';
 import SpanView from './span-view';
 import { Span } from '../../model/span';
+import ProcessGrouping from '../../model/grouping/process';
+import ServiceNameGrouping from '../../model/grouping/service-name';
+import TraceGrouping from '../../model/grouping/trace';
 
 
 import './timeline.css';
+import { Trace } from '../../model/trace';
 const { Sider, Content } = Layout;
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -32,7 +36,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   state = {
     stageTraces: this.stage.getAll(),
-    groupingMode: 'trace',
+    groupingMode: ProcessGrouping.KEY, // Do not forget to change default value of TimelineViewSettings
     isSidebarVisible: false,
     sidebarSelectedTab: 'general',
     selectedSpanView: null,
@@ -92,18 +96,19 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   }
 
 
-  onStageTraceAdded() {
+  onStageTraceAdded(trace: Trace) {
     this.setState({ stageTraces: this.stage.getAll() });
-    // this.timelineView.updateData(this.stage);
+    this.timelineView.addTrace(trace);
   }
 
-  onStageTraceRemoved() {
+  onStageTraceRemoved(trace: Trace) {
     this.setState({ stageTraces: this.stage.getAll() });
-    // this.timelineView.updateData(this.stage);
+    this.timelineView.removeTrace(trace);
   }
 
 
   onGroupingModeChange(value: string) {
+    this.timelineView.viewSettings.setGroupingKey(value);
     this.setState({ groupingMode: value });
   }
 
@@ -299,9 +304,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
                         </div>
                       )}
                     >
-                      <Option key="trace">Trace</Option>
-                      <Option key="process">Process</Option>
-                      <Option key="service-name">Service Name</Option>
+                      <Option key={TraceGrouping.KEY}>Trace</Option>
+                      <Option key={ProcessGrouping.KEY}>Process</Option>
+                      <Option key={ServiceNameGrouping.KEY}>Service Name</Option>
                     </Select>
                   </div>
                   <div className="sidebar-row">
