@@ -38,7 +38,7 @@ export default class TimelineView extends EventEmitterExtra {
 
   private stage?: Stage;
   private viewSettings = new ViewSettings();
-  private groupViews: { [key: string]: GroupView} = {};
+  private groupViews: GroupView[] = [];
   private contentHeight = 0; // in pixels
   private sidebarWidth = 0;
 
@@ -117,7 +117,7 @@ export default class TimelineView extends EventEmitterExtra {
       this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
     ]);
 
-    _.forEach(this.groupViews, v => v.updateSeperatorLineWidths());
+    this.groupViews.forEach(v => v.updateSeperatorLineWidths());
   }
 
 
@@ -253,6 +253,7 @@ export default class TimelineView extends EventEmitterExtra {
   onClick(e: MouseEvent) {
     if (!e) return;
     const matches = this.getViewsFromMouseEvent(e);
+
     matches.forEach(({ type, element }) => {
       switch (type) {
 
@@ -261,6 +262,7 @@ export default class TimelineView extends EventEmitterExtra {
           const logId = element.getAttribute('data-log-id');
           if (!spanId || !logId) return;
           const spanView = this.annotation.findSpanView(spanId)[1];
+          if (!spanView) return;
           this.emit(TimelineViewEvent.SPAN_CLICKED, spanView);
           this.emit(TimelineViewEvent.LOG_CLICKED, { spanId, logId });
           return;
@@ -270,6 +272,7 @@ export default class TimelineView extends EventEmitterExtra {
           const spanId = element.getAttribute('data-span-id');
           if (!spanId) return;
           const spanView = this.annotation.findSpanView(spanId)[1];
+          if (!spanView) return;
           spanView && this.emit(TimelineViewEvent.SPAN_CLICKED, spanView);
           return;
         }
@@ -294,7 +297,7 @@ export default class TimelineView extends EventEmitterExtra {
         case GroupView.ViewType.LABEL_TEXT: {
           const groupId = element.getAttribute('data-group-id');
           if (!groupId) return;
-          const groupView = this.groupViews[groupId];
+          const groupView = _.find(this.groupViews, v => v.group.id === groupId);
           if (!groupView) return;
           groupView && groupView.toggleView();
           return;
@@ -330,10 +333,10 @@ export default class TimelineView extends EventEmitterExtra {
       ]
     ));
 
-    _.forEach(this.groupViews, v => v.dispose()); // This will unbind all handlers, no need to manually remove listener
-    this.groupViews = {};
+    this.groupViews.forEach(v => v.dispose()); // This will unbind all handlers, no need to manually remove listener
+    this.groupViews = [];
 
-    const groups = grouping.getAllGroups();
+    const groups = grouping.getAllGroups().sort((a, b) => a.startTimestamp - b.startTimestamp);
     groups.forEach((group) => {
       const groupView = new GroupView({ group, viewSettings: this.viewSettings });
       groupView.init({
@@ -346,13 +349,13 @@ export default class TimelineView extends EventEmitterExtra {
       // Bind layout event after initial layout
       groupView.on(GroupViewEvent.LAYOUT, this.onGroupLayout.bind(this));
 
-      this.groupViews[group.id] = groupView;
+      this.groupViews.push(groupView);
     });
 
     this.updateGroupPositions();
 
     // Annotations
-    this.annotation.updateData(Object.values(this.groupViews));
+    this.annotation.updateData(this.groupViews);
 
     // Reset vertical panning
     this.panelTranslateY = 0;
@@ -373,7 +376,7 @@ export default class TimelineView extends EventEmitterExtra {
     const { groupPaddingTop, groupPaddingBottom, rowHeight } = this.viewSettings;
     let y = 0;
 
-    _.forEach(this.groupViews, (groupView, i) => {
+    this.groupViews.forEach((groupView, i) => {
       groupView.updatePosition({ y });
       if (groupView.options.isCollapsed) {
         y += groupPaddingTop;

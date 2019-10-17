@@ -28,7 +28,7 @@ enum ViewType {
 export default class GroupView extends EventEmitterExtra {
   static ViewType = ViewType;
 
-  private group: Group;
+  readonly group: Group;
   private viewSettings: ViewSettings;
   private spanViews: { [key: string]: SpanView} = {};
   get heightInRows() { return this.rowsAndSpanIntervals.length; } // How many rows containing
