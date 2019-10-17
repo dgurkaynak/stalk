@@ -26,13 +26,14 @@ export default class TimelineViewSettings extends EventEmitterExtra {
 
   readonly spanBarHeight = 20;
   readonly spanBarSpacing = 3;
-  readonly spanBarRadius = 5;
+  readonly spanBarRadius = 10;
   readonly spanBarMinWidth = 2;
   readonly spanBarViewportMargin = 5;
   get rowHeight() { return (2 * this.spanBarSpacing) + this.spanBarHeight; };
 
   readonly spanLabelFontSize = 10;
-  readonly spanLabelOffsetLeft = 5;
+  readonly spanLabelOffsetLeft = 8;
+  readonly spanLabelSnappedOffsetLeft = 5;
   readonly spanLabelOffsetTop = 1;
   spanLabeling = 'operation-name'; // TODO
   readonly spanLogCircleRadius = 3;

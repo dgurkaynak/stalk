@@ -76,7 +76,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       width: innerWidth - 80,
       height: innerHeight - 80
     });
-    this.timelineView.on(TimelineViewEvent.SPAN_CLICKED, this.binded.handleSpanSelect);
+    this.timelineView.on(TimelineViewEvent.SPAN_SELECTED, this.binded.handleSpanSelect);
     this.timelineView.on(TimelineViewEvent.LOG_CLICKED, this.binded.handleLogClick);
     this.timelineView.on(TimelineViewEvent.HOVER_CHANGED, this.binded.handleHoverChange);
   }
@@ -92,7 +92,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.removeListener(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
     window.removeEventListener('resize', this.binded.onWindowResize, false);
-    this.timelineView.removeListener(TimelineViewEvent.SPAN_CLICKED, [this.binded.handleSpanSelect] as any);
+    this.timelineView.removeListener(TimelineViewEvent.SPAN_SELECTED, [this.binded.handleSpanSelect] as any);
   }
 
 

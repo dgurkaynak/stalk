@@ -1,8 +1,7 @@
 import * as _ from 'lodash';
 import { Span, SpanLog } from '../../model/span';
 import ViewSettings from './view-settings';
-import ColorManagers from '../color/managers';
-import invert from 'invert-color';
+// import invert from 'invert-color';
 import * as shortid from 'shortid';
 
 
@@ -60,6 +59,7 @@ export default class SpanView {
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
     this.labelText.setAttribute('font-size', this.viewSettings.spanLabelFontSize + '');
+    this.labelText.setAttribute('font-weight', '600');
 
     this.clipPathRect.setAttribute('rx', this.viewSettings.spanBarRadius + '');
     this.clipPathRect.setAttribute('ry', this.viewSettings.spanBarRadius + '');
@@ -84,7 +84,7 @@ export default class SpanView {
 
   reuse(span: Span) {
     this.span = span;
-    this.updateColoring();
+    this.updateColorStyle('normal');
     this.updateLabelText();
     this.hideLabel();
 
@@ -104,10 +104,46 @@ export default class SpanView {
     this.labelText.textContent = this.span.operationName;
   }
 
-  updateColoring() {
-    const barColor = ColorManagers.operationName.colorFor(this.span.operationName) as string;
+  updateColorStyle(style: 'normal' | 'hover' | 'selected') {
+    let barColor = '#b3b3b3';
+    let labelTextColor = '#fff';
+    let strokeWidth = 0;
+    let strokeColor = 'transparent';
+
+    if (style === 'hover') {
+      strokeWidth = 2;
+      strokeColor = '#1890ff';
+      barColor = '#fff';
+      labelTextColor = '#000';
+    } else if (style === 'selected') {
+      strokeWidth = 0;
+      strokeColor = 'transparent';
+      barColor = '#1890ff';
+      labelTextColor = '#fff';
+    }
+
     this.barRect.setAttribute('fill', barColor);
-    this.labelText.setAttribute('fill', invert(barColor, true));
+    this.barRect.setAttribute('stroke-width', strokeWidth + '');
+    this.barRect.setAttribute('stroke', strokeColor);
+    this.labelText.setAttribute('fill', labelTextColor);
+  }
+
+  updateLogStyle(logId: string, style: 'normal' | 'hover') {
+    const logView = _.find(this.logViews, v => v.id === logId);
+    if (!logView) return false;
+
+    let fillColor = '#fff';
+    let strokeWidth = 1;
+    let strokeColor = '#000';
+    if (style === 'hover') {
+      fillColor = '#000';
+      strokeWidth = 2;
+      strokeColor = '#000';
+    }
+
+    logView.circle.setAttribute('fill', fillColor);
+    logView.circle.setAttribute('stroke-width', strokeWidth + '');
+    logView.circle.setAttribute('stroke', strokeColor);
   }
 
   updateLabelTextDecoration() {
@@ -131,7 +167,7 @@ export default class SpanView {
 
     // Snap the label text to left of the screen
     if (x < 0) {
-      this.labelText.setAttribute('x', (-x + this.viewSettings.spanLabelOffsetLeft) + '');
+      this.labelText.setAttribute('x', (-x + this.viewSettings.spanLabelSnappedOffsetLeft) + '');
     } else {
       this.labelText.setAttribute('x', this.viewSettings.spanLabelOffsetLeft + '');
     }

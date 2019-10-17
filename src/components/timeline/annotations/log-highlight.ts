@@ -14,6 +14,8 @@ interface LogHighlightAnnotationSettings {
   lineColor?: string,
   circleColor?: string,
   circleRadius?: string,
+  circleStrokeWidth?: number,
+  circleStrokeColor?: string,
 }
 export default class LogHighlightAnnotation extends BaseAnnotation {
   static ViewType = ViewType;
@@ -26,8 +28,10 @@ export default class LogHighlightAnnotation extends BaseAnnotation {
   prepare(settings: LogHighlightAnnotationSettings) {
     this.settings = _.defaults(settings, {
       lineColor: '#1890ff',
-      circleColor: '#1890ff',
-      circleRadius: this.deps.viewSettings.spanLogCircleRadius
+      circleColor: '#fff',
+      circleRadius: this.deps.viewSettings.spanLogCircleRadius,
+      circleStrokeWidth: 2,
+      circleStrokeColor: '#0560cc'
     });
     const logView = settings.spanView.getLogViewById(settings.logId);
     if (!logView) return false;
@@ -44,7 +48,8 @@ export default class LogHighlightAnnotation extends BaseAnnotation {
     this.circle.setAttribute('cy', '0');
     this.circle.setAttribute('r', (this.settings.circleRadius! + 1) + '');
     this.circle.setAttribute('fill', this.settings.circleColor!);
-    this.circle.setAttribute('cursor', 'pointer');
+    this.circle.setAttribute('stroke', this.settings.circleStrokeColor!);
+    this.circle.setAttribute('stroke-width', this.settings.circleStrokeWidth! + '');
     this.circle.setAttribute('data-view-type', ViewType.CIRCLE);
     this.circle.setAttribute('data-log-id', logView.id);
     this.circle.setAttribute('data-span-id', this.settings.spanView.span.id);

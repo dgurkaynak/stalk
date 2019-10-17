@@ -14,7 +14,7 @@ import GroupingManager from '../../model/grouping/manager';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export enum TimelineViewEvent {
-  SPAN_CLICKED = 't_span_selected',
+  SPAN_SELECTED = 't_span_selected',
   LOG_CLICKED = 't_log_clicked',
   HOVER_CHANGED = 't_hover_changed',
 }
@@ -45,6 +45,7 @@ export default class TimelineView extends EventEmitterExtra {
   private groupViews: GroupView[] = [];
   private contentHeight = 0; // in pixels
   private sidebarWidth = 0;
+  private selectedSpanView?: SpanView;
 
   annotation = new AnnotationManager({
     timelineView: this,
@@ -171,25 +172,6 @@ export default class TimelineView extends EventEmitterExtra {
     // TODO: Maybe debounce below?
     const matches = this.getViewsFromMouseEvent(e);
 
-    this.showOrHideLogHighlightAnnotation(null);
-
-    matches.forEach(({ type, element }) => {
-      switch (type) {
-
-        case SpanView.ViewType.LOG_CIRCLE:
-        case LogHighlightAnnotation.ViewType.CIRCLE: {
-          const spanId = element.getAttribute('data-span-id');
-          const logId = element.getAttribute('data-log-id');
-          if (!spanId || !logId) return;
-          const spanView = this.annotation.findSpanView(spanId)[1];
-          if (!spanView) return;
-          this.showOrHideLogHighlightAnnotation({ spanView: spanView, logId });
-          return;
-        }
-
-      }
-    });
-
     const previousHoveredElements = this.hoveredElements;
     this.hoveredElements = matches;
 
@@ -201,6 +183,58 @@ export default class TimelineView extends EventEmitterExtra {
       type: string,
       element: Element
     }[] = _.differenceBy(matches, previousHoveredElements, ({element}) => element);
+
+    removed.forEach(({ type, element }) => {
+      switch (type) {
+
+        case SpanView.ViewType.LOG_CIRCLE: {
+          const spanId = element.getAttribute('data-span-id');
+          const logId = element.getAttribute('data-log-id');
+          if (!spanId || !logId) return;
+          const spanView = this.annotation.findSpanView(spanId)[1];
+          if (!spanView) return;
+          spanView.updateLogStyle(logId, 'normal');
+          return;
+        }
+
+        case SpanView.ViewType.CONTAINER: {
+          const spanId = element.getAttribute('data-span-id');
+          if (!spanId) return;
+          const spanView = this.annotation.findSpanView(spanId)[1];
+          if (!spanView) return;
+          if (spanView === this.selectedSpanView) return;
+          spanView.updateColorStyle('normal');
+          return;
+        }
+
+      }
+    });
+
+    added.forEach(({ type, element }) => {
+      switch (type) {
+
+        case SpanView.ViewType.LOG_CIRCLE: {
+          const spanId = element.getAttribute('data-span-id');
+          const logId = element.getAttribute('data-log-id');
+          if (!spanId || !logId) return;
+          const spanView = this.annotation.findSpanView(spanId)[1];
+          if (!spanView) return;
+          spanView.updateLogStyle(logId, 'hover');
+          return;
+        }
+
+        case SpanView.ViewType.CONTAINER: {
+          const spanId = element.getAttribute('data-span-id');
+          if (!spanId) return;
+          const spanView = this.annotation.findSpanView(spanId)[1];
+          if (!spanView) return;
+          if (spanView === this.selectedSpanView) return;
+          spanView.updateColorStyle('hover');
+          return;
+        }
+
+      }
+    });
 
     if (removed.length === 0 && added.length === 0) return;
     this.emit(TimelineViewEvent.HOVER_CHANGED, { added, removed, current: matches });
@@ -269,13 +303,16 @@ export default class TimelineView extends EventEmitterExtra {
     matches.forEach(({ type, element }) => {
       switch (type) {
 
-        case LogHighlightAnnotation.ViewType.CIRCLE: {
+        case SpanView.ViewType.LOG_CIRCLE: {
           const spanId = element.getAttribute('data-span-id');
           const logId = element.getAttribute('data-log-id');
           if (!spanId || !logId) return;
           const spanView = this.annotation.findSpanView(spanId)[1];
           if (!spanView) return;
-          this.emit(TimelineViewEvent.SPAN_CLICKED, spanView);
+          this.selectedSpanView && this.selectedSpanView.updateColorStyle('normal');
+          this.selectedSpanView = spanView;
+          spanView.updateColorStyle('selected');
+          this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
           this.emit(TimelineViewEvent.LOG_CLICKED, { spanId, logId });
           return;
         }
@@ -285,7 +322,10 @@ export default class TimelineView extends EventEmitterExtra {
           if (!spanId) return;
           const spanView = this.annotation.findSpanView(spanId)[1];
           if (!spanView) return;
-          spanView && this.emit(TimelineViewEvent.SPAN_CLICKED, spanView);
+          this.selectedSpanView && this.selectedSpanView.updateColorStyle('normal');
+          this.selectedSpanView = spanView;
+          spanView.updateColorStyle('selected');
+          this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
           return;
         }
 
