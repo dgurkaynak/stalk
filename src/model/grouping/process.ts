@@ -1,8 +1,8 @@
-import { Grouping } from './grouping';
+import { BaseGrouping } from './base';
 import { Span } from '../span';
 
 
-export class ProcessGrouping extends Grouping {
+export class ProcessGrouping extends BaseGrouping {
     constructor() {
         super({
             key: 'process',

@@ -1,8 +1,8 @@
-import { Grouping } from './grouping';
+import { BaseGrouping } from './base';
 import { Span } from '../span';
 
 
-export class ServiceNameGrouping extends Grouping {
+export class ServiceNameGrouping extends BaseGrouping {
     constructor() {
         super({
             key: 'serviceName',

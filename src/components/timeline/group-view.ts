@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
-import { Group } from '../../model/grouping/group';
+import { Group } from '../../model/group/group';
 import SpanView from './span-view';
-import GroupSpanNode from '../../model/grouping/group-span-node';
+import GroupSpanNode from '../../model/group/group-span-node';
 import ViewSettings from './view-settings';
 import EventEmitterExtra from 'event-emitter-extra';
 import { AxisEvent } from './axis';

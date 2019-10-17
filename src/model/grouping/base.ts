@@ -1,13 +1,13 @@
 import * as _ from 'lodash';
 import { Span } from '../span';
 import { Trace } from '../trace';
-import { Group } from './group';
+import { Group } from '../group/group';
 
 
-export class Grouping {
+export class BaseGrouping {
     readonly key: string; // group key, like `trace`
     readonly name: string; // human readable name, `Trace`
-    protected groupBy: (span: Span, trace?: Trace) => [ string, string ]; // [ group id, human readable group name ]
+    protected groupBy: (span: Span, trace: Trace) => [ string, string ]; // [ group id, human readable group name ]
     protected groups: { [key: string]: Group } = {};
     protected spanIdToGroupId: { [key: string]: string } = {};
 
@@ -15,7 +15,7 @@ export class Grouping {
     constructor(options: {
         key: string,
         name: string,
-        groupBy: (span: Span, trace?: Trace) => [ string, string ]
+        groupBy: (span: Span, trace: Trace) => [ string, string ]
     }) {
         this.key = options.key;
         this.name = options.name;
@@ -23,7 +23,7 @@ export class Grouping {
     }
 
 
-    addSpan(span: Span, trace?: Trace) {
+    addSpan(span: Span, trace: Trace) {
         if (this.spanIdToGroupId[span.id]) return;
 
         const result = this.groupBy(span, trace);
