@@ -1,8 +1,8 @@
-import ColorManager from './manager';
+import MPN65ColorAssigner from './assigners/mpn65';
 
-const traceName = new ColorManager();
-const operationName = new ColorManager();
-const serviceName = new ColorManager();
+const traceName = new MPN65ColorAssigner();
+const operationName = new MPN65ColorAssigner();
+const serviceName = new MPN65ColorAssigner();
 
 export default {
   traceName,

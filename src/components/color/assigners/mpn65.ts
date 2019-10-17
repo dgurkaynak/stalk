@@ -1,10 +1,19 @@
 import * as _ from 'lodash';
 import palette from 'google-palette';
 import chroma from 'chroma-js';
+import { IColorAssigner } from '../interfaces';
 
 
+interface MPN65ColorAssignerOptions {
+  shuffle?: boolean;
+  count?: number;
+}
 
-export class ColorManager {
+/**
+ * mpn65 color palette
+ * http://google.github.io/palette.js/
+ */
+export class MPN65ColorAssigner implements IColorAssigner {
   private index = 0;
   private colors: {
     hex: string,
@@ -17,12 +26,14 @@ export class ColorManager {
   private keyColorIndexMap: { [key: string]: number } = {};
 
 
-  constructor(options?: {
-    shuffle: boolean
-  }) {
-    const rawColors = options && _.isBoolean(options.shuffle) && options.shuffle ?
-      _.shuffle(palette('mpn65', 65)) :
-      palette('mpn65', 65);
+  constructor(options?: MPN65ColorAssignerOptions) {
+    options = _.defaults({}, options || {}, {
+      shuffle: false,
+      count: 29 // 30 is ugly black :/
+    });
+    const rawColors = options.shuffle ?
+      _.shuffle(palette('mpn65', options.count)) :
+      palette('mpn65', options.count);
 
     this.colors = rawColors.map((rawColor: string) => {
       const hex = `#${rawColor}`;
@@ -55,4 +66,4 @@ export class ColorManager {
 }
 
 
-export default ColorManager;
+export default MPN65ColorAssigner;
