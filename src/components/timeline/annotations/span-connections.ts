@@ -150,18 +150,22 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       if (isVertical) {
         if (fromY < toY) {
           fromY += halfBarHeight;
+          fromControlY = fromY + 5;
         } else if (fromY > toY) {
           fromY -= halfBarHeight;
+          fromControlY = fromY - 5;
         }
 
-        fromControlX = fromX - 10;
-        fromControlY = fromY + 5;
+        fromControlX = fromX;
         toControlX = toX - 10;
         toControlY = toY;
 
         // If y distance is higher than 1 row, increase the control point offset
-        if (Math.abs(toControlY - fromControlY) > 25) {
+        const verticalDistance = Math.abs(toControlY - fromControlY);
+        if (verticalDistance > 100) {
           toControlX = toX - 50;
+        } else if (verticalDistance > 30) {
+          toControlX = toX - 25;
         }
       } else {
         fromControlX = fromX + 50;
