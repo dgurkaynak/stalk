@@ -75,7 +75,7 @@ export default class TimelineView extends EventEmitterExtra {
 
     this.svg.appendChild(this.defs);
 
-    this.annotation.cursorLineAnnotation.prepare({ timestamp: 0 });
+    this.annotation.cursorLineAnnotation.prepare({ timestamp: null });
     this.annotation.cursorLineAnnotation.mount();
 
     const spanShadowFilter = document.createElementNS(SVG_NS, 'filter');

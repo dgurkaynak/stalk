@@ -4,11 +4,15 @@ import BaseAnnotation from './base';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 interface VerticalLineAnnotationSettings {
-  timestamp: number,
+  timestamp: number | null,
   lineColor?: string,
   lineWidth?: number,
   position?: 'overlay' | 'underlay',
   displayTime?: boolean,
+  timeOffsetToBottom?: number,
+  timeOffsetToLine?: number,
+  timeFontColor?: string,
+  timeFontSize?: number,
 }
 export default class VerticalLineAnnotation extends BaseAnnotation {
   private settings?: VerticalLineAnnotationSettings;
@@ -20,7 +24,11 @@ export default class VerticalLineAnnotation extends BaseAnnotation {
       lineColor: '#ccc',
       lineWidth: 1,
       position: 'underlay',
-      displayTime: true
+      displayTime: true,
+      timeOffsetToBottom: 10,
+      timeOffsetToLine: 5,
+      timeFontColor: '#aaa',
+      timeFontSize: 12,
     });
 
     this.line.setAttribute('x1', '0');
@@ -32,6 +40,8 @@ export default class VerticalLineAnnotation extends BaseAnnotation {
     this.text.textContent = '';
     this.text.setAttribute('x', '0');
     this.text.setAttribute('y', '0');
+    this.text.setAttribute('fill', this.settings.timeFontColor!);
+    this.text.setAttribute('font-size', this.settings.timeFontSize! + '');
 
     const elements = this.settings.displayTime ? [this.line, this.text] : [this.line];
 
@@ -51,11 +61,22 @@ export default class VerticalLineAnnotation extends BaseAnnotation {
 
   update() {
     if (!this.settings) return;
+    if (!this.settings.timestamp) return;
 
     const height = Math.max(this.deps.timelineView.getContentHeight(), this.deps.viewSettings.height);
     this.line.setAttribute('y2', height + '');
+    // TODO: Are you sure it's always in nanoseconds, for both zipkin & jaeger?
+    this.text.textContent = new Date(this.settings.timestamp / 1000).toString();
 
     const x = this.deps.viewSettings.getAxis().input2output(this.settings.timestamp);
-    if (!isNaN(x)) this.line.setAttribute('transform', `translate(${x}, 0)`);
+
+    if (!isNaN(x)) {
+      const isOnLeftSide = x <= this.deps.viewSettings.width / 2;
+      const textX = isOnLeftSide ? x + this.settings.timeOffsetToLine! : x - this.settings.timeOffsetToLine!;
+      this.line.setAttribute('transform', `translate(${x}, 0)`);
+      this.text.setAttribute('transform', `translate(${textX}, ${this.deps.viewSettings.height - this.settings.timeOffsetToBottom!})`);
+      this.text.setAttribute('text-anchor', isOnLeftSide ? 'start' : 'end');
+    }
+
   }
 }
