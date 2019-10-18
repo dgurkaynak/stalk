@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import React from 'react';
-import { PageHeader, Icon, Layout, Tabs, Select, Divider, Badge, Empty, Collapse } from 'antd';
+import { PageHeader, Icon, Layout, Tabs, Select, Divider, Badge, Empty, Collapse, Button } from 'antd';
 import { Stage, StageEvent } from '../../model/stage';
 import ColorManagers from '../color/managers';
 import TimelineView, { TimelineViewEvent } from './view';
@@ -62,6 +62,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onMouseMove: this.onMouseMove.bind(this),
     onMouseUp: this.onMouseUp.bind(this),
     onMouseLeave: this.onMouseLeave.bind(this),
+    onExpandAllLogsButtonClick: this.onExpandAllLogsButtonClick.bind(this),
   };
 
 
@@ -247,6 +248,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     });
   }
 
+  onExpandAllLogsButtonClick() {
+    const spanLogViews = this.state.selectedSpanView ? (this.state.selectedSpanView! as SpanView).getLogViews() : [];
+    this.setState({ expandedLogIds: spanLogViews.map(v => v.id) });
+  }
+
   render() {
     const span: Span = this.state.selectedSpanView ? (this.state.selectedSpanView as any).span : {};
     const spanLogViews = this.state.selectedSpanView ? (this.state.selectedSpanView! as SpanView).getLogViews() : [];
@@ -403,7 +409,18 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
                     <Divider style={{ margin: '10px 0' }} />
 
-                    <h4>Logs</h4>
+                    <div className="sidebar-row">
+                      <h4>Logs</h4>
+                      {spanLogViews.length > 0 ? (
+                        <Button
+                          type="link"
+                          size="small"
+                          style={{ marginBottom: 7 }}
+                          onClick={this.binded.onExpandAllLogsButtonClick}
+                        >Expand All</Button>
+                      ) : null}
+
+                    </div>
 
                     {spanLogViews.length === 0 ? (
                       <span>No logs</span>

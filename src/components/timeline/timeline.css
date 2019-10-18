@@ -26,7 +26,7 @@
   flex-flow: wrap;
 }
 
-.sidebar-row > span:first-child {
+.sidebar-row > *:first-child {
   flex-grow: 1;
 }
 
