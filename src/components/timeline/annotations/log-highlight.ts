@@ -4,10 +4,6 @@ import SpanView from '../span-view';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-enum ViewType {
-  CIRCLE = 'lha_circle'
-}
-
 interface LogHighlightAnnotationSettings {
   spanView: SpanView,
   logId: string,
@@ -18,8 +14,6 @@ interface LogHighlightAnnotationSettings {
   circleStrokeColor?: string,
 }
 export default class LogHighlightAnnotation extends BaseAnnotation {
-  static ViewType = ViewType;
-
   private settings?: LogHighlightAnnotationSettings;
   private logTimestamp = 0;
   private line = document.createElementNS(SVG_NS, 'line');
@@ -50,9 +44,6 @@ export default class LogHighlightAnnotation extends BaseAnnotation {
     this.circle.setAttribute('fill', this.settings.circleColor!);
     this.circle.setAttribute('stroke', this.settings.circleStrokeColor!);
     this.circle.setAttribute('stroke-width', this.settings.circleStrokeWidth! + '');
-    this.circle.setAttribute('data-view-type', ViewType.CIRCLE);
-    this.circle.setAttribute('data-log-id', logView.id);
-    this.circle.setAttribute('data-span-id', this.settings.spanView.span.id);
 
     this.overlayElements = [this.line, this.circle];
   }

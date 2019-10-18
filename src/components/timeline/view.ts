@@ -367,8 +367,7 @@ export default class TimelineView extends EventEmitterExtra {
     matches.forEach(({ type, element }) => {
       switch (type) {
 
-        case SpanView.ViewType.LOG_CIRCLE:
-        case LogHighlightAnnotation.ViewType.CIRCLE: {
+        case SpanView.ViewType.LOG_CIRCLE: {
           // NOOP
           return;
         }

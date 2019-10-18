@@ -162,7 +162,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.setState({ highlightedLogId: '' });
 
     data.added.forEach(({ type, element }) => {
-      if (type !== SpanView.ViewType.LOG_CIRCLE && type !== LogHighlightAnnotation.ViewType.CIRCLE) return;
+      if (type !== SpanView.ViewType.LOG_CIRCLE) return;
       const spanId = element.getAttribute('data-span-id');
       const logId = element.getAttribute('data-log-id');
       if (!spanId || !logId) return;
