@@ -4,7 +4,6 @@ import Axis from './axis';
 import ViewSettings, { TimelineViewSettingsEvent } from './view-settings';
 import EventEmitterExtra from 'event-emitter-extra';
 import AnnotationManager from './annotations/manager';
-import LogHighlightAnnotation from './annotations/log-highlight';
 import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
 import SpanView from './span-view';
 import { Trace } from '../../model/trace';
@@ -26,7 +25,6 @@ export default class TimelineView extends EventEmitterExtra {
   private defs = document.createElementNS(SVG_NS, 'defs');
   private viewportClipPath = document.createElementNS(SVG_NS, 'clipPath');
   private viewportClipPathRect = document.createElementNS(SVG_NS, 'rect');
-  private cursorLine = document.createElementNS(SVG_NS, 'line');
 
   private viewportContainer = document.createElementNS(SVG_NS, 'g');
   private groupNamePanel = document.createElementNS(SVG_NS, 'g');
@@ -77,13 +75,8 @@ export default class TimelineView extends EventEmitterExtra {
 
     this.svg.appendChild(this.defs);
 
-    this.cursorLine.setAttribute('x1', '0');
-    this.cursorLine.setAttribute('x2', '0');
-    this.cursorLine.setAttribute('y1', '0');
-    this.cursorLine.setAttribute('stroke', '#cccccc');
-    this.cursorLine.setAttribute('stroke-width', '1');
-    this.cursorLine.style.display = 'none';
-    this.svg.appendChild(this.cursorLine);
+    this.annotation.cursorLineAnnotation.prepare({ timestamp: 0 });
+    this.annotation.cursorLineAnnotation.mount();
 
     const spanShadowFilter = document.createElementNS(SVG_NS, 'filter');
     spanShadowFilter.id = 'span-shadow';
@@ -144,7 +137,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.svg.setAttribute('height', `${height}`);
     this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-    this.cursorLine.setAttribute('y2', this.viewSettings.height + '');
+    this.annotation.cursorLineAnnotation.update();
 
     this.viewportClipPathRect.setAttribute('width', `${width}`);
     this.viewportClipPathRect.setAttribute('height', `${height}`);
@@ -191,7 +184,9 @@ export default class TimelineView extends EventEmitterExtra {
 
   onMouseIdleMove(e: MouseEvent) {
     // Update the cursor line
-    this.cursorLine.setAttribute('transform', `translate(${e.offsetX}, 0)`);
+    this.annotation.cursorLineAnnotation.setTimestampFromScreenPositionX(e.offsetX);
+    this.annotation.cursorLineAnnotation.update();
+    this.annotation.cursorLineAnnotation.mount();
 
     // TODO: Maybe debounce below?
     const matches = this.getViewsFromMouseEvent(e);
@@ -266,12 +261,12 @@ export default class TimelineView extends EventEmitterExtra {
 
   onMouseIdleLeave(e: MouseEvent) {
     // Hide cursor line
-    this.cursorLine.setAttribute('transform', `translate(-1, 0)`);
+    this.annotation.cursorLineAnnotation.unmount();
   }
 
   onMousePanStart(e: MouseEvent) {
     // Hide cursor line
-    this.cursorLine.setAttribute('transform', `translate(-1, 0)`);
+    this.annotation.cursorLineAnnotation.unmount();
   }
 
   onMousePanMove(e: MouseEvent) {
@@ -479,7 +474,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
 
     // Show & hide cursor line
-    this.cursorLine.style.display = groups.length > 0 ? '' : 'none';
+    this.annotation.cursorLineAnnotation.unmount();
   }
 
   onGroupLayout() {

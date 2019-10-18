@@ -6,7 +6,6 @@ import ColorManagers from '../color/managers';
 import TimelineView, { TimelineViewEvent } from './view';
 import prettyMilliseconds from 'pretty-ms';
 import scroll from 'scroll';
-import LogHighlightAnnotation from './annotations/log-highlight';
 import SpanView from './span-view';
 import { Span } from '../../model/span';
 import ProcessGrouping from '../../model/grouping/process';

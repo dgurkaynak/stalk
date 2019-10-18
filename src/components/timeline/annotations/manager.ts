@@ -8,6 +8,7 @@ import shortid from 'shortid';
 import BaseAnnotation from './base';
 import LogHighlightAnnotation from './log-highlight';
 import SpanConnectionsAnnotation from './span-connections';
+import VerticalLineAnnotation from './vertical-line';
 
 
 export default class AnnotationManager {
@@ -28,6 +29,7 @@ export default class AnnotationManager {
 
   logHighlightAnnotation: LogHighlightAnnotation;
   spanConnectionsAnnotation: SpanConnectionsAnnotation;
+  cursorLineAnnotation: VerticalLineAnnotation;
 
   private binded = {
     updateAllAnnotations: _.throttle(this.updateAllAnnotations.bind(this), 10)
@@ -56,6 +58,7 @@ export default class AnnotationManager {
     // Do not forget to add these to `.updateAllAnnotations()` method
     this.logHighlightAnnotation = new LogHighlightAnnotation(this.annotationDeps);
     this.spanConnectionsAnnotation = new SpanConnectionsAnnotation(this.annotationDeps);
+    this.cursorLineAnnotation = new VerticalLineAnnotation(this.annotationDeps);
 
     options.viewSettings.on(AxisEvent.TRANSLATED, this.binded.updateAllAnnotations);
     options.viewSettings.on(AxisEvent.ZOOMED, this.binded.updateAllAnnotations);
@@ -98,7 +101,8 @@ export default class AnnotationManager {
     setTimeout(() => {
       _.forEach([
         this.logHighlightAnnotation,
-        this.spanConnectionsAnnotation
+        this.spanConnectionsAnnotation,
+        // this.cursorVerticalLineAnnotation, // TimelineView manually updates it
       ], a => a.update());
       _.forEach(this.annotations, a => a.update());
     }, 0);
