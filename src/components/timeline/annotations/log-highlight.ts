@@ -27,11 +27,11 @@ export default class LogHighlightAnnotation extends BaseAnnotation {
 
   prepare(settings: LogHighlightAnnotationSettings) {
     this.settings = _.defaults(settings, {
-      lineColor: '#1890ff',
+      lineColor: '#000',
       circleColor: '#fff',
       circleRadius: this.deps.viewSettings.spanLogCircleRadius,
       circleStrokeWidth: 2,
-      circleStrokeColor: '#0560cc'
+      circleStrokeColor: '#000'
     });
     const logView = settings.spanView.getLogViewById(settings.logId);
     if (!logView) return false;
