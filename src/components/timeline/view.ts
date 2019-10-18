@@ -14,6 +14,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export enum TimelineViewEvent {
   SPAN_SELECTED = 't_span_selected',
+  SPAN_DESELECTED = 't_span_deselected',
   LOG_CLICKED = 't_log_clicked',
   HOVER_CHANGED = 't_hover_changed',
 }
@@ -319,6 +320,16 @@ export default class TimelineView extends EventEmitterExtra {
     if (!e) return;
     const matches = this.getViewsFromMouseEvent(e);
 
+    const previousSelectedSpan = this.selectedSpanView;
+    if (this.selectedSpanView) {
+      this.selectedSpanView.updateColorStyle('normal');
+      this.selectedSpanView = undefined;
+    }
+
+    // `matches` order is from deepest to parent
+    // Let's say if a log is clicked, a span is also clicked
+    // and we want to open sidebar, and then open the log panel
+    // That's why we do `forEachRight`
     _.forEachRight(matches, ({ type, element }) => {
       switch (type) {
 
@@ -353,6 +364,11 @@ export default class TimelineView extends EventEmitterExtra {
 
       }
     });
+
+    if (!this.selectedSpanView) {
+      this.emit(TimelineViewEvent.SPAN_DESELECTED, previousSelectedSpan);
+      this.annotation.spanConnectionsAnnotation.unmount();
+    }
 
   }
 

@@ -51,6 +51,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onGroupingModeChange: this.onGroupingModeChange.bind(this),
     onWindowResize: _.throttle(this.onWindowResize.bind(this), 500),
     handleSpanSelect: this.handleSpanSelect.bind(this),
+    handleSpanDeselect: this.handleSpanDeselect.bind(this),
     onTabChange: this.onTabChange.bind(this),
     onLogsContainerMouseMove: this.onLogsContainerMouseMove.bind(this),
     onLogsContainerMouseLeave: this.onLogsContainerMouseLeave.bind(this),
@@ -77,6 +78,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       height: innerHeight - 80
     });
     this.timelineView.on(TimelineViewEvent.SPAN_SELECTED, this.binded.handleSpanSelect);
+    this.timelineView.on(TimelineViewEvent.SPAN_DESELECTED, this.binded.handleSpanDeselect);
     this.timelineView.on(TimelineViewEvent.LOG_CLICKED, this.binded.handleLogClick);
     this.timelineView.on(TimelineViewEvent.HOVER_CHANGED, this.binded.handleHoverChange);
   }
@@ -93,6 +95,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.stage.removeListener(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
     window.removeEventListener('resize', this.binded.onWindowResize, false);
     this.timelineView.removeListener(TimelineViewEvent.SPAN_SELECTED, [this.binded.handleSpanSelect] as any);
+    this.timelineView.removeListener(TimelineViewEvent.SPAN_DESELECTED, [this.binded.handleSpanDeselect] as any);
   }
 
 
@@ -140,6 +143,13 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       selectedSpanView: spanView
     });
     this.timelineView.updateSidebarWidth(this.state.sidebarWidth);
+  }
+
+  handleSpanDeselect() {
+    this.setState({
+      sidebarSelectedTab: 'general',
+      selectedSpanView: null
+    });
   }
 
   handleLogClick(data: { spanId: string, logId: string }) {
