@@ -261,6 +261,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     return (
       <div
         style={{ display: this.props.visible ? 'block' : 'none', overflow: 'auto', height: '100vh' }}
+        // TODO: Do this more efficently.
+        // Isn't it overkill to listen all the mouse events on this element?
+        // Maybe you can do this with mouse-handler?
         onMouseDown={this.binded.onMouseDown as any}
         onMouseMove={this.binded.onMouseMove as any}
         onMouseUp={this.binded.onMouseUp as any}
