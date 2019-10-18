@@ -43,6 +43,14 @@
   background: #f5f5f5;
 }
 
+.sidebar-log-panel-higlighted {
+  background: #1890ff;
+}
+
+.sidebar-log-panel-higlighted > .ant-collapse-header{
+  color: #fff !important;
+}
+
 svg.timeline-svg text {
   cursor: default;
   -webkit-user-select: none;

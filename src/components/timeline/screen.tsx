@@ -435,7 +435,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
                               header={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}
                               key={logView.id}
                               id={`log-panel-${logView.id}`}
-                              style={{ background: logView.id === this.state.highlightedLogId ? 'rgba(230, 247, 255, 0.5)' : 'none' }}
+                              className={logView.id === this.state.highlightedLogId ? 'sidebar-log-panel-higlighted' : ''}
                             >
                               {_.map(logView.log.fields, (value, name) => (
                                 <div className="sidebar-row mono" key={name}>
