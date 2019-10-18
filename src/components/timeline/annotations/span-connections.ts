@@ -108,9 +108,11 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       const refGroupView = ref.groupView;
       const refGroupViewProps = ref.groupView.getViewPropertiesCache();
       const path = ref.path;
+      const arrowHeadOffsetLeft = -3;
 
       let fromX = 0;
       let fromY = 0;
+      let fromSpanStartX = 0;
       let toX = 0;
       let toY = 0;
 
@@ -118,7 +120,8 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
         case 'parent': {
             fromX = Math.min(refSpanViewProps.x + refSpanViewProps.width, spanViewProps.x);
             fromY = refGroupViewProps.y + refSpanViewProps.y + halfBarHeight;
-            toX = spanViewProps.x;
+            fromSpanStartX = refSpanViewProps.x;
+            toX = spanViewProps.x + arrowHeadOffsetLeft;
             toY = groupViewProps.y + spanViewProps.y + halfBarHeight;
           break;
         }
@@ -126,7 +129,8 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
         case 'child': {
           fromX = Math.min(spanViewProps.x + spanViewProps.width, refSpanViewProps.x);
           fromY = groupViewProps.y + spanViewProps.y + halfBarHeight;
-          toX = refSpanViewProps.x;
+          fromSpanStartX = spanViewProps.x;
+          toX = refSpanViewProps.x + arrowHeadOffsetLeft;
           toY = refGroupViewProps.y + refSpanViewProps.y + halfBarHeight;
           break;
         }
@@ -158,18 +162,23 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
           fromControlY = fromY - 5;
         }
 
-        fromControlX = fromX;
-        toControlX = toX - 10;
+        let toControlXOffset = 20;
         toControlY = toY;
 
         // If y distance is higher than 1 row, increase the control point offset
         const verticalDistance = Math.abs(toControlY - fromControlY);
         if (verticalDistance > 100) {
-          toControlX = toX - 50;
+          toControlXOffset = 50;
         } else if (verticalDistance > 30) {
-          toControlX = toX - 25;
+          toControlXOffset = 25;
         }
+
+        fromX = Math.max(fromSpanStartX, fromX - toControlXOffset);
+        fromControlX = fromX;
+        toControlX = toX - toControlXOffset;
+
       } else {
+        // Just draw linear-ish line
         fromControlX = fromX + 50;
         fromControlY = fromY;
         toControlX = toX - 50;
