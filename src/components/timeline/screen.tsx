@@ -139,6 +139,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       sidebarSelectedTab: spanView ? 'span-info' : 'general',
       selectedSpanView: spanView
     });
+    this.timelineView.updateSidebarWidth(this.state.sidebarWidth);
   }
 
   handleLogClick(data: { spanId: string, logId: string }) {
@@ -233,10 +234,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   }
 
   onMouseUp(e: MouseEvent) {
+    if (!this.state.isSidebarResizing) return;
     // Apply!
     const sidebarWidth = -this.state.sidebarResizeHandleTranslateX + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2);
     this.setState({ isSidebarResizing: false, sidebarWidth });
-    this.timelineView.updateSidebarWidth(sidebarWidth);
+    this.timelineView.updateSidebarWidth(this.state.isSidebarVisible ? sidebarWidth : 0);
   }
 
   onMouseLeave(e: MouseEvent) {
