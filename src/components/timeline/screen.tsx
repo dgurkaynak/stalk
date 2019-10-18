@@ -299,6 +299,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
             theme="light"
           >
             <Tabs activeKey={this.state.sidebarSelectedTab} onChange={this.binded.onTabChange}>
+
+
+              {/* ==============================
+                * ======== GENERAL TAB =========
+                * ============================== */}
               <TabPane tab="General" key="general">
                 <div style={{ margin: '0 10px 10px 10px' }}>
                   <h4>View Settings</h4>
@@ -367,6 +372,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
                 </div>
               </TabPane>
 
+              {/* ==============================
+                * ======= SPAN INFO TAB ========
+                * ============================== */}
               <TabPane tab="Span Info" key="span-info" disabled={!this.state.selectedSpanView}>
                 {this.state.selectedSpanView ? (
                   <div className="span-info" style={{ margin: '0 10px 10px 10px' }}>
@@ -389,10 +397,18 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
                         {prettyMilliseconds((span.finishTime - span.startTime) / 1000, { formatSubMilliseconds: true })}
                       </span>
                     </div>
-                    <div className="sidebar-row">
-                      <span>Span ID:</span>
-                      <span>{span.id}</span>
-                    </div>
+                    {span.references.map((ref) => (
+                      <div className="sidebar-row" key={ref.type}>
+                        <span>{ref.type === 'childOf' ? 'Child of:' :
+                            ref.type === 'followsFrom' ? 'Follows from:' :
+                            ref.type}</span>
+                        <span>{(() => {
+                          const spanView = this.timelineView.annotation.findSpanView(ref.spanId)[1];
+                          if (!spanView) return ref.spanId;
+                          return spanView.span.operationName; // TODO: Use viewSettings.spanLabeling func
+                        })()}</span>
+                      </div>
+                    ))}
 
                     <Divider style={{ margin: '10px 0' }} />
 
@@ -449,10 +465,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
                       </div>
                     )}
 
-
                   </div>
                 ) : null}
               </TabPane>
+
             </Tabs>
           </Sider>
 
