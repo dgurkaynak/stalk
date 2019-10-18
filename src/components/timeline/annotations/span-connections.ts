@@ -55,6 +55,7 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       path.setAttribute('stroke-width', settings.strokeWidth + '');
       path.setAttribute('stroke', settings.strokeColor!);
       path.setAttribute('marker-end', `url(#arrow-head)`);
+      path.setAttribute('stroke-dasharray', ref.type === 'followsFrom' ? '2' : '0');
 
       this.parents.push({
         spanView: refSpanView,
@@ -77,6 +78,7 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       path.setAttribute('stroke', settings.strokeColor!);
       path.setAttribute('marker-end', `url(#arrow-head)`);
       const ref = _.find(refSpanView.span.references, r => r.spanId === spanView.span.id);
+      path.setAttribute('stroke-dasharray', ref!.type === 'followsFrom' ? '2' : '0');
 
       this.children.push({
         spanView: refSpanView,
