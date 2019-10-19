@@ -27,7 +27,8 @@ export interface TimelineScreenProps {
 
 const SIDEBAR_WIDTH = 320;
 const SIDEBAR_RESIZE_HANDLE_WIDTH = 6;
-const MENU_WIDTH = 80;
+const LEFT_MENU_WIDTH = 80;
+const HEADER_MENU_HEIGHT = 64;
 
 export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private stage = Stage.getSingleton();
@@ -73,8 +74,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     const containerEl = this.timelineContainerRef.current as HTMLDivElement;
     const { innerWidth, innerHeight } = window;
     this.timelineView.init(containerEl, {
-      width: innerWidth - MENU_WIDTH,
-      height: innerHeight - MENU_WIDTH
+      width: innerWidth - LEFT_MENU_WIDTH,
+      height: innerHeight - HEADER_MENU_HEIGHT
     });
     this.timelineView.on(TimelineViewEvent.SPAN_SELECTED, this.binded.handleSpanSelect);
     this.timelineView.on(TimelineViewEvent.SPAN_DESELECTED, this.binded.handleSpanDeselect);
@@ -84,7 +85,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   onWindowResize() {
     const { innerWidth, innerHeight } = window;
-    this.timelineView.resize(innerWidth - MENU_WIDTH, innerHeight - MENU_WIDTH);
+    this.timelineView.resize(innerWidth - LEFT_MENU_WIDTH, innerHeight - HEADER_MENU_HEIGHT);
   }
 
   componentWillUnmount() {
@@ -126,8 +127,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   resizeTimelineViewAccordingToSidebar() {
     const { innerWidth, innerHeight } = window;
     this.timelineView.resize(
-      innerWidth - MENU_WIDTH - (this.state.isSidebarVisible ? this.state.sidebarWidth : 0),
-      innerHeight - MENU_WIDTH
+      innerWidth - LEFT_MENU_WIDTH - (this.state.isSidebarVisible ? this.state.sidebarWidth : 0),
+      innerHeight - HEADER_MENU_HEIGHT
     );
   }
 
