@@ -31,10 +31,6 @@
   overflow-y: auto;
 }
 
-.timeline-sidebar .ant-tabs-nav {
-  margin-left: 10px;
-}
-
 .sidebar-row {
   display: flex;
   align-items: center;

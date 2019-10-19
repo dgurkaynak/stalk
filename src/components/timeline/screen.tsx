@@ -39,7 +39,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     stageTraces: this.stage.getAll(),
     groupingMode: ProcessGrouping.KEY, // Do not forget to change default value of TimelineViewSettings
     isSidebarVisible: false,
-    sidebarSelectedTab: 'general',
     selectedSpanView: null,
     expandedLogIds: [] as string[],
     highlightedLogId: '',
@@ -53,7 +52,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onWindowResize: _.throttle(this.onWindowResize.bind(this), 500),
     handleSpanSelect: this.handleSpanSelect.bind(this),
     handleSpanDeselect: this.handleSpanDeselect.bind(this),
-    onTabChange: this.onTabChange.bind(this),
     onLogsContainerMouseMove: this.onLogsContainerMouseMove.bind(this),
     onLogsContainerMouseLeave: this.onLogsContainerMouseLeave.bind(this),
     onLogsCollapseChange: this.onLogsCollapseChange.bind(this),
@@ -66,7 +64,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onExpandAllLogsButtonClick: this.onExpandAllLogsButtonClick.bind(this),
     onGroupingModeMenuClick: this.onGroupingModeMenuClick.bind(this),
   };
-
 
   componentDidMount() {
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
@@ -85,12 +82,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.timelineView.on(TimelineViewEvent.HOVER_CHANGED, this.binded.handleHoverChange);
   }
 
-
   onWindowResize() {
     const { innerWidth, innerHeight } = window;
     this.timelineView.resize(innerWidth - MENU_WIDTH, innerHeight - MENU_WIDTH);
   }
-
 
   componentWillUnmount() {
     this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
@@ -100,11 +95,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.timelineView.removeListener(TimelineViewEvent.SPAN_DESELECTED, [this.binded.handleSpanDeselect] as any);
   }
 
-
   onStageTraceAdded(trace: Trace) {
     this.setState({
       stageTraces: this.stage.getAll(),
-      sidebarSelectedTab: 'general',
+      isSidebarVisible: false,
       selectedSpanView: null,
       expandedLogIds: [] as string[],
       highlightedLogId: '',
@@ -115,7 +109,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   onStageTraceRemoved(trace: Trace) {
     this.setState({
       stageTraces: this.stage.getAll(),
-      sidebarSelectedTab: 'general',
+      isSidebarVisible: false,
       selectedSpanView: null,
       expandedLogIds: [] as string[],
       highlightedLogId: '',
@@ -137,14 +131,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     );
   }
 
-  onTabChange(activeKey: string) {
-    this.setState({ sidebarSelectedTab: activeKey });
-  }
-
   handleSpanSelect(spanView: SpanView) {
     this.setState({
       isSidebarVisible: true,
-      sidebarSelectedTab: spanView ? 'span-info' : 'general',
       selectedSpanView: spanView
     }, () => {
       this.resizeTimelineViewAccordingToSidebar();
@@ -153,8 +142,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   handleSpanDeselect() {
     this.setState({
-      sidebarSelectedTab: 'general',
+      isSidebarVisible: false,
       selectedSpanView: null
+    }, () => {
+      this.resizeTimelineViewAccordingToSidebar();
     });
   }
 
@@ -403,153 +394,115 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
             width={this.state.sidebarWidth}
             theme="light"
           >
-            <Tabs activeKey={this.state.sidebarSelectedTab} onChange={this.binded.onTabChange}>
+            {/* {this.state.stageTraces.map((trace, i) => (
+              <div className="sidebar-row" key={i}>
+                <span>
+                  <Badge
+                    color={ColorManagers.traceName.colorFor(trace.id) as string}
+                    className="search-result-item-badge"
+                  />
+                  {trace.name}
+                </span>
+                <Icon
+                  type="close"
+                  onClick={() => this.stage.remove(trace.id)}
+                />
+              </div>
+            ))} */}
 
 
-              {/* ==============================
-                * ======== GENERAL TAB =========
-                * ============================== */}
-              <TabPane tab="General" key="general">
-                <div style={{ margin: '0 10px 10px 10px' }}>
-                  <h4>View Settings</h4>
+              {this.state.selectedSpanView ? (
+                <div style={{ margin: 10 }}>
+                  <h4>Span Info</h4>
+
                   <div className="sidebar-row">
-                    <span>Span coloring:</span>
-                    <Select defaultValue="operation-name" style={{ width: 120 }} disabled size="small">
-                      <Option value="operation-name">Operation name</Option>
-                      <Option value="process">Process</Option>
-                      <Option value="service-name">Service Name</Option>
-                    </Select>
+                    <span>Operation name:</span>
+                    <span style={{fontWeight: 'bold'}}>{span.operationName}</span>
                   </div>
                   <div className="sidebar-row">
-                    <span>Span text:</span>
-                    <Select defaultValue="operation-name" style={{ width: 120 }} disabled size="small">
-                      <Option value="operation-name">Operation name</Option>
-                    </Select>
+                    <span>Service name:</span>
+                    <span style={{fontWeight: 'bold'}}>{span.process ? span.process.serviceName :
+                      span.localEndpoint ? span.localEndpoint.serviceName :
+                      'Unknown'
+                    }</span>
                   </div>
+                  <div className="sidebar-row">
+                    <span>Duration:</span>
+                    <span style={{fontWeight: 'bold'}}>
+                      {prettyMilliseconds((span.finishTime - span.startTime) / 1000, { formatSubMilliseconds: true })}
+                    </span>
+                  </div>
+                  {span.references.map((ref) => (
+                    <div className="sidebar-row" key={ref.type}>
+                      <span>{ref.type === 'childOf' ? 'Child of:' :
+                          ref.type === 'followsFrom' ? 'Follows from:' :
+                          ref.type}</span>
+                      <span>{(() => {
+                        const spanView = this.timelineView.annotation.findSpanView(ref.spanId)[1];
+                        if (!spanView) return ref.spanId;
+                        return spanView.span.operationName; // TODO: Use viewSettings.spanLabeling func
+                      })()}</span>
+                    </div>
+                  ))}
 
                   <Divider style={{ margin: '10px 0' }} />
 
-                  {this.state.stageTraces.length === 0 ? (
-                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No trace added to timeline" />
-                  ) : (
-                    <h4>Traces</h4>
+                  <h4>Tags</h4>
+
+                  {Object.keys(span.tags).length > 0 ? _.map(span.tags, (value, tag) => (
+                    <div className="sidebar-row mono even-odd" key={tag}>
+                      <span>{tag}:</span>
+                      <span>{value}</span>
+                    </div>
+                  )) : (
+                    <span>No tags</span>
                   )}
-                  {this.state.stageTraces.map((trace, i) => (
-                    <div className="sidebar-row" key={i}>
-                      <span>
-                        <Badge
-                          color={ColorManagers.traceName.colorFor(trace.id) as string}
-                          className="search-result-item-badge"
-                        />
-                        {trace.name}
-                      </span>
-                      <Icon
-                        type="close"
-                        onClick={() => this.stage.remove(trace.id)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </TabPane>
 
-              {/* ==============================
-                * ======= SPAN INFO TAB ========
-                * ============================== */}
-              <TabPane tab="Span Info" key="span-info" disabled={!this.state.selectedSpanView}>
-                {this.state.selectedSpanView ? (
-                  <div className="span-info" style={{ margin: '0 10px 10px 10px' }}>
-                    <h4>Info</h4>
+                  <Divider style={{ margin: '10px 0' }} />
 
-                    <div className="sidebar-row">
-                      <span>Operation name:</span>
-                      <span style={{fontWeight: 'bold'}}>{span.operationName}</span>
-                    </div>
-                    <div className="sidebar-row">
-                      <span>Service name:</span>
-                      <span style={{fontWeight: 'bold'}}>{span.process ? span.process.serviceName :
-                        span.localEndpoint ? span.localEndpoint.serviceName :
-                        'Unknown'
-                      }</span>
-                    </div>
-                    <div className="sidebar-row">
-                      <span>Duration:</span>
-                      <span style={{fontWeight: 'bold'}}>
-                        {prettyMilliseconds((span.finishTime - span.startTime) / 1000, { formatSubMilliseconds: true })}
-                      </span>
-                    </div>
-                    {span.references.map((ref) => (
-                      <div className="sidebar-row" key={ref.type}>
-                        <span>{ref.type === 'childOf' ? 'Child of:' :
-                            ref.type === 'followsFrom' ? 'Follows from:' :
-                            ref.type}</span>
-                        <span>{(() => {
-                          const spanView = this.timelineView.annotation.findSpanView(ref.spanId)[1];
-                          if (!spanView) return ref.spanId;
-                          return spanView.span.operationName; // TODO: Use viewSettings.spanLabeling func
-                        })()}</span>
-                      </div>
-                    ))}
-
-                    <Divider style={{ margin: '10px 0' }} />
-
-                    <h4>Tags</h4>
-
-                    {Object.keys(span.tags).length > 0 ? _.map(span.tags, (value, tag) => (
-                      <div className="sidebar-row mono even-odd" key={tag}>
-                        <span>{tag}:</span>
-                        <span>{value}</span>
-                      </div>
-                    )) : (
-                      <span>No tags</span>
-                    )}
-
-                    <Divider style={{ margin: '10px 0' }} />
-
-                    <div className="sidebar-row">
-                      <h4>Logs</h4>
-                      {spanLogViews.length > 0 ? (
-                        <Button
-                          type="link"
-                          size="small"
-                          style={{ marginBottom: 7 }}
-                          onClick={this.binded.onExpandAllLogsButtonClick}
-                        >Expand All</Button>
-                      ) : null}
-
-                    </div>
-
-                    {spanLogViews.length === 0 ? (
-                      <span>No logs</span>
-                    ) : (
-                      <div
-                        onMouseMove={this.binded.onLogsContainerMouseMove as any}
-                        onMouseLeave={this.binded.onLogsContainerMouseLeave as any}
-                      >
-                        <Collapse activeKey={this.state.expandedLogIds} onChange={this.binded.onLogsCollapseChange as any}>
-                          {_.map(spanLogViews, (logView) => (
-                            <Panel
-                              header={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}
-                              key={logView.id}
-                              id={`log-panel-${logView.id}`}
-                              className={logView.id === this.state.highlightedLogId ? 'sidebar-log-panel-higlighted' : ''}
-                            >
-                              {_.map(logView.log.fields, (value, name) => (
-                                <div className="sidebar-row mono" key={name}>
-                                  <span>{name}:</span>
-                                  <span>{value}</span>
-                                </div>
-                              ))}
-                            </Panel>
-                          ))}
-                        </Collapse>
-                      </div>
-                    )}
+                  <div className="sidebar-row">
+                    <h4>Logs</h4>
+                    {spanLogViews.length > 0 ? (
+                      <Button
+                        type="link"
+                        size="small"
+                        style={{ marginBottom: 7 }}
+                        onClick={this.binded.onExpandAllLogsButtonClick}
+                      >Expand All</Button>
+                    ) : null}
 
                   </div>
-                ) : null}
-              </TabPane>
 
-            </Tabs>
+                  {spanLogViews.length === 0 ? (
+                    <span>No logs</span>
+                  ) : (
+                    <div
+                      onMouseMove={this.binded.onLogsContainerMouseMove as any}
+                      onMouseLeave={this.binded.onLogsContainerMouseLeave as any}
+                    >
+                      <Collapse activeKey={this.state.expandedLogIds} onChange={this.binded.onLogsCollapseChange as any}>
+                        {_.map(spanLogViews, (logView) => (
+                          <Panel
+                            header={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}
+                            key={logView.id}
+                            id={`log-panel-${logView.id}`}
+                            className={logView.id === this.state.highlightedLogId ? 'sidebar-log-panel-higlighted' : ''}
+                          >
+                            {_.map(logView.log.fields, (value, name) => (
+                              <div className="sidebar-row mono" key={name}>
+                                <span>{name}:</span>
+                                <span>{value}</span>
+                              </div>
+                            ))}
+                          </Panel>
+                        ))}
+                      </Collapse>
+                    </div>
+                  )}
+
+                </div>
+              ) : null}
+
           </Sider>
 
           <div
