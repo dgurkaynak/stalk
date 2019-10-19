@@ -183,6 +183,8 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   onMouseIdleMove(e: MouseEvent) {
+    if (this.traces.length === 0) return;
+
     // Update the cursor line
     this.annotation.cursorLineAnnotation.setTimestampFromScreenPositionX(e.offsetX);
     this.annotation.cursorLineAnnotation.update();
@@ -427,6 +429,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.layout();
     this.annotation.logHighlightAnnotation.unmount();
     this.annotation.spanConnectionsAnnotation.unmount();
+    this.annotation.cursorLineAnnotation.unmount();
     return true;
   }
 
@@ -437,6 +440,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.layout();
     this.annotation.logHighlightAnnotation.unmount();
     this.annotation.spanConnectionsAnnotation.unmount();
+    this.annotation.cursorLineAnnotation.unmount();
     return true;
   }
 
