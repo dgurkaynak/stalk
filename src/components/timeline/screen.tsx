@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import React from 'react';
-import { PageHeader, Icon, Layout, Tabs, Select, Divider, Badge, Empty, Collapse, Button } from 'antd';
+import { Icon, Layout, Tabs, Select, Divider, Badge, Empty, Collapse, Button, Tooltip, Menu, Dropdown } from 'antd';
 import { Stage, StageEvent } from '../../model/stage';
 import ColorManagers from '../color/managers';
 import TimelineView, { TimelineViewEvent } from './view';
@@ -305,20 +305,81 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       >
         <Layout style={{ height: '100%', overflow: 'hidden' }}>
           <Content style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <PageHeader
-              className="pageheader-with-button"
-              backIcon={false}
-              title="Timeline"
-              style={{ background: '#fff' }}
-              extra={[
-                <Icon
-                  key="0"
-                  className="timeline-sidebar-toggle"
-                  type={this.state.isSidebarVisible ? 'menu-unfold' : 'menu-fold'}
-                  onClick={() => this.toggleSidebarVisibility(!this.state.isSidebarVisible)}
-                />
-              ]}
-            ></PageHeader>
+            <div className="timeline-screen-header">
+              <div className="left">
+
+                <Dropdown overlay={
+                  <Menu>
+                    <Menu.Item key="0">
+                      <a href="http://www.alipay.com/">1st menu item</a>
+                    </Menu.Item>
+                    <Menu.Item key="1">
+                      <a href="http://www.taobao.com/">2nd menu item</a>
+                    </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Item key="3">3rd menu item</Menu.Item>
+                  </Menu>
+                } trigger={['click']}>
+                  <Tooltip placement="right" title="Grouping Mode" mouseEnterDelay={1}>
+                    <span className="timeline-header-button">
+                      <Icon type="team" />
+                    </span>
+                  </Tooltip>
+                </Dropdown>
+
+                <Dropdown overlay={
+                  <Menu>
+                    <Menu.Item key="0">
+                      <a href="http://www.alipay.com/">1st menu item</a>
+                    </Menu.Item>
+                    <Menu.Item key="1">
+                      <a href="http://www.taobao.com/">2nd menu item</a>
+                    </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Item key="3">3rd menu item</Menu.Item>
+                  </Menu>
+                } trigger={['click']}>
+                  <Tooltip placement="right" title="Span Labelling" mouseEnterDelay={1}>
+                    <span className="timeline-header-button">
+                      <Icon type="edit" />
+                    </span>
+                  </Tooltip>
+                </Dropdown>
+
+                <Dropdown overlay={
+                  <Menu>
+                    <Menu.Item key="0">
+                      <a href="http://www.alipay.com/">1st menu item</a>
+                    </Menu.Item>
+                    <Menu.Item key="1">
+                      <a href="http://www.taobao.com/">2nd menu item</a>
+                    </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Item key="3">3rd menu item</Menu.Item>
+                  </Menu>
+                } trigger={['click']}>
+                  <Tooltip placement="right" title="Span Coloring" mouseEnterDelay={1}>
+                    <span className="timeline-header-button">
+                      <Icon type="highlight" />
+                    </span>
+                  </Tooltip>
+                </Dropdown>
+
+              </div>
+              <div className="right">
+                {/* <span className="timeline-header-button">
+                  <Icon
+                    type={this.state.isSidebarVisible ? 'menu-unfold' : 'menu-fold'}
+                    onClick={() => this.toggleSidebarVisibility(!this.state.isSidebarVisible)}
+                  />
+                </span> */}
+                <span className="timeline-header-button">
+                  <Badge count={5}>
+                    <Icon type="branches" />
+                  </Badge>
+                </span>
+              </div>
+            </div>
 
             <div
               id="timeline-container"
