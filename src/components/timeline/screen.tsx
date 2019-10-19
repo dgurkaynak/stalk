@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import React from 'react';
-import { Icon, Layout, Tabs, Select, Divider, Badge, Empty, Collapse, Button, Tooltip, Menu, Dropdown } from 'antd';
+import { Icon, Layout, Tabs, Select, Divider, Badge, Empty, Collapse, Button, Tooltip, Menu, Dropdown, Card } from 'antd';
 import { Stage, StageEvent } from '../../model/stage';
 import ColorManagers from '../color/managers';
 import TimelineView, { TimelineViewEvent } from './view';
@@ -305,7 +305,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               <div className="left">
 
                 <Dropdown overlay={
-                  <Menu selectedKeys={[ this.state.groupingMode ]} onClick={this.binded.onGroupingModeMenuClick}>
+                  <Menu
+                    selectedKeys={[ this.state.groupingMode ]}
+                    onClick={this.binded.onGroupingModeMenuClick}
+                    style={{ marginLeft: 5 }}
+                  >
                     <Menu.Item key={TraceGrouping.KEY}>
                       Trace
                     </Menu.Item>
@@ -365,17 +369,37 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
               </div>
               <div className="right">
-                {/* <span className="timeline-header-button">
-                  <Icon
-                    type={this.state.isSidebarVisible ? 'menu-unfold' : 'menu-fold'}
-                    onClick={() => this.toggleSidebarVisibility(!this.state.isSidebarVisible)}
-                  />
-                </span> */}
-                <span className="timeline-header-button">
-                  <Badge count={5}>
-                    <Icon type="branches" />
-                  </Badge>
-                </span>
+                <Dropdown overlay={
+                  <Card bordered={false} style={{ width: 300, marginRight: 5 }}>
+                    {this.state.stageTraces.length === 0 ? (
+                      <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No trace added to stage" />
+                    ) : null}
+
+                    {this.state.stageTraces.map((trace, i) => (
+                      <div className="sidebar-row" key={i}>
+                        <span>
+                          <Badge
+                            color={ColorManagers.traceName.colorFor(trace.id) as string}
+                            className="search-result-item-badge"
+                          />
+                          {trace.name}
+                        </span>
+                        <Icon
+                          type="close"
+                          onClick={() => this.stage.remove(trace.id)}
+                        />
+                      </div>
+                    ))}
+                  </Card>
+                } trigger={['click']}>
+                  <Tooltip placement="left" title="Trace List" mouseEnterDelay={1}>
+                    <span className="timeline-header-button">
+                      <Badge count={this.state.stageTraces.length}>
+                        <Icon type="branches" />
+                      </Badge>
+                    </span>
+                  </Tooltip>
+                </Dropdown>
               </div>
             </div>
 
@@ -395,22 +419,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
             width={this.state.sidebarWidth}
             theme="light"
           >
-            {/* {this.state.stageTraces.map((trace, i) => (
-              <div className="sidebar-row" key={i}>
-                <span>
-                  <Badge
-                    color={ColorManagers.traceName.colorFor(trace.id) as string}
-                    className="search-result-item-badge"
-                  />
-                  {trace.name}
-                </span>
-                <Icon
-                  type="close"
-                  onClick={() => this.stage.remove(trace.id)}
-                />
-              </div>
-            ))} */}
-
 
               {this.state.selectedSpanView ? (
                 <div style={{ margin: 10 }}>
