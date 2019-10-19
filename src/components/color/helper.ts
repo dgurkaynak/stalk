@@ -1,6 +1,5 @@
 import chroma from 'chroma-js';
 
-const MIN_CONTRAST_RATIO = 7;
 const WHITE = chroma('white');
 const BLACK = chroma('black');
 

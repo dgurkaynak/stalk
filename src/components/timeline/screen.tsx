@@ -27,6 +27,7 @@ export interface TimelineScreenProps {
 
 const SIDEBAR_WIDTH = 320;
 const SIDEBAR_RESIZE_HANDLE_WIDTH = 6;
+const MENU_WIDTH = 80;
 
 export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private stage = Stage.getSingleton();
@@ -74,8 +75,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     const containerEl = this.timelineContainerRef.current as HTMLDivElement;
     const { innerWidth, innerHeight } = window;
     this.timelineView.init(containerEl, {
-      width: innerWidth - 80,
-      height: innerHeight - 80
+      width: innerWidth - MENU_WIDTH,
+      height: innerHeight - MENU_WIDTH
     });
     this.timelineView.on(TimelineViewEvent.SPAN_SELECTED, this.binded.handleSpanSelect);
     this.timelineView.on(TimelineViewEvent.SPAN_DESELECTED, this.binded.handleSpanDeselect);
@@ -86,7 +87,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   onWindowResize() {
     const { innerWidth, innerHeight } = window;
-    this.timelineView.resize(innerWidth - 80, innerHeight - 80);
+    this.timelineView.resize(innerWidth - MENU_WIDTH, innerHeight - MENU_WIDTH);
   }
 
 
@@ -128,8 +129,17 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   }
 
   toggleSidebarVisibility(isVisible: boolean) {
-    this.setState({ isSidebarVisible: isVisible });
-    this.timelineView.updateSidebarWidth(isVisible ? this.state.sidebarWidth : 0);
+    this.setState({ isSidebarVisible: isVisible }, () => {
+      this.resizeTimelineViewAccordingToSidebar();
+    });
+  }
+
+  resizeTimelineViewAccordingToSidebar() {
+    const { innerWidth, innerHeight } = window;
+    this.timelineView.resize(
+      innerWidth - MENU_WIDTH - (this.state.isSidebarVisible ? this.state.sidebarWidth : 0),
+      innerHeight - MENU_WIDTH
+    );
   }
 
   onTabChange(activeKey: string) {
@@ -141,8 +151,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       isSidebarVisible: true,
       sidebarSelectedTab: spanView ? 'span-info' : 'general',
       selectedSpanView: spanView
+    }, () => {
+      this.resizeTimelineViewAccordingToSidebar();
     });
-    this.timelineView.updateSidebarWidth(this.state.sidebarWidth);
   }
 
   handleSpanDeselect() {
@@ -247,8 +258,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     if (!this.state.isSidebarResizing) return;
     // Apply!
     const sidebarWidth = -this.state.sidebarResizeHandleTranslateX + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2);
-    this.setState({ isSidebarResizing: false, sidebarWidth });
-    this.timelineView.updateSidebarWidth(this.state.isSidebarVisible ? sidebarWidth : 0);
+    this.setState({ isSidebarResizing: false, sidebarWidth }, () => {
+      this.resizeTimelineViewAccordingToSidebar();
+    });
   }
 
   onMouseLeave(e: MouseEvent) {

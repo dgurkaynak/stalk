@@ -43,7 +43,6 @@ export default class TimelineView extends EventEmitterExtra {
   private grouping: BaseGrouping;
   private groupViews: GroupView[] = [];
   private contentHeight = 0; // in pixels
-  private sidebarWidth = 0;
   private selectedSpanView?: SpanView;
 
   annotation = new AnnotationManager({
@@ -145,7 +144,7 @@ export default class TimelineView extends EventEmitterExtra {
 
     this.viewSettings.getAxis().updateOutputRange([
       this.viewSettings.spanBarViewportMargin,
-      this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
+      this.viewSettings.width - this.viewSettings.spanBarViewportMargin
     ]);
 
     this.groupViews.forEach(v => v.updateSeperatorLineWidths());
@@ -453,7 +452,7 @@ export default class TimelineView extends EventEmitterExtra {
       [startTimestamp, finishTimestamp],
       [
         this.viewSettings.spanBarViewportMargin,
-        this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
+        this.viewSettings.width - this.viewSettings.spanBarViewportMargin
       ]
     ));
 
@@ -515,14 +514,6 @@ export default class TimelineView extends EventEmitterExtra {
 
   getContentHeight() {
     return this.contentHeight;
-  }
-
-  updateSidebarWidth(width: number) {
-    this.sidebarWidth = width;
-    this.viewSettings.getAxis().updateOutputRange([
-      this.viewSettings.spanBarViewportMargin,
-      this.viewSettings.width - this.viewSettings.spanBarViewportMargin - this.sidebarWidth
-    ]);
   }
 
   showOrHideLogHighlightAnnotation(options: { spanView: SpanView, logId: string } | null) {
