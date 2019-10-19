@@ -31,6 +31,7 @@ const MENU_WIDTH = 80;
 
 export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private stage = Stage.getSingleton();
+  private containerRef = React.createRef();
   private timelineContainerRef = React.createRef();
   private timelineView = new TimelineView();
 
@@ -240,27 +241,41 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     const targetEl = e.target as Element;
     const parentEl = targetEl.parentElement!;
     if ([targetEl.id, parentEl.id].indexOf('timeline-sidebar-resize-handle') === -1) {
+      if (!this.state.isSidebarResizing) return;
       this.setState({ isSidebarResizing: false });
+      this.unbindSidebarResizingEvents();
       return;
     }
 
+    this.bindSidebarResizingEvents();
     this.setState({ isSidebarResizing: true });
   }
 
+  bindSidebarResizingEvents() {
+    const el = this.containerRef.current as HTMLDivElement;
+    el.addEventListener('mousemove', this.binded.onMouseMove, false);
+    el.addEventListener('mouseup', this.binded.onMouseUp, false);
+  }
+
+  unbindSidebarResizingEvents() {
+    const el = this.containerRef.current as HTMLDivElement;
+    el.removeEventListener('mousemove', this.binded.onMouseMove, false);
+    el.removeEventListener('mouseup', this.binded.onMouseUp, false);
+  }
+
   onMouseMove(e: MouseEvent) {
-    if (!this.state.isSidebarResizing) return;
     this.setState({
       sidebarResizeHandleTranslateX: e.clientX - window.innerWidth + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2)
     });
   }
 
   onMouseUp(e: MouseEvent) {
-    if (!this.state.isSidebarResizing) return;
     // Apply!
     const sidebarWidth = -this.state.sidebarResizeHandleTranslateX + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2);
     this.setState({ isSidebarResizing: false, sidebarWidth }, () => {
       this.resizeTimelineViewAccordingToSidebar();
     });
+    this.unbindSidebarResizingEvents();
   }
 
   onMouseLeave(e: MouseEvent) {
@@ -269,6 +284,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       isSidebarResizing: false,
       sidebarResizeHandleTranslateX: -this.state.sidebarWidth + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2)
     });
+    this.unbindSidebarResizingEvents();
   }
 
   onExpandAllLogsButtonClick() {
@@ -283,12 +299,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     return (
       <div
         style={{ display: this.props.visible ? 'block' : 'none', overflow: 'auto', height: '100vh' }}
-        // TODO: Do this more efficently.
-        // Isn't it overkill to listen all the mouse events on this element?
-        // Maybe you can do this with mouse-handler?
+        ref={this.containerRef as any}
         onMouseDown={this.binded.onMouseDown as any}
-        onMouseMove={this.binded.onMouseMove as any}
-        onMouseUp={this.binded.onMouseUp as any}
         onMouseLeave={this.binded.onMouseLeave as any}
       >
         <Layout style={{ height: '100%', overflow: 'hidden' }}>
