@@ -50,7 +50,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
-    onGroupingModeChange: this.onGroupingModeChange.bind(this),
     onWindowResize: _.throttle(this.onWindowResize.bind(this), 500),
     handleSpanSelect: this.handleSpanSelect.bind(this),
     handleSpanDeselect: this.handleSpanDeselect.bind(this),
@@ -65,6 +64,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onMouseUp: this.onMouseUp.bind(this),
     onMouseLeave: this.onMouseLeave.bind(this),
     onExpandAllLogsButtonClick: this.onExpandAllLogsButtonClick.bind(this),
+    onGroupingModeMenuClick: this.onGroupingModeMenuClick.bind(this),
   };
 
 
@@ -121,12 +121,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       highlightedLogId: '',
     });
     this.timelineView.removeTrace(trace);
-  }
-
-
-  onGroupingModeChange(value: string) {
-    this.timelineView.viewSettings.setGroupingKey(value);
-    this.setState({ groupingMode: value });
   }
 
   toggleSidebarVisibility(isVisible: boolean) {
@@ -292,6 +286,16 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.setState({ expandedLogIds: spanLogViews.map(v => v.id) });
   }
 
+  onGroupingModeMenuClick(data: any) {
+    if (data.key === 'add-grouping') {
+      // TODO: Open modal to add/test grouping
+      return;
+    }
+
+    this.timelineView.viewSettings.setGroupingKey(data.key);
+    this.setState({ groupingMode: data.key });
+  }
+
   render() {
     const span: Span = this.state.selectedSpanView ? (this.state.selectedSpanView as any).span : {};
     const spanLogViews = this.state.selectedSpanView ? (this.state.selectedSpanView! as SpanView).getLogViews() : [];
@@ -309,15 +313,20 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               <div className="left">
 
                 <Dropdown overlay={
-                  <Menu>
-                    <Menu.Item key="0">
-                      <a href="http://www.alipay.com/">1st menu item</a>
+                  <Menu selectedKeys={[ this.state.groupingMode ]} onClick={this.binded.onGroupingModeMenuClick}>
+                    <Menu.Item key={TraceGrouping.KEY}>
+                      Trace
                     </Menu.Item>
-                    <Menu.Item key="1">
-                      <a href="http://www.taobao.com/">2nd menu item</a>
+                    <Menu.Item key={ProcessGrouping.KEY}>
+                      Process
+                    </Menu.Item>
+                    <Menu.Item key={ServiceNameGrouping.KEY}>
+                      Service Name
                     </Menu.Item>
                     <Menu.Divider />
-                    <Menu.Item key="3">3rd menu item</Menu.Item>
+                    <Menu.Item key="add-grouping">
+                      <Icon type="plus" /> Create new
+                    </Menu.Item>
                   </Menu>
                 } trigger={['click']}>
                   <Tooltip placement="right" title="Grouping Mode" mouseEnterDelay={1}>
@@ -329,14 +338,12 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
                 <Dropdown overlay={
                   <Menu>
-                    <Menu.Item key="0">
-                      <a href="http://www.alipay.com/">1st menu item</a>
-                    </Menu.Item>
-                    <Menu.Item key="1">
-                      <a href="http://www.taobao.com/">2nd menu item</a>
-                    </Menu.Item>
+                    <Menu.Item key="operation">Operation Name</Menu.Item>
+                    <Menu.Item key="service-operation">Service + Operation Name</Menu.Item>
                     <Menu.Divider />
-                    <Menu.Item key="3">3rd menu item</Menu.Item>
+                    <Menu.Item key="add-grouping">
+                      <Icon type="plus" /> Create new
+                    </Menu.Item>
                   </Menu>
                 } trigger={['click']}>
                   <Tooltip placement="right" title="Span Labelling" mouseEnterDelay={1}>
@@ -348,14 +355,13 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
                 <Dropdown overlay={
                   <Menu>
-                    <Menu.Item key="0">
-                      <a href="http://www.alipay.com/">1st menu item</a>
-                    </Menu.Item>
-                    <Menu.Item key="1">
-                      <a href="http://www.taobao.com/">2nd menu item</a>
-                    </Menu.Item>
+                    <Menu.Item key="service-name">Service Name</Menu.Item>
+                    <Menu.Item key="operation-name">Operation Name</Menu.Item>
+                    <Menu.Item key="label">Label</Menu.Item>
                     <Menu.Divider />
-                    <Menu.Item key="3">3rd menu item</Menu.Item>
+                    <Menu.Item key="add-grouping">
+                      <Icon type="plus" /> Create new
+                    </Menu.Item>
                   </Menu>
                 } trigger={['click']}>
                   <Tooltip placement="right" title="Span Coloring" mouseEnterDelay={1}>
@@ -406,31 +412,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               <TabPane tab="General" key="general">
                 <div style={{ margin: '0 10px 10px 10px' }}>
                   <h4>View Settings</h4>
-                  <div className="sidebar-row">
-                    <span>Group by:</span>
-                    <Select
-                      style={{ width: 120 }}
-                      defaultValue={this.state.groupingMode}
-                      onChange={this.binded.onGroupingModeChange}
-                      size="small"
-                      dropdownRender={menu => (
-                        <div>
-                          {menu}
-                          <Divider style={{ margin: '4px 0' }} />
-                          <div
-                            style={{ padding: '4px 8px', marginBottom: 5, cursor: 'pointer' }}
-                            onMouseDown={e => e.preventDefault()}
-                          >
-                            <Icon type="plus" /> Add grouping
-                          </div>
-                        </div>
-                      )}
-                    >
-                      <Option key={TraceGrouping.KEY}>Trace</Option>
-                      <Option key={ProcessGrouping.KEY}>Process</Option>
-                      <Option key={ServiceNameGrouping.KEY}>Service Name</Option>
-                    </Select>
-                  </div>
                   <div className="sidebar-row">
                     <span>Span coloring:</span>
                     <Select defaultValue="operation-name" style={{ width: 120 }} disabled size="small">
