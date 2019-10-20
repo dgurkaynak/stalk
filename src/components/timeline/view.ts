@@ -84,11 +84,7 @@ export default class TimelineView extends EventEmitterExtra {
     spanShadowFilter.setAttribute('y', '-50%');
     spanShadowFilter.setAttribute('width', '200%');
     spanShadowFilter.setAttribute('height', '200%');
-    spanShadowFilter.innerHTML = (
-      `<feOffset result="offOut" in="SourceAlpha" dx="0" dy="0"></feOffset>
-      <feGaussianBlur result="blurOut" in="offOut" stdDeviation="3"></feGaussianBlur>
-      <feBlend in="SourceGraphic" in2="blurOut" mode="normal"></feBlend>`
-    );
+    spanShadowFilter.innerHTML = `<feDropShadow stdDeviation="3 3" in="SourceGraphic" dx="0" dy="0" flood-color="#1F3646" flood-opacity="0.5" result="dropShadow"/>`;
     this.defs.appendChild(spanShadowFilter);
 
     const arrowMarker = document.createElementNS(SVG_NS, 'marker');
