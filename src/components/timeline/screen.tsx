@@ -31,9 +31,9 @@ const HEADER_MENU_HEIGHT = 45;
 
 export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private stage = Stage.getSingleton();
-  private containerRef = React.createRef();
   private timelineContainerRef = React.createRef();
   private timelineView = new TimelineView();
+  private sidebarLogsPanelRef = React.createRef();
   private hoveredTimelineElements: TimelineInteractedElementObject[] = [];
   private sidebarWidth = SIDEBAR_WIDTH;
 
@@ -47,10 +47,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
-    onLogsContainerMouseMove: this.onLogsContainerMouseMove.bind(this),
-    onLogsContainerMouseLeave: this.onLogsContainerMouseLeave.bind(this),
-    onLogsCollapseChange: this.onLogsCollapseChange.bind(this),
-    onExpandAllLogsButtonClick: this.onExpandAllLogsButtonClick.bind(this),
+    onLogsContainerMouseMove: _.throttle(this.onLogsContainerMouseMove.bind(this), 100),
+    onLogsContainerWheel: _.throttle(this.onLogsContainerWheel.bind(this), 100),
+    // Since we throttle mose move & wheel event, they can triggered after mouse leave,
+    // That's why we need to delay it's execution.
+    onLogsContainerMouseLeave: () => setTimeout(this.onLogsContainerMouseLeave.bind(this), 100),
     onGroupingModeMenuClick: this.onGroupingModeMenuClick.bind(this),
     onTimelineMouseIdleMove: this.onTimelineMouseIdleMove.bind(this),
     onTimelineMouseIdleLeave: this.onTimelineMouseIdleLeave.bind(this),
@@ -60,7 +61,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onTimelineClick: this.onTimelineClick.bind(this),
     onTimelineDoubleClick: this.onTimelineDoubleClick.bind(this),
     onSidebarSplitDragFinish: this.onSidebarSplitDragFinish.bind(this),
-    resizeTimelineView: _.debounce(this.resizeTimelineView.bind(this), 500),
+    resizeTimelineView: _.throttle(this.resizeTimelineView.bind(this), 500),
   };
 
   componentDidMount() {
@@ -81,6 +82,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.timelineView.mouseHandler.on(MouseHandlerEvent.WHEEL, this.binded.onTimelineWheel);
     this.timelineView.mouseHandler.on(MouseHandlerEvent.CLICK, this.binded.onTimelineClick);
     this.timelineView.mouseHandler.on(MouseHandlerEvent.DOUBLE_CLICK, this.binded.onTimelineDoubleClick);
+
+    const sidebarLogsPanelRef = this.sidebarLogsPanelRef.current as HTMLDivElement;
+    sidebarLogsPanelRef.addEventListener('mousemove', this.binded.onLogsContainerMouseMove, false);
+    sidebarLogsPanelRef.addEventListener('mouseleave', this.binded.onLogsContainerMouseLeave, false);
+    sidebarLogsPanelRef.addEventListener('wheel', this.binded.onLogsContainerWheel, false);
   }
 
   componentWillUnmount() {
@@ -94,6 +100,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.WHEEL, [this.binded.onTimelineWheel] as any);
     this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.CLICK, [this.binded.onTimelineClick] as any);
     this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.DOUBLE_CLICK, [this.binded.onTimelineDoubleClick] as any);
+
+    const sidebarLogsPanelRef = this.sidebarLogsPanelRef.current as HTMLDivElement;
+    sidebarLogsPanelRef.addEventListener('mousemove', this.binded.onLogsContainerMouseMove, false);
+    sidebarLogsPanelRef.addEventListener('mouseleave', this.binded.onLogsContainerMouseLeave, false);
+    sidebarLogsPanelRef.addEventListener('wheel', this.binded.onLogsContainerWheel, false);
   }
 
   onStageTraceAdded(trace: Trace) {
@@ -335,10 +346,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     if (!selectedSpanView) return;
 
     const element = e.target as Element;
+    if (!element) return;
     const logContainerElement = element.closest(`div[id^='log-item']`);
-    if (!logContainerElement) {
-      return;
-    }
+    if (!logContainerElement) return;
     const logId = logContainerElement.id.replace('log-item-', '');
 
     this.timelineView.annotation.logHighlightAnnotation.prepare({ spanView: selectedSpanView, logId });
@@ -350,8 +360,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.timelineView.annotation.logHighlightAnnotation.unmount();
   }
 
-  onLogsCollapseChange(expandedLogIds: string[]) {
-    this.setState({ expandedLogIds });
+  onLogsContainerWheel(e: WheelEvent) {
+    // Wheel event.target is not changing, it's always the element scroll is started on
+    // That's why we get the real element at that coordinate, pass it to `onLogsContainerMouseMove`
+    this.onLogsContainerMouseMove({ target: document.elementFromPoint(e.clientX, e.clientY) } as any);
   }
 
   highlightAndScrollToLog(logId: string) {
@@ -372,11 +384,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     }
 
     this.setState({ highlightedLogId: logId });
-  }
-
-  onExpandAllLogsButtonClick() {
-    const spanLogViews = this.state.selectedSpanView ? (this.state.selectedSpanView! as SpanView).getLogViews() : [];
-    this.setState({ expandedLogIds: spanLogViews.map(v => v.id) });
   }
 
   onGroupingModeMenuClick(data: any) {
@@ -542,11 +549,17 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   renderSidebar() {
     return (
-      <SplitPane split="horizontal" defaultSize={150} style={{ background: '#f0f2f5' }}>
+      <SplitPane split="horizontal" defaultSize={170} style={{ background: '#f0f2f5' }}>
         {this.renderSpanInfo()}
+
         <SplitPane split="horizontal" defaultSize={150} pane2Style={{ overflowY: 'auto' }}>
           {this.renderSpanTags()}
-          {this.renderSpanLogs()}
+
+          {/* Render logs panel container here, not in `renderSpanLogs` method.
+          So that we can save its reference on `componentDidMount` and bind mouse events */}
+          <div className="sidebar-panel" ref={this.sidebarLogsPanelRef as any}>
+            {this.renderSpanLogs()}
+          </div>
         </SplitPane>
       </SplitPane>
     );
@@ -630,37 +643,32 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   renderSpanLogs() {
     const selectedSpanView: SpanView | undefined = this.state.selectedSpanView as any;
-    if (!selectedSpanView) return null;
+    if (!selectedSpanView) return <div></div>;
     const span = selectedSpanView.span;
     const spanLogViews = selectedSpanView.getLogViews();
-    if (spanLogViews.length === 0) return null;
+    if (spanLogViews.length === 0) return <div></div>;
 
     return (
-      <div className="sidebar-panel">
-        <div
-          onMouseMove={this.binded.onLogsContainerMouseMove as any}
-          onMouseLeave={this.binded.onLogsContainerMouseLeave as any}
-        >
-          {_.map(spanLogViews, (logView) => (
-            <Card
-              size="small"
-              title={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}
-              extra={<a href="#">Copy</a>}
-              style={{ margin: '5px 0' }}
-              bordered={false}
-              key={logView.id}
-              id={`log-item-${logView.id}`}
-              className={logView.id === this.state.highlightedLogId ? 'sidebar-log-card-higlighted' : ''}
-            >
-              {_.map(logView.log.fields, (value, name) => (
-                <div className="sidebar-row mono" key={name}>
-                  <span>{name}:</span>
-                  <span>{value}</span>
-                </div>
-              ))}
-            </Card>
-          ))}
-        </div>
+      <div>
+        {_.map(spanLogViews, (logView) => (
+          <Card
+            size="small"
+            title={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}
+            extra={<a href="#">Copy</a>}
+            style={{ margin: '5px 0' }}
+            bordered={false}
+            key={logView.id}
+            id={`log-item-${logView.id}`}
+            className={logView.id === this.state.highlightedLogId ? 'sidebar-log-card-higlighted' : ''}
+          >
+            {_.map(logView.log.fields, (value, name) => (
+              <div className="sidebar-row mono" key={name}>
+                <span>{name}:</span>
+                <span>{value}</span>
+              </div>
+            ))}
+          </Card>
+        ))}
       </div>
     );
   }
