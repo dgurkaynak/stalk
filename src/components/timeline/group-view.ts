@@ -168,6 +168,14 @@ export default class GroupView extends EventEmitterExtra {
     this.labelText.setAttribute('text-decoration', this.options.isCollapsed ? 'underline': '');
   }
 
+  bringSpanViewToTop(spanId: string) {
+    const spanView = this.spanViews[spanId];
+    spanView.mount({
+      groupContainer: this.container,
+      svgDefs: this.svgDefs!
+    });
+  }
+
   layout() {
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};

@@ -341,8 +341,8 @@ export default class TimelineView extends EventEmitterExtra {
         case SpanView.ViewType.CONTAINER: {
           const spanId = element.getAttribute('data-span-id');
           if (!spanId) return;
-          const spanView = this.annotation.findSpanView(spanId)[1];
-          if (!spanView) return;
+          const [groupView, spanView] = this.annotation.findSpanView(spanId);
+          if (!spanView || !groupView) return;
 
           // Unselect previous one
           this.selectedSpanView && this.selectedSpanView.updateColorStyle('normal');
@@ -350,6 +350,8 @@ export default class TimelineView extends EventEmitterExtra {
           // Select this one
           spanView.updateColorStyle('selected');
           this.selectedSpanView = spanView;
+
+          groupView.bringSpanViewToTop(spanId);
 
           this.annotation.spanConnectionsAnnotation.prepare({ spanView });
           this.annotation.spanConnectionsAnnotation.update();
