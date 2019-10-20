@@ -41,7 +41,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     stageTraces: this.stage.getAll(),
     groupingMode: ProcessGrouping.KEY, // Do not forget to change default value of TimelineViewSettings
     selectedSpanView: null,
-    expandedLogIds: [] as string[],
     highlightedLogId: '',
   };
   binded = {
@@ -111,7 +110,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.setState({
       stageTraces: this.stage.getAll(),
       selectedSpanView: null,
-      expandedLogIds: [] as string[],
       highlightedLogId: '',
     });
     this.timelineView.addTrace(trace);
@@ -121,7 +119,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.setState({
       stageTraces: this.stage.getAll(),
       selectedSpanView: null,
-      expandedLogIds: [] as string[],
       highlightedLogId: '',
     });
     this.timelineView.removeTrace(trace);
@@ -250,27 +247,15 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       this.setState({ selectedSpanView: undefined });
     }
 
-    // `matches` order is from deepest to parent
-    // Let's say if a log is clicked, a span is also clicked
-    // and we want to open sidebar, and then open the log panel
-    // That's why we do `forEachRight`
-    _.forEachRight(matches, ({ type, element }) => {
+    let clickedLogId: string | null = null;
+
+    _.forEach(matches, ({ type, element }) => {
       switch (type) {
 
         case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
           const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
           if (!spanId || !logId) return;
-          const selectedSpanView = this.state.selectedSpanView! as SpanView;
-          if (!selectedSpanView) return;
-          if (selectedSpanView.span.id !== spanId) return;
-          if (this.state.expandedLogIds.indexOf(logId) > -1) {
-            this.highlightAndScrollToLog(logId);
-            return;
-          }
-
-          this.setState({ expandedLogIds: [ ...this.state.expandedLogIds, logId ] }, () => {
-            setTimeout(() => this.highlightAndScrollToLog(logId), 250);
-          });
+          clickedLogId = logId;
           return;
         }
 
@@ -297,7 +282,12 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
           this.timelineView.annotation.intervalHighlightAnnotation.update();
           this.timelineView.annotation.intervalHighlightAnnotation.mount();
 
-          this.setState({ selectedSpanView: spanView });
+          this.setState({ selectedSpanView: spanView }, () => {
+            setTimeout(() => {
+              if (!clickedLogId) return;
+              this.highlightAndScrollToLog(clickedLogId);
+            }, 250);
+          });
           return;
         }
 
