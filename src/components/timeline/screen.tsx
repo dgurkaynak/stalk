@@ -435,7 +435,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
                               ref.type === 'followsFrom' ? 'Follows from:' :
                               ref.type}</span>
                           <span>{(() => {
-                            const spanView = this.timelineView.annotation.findSpanView(ref.spanId)[1];
+                            const spanView = this.timelineView.findSpanView(ref.spanId)[1];
                             if (!spanView) return ref.spanId;
                             return spanView.span.operationName; // TODO: Use viewSettings.spanLabeling func
                           })()}</span>

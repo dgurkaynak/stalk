@@ -210,7 +210,7 @@ export default class TimelineView extends EventEmitterExtra {
           const spanId = element.getAttribute('data-span-id');
           const logId = element.getAttribute('data-log-id');
           if (!spanId || !logId) return;
-          const spanView = this.annotation.findSpanView(spanId)[1];
+          const spanView = this.findSpanView(spanId)[1];
           if (!spanView) return;
           spanView.updateLogStyle(logId, 'normal');
           return;
@@ -219,7 +219,7 @@ export default class TimelineView extends EventEmitterExtra {
         case SpanView.ViewType.CONTAINER: {
           const spanId = element.getAttribute('data-span-id');
           if (!spanId) return;
-          const spanView = this.annotation.findSpanView(spanId)[1];
+          const spanView = this.findSpanView(spanId)[1];
           if (!spanView) return;
           if (spanView === this.selectedSpanView) return;
           spanView.updateColorStyle('normal');
@@ -236,7 +236,7 @@ export default class TimelineView extends EventEmitterExtra {
           const spanId = element.getAttribute('data-span-id');
           const logId = element.getAttribute('data-log-id');
           if (!spanId || !logId) return;
-          const spanView = this.annotation.findSpanView(spanId)[1];
+          const spanView = this.findSpanView(spanId)[1];
           if (!spanView) return;
           spanView.updateLogStyle(logId, 'hover');
           return;
@@ -245,7 +245,7 @@ export default class TimelineView extends EventEmitterExtra {
         case SpanView.ViewType.CONTAINER: {
           const spanId = element.getAttribute('data-span-id');
           if (!spanId) return;
-          const spanView = this.annotation.findSpanView(spanId)[1];
+          const spanView = this.findSpanView(spanId)[1];
           if (!spanView) return;
           if (spanView === this.selectedSpanView) return;
           spanView.updateColorStyle('hover');
@@ -343,7 +343,7 @@ export default class TimelineView extends EventEmitterExtra {
         case SpanView.ViewType.CONTAINER: {
           const spanId = element.getAttribute('data-span-id');
           if (!spanId) return;
-          const [groupView, spanView] = this.annotation.findSpanView(spanId);
+          const [groupView, spanView] = this.findSpanView(spanId);
           if (!spanView || !groupView) return;
 
           // Unselect previous one
@@ -404,7 +404,7 @@ export default class TimelineView extends EventEmitterExtra {
         case SpanView.ViewType.CONTAINER: {
           const spanId = element.getAttribute('data-span-id');
           if (!spanId) return;
-          const [groupView] = this.annotation.findSpanView(spanId);
+          const [groupView] = this.findSpanView(spanId);
           groupView && groupView.toggleSpanView(spanId);
           return;
         }
@@ -453,6 +453,43 @@ export default class TimelineView extends EventEmitterExtra {
     this.annotation.intervalHighlightAnnotation.unmount();
     this.annotation.cursorLineAnnotation.unmount();
     return true;
+  }
+
+  findSpanView(spanId: string | ((spanView: SpanView) => boolean)): [
+    GroupView | undefined,
+    SpanView | undefined
+  ] {
+    if (_.isString(spanId)) {
+      const groupView = _.find(this.groupViews, g => !!g.getSpanViewById(spanId));
+      return [
+        groupView,
+        groupView && groupView.getSpanViewById(spanId)
+      ];
+    } else if (_.isFunction(spanId)) {
+      for (let groupView of this.groupViews) {
+        const spanViews = groupView.getAllSpanViews();
+        const spanView = _.find(spanViews, spanId);
+        if (spanView) {
+          return [ groupView, spanView ];
+        }
+      }
+      return [ undefined, undefined ];
+    } else {
+      throw new Error('Unsupported argument type');
+    }
+  }
+
+  findSpanViews(predicate: (spanView: SpanView) => boolean): [GroupView, SpanView][] {
+    const acc: [GroupView, SpanView][] = [];
+    for (let groupView of this.groupViews) {
+      const spanViews = groupView.getAllSpanViews();
+      spanViews
+        .filter(predicate)
+        .forEach((spanView) => {
+          acc.push([groupView, spanView]);
+        });
+    }
+    return acc;
   }
 
   layout() {

@@ -53,8 +53,8 @@ export default class AnnotationManager {
       underlayPanel: this.underlayPanel,
       overlayPanel: this.overlayPanel,
       viewSettings: this.viewSettings,
-      findSpanView : this.findSpanView.bind(this),
-      findSpanViews : this.findSpanViews.bind(this)
+      findSpanView : this.timelineView.findSpanView.bind(this.timelineView),
+      findSpanViews : this.timelineView.findSpanViews.bind(this.timelineView)
     };
 
     // Do not forget to add these to `.updateAllAnnotations()` method
@@ -110,43 +110,6 @@ export default class AnnotationManager {
       ], a => a.update());
       _.forEach(this.annotations, a => a.update());
     }, 0);
-  }
-
-  findSpanView(spanId: string | ((spanView: SpanView) => boolean)): [
-    GroupView | undefined,
-    SpanView | undefined
-  ] {
-    if (_.isString(spanId)) {
-      const groupView = _.find(this.groupViews, g => !!g.getSpanViewById(spanId));
-      return [
-        groupView,
-        groupView && groupView.getSpanViewById(spanId)
-      ];
-    } else if (_.isFunction(spanId)) {
-      for (let groupView of this.groupViews) {
-        const spanViews = groupView.getAllSpanViews();
-        const spanView = _.find(spanViews, spanId);
-        if (spanView) {
-          return [ groupView, spanView ];
-        }
-      }
-      return [ undefined, undefined ];
-    } else {
-      throw new Error('Unsupported argument type');
-    }
-  }
-
-  findSpanViews(predicate: (spanView: SpanView) => boolean): [GroupView, SpanView][] {
-    const acc: [GroupView, SpanView][] = [];
-    for (let groupView of this.groupViews) {
-      const spanViews = groupView.getAllSpanViews();
-      spanViews
-        .filter(predicate)
-        .forEach((spanView) => {
-          acc.push([groupView, spanView]);
-        });
-    }
-    return acc;
   }
 }
 
