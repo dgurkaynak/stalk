@@ -5,6 +5,7 @@ import * as shortid from 'shortid';
 // import { RandomColorAssigner } from '../color/assigners/randomcolor';
 import { MPN65ColorAssigner } from '../color/assigners/mpn65';
 import { getSpanColors } from '../color/helper';
+import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
 
 // const randomColorAssigner = new RandomColorAssigner();
 const randomColorAssigner = new MPN65ColorAssigner();
@@ -18,14 +19,7 @@ export interface SpanLogViewObject {
   log: SpanLog
 }
 
-enum ViewType {
-  CONTAINER = 's_container',
-  LOG_CIRCLE = 's_log_circle'
-}
-
 export default class SpanView {
-  static ViewType = ViewType;
-
   span: Span;
   private viewSettings: ViewSettings;
   options = {
@@ -102,7 +96,7 @@ export default class SpanView {
     this.updateLabelText();
     this.hideLabel();
 
-    this.container.setAttribute('data-view-type', ViewType.CONTAINER);
+    this.container.setAttribute(TimelineInteractableElementAttribute, TimelineInteractableElementType.SPAN_VIEW_CONTAINER);
     this.container.setAttribute('data-span-id', span.id);
     this.clipPath.id = `clip-path-span-${span.id}`;
     this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
@@ -244,7 +238,7 @@ export default class SpanView {
       circle.setAttribute('stroke', '#000');
       circle.setAttribute('stroke-width', '1');
       circle.setAttribute('clip-path', `url(#${this.clipPath.id})`);
-      circle.setAttribute('data-view-type', ViewType.LOG_CIRCLE);
+      circle.setAttribute(TimelineInteractableElementAttribute, TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE);
       circle.setAttribute('data-log-id', id);
       circle.setAttribute('data-span-id', this.span.id);
       this.container.appendChild(circle);
@@ -267,5 +261,18 @@ export default class SpanView {
 
   getViewPropertiesCache() {
     return { ...this.viewPropertiesCache };
+  }
+
+  static getPropsFromContainer(el: Element) {
+    return {
+      id: el.getAttribute('data-span-id')
+    };
+  }
+
+  static getPropsFromLogCircle(el: Element) {
+    return {
+      id: el.getAttribute('data-log-id'),
+      spanId: el.getAttribute('data-span-id'),
+    };
   }
 }

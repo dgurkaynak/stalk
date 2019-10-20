@@ -4,10 +4,6 @@ import SpanView from '../span-view';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-enum ViewType {
-  RECT = 'soa_circle'
-}
-
 interface SpanOverlayAnnotationSettings {
   spanView: SpanView,
   fill?: string,
@@ -16,8 +12,6 @@ interface SpanOverlayAnnotationSettings {
 }
 
 export default class SpanOverlayAnnotation extends BaseAnnotation {
-  static ViewType = ViewType;
-
   private settings?: SpanOverlayAnnotationSettings;
   private rect = document.createElementNS(SVG_NS, 'rect');
 
@@ -34,8 +28,6 @@ export default class SpanOverlayAnnotation extends BaseAnnotation {
     this.rect.setAttribute('ry', this.settings.barRadius + '');
     this.rect.setAttribute('height', this.settings.barHeight + '');
     this.rect.setAttribute('fill', this.settings.fill!);
-    this.rect.setAttribute('data-view-type', ViewType.RECT);
-    this.rect.setAttribute('data-span-id', this.settings.spanView.span.id);
 
     this.overlayElements = [this.rect];
   }

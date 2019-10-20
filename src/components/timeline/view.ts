@@ -4,20 +4,14 @@ import Axis from './axis';
 import ViewSettings, { TimelineViewSettingsEvent } from './view-settings';
 import EventEmitterExtra from 'event-emitter-extra';
 import AnnotationManager from './annotations/manager';
-import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
+import MouseHandler from './mouse-handler';
 import SpanView from './span-view';
 import { Trace } from '../../model/trace';
 import { BaseGrouping } from '../../model/grouping/base';
 import GroupingManager from '../../model/grouping/manager';
+import { TimelineInteractableElementAttribute, TimelineInteractedElementObject } from './interaction';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
-
-export enum TimelineViewEvent {
-  SPAN_SELECTED = 't_span_selected',
-  SPAN_DESELECTED = 't_span_deselected',
-  LOG_CLICKED = 't_log_clicked',
-  HOVER_CHANGED = 't_hover_changed',
-}
 
 
 export default class TimelineView extends EventEmitterExtra {
@@ -34,8 +28,7 @@ export default class TimelineView extends EventEmitterExtra {
   private annotationOverlayPanel = document.createElementNS(SVG_NS, 'g');
   private panelTranslateY = 0;
 
-  private mouseHandler = new MouseHandler(this.svg);
-  private hoveredElements: { type: string, element: Element }[] = [];
+  readonly mouseHandler = new MouseHandler(this.svg);
 
   private traces: Trace[] = [];
   readonly viewSettings = new ViewSettings();
@@ -43,7 +36,6 @@ export default class TimelineView extends EventEmitterExtra {
   private grouping: BaseGrouping;
   private groupViews: GroupView[] = [];
   private contentHeight = 0; // in pixels
-  private selectedSpanView?: SpanView;
 
   annotation = new AnnotationManager({
     timelineView: this,
@@ -53,13 +45,6 @@ export default class TimelineView extends EventEmitterExtra {
   });
 
   private binded = {
-    onMouseIdleMove: this.onMouseIdleMove.bind(this),
-    onMouseIdleLeave: this.onMouseIdleLeave.bind(this),
-    onWheel: this.onWheel.bind(this),
-    onMousePanStart: this.onMousePanStart.bind(this),
-    onMousePanMove: this.onMousePanMove.bind(this),
-    onClick: this.onClick.bind(this),
-    onDoubleClick: this.onDoubleClick.bind(this),
     onGroupingKeyChanged: this.onGroupingKeyChanged.bind(this),
   };
 
@@ -167,251 +152,26 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   bindEvents() {
-    this.mouseHandler.on(MouseHandlerEvent.IDLE_MOVE, this.binded.onMouseIdleMove);
-    this.mouseHandler.on(MouseHandlerEvent.IDLE_LEAVE, this.binded.onMouseIdleLeave);
-    this.mouseHandler.on(MouseHandlerEvent.PAN_START, this.binded.onMousePanStart);
-    this.mouseHandler.on(MouseHandlerEvent.PAN_MOVE, this.binded.onMousePanMove);
-    this.mouseHandler.on(MouseHandlerEvent.WHEEL, this.binded.onWheel);
-    this.mouseHandler.on(MouseHandlerEvent.CLICK, this.binded.onClick);
-    this.mouseHandler.on(MouseHandlerEvent.DOUBLE_CLICK, this.binded.onDoubleClick);
-
     this.viewSettings.on(TimelineViewSettingsEvent.GROUPING_KEY_CHANGED, this.binded.onGroupingKeyChanged)
   }
 
-  onMouseIdleMove(e: MouseEvent) {
-    if (this.traces.length === 0) return;
-
-    // Update the cursor line
-    if (this.viewSettings.showCursorLine) {
-      this.annotation.cursorLineAnnotation.setTimestampFromScreenPositionX(e.offsetX);
-      this.annotation.cursorLineAnnotation.update();
-      this.annotation.cursorLineAnnotation.mount();
-    }
-
-    // TODO: Maybe debounce below?
-    const matches = this.getViewsFromMouseEvent(e);
-
-    const previousHoveredElements = this.hoveredElements;
-    this.hoveredElements = matches;
-
-    const removed: {
-      type: string,
-      element: Element
-    }[] = _.differenceBy(previousHoveredElements, matches, ({element}) => element);
-    const added: {
-      type: string,
-      element: Element
-    }[] = _.differenceBy(matches, previousHoveredElements, ({element}) => element);
-
-    removed.forEach(({ type, element }) => {
-      switch (type) {
-
-        case SpanView.ViewType.LOG_CIRCLE: {
-          const spanId = element.getAttribute('data-span-id');
-          const logId = element.getAttribute('data-log-id');
-          if (!spanId || !logId) return;
-          const spanView = this.findSpanView(spanId)[1];
-          if (!spanView) return;
-          spanView.updateLogStyle(logId, 'normal');
-          return;
-        }
-
-        case SpanView.ViewType.CONTAINER: {
-          const spanId = element.getAttribute('data-span-id');
-          if (!spanId) return;
-          const spanView = this.findSpanView(spanId)[1];
-          if (!spanView) return;
-          if (spanView === this.selectedSpanView) return;
-          spanView.updateColorStyle('normal');
-          return;
-        }
-
-      }
-    });
-
-    added.forEach(({ type, element }) => {
-      switch (type) {
-
-        case SpanView.ViewType.LOG_CIRCLE: {
-          const spanId = element.getAttribute('data-span-id');
-          const logId = element.getAttribute('data-log-id');
-          if (!spanId || !logId) return;
-          const spanView = this.findSpanView(spanId)[1];
-          if (!spanView) return;
-          spanView.updateLogStyle(logId, 'hover');
-          return;
-        }
-
-        case SpanView.ViewType.CONTAINER: {
-          const spanId = element.getAttribute('data-span-id');
-          if (!spanId) return;
-          const spanView = this.findSpanView(spanId)[1];
-          if (!spanView) return;
-          if (spanView === this.selectedSpanView) return;
-          spanView.updateColorStyle('hover');
-          return;
-        }
-
-      }
-    });
-
-    if (removed.length === 0 && added.length === 0) return;
-    this.emit(TimelineViewEvent.HOVER_CHANGED, { added, removed, current: matches });
-  }
-
-  onMouseIdleLeave(e: MouseEvent) {
-    // Hide cursor line
-    this.annotation.cursorLineAnnotation.unmount();
-  }
-
-  onMousePanStart(e: MouseEvent) {
-    // Hide cursor line
-    this.annotation.cursorLineAnnotation.unmount();
-  }
-
-  onMousePanMove(e: MouseEvent) {
-    const { height: viewportHeight } = this.viewSettings;
-    if (this.contentHeight <= viewportHeight) {
-      // No vertical panning
-    } else {
-      const newTranslateY = this.panelTranslateY + e.movementY;
-      this.panelTranslateY = Math.min(Math.max(newTranslateY, viewportHeight - this.contentHeight), 0);
-    }
-
-    this.viewSettings.getAxis().translate(e.movementX);
-
-    this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-  }
-
-  onWheel(e: WheelEvent) {
-    if (this.traces.length === 0) return;
-
-    this.viewSettings.getAxis().zoom(
-      1 - (this.viewSettings.scrollToZoomFactor * e.deltaY),
-      e.offsetX
-    );
-
-    this.showOrHideLogHighlightAnnotation(null);
-  }
 
   // Array order is from deepest element to root
-  getViewsFromMouseEvent(e: MouseEvent) {
-    let element = e.target as (Element | null);
-    const matches: { type: string, element: Element }[] = [];
+  getInteractedElementsFromMouseEvent(e: MouseEvent): TimelineInteractedElementObject[] {
+    let element = e.target as (SVGElement | null);
+    const matches: TimelineInteractedElementObject[] = [];
 
     while (element && element !== this.svg) {
-      if (element.hasAttribute('data-view-type')) {
+      if (element.hasAttribute(TimelineInteractableElementAttribute)) {
         matches.push({
-          type: element.getAttribute('data-view-type')!,
+          type: element.getAttribute(TimelineInteractableElementAttribute)! as any,
           element: element
         });
       }
-      element = element.parentElement;
+      element = element.parentElement as (SVGElement | null);
     }
 
     return matches;
-  }
-
-  onClick(e: MouseEvent) {
-    if (!e) return;
-    const matches = this.getViewsFromMouseEvent(e);
-
-    const previousSelectedSpan = this.selectedSpanView;
-    if (this.selectedSpanView) {
-      this.selectedSpanView.updateColorStyle('normal');
-      this.selectedSpanView = undefined;
-    }
-
-    // `matches` order is from deepest to parent
-    // Let's say if a log is clicked, a span is also clicked
-    // and we want to open sidebar, and then open the log panel
-    // That's why we do `forEachRight`
-    _.forEachRight(matches, ({ type, element }) => {
-      switch (type) {
-
-        case SpanView.ViewType.LOG_CIRCLE: {
-          const spanId = element.getAttribute('data-span-id');
-          const logId = element.getAttribute('data-log-id');
-          if (!spanId || !logId) return;
-          this.emit(TimelineViewEvent.LOG_CLICKED, { spanId, logId });
-          return;
-        }
-
-        case SpanView.ViewType.CONTAINER: {
-          const spanId = element.getAttribute('data-span-id');
-          if (!spanId) return;
-          const [groupView, spanView] = this.findSpanView(spanId);
-          if (!spanView || !groupView) return;
-
-          // Unselect previous one
-          this.selectedSpanView && this.selectedSpanView.updateColorStyle('normal');
-
-          // Select this one
-          spanView.updateColorStyle('selected');
-          this.selectedSpanView = spanView;
-
-          groupView.bringSpanViewToTop(spanId);
-
-          this.annotation.spanConnectionsAnnotation.prepare({ spanView });
-          this.annotation.spanConnectionsAnnotation.update();
-          this.annotation.spanConnectionsAnnotation.mount();
-          this.annotation.intervalHighlightAnnotation.prepare({
-            startTimestamp: spanView.span.startTime,
-            finishTimestamp: spanView.span.finishTime,
-            lineColor: 'rgba(0, 0, 0, 0.5)',
-            fillColor: `rgba(0, 0, 0, 0.035)`
-          });
-          this.annotation.intervalHighlightAnnotation.mount();
-
-          this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
-          return;
-        }
-
-      }
-    });
-
-    if (!this.selectedSpanView) {
-      this.emit(TimelineViewEvent.SPAN_DESELECTED, previousSelectedSpan);
-      this.annotation.spanConnectionsAnnotation.unmount();
-      this.annotation.intervalHighlightAnnotation.unmount();
-    }
-
-  }
-
-  onDoubleClick(e: MouseEvent) {
-    if (!e) return;
-    const matches = this.getViewsFromMouseEvent(e);
-    matches.forEach(({ type, element }) => {
-      switch (type) {
-
-        case SpanView.ViewType.LOG_CIRCLE: {
-          // NOOP
-          return;
-        }
-
-        case GroupView.ViewType.LABEL_TEXT: {
-          const groupId = element.getAttribute('data-group-id');
-          if (!groupId) return;
-          const groupView = _.find(this.groupViews, v => v.group.id === groupId);
-          if (!groupView) return;
-          groupView && groupView.toggleView();
-          return;
-        }
-
-        case SpanView.ViewType.CONTAINER: {
-          const spanId = element.getAttribute('data-span-id');
-          if (!spanId) return;
-          const [groupView] = this.findSpanView(spanId);
-          groupView && groupView.toggleSpanView(spanId);
-          return;
-        }
-
-      }
-    });
-
   }
 
   dispose() {
@@ -453,6 +213,16 @@ export default class TimelineView extends EventEmitterExtra {
     this.annotation.intervalHighlightAnnotation.unmount();
     this.annotation.cursorLineAnnotation.unmount();
     return true;
+  }
+
+  findGroupView(groupId: string | ((groupView: GroupView) => boolean)): GroupView | undefined {
+    if (_.isString(groupId)) {
+      return _.find(this.groupViews, g => g.group.id === groupId);
+    } else if (_.isFunction(groupId)) {
+      return _.find(this.groupViews, groupId);
+    } else {
+      throw new Error('Unsupported argument type');
+    }
   }
 
   findSpanView(spanId: string | ((spanView: SpanView) => boolean)): [
@@ -573,5 +343,18 @@ export default class TimelineView extends EventEmitterExtra {
     this.annotation.logHighlightAnnotation.prepare({ spanView: options.spanView, logId: options.logId });
     this.annotation.logHighlightAnnotation.update();
     this.annotation.logHighlightAnnotation.mount();
+  }
+
+  updatePanelsTranslateY(offsetY: number) {
+    const { height: viewportHeight } = this.viewSettings;
+    if (this.getContentHeight() <= viewportHeight) return;
+
+    const newTranslateY = this.panelTranslateY + offsetY;
+    this.panelTranslateY = Math.min(Math.max(newTranslateY, viewportHeight - this.contentHeight), 0);
+
+    this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
   }
 }

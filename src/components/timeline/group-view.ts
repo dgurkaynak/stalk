@@ -5,6 +5,7 @@ import GroupSpanNode from '../../model/group/group-span-node';
 import ViewSettings from './view-settings';
 import EventEmitterExtra from 'event-emitter-extra';
 import { AxisEvent } from './axis';
+import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
 
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -20,14 +21,8 @@ export enum GroupViewEvent {
   LAYOUT = 'layout'
 }
 
-enum ViewType {
-  LABEL_TEXT = 'g_label_text'
-}
-
 
 export default class GroupView extends EventEmitterExtra {
-  static ViewType = ViewType;
-
   readonly group: Group;
   private viewSettings: ViewSettings;
   private spanViews: { [key: string]: SpanView} = {};
@@ -77,7 +72,7 @@ export default class GroupView extends EventEmitterExtra {
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
     this.labelText.setAttribute('font-size', `${this.viewSettings.groupLabelFontSize}px`);
-    this.labelText.setAttribute('data-view-type', ViewType.LABEL_TEXT);
+    this.labelText.setAttribute(TimelineInteractableElementAttribute, TimelineInteractableElementType.GROUP_VIEW_LABEL_TEXT);
     this.labelText.setAttribute('data-group-id', this.group.id);
   }
 
@@ -335,5 +330,11 @@ export default class GroupView extends EventEmitterExtra {
 
   getViewPropertiesCache() {
     return { ...this.viewPropertiesCache };
+  }
+
+  static getPropsFromLabelText(el: Element) {
+    return {
+      id: el.getAttribute('data-group-id')
+    };
   }
 }
