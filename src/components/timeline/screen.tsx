@@ -136,7 +136,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     const selectedSpanView = this.state.selectedSpanView! as SpanView;
     if (!selectedSpanView) return;
     if (selectedSpanView.span.id !== data.spanId) return;
-    if (this.state.expandedLogIds.indexOf(data.logId) > -1) return;
+    if (this.state.expandedLogIds.indexOf(data.logId) > -1) {
+      this.highlightAndScrollToLog(data.logId);
+      return;
+    }
+
     this.setState({ expandedLogIds: [ ...this.state.expandedLogIds, data.logId ] }, () => {
       setTimeout(() => this.highlightAndScrollToLog(data.logId), 250);
     });
