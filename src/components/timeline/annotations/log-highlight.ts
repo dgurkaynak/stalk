@@ -8,6 +8,7 @@ interface LogHighlightAnnotationSettings {
   spanView: SpanView,
   logId: string,
   lineColor?: string,
+  lineDashArray?: string,
   circleColor?: string,
   circleRadius?: string,
   circleStrokeWidth?: number,
@@ -22,6 +23,7 @@ export default class LogHighlightAnnotation extends BaseAnnotation {
   prepare(settings: LogHighlightAnnotationSettings) {
     this.settings = _.defaults(settings, {
       lineColor: '#000',
+      lineDashArray: 0,
       circleColor: '#fff',
       circleRadius: this.deps.viewSettings.spanLogCircleRadius,
       circleStrokeWidth: 2,
@@ -37,6 +39,7 @@ export default class LogHighlightAnnotation extends BaseAnnotation {
     const height = Math.max(this.deps.timelineView.getContentHeight(), this.deps.viewSettings.height);
     this.line.setAttribute('y2', height + '');
     this.line.setAttribute('stroke', this.settings.lineColor!);
+    this.line.setAttribute('stroke-dasharray', this.settings.lineDashArray!);
 
     this.circle.setAttribute('cx', '0');
     this.circle.setAttribute('cy', '0');

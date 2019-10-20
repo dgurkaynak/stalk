@@ -21,7 +21,7 @@ export default class VerticalLineAnnotation extends BaseAnnotation {
 
   prepare(settings: VerticalLineAnnotationSettings) {
     this.settings = _.defaults(settings, {
-      lineColor: '#ccc',
+      lineColor: '#000',
       lineWidth: 1,
       position: 'underlay',
       displayTime: false,

@@ -75,7 +75,7 @@ export default class TimelineView extends EventEmitterExtra {
 
     this.svg.appendChild(this.defs);
 
-    this.annotation.cursorLineAnnotation.prepare({ timestamp: null });
+    this.annotation.cursorLineAnnotation.prepare({ timestamp: null, lineColor: '#ccc' });
     this.annotation.cursorLineAnnotation.mount();
 
     const spanShadowFilter = document.createElementNS(SVG_NS, 'filter');
@@ -354,6 +354,13 @@ export default class TimelineView extends EventEmitterExtra {
           this.annotation.spanConnectionsAnnotation.prepare({ spanView });
           this.annotation.spanConnectionsAnnotation.update();
           this.annotation.spanConnectionsAnnotation.mount();
+          this.annotation.intervalHighlightAnnotation.prepare({
+            startTimestamp: spanView.span.startTime,
+            finishTimestamp: spanView.span.finishTime,
+            lineColor: 'rgba(0, 0, 0, 0.5)',
+            fillColor: `rgba(0, 0, 0, 0.035)`
+          });
+          this.annotation.intervalHighlightAnnotation.mount();
 
           this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
           return;
@@ -365,6 +372,7 @@ export default class TimelineView extends EventEmitterExtra {
     if (!this.selectedSpanView) {
       this.emit(TimelineViewEvent.SPAN_DESELECTED, previousSelectedSpan);
       this.annotation.spanConnectionsAnnotation.unmount();
+      this.annotation.intervalHighlightAnnotation.unmount();
     }
 
   }
@@ -415,6 +423,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.layout();
     this.annotation.logHighlightAnnotation.unmount();
     this.annotation.spanConnectionsAnnotation.unmount();
+    this.annotation.intervalHighlightAnnotation.unmount();
   }
 
   addTrace(trace: Trace) {
@@ -425,6 +434,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.layout();
     this.annotation.logHighlightAnnotation.unmount();
     this.annotation.spanConnectionsAnnotation.unmount();
+    this.annotation.intervalHighlightAnnotation.unmount();
     this.annotation.cursorLineAnnotation.unmount();
     return true;
   }
@@ -436,6 +446,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.layout();
     this.annotation.logHighlightAnnotation.unmount();
     this.annotation.spanConnectionsAnnotation.unmount();
+    this.annotation.intervalHighlightAnnotation.unmount();
     this.annotation.cursorLineAnnotation.unmount();
     return true;
   }
