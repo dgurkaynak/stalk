@@ -173,12 +173,12 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
           toControlXOffset = 25;
         }
 
-        fromX = Math.max(fromSpanStartX, fromX - toControlXOffset);
+        // fromX = Math.max(fromSpanStartX, fromX - toControlXOffset);
         fromControlX = fromX;
         toControlX = toX - toControlXOffset;
 
       } else {
-        // Just draw linear-ish line
+        // Just draw horizontal linear-ish line
         fromControlX = fromX + 50;
         fromControlY = fromY;
         toControlX = toX - 50;
