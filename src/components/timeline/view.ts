@@ -163,8 +163,8 @@ export default class TimelineView extends EventEmitterExtra {
     this.defs.appendChild(this.viewportClipPath);
 
     this.viewportContainer.setAttribute('clip-path', 'url(#viewport-clip-path)');
-    this.viewportContainer.appendChild(this.groupNamePanel);
     this.viewportContainer.appendChild(this.annotationUnderlayPanel);
+    this.viewportContainer.appendChild(this.groupNamePanel);
     this.viewportContainer.appendChild(this.timelinePanel);
     this.viewportContainer.appendChild(this.annotationOverlayPanel);
     this.svg.appendChild(this.viewportContainer);
