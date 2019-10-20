@@ -24,7 +24,7 @@ export default class VerticalLineAnnotation extends BaseAnnotation {
       lineColor: '#ccc',
       lineWidth: 1,
       position: 'underlay',
-      displayTime: true,
+      displayTime: false,
       timeOffsetToBottom: 10,
       timeOffsetToLine: 5,
       timeFontColor: '#aaa',
