@@ -15,6 +15,9 @@ export default class TimelineViewSettings extends EventEmitterExtra {
   get groupingKey() { return this._groupingKey; };
   readonly scrollToZoomFactor = 0.01;
 
+  readonly cursorLineColor = '#ccc';
+  showCursorLine = false;
+
   readonly groupSeperatorLineColor = '#cccccc';
   readonly groupSeperatorLineWidth = 1;
   readonly groupLabelOffsetX = 3;

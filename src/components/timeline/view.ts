@@ -75,8 +75,8 @@ export default class TimelineView extends EventEmitterExtra {
 
     this.svg.appendChild(this.defs);
 
-    this.annotation.cursorLineAnnotation.prepare({ timestamp: null, lineColor: '#ccc' });
-    this.annotation.cursorLineAnnotation.mount();
+    this.annotation.cursorLineAnnotation.prepare({ timestamp: null, lineColor: this.viewSettings.cursorLineColor });
+    this.viewSettings.showCursorLine && this.annotation.cursorLineAnnotation.mount();
 
     const spanShadowFilter = document.createElementNS(SVG_NS, 'filter');
     spanShadowFilter.id = 'span-shadow';
@@ -133,7 +133,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.svg.setAttribute('height', `${height}`);
     this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-    this.annotation.cursorLineAnnotation.update();
+    this.viewSettings.showCursorLine && this.annotation.cursorLineAnnotation.update();
 
     this.viewportClipPathRect.setAttribute('width', `${width}`);
     this.viewportClipPathRect.setAttribute('height', `${height}`);
@@ -182,9 +182,11 @@ export default class TimelineView extends EventEmitterExtra {
     if (this.traces.length === 0) return;
 
     // Update the cursor line
-    this.annotation.cursorLineAnnotation.setTimestampFromScreenPositionX(e.offsetX);
-    this.annotation.cursorLineAnnotation.update();
-    this.annotation.cursorLineAnnotation.mount();
+    if (this.viewSettings.showCursorLine) {
+      this.annotation.cursorLineAnnotation.setTimestampFromScreenPositionX(e.offsetX);
+      this.annotation.cursorLineAnnotation.update();
+      this.annotation.cursorLineAnnotation.mount();
+    }
 
     // TODO: Maybe debounce below?
     const matches = this.getViewsFromMouseEvent(e);
@@ -501,7 +503,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
 
-    // Show & hide cursor line
+    // Hide cursor line
     this.annotation.cursorLineAnnotation.unmount();
   }
 
