@@ -1,5 +1,5 @@
 .timeline-screen-header {
-  height: 64px;
+  height: 45px;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0,21,41,.08);
   display: flex;
@@ -13,8 +13,8 @@
   height: 100%;
   padding: 0 12px;
   cursor: pointer;
-  height: 64px;
-  line-height: 68px;
+  height: 45px;
+  line-height: 48px;
   transition: background .3s;
 }
 
@@ -27,8 +27,21 @@
   background: rgba(0,0,0,.025);
 }
 
-.timeline-sidebar {
-  border-left: 1px solid rgb(217, 217, 217);
+.sidebar-panel {
+  width: 100%;
+  background: #f0f2f5;
+  overflow: hidden;
+  padding: 5px 10px;
+}
+
+.sidebar-panel-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-panel-card > .ant-card-body {
   overflow-y: auto;
 }
 
@@ -56,12 +69,14 @@
   background: #f5f5f5;
 }
 
-.sidebar-log-panel-higlighted {
-  background: #1890ff;
+[id^="log-item-"]:hover,
+.sidebar-log-card-higlighted {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.sidebar-log-panel-higlighted > .ant-collapse-header{
-  color: #fff !important;
+[id^="log-item-"]:hover .ant-card-head,
+.sidebar-log-card-higlighted .ant-card-head {
+  background: rgb(230, 247, 255);
 }
 
 svg.timeline-svg text {
@@ -72,19 +87,54 @@ svg.timeline-svg text {
   user-select: none;
 }
 
-#timeline-sidebar-resize-handle {
-  position: absolute;
-  width: 6px;
-  height: 100%;
-  right: 0;
-  top: 0;
+/* https://github.com/tomkp/react-split-pane */
+.Resizer {
+  background: #000;
+  opacity: 0;
+  z-index: 1;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding;
+  background-clip: padding-box;
+}
+
+.Resizer:hover {
+  -webkit-transition: all 2s ease;
+  transition: all 2s ease;
+  opacity: .2;
+}
+
+.Resizer.horizontal {
+  height: 11px;
+  margin: -5px 0;
+  border-top: 5px solid rgba(255, 255, 255, 0);
+  border-bottom: 5px solid rgba(255, 255, 255, 0);
+  cursor: row-resize;
+  width: 100%;
+}
+
+.Resizer.horizontal:hover {
+  border-top: 5px solid rgba(0, 0, 0, 0.5);
+  border-bottom: 5px solid rgba(0, 0, 0, 0.5);
+}
+
+.Resizer.vertical {
+  width: 11px;
+  margin: 0 -5px;
+  border-left: 5px solid rgba(255, 255, 255, 0);
+  border-right: 5px solid rgba(255, 255, 255, 0);
   cursor: col-resize;
 }
 
-#timeline-sidebar-resize-handle > div {
-  width: 2px;
-  height: 100%;
-  position: relative;
-  left: 2px;
-  background: #000;
+.Resizer.vertical:hover {
+  border-left: 5px solid rgba(0, 0, 0, 0.5);
+  border-right: 5px solid rgba(0, 0, 0, 0.5);
+}
+.Resizer.disabled {
+cursor: not-allowed;
+}
+.Resizer.disabled:hover {
+border-color: transparent;
 }

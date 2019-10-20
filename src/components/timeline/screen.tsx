@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import React from 'react';
-import { Icon, Layout, Divider, Badge, Empty, Collapse, Button, Tooltip, Menu, Dropdown } from 'antd';
+import { Icon, Layout, Empty, Badge, Card, Tooltip, Menu, Dropdown } from 'antd';
 import { Stage, StageEvent } from '../../model/stage';
 import ColorManagers from '../color/managers';
 import TimelineView from './view';
@@ -9,17 +9,16 @@ import { MouseHandlerEvent } from './mouse-handler';
 import prettyMilliseconds from 'pretty-ms';
 import scroll from 'scroll';
 import SpanView from './span-view';
-import { Span } from '../../model/span';
 import ProcessGrouping from '../../model/grouping/process';
 import ServiceNameGrouping from '../../model/grouping/service-name';
 import TraceGrouping from '../../model/grouping/trace';
+import SplitPane from 'react-split-pane';
 
 
 import './timeline.css';
 import { Trace } from '../../model/trace';
 import GroupView from './group-view';
-const { Sider, Content } = Layout;
-const { Panel } = Collapse;
+const { Content } = Layout;
 
 
 export interface TimelineScreenProps {
@@ -27,9 +26,8 @@ export interface TimelineScreenProps {
 }
 
 const SIDEBAR_WIDTH = 320;
-const SIDEBAR_RESIZE_HANDLE_WIDTH = 6;
 const LEFT_MENU_WIDTH = 80;
-const HEADER_MENU_HEIGHT = 64;
+const HEADER_MENU_HEIGHT = 45;
 
 export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private stage = Stage.getSingleton();
@@ -37,6 +35,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private timelineContainerRef = React.createRef();
   private timelineView = new TimelineView();
   private hoveredTimelineElements: TimelineInteractedElementObject[] = [];
+  private sidebarWidth = SIDEBAR_WIDTH;
 
   state = {
     stageTraces: this.stage.getAll(),
@@ -44,21 +43,13 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     selectedSpanView: null,
     expandedLogIds: [] as string[],
     highlightedLogId: '',
-    sidebarWidth: SIDEBAR_WIDTH,
-    sidebarResizeHandleTranslateX: -SIDEBAR_WIDTH + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2),
-    isSidebarResizing: false
   };
   binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
-    resizeTimelineViewAccordingToSidebar: _.throttle(this.resizeTimelineViewAccordingToSidebar.bind(this), 500),
     onLogsContainerMouseMove: this.onLogsContainerMouseMove.bind(this),
     onLogsContainerMouseLeave: this.onLogsContainerMouseLeave.bind(this),
     onLogsCollapseChange: this.onLogsCollapseChange.bind(this),
-    onMouseDown: this.onMouseDown.bind(this),
-    onMouseMove: this.onMouseMove.bind(this),
-    onMouseUp: this.onMouseUp.bind(this),
-    onMouseLeave: this.onMouseLeave.bind(this),
     onExpandAllLogsButtonClick: this.onExpandAllLogsButtonClick.bind(this),
     onGroupingModeMenuClick: this.onGroupingModeMenuClick.bind(this),
     onTimelineMouseIdleMove: this.onTimelineMouseIdleMove.bind(this),
@@ -68,17 +59,19 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onTimelineWheel: this.onTimelineWheel.bind(this),
     onTimelineClick: this.onTimelineClick.bind(this),
     onTimelineDoubleClick: this.onTimelineDoubleClick.bind(this),
+    onSidebarSplitDragFinish: this.onSidebarSplitDragFinish.bind(this),
+    resizeTimelineView: _.debounce(this.resizeTimelineView.bind(this), 500),
   };
 
   componentDidMount() {
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
-    window.addEventListener('resize', this.binded.resizeTimelineViewAccordingToSidebar, false);
+    window.addEventListener('resize', this.binded.resizeTimelineView, false);
 
     const containerEl = this.timelineContainerRef.current as HTMLDivElement;
     const { innerWidth, innerHeight } = window;
     this.timelineView.init(containerEl, {
-      width: innerWidth - LEFT_MENU_WIDTH,
+      width: innerWidth - LEFT_MENU_WIDTH - this.sidebarWidth,
       height: innerHeight - HEADER_MENU_HEIGHT
     });
     this.timelineView.mouseHandler.on(MouseHandlerEvent.IDLE_MOVE, this.binded.onTimelineMouseIdleMove);
@@ -93,7 +86,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   componentWillUnmount() {
     this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.removeListener(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
-    window.removeEventListener('resize', this.binded.resizeTimelineViewAccordingToSidebar, false);
+    window.removeEventListener('resize', this.binded.resizeTimelineView, false);
     this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.IDLE_MOVE, [this.binded.onTimelineMouseIdleMove] as any);
     this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.IDLE_LEAVE, [this.binded.onTimelineMouseIdleLeave] as any);
     this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.PAN_START, [this.binded.onTimelineMousePanStart] as any);
@@ -109,8 +102,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       selectedSpanView: null,
       expandedLogIds: [] as string[],
       highlightedLogId: '',
-    }, () => {
-      this.resizeTimelineViewAccordingToSidebar();
     });
     this.timelineView.addTrace(trace);
   }
@@ -121,18 +112,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       selectedSpanView: null,
       expandedLogIds: [] as string[],
       highlightedLogId: '',
-    }, () => {
-      this.resizeTimelineViewAccordingToSidebar();
     });
     this.timelineView.removeTrace(trace);
-  }
-
-  resizeTimelineViewAccordingToSidebar() {
-    const { innerWidth, innerHeight } = window;
-    this.timelineView.resize(
-      innerWidth - LEFT_MENU_WIDTH - (this.state.selectedSpanView ? this.state.sidebarWidth : 0),
-      innerHeight - HEADER_MENU_HEIGHT
-    );
   }
 
   /**
@@ -295,17 +276,17 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
           this.timelineView.annotation.spanConnectionsAnnotation.prepare({ spanView });
           this.timelineView.annotation.spanConnectionsAnnotation.update();
           this.timelineView.annotation.spanConnectionsAnnotation.mount();
+
           this.timelineView.annotation.intervalHighlightAnnotation.prepare({
             startTimestamp: spanView.span.startTime,
             finishTimestamp: spanView.span.finishTime,
             lineColor: 'rgba(0, 0, 0, 0.5)',
             fillColor: `rgba(0, 0, 0, 0.035)`
           });
+          this.timelineView.annotation.intervalHighlightAnnotation.update();
           this.timelineView.annotation.intervalHighlightAnnotation.mount();
 
-          this.setState({ selectedSpanView: spanView }, () => {
-            this.resizeTimelineViewAccordingToSidebar();
-          });
+          this.setState({ selectedSpanView: spanView });
           return;
         }
 
@@ -313,10 +294,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     });
 
     if (!this.state.selectedSpanView) {
-      this.setState({ selectedSpanView: null }, () => {
-        this.resizeTimelineViewAccordingToSidebar();
-      });
-
+      this.setState({ selectedSpanView: null });
       this.timelineView.annotation.spanConnectionsAnnotation.unmount();
       this.timelineView.annotation.intervalHighlightAnnotation.unmount();
     }
@@ -357,11 +335,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     if (!selectedSpanView) return;
 
     const element = e.target as Element;
-    const logContainerElement = element.closest(`div[id^='log-panel']`);
+    const logContainerElement = element.closest(`div[id^='log-item']`);
     if (!logContainerElement) {
       return;
     }
-    const logId = logContainerElement.id.replace('log-panel-', '');
+    const logId = logContainerElement.id.replace('log-item-', '');
 
     this.timelineView.annotation.logHighlightAnnotation.prepare({ spanView: selectedSpanView, logId });
     this.timelineView.annotation.logHighlightAnnotation.mount();
@@ -377,73 +355,23 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   }
 
   highlightAndScrollToLog(logId: string) {
-    const logPanelEl = document.getElementById(`log-panel-${logId}`);
-    if (!logPanelEl) return;
-    const sidebarEl = document.getElementsByClassName('timeline-sidebar')[0];
-    if (!sidebarEl) return;
-    const { innerHeight } = window;
-    const { offsetTop } = logPanelEl;
-    const clientRect = logPanelEl.getBoundingClientRect();
+    const logItemEl = document.getElementById(`log-item-${logId}`);
+    if (!logItemEl) return;
+    const logsPane = logItemEl.closest('.Pane');
+    if (!logsPane) return;
+
+    const { offsetTop } = logItemEl;
+    const logsPaneRect = logsPane.getBoundingClientRect();
+    const logItemRect = logItemEl.getBoundingClientRect();
 
 
-    if (clientRect.top >= 0 && clientRect.bottom <= innerHeight) {
+    if (logItemRect.top >= logsPaneRect.top && logItemRect.bottom <= logsPaneRect.bottom) {
       // Log panel is completely visible, NOOP
     } else {
-      scroll.top(sidebarEl, offsetTop);
+      scroll.top(logsPane, offsetTop);
     }
 
     this.setState({ highlightedLogId: logId });
-  }
-
-  onMouseDown(e: MouseEvent) {
-    // Sidebar resize handle element contains just one child
-    const targetEl = e.target as Element;
-    const parentEl = targetEl.parentElement!;
-    if ([targetEl.id, parentEl.id].indexOf('timeline-sidebar-resize-handle') === -1) {
-      if (!this.state.isSidebarResizing) return;
-      this.setState({ isSidebarResizing: false });
-      this.unbindSidebarResizingEvents();
-      return;
-    }
-
-    this.bindSidebarResizingEvents();
-    this.setState({ isSidebarResizing: true });
-  }
-
-  bindSidebarResizingEvents() {
-    const el = this.containerRef.current as HTMLDivElement;
-    el.addEventListener('mousemove', this.binded.onMouseMove, false);
-    el.addEventListener('mouseup', this.binded.onMouseUp, false);
-  }
-
-  unbindSidebarResizingEvents() {
-    const el = this.containerRef.current as HTMLDivElement;
-    el.removeEventListener('mousemove', this.binded.onMouseMove, false);
-    el.removeEventListener('mouseup', this.binded.onMouseUp, false);
-  }
-
-  onMouseMove(e: MouseEvent) {
-    this.setState({
-      sidebarResizeHandleTranslateX: e.clientX - window.innerWidth + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2)
-    });
-  }
-
-  onMouseUp(e: MouseEvent) {
-    // Apply!
-    const sidebarWidth = -this.state.sidebarResizeHandleTranslateX + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2);
-    this.setState({ isSidebarResizing: false, sidebarWidth }, () => {
-      this.resizeTimelineViewAccordingToSidebar();
-    });
-    this.unbindSidebarResizingEvents();
-  }
-
-  onMouseLeave(e: MouseEvent) {
-    // Reset the position
-    this.setState({
-      isSidebarResizing: false,
-      sidebarResizeHandleTranslateX: -this.state.sidebarWidth + (SIDEBAR_RESIZE_HANDLE_WIDTH / 2)
-    });
-    this.unbindSidebarResizingEvents();
   }
 
   onExpandAllLogsButtonClick() {
@@ -461,255 +389,282 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.setState({ groupingMode: data.key });
   }
 
-  render() {
-    const span: Span = this.state.selectedSpanView ? (this.state.selectedSpanView as any).span : {};
-    const spanLogViews = this.state.selectedSpanView ? (this.state.selectedSpanView! as SpanView).getLogViews() : [];
+  onSidebarSplitDragFinish(sidebarWidth: number) {
+    this.sidebarWidth = sidebarWidth;
+    this.resizeTimelineView();
+  }
 
+  resizeTimelineView() {
+    const { innerWidth, innerHeight } = window;
+    this.timelineView.resize(
+      innerWidth - LEFT_MENU_WIDTH - this.sidebarWidth,
+      innerHeight - HEADER_MENU_HEIGHT
+    );
+  }
+
+  render() {
     return (
-      <div
-        style={{ display: this.props.visible ? 'block' : 'none', overflow: 'auto', height: '100vh' }}
-        ref={this.containerRef as any}
-        onMouseDown={this.binded.onMouseDown as any}
-        onMouseLeave={this.binded.onMouseLeave as any}
-      >
+      <div style={{
+        display: this.props.visible ? 'block' : 'none',
+        overflow: 'auto',
+        height: '100vh'
+      }}>
         <Layout style={{ height: '100%', overflow: 'hidden' }}>
           <Content style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div className="timeline-screen-header">
-              <div className="left">
+            {this.renderHeader()}
 
-                <Dropdown overlay={
-                  <Menu
-                    selectedKeys={[ this.state.groupingMode ]}
-                    onClick={this.binded.onGroupingModeMenuClick}
-                    style={{ marginLeft: 5 }}
-                  >
-                    <Menu.Item key={TraceGrouping.KEY}>
-                      Trace
-                    </Menu.Item>
-                    <Menu.Item key={ProcessGrouping.KEY}>
-                      Process
-                    </Menu.Item>
-                    <Menu.Item key={ServiceNameGrouping.KEY}>
-                      Service Name
-                    </Menu.Item>
-                    <Menu.Divider />
-                    <Menu.Item key="add-grouping">
-                      <Icon type="plus" /> Create new
-                    </Menu.Item>
-                  </Menu>
-                } trigger={['click']}>
-                  <Tooltip placement="right" title="Grouping Mode" mouseEnterDelay={1}>
-                    <span className="timeline-header-button">
-                      <Icon type="team" />
-                    </span>
-                  </Tooltip>
-                </Dropdown>
+            <SplitPane
+              split="vertical"
+              defaultSize={SIDEBAR_WIDTH}
+              minSize={200}
+              primary="second"
+              style={{ position: 'relative' }} // This forces fitting to container
+              onDragFinished={this.binded.onSidebarSplitDragFinish}
+              resizerStyle={{ opacity: 0.2 }}
+            >
+              {/* Timeline view container, make it absolute so that it doesn't
+              prevent split pane to resize smaller than current width*/}
+              <div ref={this.timelineContainerRef as any} style={{ position: 'absolute' }}></div>
 
-                <Dropdown overlay={
-                  <Menu>
-                    <Menu.Item key="operation">Operation Name</Menu.Item>
-                    <Menu.Item key="service-operation">Service + Operation Name</Menu.Item>
-                    <Menu.Divider />
-                    <Menu.Item key="add-grouping">
-                      <Icon type="plus" /> Create new
-                    </Menu.Item>
-                  </Menu>
-                } trigger={['click']}>
-                  <Tooltip placement="right" title="Span Labelling" mouseEnterDelay={1}>
-                    <span className="timeline-header-button">
-                      <Icon type="edit" />
-                    </span>
-                  </Tooltip>
-                </Dropdown>
-
-                <Dropdown overlay={
-                  <Menu>
-                    <Menu.Item key="service-name">Service Name</Menu.Item>
-                    <Menu.Item key="operation-name">Operation Name</Menu.Item>
-                    <Menu.Item key="label">Label</Menu.Item>
-                    <Menu.Divider />
-                    <Menu.Item key="add-grouping">
-                      <Icon type="plus" /> Create new
-                    </Menu.Item>
-                  </Menu>
-                } trigger={['click']}>
-                  <Tooltip placement="right" title="Span Coloring" mouseEnterDelay={1}>
-                    <span className="timeline-header-button">
-                      <Icon type="highlight" />
-                    </span>
-                  </Tooltip>
-                </Dropdown>
-
-              </div>
-              <div className="right">
-                <Dropdown overlay={
-                  <div style={{ background: '#fff', width: 300, marginRight: 5, overflowY: 'auto', borderRadius: 4, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}>
-                    {this.state.stageTraces.length === 0 ? (
-                      <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No trace added to stage" />
-                    ) : null}
-
-                    {this.state.stageTraces.map((trace, i) => (
-                      <div className="sidebar-row" key={i}>
-                        <span>
-                          <Badge
-                            color={ColorManagers.traceName.colorFor(trace.id) as string}
-                            className="search-result-item-badge"
-                          />
-                          {trace.name}
-                        </span>
-                        <Icon
-                          type="close"
-                          onClick={() => this.stage.remove(trace.id)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                } trigger={['click']}>
-                  <Tooltip placement="left" title="Trace List" mouseEnterDelay={1}>
-                    <span className="timeline-header-button">
-                      <Badge count={this.state.stageTraces.length}>
-                        <Icon type="branches" />
-                      </Badge>
-                    </span>
-                  </Tooltip>
-                </Dropdown>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', maxHeight: 'calc(100% - 64px)' }} >
-
-              {/* Timeline view container */}
-              <div
-                id="timeline-container"
-                ref={this.timelineContainerRef as any}
-              ></div>
-
-              {/* Span info sidebar */}
-              <Sider
-                trigger={null}
-                collapsible
-                collapsedWidth={0}
-                collapsed={!this.state.selectedSpanView}
-                className="timeline-sidebar"
-                width={this.state.sidebarWidth}
-                theme="light"
-              >
-
-                  {this.state.selectedSpanView ? (
-                    <div style={{ margin: 10 }}>
-                      <h4>Span Info</h4>
-
-                      <div className="sidebar-row">
-                        <span>Operation name:</span>
-                        <span style={{fontWeight: 'bold'}}>{span.operationName}</span>
-                      </div>
-                      <div className="sidebar-row">
-                        <span>Service name:</span>
-                        <span style={{fontWeight: 'bold'}}>{span.process ? span.process.serviceName :
-                          span.localEndpoint ? span.localEndpoint.serviceName :
-                          'Unknown'
-                        }</span>
-                      </div>
-                      <div className="sidebar-row">
-                        <span>Duration:</span>
-                        <span style={{fontWeight: 'bold'}}>
-                          {prettyMilliseconds((span.finishTime - span.startTime) / 1000, { formatSubMilliseconds: true })}
-                        </span>
-                      </div>
-                      {span.references.map((ref) => (
-                        <div className="sidebar-row" key={ref.type}>
-                          <span>{ref.type === 'childOf' ? 'Child of:' :
-                              ref.type === 'followsFrom' ? 'Follows from:' :
-                              ref.type}</span>
-                          <span>{(() => {
-                            const spanView = this.timelineView.findSpanView(ref.spanId)[1];
-                            if (!spanView) return ref.spanId;
-                            return spanView.span.operationName; // TODO: Use viewSettings.spanLabeling func
-                          })()}</span>
-                        </div>
-                      ))}
-
-                      <Divider style={{ margin: '10px 0' }} />
-
-                      <h4>Tags</h4>
-
-                      {Object.keys(span.tags).length > 0 ? _.map(span.tags, (value, tag) => (
-                        <div className="sidebar-row mono even-odd" key={tag}>
-                          <span>{tag}:</span>
-                          <span>{value}</span>
-                        </div>
-                      )) : (
-                        <span>No tags</span>
-                      )}
-
-                      <Divider style={{ margin: '10px 0' }} />
-
-                      <div className="sidebar-row">
-                        <h4>Logs</h4>
-                        {spanLogViews.length > 0 ? (
-                          <Button
-                            type="link"
-                            size="small"
-                            style={{ marginBottom: 7 }}
-                            onClick={this.binded.onExpandAllLogsButtonClick}
-                          >Expand All</Button>
-                        ) : null}
-
-                      </div>
-
-                      {spanLogViews.length === 0 ? (
-                        <span>No logs</span>
-                      ) : (
-                        <div
-                          onMouseMove={this.binded.onLogsContainerMouseMove as any}
-                          onMouseLeave={this.binded.onLogsContainerMouseLeave as any}
-                        >
-                          <Collapse activeKey={this.state.expandedLogIds} onChange={this.binded.onLogsCollapseChange as any}>
-                            {_.map(spanLogViews, (logView) => (
-                              <Panel
-                                header={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}
-                                key={logView.id}
-                                id={`log-panel-${logView.id}`}
-                                className={logView.id === this.state.highlightedLogId ? 'sidebar-log-panel-higlighted' : ''}
-                              >
-                                {_.map(logView.log.fields, (value, name) => (
-                                  <div className="sidebar-row mono" key={name}>
-                                    <span>{name}:</span>
-                                    <span>{value}</span>
-                                  </div>
-                                ))}
-                              </Panel>
-                            ))}
-                          </Collapse>
-                        </div>
-                      )}
-
-                    </div>
-                  ) : null}
-
-              </Sider>
-
-              {/* Sidebar resize handle */}
-              <div
-                id="timeline-sidebar-resize-handle"
-                style={{
-                  display: this.state.selectedSpanView ? 'block' : 'none',
-                  opacity: this.state.isSidebarResizing ? 1 : 0,
-                  transform: `translate3d(${this.state.sidebarResizeHandleTranslateX}px, 0, 0)`
-                }}
-              >
-                <div></div>
-              </div>
-
-            </div>
-
+              {this.renderSidebar()}
+            </SplitPane>
           </Content>
-
-      </Layout>
-
+        </Layout>
       </div>
     );
   }
+
+  renderHeader() {
+    return (
+      <div className="timeline-screen-header">
+        <div className="left">
+
+          <Dropdown overlay={
+            <Menu
+              selectedKeys={[ this.state.groupingMode ]}
+              onClick={this.binded.onGroupingModeMenuClick}
+              style={{ marginLeft: 5 }}
+            >
+              <Menu.Item key={TraceGrouping.KEY}>
+                Trace
+              </Menu.Item>
+              <Menu.Item key={ProcessGrouping.KEY}>
+                Process
+              </Menu.Item>
+              <Menu.Item key={ServiceNameGrouping.KEY}>
+                Service Name
+              </Menu.Item>
+              <Menu.Divider />
+              <Menu.Item key="add-grouping">
+                <Icon type="plus" /> Create new
+              </Menu.Item>
+            </Menu>
+          } trigger={['click']}>
+            <Tooltip placement="right" title="Grouping Mode" mouseEnterDelay={1}>
+              <span className="timeline-header-button">
+                <Icon type="team" />
+              </span>
+            </Tooltip>
+          </Dropdown>
+
+          <Dropdown overlay={
+            <Menu>
+              <Menu.Item key="operation">Operation Name</Menu.Item>
+              <Menu.Item key="service-operation">Service + Operation Name</Menu.Item>
+              <Menu.Divider />
+              <Menu.Item key="add-grouping">
+                <Icon type="plus" /> Create new
+              </Menu.Item>
+            </Menu>
+          } trigger={['click']}>
+            <Tooltip placement="right" title="Span Labelling" mouseEnterDelay={1}>
+              <span className="timeline-header-button">
+                <Icon type="edit" />
+              </span>
+            </Tooltip>
+          </Dropdown>
+
+          <Dropdown overlay={
+            <Menu>
+              <Menu.Item key="service-name">Service Name</Menu.Item>
+              <Menu.Item key="operation-name">Operation Name</Menu.Item>
+              <Menu.Item key="label">Label</Menu.Item>
+              <Menu.Divider />
+              <Menu.Item key="add-grouping">
+                <Icon type="plus" /> Create new
+              </Menu.Item>
+            </Menu>
+          } trigger={['click']}>
+            <Tooltip placement="right" title="Span Coloring" mouseEnterDelay={1}>
+              <span className="timeline-header-button">
+                <Icon type="highlight" />
+              </span>
+            </Tooltip>
+          </Dropdown>
+
+        </div>
+        <div className="right">
+          <Dropdown overlay={
+            <div style={{ background: '#fff', width: 300, marginRight: 5, overflowY: 'auto', borderRadius: 4, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}>
+              {this.state.stageTraces.length === 0 ? (
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No trace added to stage" />
+              ) : null}
+
+              {this.state.stageTraces.map((trace, i) => (
+                <div className="sidebar-row" key={i}>
+                  <span>
+                    <Badge
+                      color={ColorManagers.traceName.colorFor(trace.id) as string}
+                      className="search-result-item-badge"
+                    />
+                    {trace.name}
+                  </span>
+                  <Icon
+                    type="close"
+                    onClick={() => this.stage.remove(trace.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          } trigger={['click']}>
+            <Tooltip placement="left" title="Trace List" mouseEnterDelay={1}>
+              <span className="timeline-header-button">
+                <Badge count={this.state.stageTraces.length}>
+                  <Icon type="branches" />
+                </Badge>
+              </span>
+            </Tooltip>
+          </Dropdown>
+        </div>
+      </div>
+    );
+  }
+
+  renderSidebar() {
+    return (
+      <SplitPane split="horizontal" defaultSize={150} style={{ background: '#f0f2f5' }}>
+        {this.renderSpanInfo()}
+        <SplitPane split="horizontal" defaultSize={150} pane2Style={{ overflowY: 'auto' }}>
+          {this.renderSpanTags()}
+          {this.renderSpanLogs()}
+        </SplitPane>
+      </SplitPane>
+    );
+  }
+
+  renderSpanInfo() {
+    const selectedSpanView: SpanView | undefined = this.state.selectedSpanView as any;
+    if (!selectedSpanView) {
+      return (
+        <div className="sidebar-panel" style={{ paddingTop: 10 }}>
+          <Card title="Span Info" bordered={false} size="small" className="sidebar-panel-card">
+            Please select a span
+          </Card>
+        </div>
+      );
+    }
+    const span = selectedSpanView.span;
+
+    return (
+      <div className="sidebar-panel" style={{ paddingTop: 10 }}>
+        <Card title="Span Info" bordered={false} size="small" className="sidebar-panel-card">
+          <div className="sidebar-row">
+            <span>Operation name:</span>
+            <span style={{fontWeight: 'bold'}}>{span.operationName}</span>
+          </div>
+          <div className="sidebar-row">
+            <span>Service name:</span>
+            <span style={{fontWeight: 'bold'}}>{span.process ? span.process.serviceName :
+              span.localEndpoint ? span.localEndpoint.serviceName :
+              'Unknown'
+            }</span>
+          </div>
+          <div className="sidebar-row">
+            <span>Duration:</span>
+            <span style={{fontWeight: 'bold'}}>
+              {prettyMilliseconds((span.finishTime - span.startTime) / 1000, { formatSubMilliseconds: true })}
+            </span>
+          </div>
+          {span.references.map((ref) => (
+            <div className="sidebar-row" key={ref.type}>
+              <span>{ref.type === 'childOf' ? 'Child of:' :
+                  ref.type === 'followsFrom' ? 'Follows from:' :
+                  ref.type}</span>
+              <span>{(() => {
+                const spanView = this.timelineView.findSpanView(ref.spanId)[1];
+                if (!spanView) return ref.spanId;
+                return spanView.span.operationName; // TODO: Use viewSettings.spanLabeling func
+              })()}</span>
+            </div>
+          ))}
+        </Card>
+      </div>
+    );
+  }
+
+  renderSpanTags() {
+    const selectedSpanView: SpanView | undefined = this.state.selectedSpanView as any;
+    if (!selectedSpanView) {
+      return (
+        <div className="sidebar-panel">
+          <Card title="No Tags" bordered={false} size="small" className="sidebar-panel-card">
+          </Card>
+        </div>
+      );
+    }
+    const span = selectedSpanView.span;
+
+    return (
+      <div className="sidebar-panel">
+        <Card title={`${Object.keys(span.tags).length} Tag(s)`} bordered={false} size="small" className="sidebar-panel-card">
+          {Object.keys(span.tags).length > 0 ? _.map(span.tags, (value, tag) => (
+            <div className="sidebar-row mono even-odd" key={tag}>
+              <span>{tag}:</span>
+              <span>{value}</span>
+            </div>
+          )) : null}
+        </Card>
+      </div>
+    );
+  }
+
+  renderSpanLogs() {
+    const selectedSpanView: SpanView | undefined = this.state.selectedSpanView as any;
+    if (!selectedSpanView) return null;
+    const span = selectedSpanView.span;
+    const spanLogViews = selectedSpanView.getLogViews();
+    if (spanLogViews.length === 0) return null;
+
+    return (
+      <div className="sidebar-panel">
+        <div
+          onMouseMove={this.binded.onLogsContainerMouseMove as any}
+          onMouseLeave={this.binded.onLogsContainerMouseLeave as any}
+        >
+          {_.map(spanLogViews, (logView) => (
+            <Card
+              size="small"
+              title={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}
+              extra={<a href="#">Copy</a>}
+              style={{ margin: '5px 0' }}
+              bordered={false}
+              key={logView.id}
+              id={`log-item-${logView.id}`}
+              className={logView.id === this.state.highlightedLogId ? 'sidebar-log-card-higlighted' : ''}
+            >
+              {_.map(logView.log.fields, (value, name) => (
+                <div className="sidebar-row mono" key={name}>
+                  <span>{name}:</span>
+                  <span>{value}</span>
+                </div>
+              ))}
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
 }
 
 
