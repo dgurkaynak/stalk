@@ -6,7 +6,7 @@ import { IColorAssigner } from '../interfaces';
 
 interface MPN65ColorAssignerOptions {
   shuffle?: boolean;
-  count?: number;
+  excludeColors?: string[];
 }
 
 /**
@@ -29,11 +29,26 @@ export class MPN65ColorAssigner implements IColorAssigner {
   constructor(options?: MPN65ColorAssignerOptions) {
     options = _.defaults({}, options || {}, {
       shuffle: false,
-      count: 29 // 30 is ugly black :/
+      excludeColors: [
+        'ff0029',
+        '000000',
+        '252525',
+        '525252',
+        '737373',
+        '969696',
+        'bdbdbd',
+        'f43600',
+        'e7298a',
+        'e43872',
+      ]
     });
-    const rawColors = options.shuffle ?
-      _.shuffle(palette('mpn65', options.count)) :
-      palette('mpn65', options.count);
+    const rawColors: string[] = options.shuffle ?
+      _.shuffle(palette('mpn65', 65)) :
+      palette('mpn65', 65);
+
+    if (options.excludeColors!.length > 0) {
+      _.remove(rawColors, c => options!.excludeColors!.indexOf(c) > -1);
+    }
 
     this.colors = rawColors.map((rawColor: string) => {
       const hex = `#${rawColor}`;

@@ -6,7 +6,6 @@ console.log(randomColor);
 
 
 interface RandomColorAssignerOptions {
-  shuffle?: boolean;
   hue?: 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'pink' | 'monochrome' | undefined;
   luminosity?: 'bright' | 'light' | 'dark' | undefined;
   count?: number;
@@ -31,9 +30,7 @@ export class RandomColorAssigner implements IColorAssigner {
 
   constructor(options?: RandomColorAssignerOptions) {
     options = _.defaults({}, options || {}, {
-      shuffle: false,
-      luminosity: 'light',
-      count: 100
+      count: 50
     });
     const rawColors = randomColor(options);
 
