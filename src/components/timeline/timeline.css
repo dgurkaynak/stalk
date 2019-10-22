@@ -27,22 +27,14 @@
   background: rgba(0,0,0,.025);
 }
 
-.sidebar-panel {
-  width: 100%;
-  background: #f0f2f5;
-  overflow: hidden;
-  padding: 5px 10px;
-}
-
-.sidebar-panel-card {
-  width: 100%;
+.timeline-sidebar {
+  background: #fff;
   height: 100%;
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
 }
 
-.sidebar-panel-card > .ant-card-body {
-  overflow-y: auto;
+.timeline-sidebar-content {
+  padding: 0 10px;
 }
 
 .sidebar-row {

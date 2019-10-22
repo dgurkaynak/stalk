@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import React from 'react';
-import { Icon, Layout, Empty, Badge, Card, Tooltip, Menu, Dropdown } from 'antd';
+import { Icon, Layout, Empty, Badge, Card, Tooltip, Menu, Dropdown, Divider, Alert } from 'antd';
 import { Stage, StageEvent } from '../../model/stage';
 import ColorManagers from '../color/managers';
 import TimelineView from './view';
@@ -13,11 +13,11 @@ import ProcessGrouping from '../../model/grouping/process';
 import ServiceNameGrouping from '../../model/grouping/service-name';
 import TraceGrouping from '../../model/grouping/trace';
 import SplitPane from 'react-split-pane';
+import { Trace } from '../../model/trace';
+import GroupView from './group-view';
 
 
 import './timeline.css';
-import { Trace } from '../../model/trace';
-import GroupView from './group-view';
 const { Content } = Layout;
 
 
@@ -33,7 +33,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private stage = Stage.getSingleton();
   private timelineContainerRef = React.createRef();
   private timelineView = new TimelineView();
-  private sidebarLogsPanelRef = React.createRef();
+  private sidebarContainerRef = React.createRef();
   private hoveredTimelineElements: TimelineInteractedElementObject[] = [];
   private sidebarWidth = SIDEBAR_WIDTH;
 
@@ -46,11 +46,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
-    onLogsContainerMouseMove: _.throttle(this.onLogsContainerMouseMove.bind(this), 100),
-    onLogsContainerWheel: _.throttle(this.onLogsContainerWheel.bind(this), 100),
+    onSidebarContainerMouseMove: _.throttle(this.onSidebarContainerMouseMove.bind(this), 100),
+    onSidebarContainerWheel: _.throttle(this.onSidebarContainerWheel.bind(this), 100),
     // Since we throttle mose move & wheel event, they can triggered after mouse leave,
     // That's why we need to delay it's execution.
-    onLogsContainerMouseLeave: () => setTimeout(this.onLogsContainerMouseLeave.bind(this), 100),
+    onSidebarContainerMouseLeave: () => setTimeout(this.onSidebarContainerMouseLeave.bind(this), 100),
     onGroupingModeMenuClick: this.onGroupingModeMenuClick.bind(this),
     onTimelineMouseIdleMove: this.onTimelineMouseIdleMove.bind(this),
     onTimelineMouseIdleLeave: this.onTimelineMouseIdleLeave.bind(this),
@@ -82,10 +82,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.timelineView.mouseHandler.on(MouseHandlerEvent.CLICK, this.binded.onTimelineClick);
     this.timelineView.mouseHandler.on(MouseHandlerEvent.DOUBLE_CLICK, this.binded.onTimelineDoubleClick);
 
-    const sidebarLogsPanelRef = this.sidebarLogsPanelRef.current as HTMLDivElement;
-    sidebarLogsPanelRef.addEventListener('mousemove', this.binded.onLogsContainerMouseMove, false);
-    sidebarLogsPanelRef.addEventListener('mouseleave', this.binded.onLogsContainerMouseLeave, false);
-    sidebarLogsPanelRef.addEventListener('wheel', this.binded.onLogsContainerWheel, false);
+    const sidebarContainerRef = this.sidebarContainerRef.current as HTMLDivElement;
+    sidebarContainerRef.addEventListener('mousemove', this.binded.onSidebarContainerMouseMove, false);
+    sidebarContainerRef.addEventListener('mouseleave', this.binded.onSidebarContainerMouseLeave, false);
+    sidebarContainerRef.addEventListener('wheel', this.binded.onSidebarContainerWheel, false);
   }
 
   componentWillUnmount() {
@@ -100,10 +100,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.CLICK, [this.binded.onTimelineClick] as any);
     this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.DOUBLE_CLICK, [this.binded.onTimelineDoubleClick] as any);
 
-    const sidebarLogsPanelRef = this.sidebarLogsPanelRef.current as HTMLDivElement;
-    sidebarLogsPanelRef.addEventListener('mousemove', this.binded.onLogsContainerMouseMove, false);
-    sidebarLogsPanelRef.addEventListener('mouseleave', this.binded.onLogsContainerMouseLeave, false);
-    sidebarLogsPanelRef.addEventListener('wheel', this.binded.onLogsContainerWheel, false);
+    const sidebarContainerRef = this.sidebarContainerRef.current as HTMLDivElement;
+    sidebarContainerRef.addEventListener('mousemove', this.binded.onSidebarContainerMouseMove, false);
+    sidebarContainerRef.addEventListener('mouseleave', this.binded.onSidebarContainerMouseLeave, false);
+    sidebarContainerRef.addEventListener('wheel', this.binded.onSidebarContainerWheel, false);
   }
 
   onStageTraceAdded(trace: Trace) {
@@ -331,7 +331,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   }
 
-  onLogsContainerMouseMove(e: MouseEvent) {
+  onSidebarContainerMouseMove(e: MouseEvent) {
     const selectedSpanView = this.state.selectedSpanView! as SpanView;
     if (!selectedSpanView) return;
 
@@ -346,31 +346,31 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.timelineView.annotation.logHighlightAnnotation.update();
   }
 
-  onLogsContainerMouseLeave(e: MouseEvent) {
+  onSidebarContainerMouseLeave(e: MouseEvent) {
     this.timelineView.annotation.logHighlightAnnotation.unmount();
   }
 
-  onLogsContainerWheel(e: WheelEvent) {
+  onSidebarContainerWheel(e: WheelEvent) {
     // Wheel event.target is not changing, it's always the element scroll is started on
-    // That's why we get the real element at that coordinate, pass it to `onLogsContainerMouseMove`
-    this.onLogsContainerMouseMove({ target: document.elementFromPoint(e.clientX, e.clientY) } as any);
+    // That's why we get the real element at that coordinate, pass it to `onSidebarContainerMouseMove`
+    this.onSidebarContainerMouseMove({ target: document.elementFromPoint(e.clientX, e.clientY) } as any);
   }
 
   highlightAndScrollToLog(logId: string) {
     const logItemEl = document.getElementById(`log-item-${logId}`);
     if (!logItemEl) return;
-    const logsPane = logItemEl.closest('.Pane');
-    if (!logsPane) return;
+    if (!this.sidebarContainerRef || !this.sidebarContainerRef.current) return;
 
+    const sidebarContainer = this.sidebarContainerRef.current as HTMLDivElement;
     const { offsetTop } = logItemEl;
-    const logsPaneRect = logsPane.getBoundingClientRect();
+    const logsPaneRect = sidebarContainer.getBoundingClientRect();
     const logItemRect = logItemEl.getBoundingClientRect();
 
 
     if (logItemRect.top >= logsPaneRect.top && logItemRect.bottom <= logsPaneRect.bottom) {
       // Log panel is completely visible, NOOP
     } else {
-      scroll.top(logsPane, offsetTop);
+      scroll.top(sidebarContainer, offsetTop);
     }
 
     this.setState({ highlightedLogId: logId });
@@ -383,7 +383,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     }
 
     this.timelineView.viewSettings.setGroupingKey(data.key);
-    this.setState({ groupingMode: data.key });
+    this.setState({ groupingMode: data.key, selectedSpanView: null });
+    // TODO: Instead of setting selectedSpanView to null,
+    // you can keep it and select again
   }
 
   onSidebarSplitDragFinish(sidebarWidth: number) {
@@ -423,7 +425,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               prevent split pane to resize smaller than current width*/}
               <div ref={this.timelineContainerRef as any} style={{ position: 'absolute' }}></div>
 
-              {this.renderSidebar()}
+              <div className="timeline-sidebar" ref={this.sidebarContainerRef as any}>
+                {this.renderSidebar()}
+              </div>
             </SplitPane>
           </Content>
         </Layout>
@@ -538,95 +542,81 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   }
 
   renderSidebar() {
+    if (!this.state.selectedSpanView) {
+      return <div style={{ margin: 15 }}>No span selected</div>;
+    }
+
+    const selectedSpanView: SpanView = this.state.selectedSpanView as any;
+    const tagCount = Object.keys(selectedSpanView.span.tags).length;
+    const logsCount = selectedSpanView.getLogViews().length;
+
     return (
-      <SplitPane split="horizontal" defaultSize={170} style={{ background: '#f0f2f5' }}>
+      <>
+        <Divider orientation="center" style={{ marginTop: 10 }}>Span Info</Divider>
         {this.renderSpanInfo()}
 
-        <SplitPane split="horizontal" defaultSize={150} pane2Style={{ overflowY: 'auto' }}>
-          {this.renderSpanTags()}
+        <Divider orientation="center">{tagCount} Tag(s)</Divider>
+        {this.renderSpanTags()}
 
-          {/* Render logs panel container here, not in `renderSpanLogs` method.
-          So that we can save its reference on `componentDidMount` and bind mouse events */}
-          <div className="sidebar-panel" ref={this.sidebarLogsPanelRef as any}>
-            {this.renderSpanLogs()}
-          </div>
-        </SplitPane>
-      </SplitPane>
+        <Divider orientation="center">{logsCount} Log(s)</Divider>
+        {this.renderSpanLogs()}
+      </>
     );
   }
 
   renderSpanInfo() {
     const selectedSpanView: SpanView | undefined = this.state.selectedSpanView as any;
-    if (!selectedSpanView) {
-      return (
-        <div className="sidebar-panel" style={{ paddingTop: 10 }}>
-          <Card title="Span Info" bordered={false} size="small" className="sidebar-panel-card">
-            Please select a span
-          </Card>
-        </div>
-      );
-    }
+    if (!selectedSpanView) return null;
     const span = selectedSpanView.span;
 
     return (
-      <div className="sidebar-panel" style={{ paddingTop: 10 }}>
-        <Card title="Span Info" bordered={false} size="small" className="sidebar-panel-card">
-          <div className="sidebar-row">
-            <span>Operation name:</span>
-            <span style={{fontWeight: 'bold'}}>{span.operationName}</span>
+      <div className="timeline-sidebar-content">
+        <div className="sidebar-row">
+          <span>Operation name:</span>
+          <span style={{fontWeight: 'bold'}}>{span.operationName}</span>
+        </div>
+        <div className="sidebar-row">
+          <span>Service name:</span>
+          <span style={{fontWeight: 'bold'}}>{span.process ? span.process.serviceName :
+            span.localEndpoint ? span.localEndpoint.serviceName :
+            'Unknown'
+          }</span>
+        </div>
+        <div className="sidebar-row">
+          <span>Duration:</span>
+          <span style={{fontWeight: 'bold'}}>
+            {prettyMilliseconds((span.finishTime - span.startTime) / 1000, { formatSubMilliseconds: true })}
+          </span>
+        </div>
+        {span.references.map((ref) => (
+          <div className="sidebar-row" key={ref.type}>
+            <span>{ref.type === 'childOf' ? 'Child of:' :
+                ref.type === 'followsFrom' ? 'Follows from:' :
+                ref.type}</span>
+            <span>{(() => {
+              const spanView = this.timelineView.findSpanView(ref.spanId)[1];
+              if (!spanView) return ref.spanId;
+              return spanView.span.operationName; // TODO: Use viewSettings.spanLabeling func
+            })()}</span>
           </div>
-          <div className="sidebar-row">
-            <span>Service name:</span>
-            <span style={{fontWeight: 'bold'}}>{span.process ? span.process.serviceName :
-              span.localEndpoint ? span.localEndpoint.serviceName :
-              'Unknown'
-            }</span>
-          </div>
-          <div className="sidebar-row">
-            <span>Duration:</span>
-            <span style={{fontWeight: 'bold'}}>
-              {prettyMilliseconds((span.finishTime - span.startTime) / 1000, { formatSubMilliseconds: true })}
-            </span>
-          </div>
-          {span.references.map((ref) => (
-            <div className="sidebar-row" key={ref.type}>
-              <span>{ref.type === 'childOf' ? 'Child of:' :
-                  ref.type === 'followsFrom' ? 'Follows from:' :
-                  ref.type}</span>
-              <span>{(() => {
-                const spanView = this.timelineView.findSpanView(ref.spanId)[1];
-                if (!spanView) return ref.spanId;
-                return spanView.span.operationName; // TODO: Use viewSettings.spanLabeling func
-              })()}</span>
-            </div>
-          ))}
-        </Card>
+        ))}
       </div>
     );
   }
 
   renderSpanTags() {
     const selectedSpanView: SpanView | undefined = this.state.selectedSpanView as any;
-    if (!selectedSpanView) {
-      return (
-        <div className="sidebar-panel">
-          <Card title="No Tags" bordered={false} size="small" className="sidebar-panel-card">
-          </Card>
-        </div>
-      );
-    }
+    if (!selectedSpanView) return null;
     const span = selectedSpanView.span;
 
     return (
-      <div className="sidebar-panel">
-        <Card title={`${Object.keys(span.tags).length} Tag(s)`} bordered={false} size="small" className="sidebar-panel-card">
-          {Object.keys(span.tags).length > 0 ? _.map(span.tags, (value, tag) => (
-            <div className="sidebar-row mono even-odd" key={tag}>
-              <span>{tag}:</span>
-              <span>{value}</span>
-            </div>
-          )) : null}
-        </Card>
+      <div className="timeline-sidebar-content">
+        {Object.keys(span.tags).length > 0 ? _.map(span.tags, (value, tag) => (
+          <div className="sidebar-row mono even-odd" key={tag}>
+            <span>{tag}:</span>
+            <span>{value}</span>
+          </div>
+        )) : null}
       </div>
     );
   }
@@ -639,14 +629,13 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     if (spanLogViews.length === 0) return <div></div>;
 
     return (
-      <div>
+      <div className="timeline-sidebar-content">
         {_.map(spanLogViews, (logView) => (
           <Card
             size="small"
             title={`Log @ ${prettyMilliseconds((logView.log.timestamp - span.startTime) / 1000, { formatSubMilliseconds: true })}`}
-            extra={<a href="#">Copy</a>}
+            // extra={<a href="#">Copy</a>}
             style={{ margin: '5px 0' }}
-            bordered={false}
             key={logView.id}
             id={`log-item-${logView.id}`}
             className={logView.id === this.state.highlightedLogId ? 'sidebar-log-card-higlighted' : ''}
@@ -659,6 +648,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
             ))}
           </Card>
         ))}
+
+        <div className="ant-alert" style={{ marginBottom: 10 }}>
+          <Icon type="info-circle" theme="filled" className="ant-alert-icon" />
+          <span className="ant-alert-message">Log timestamps are relative to the span</span>
+        </div>
       </div>
     );
   }
