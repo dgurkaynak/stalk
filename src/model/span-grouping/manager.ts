@@ -1,11 +1,9 @@
 import * as _ from 'lodash';
 import EventEmitterExtra from 'event-emitter-extra';
-import { BaseSpanGrouping } from './base';
+import { SpanGroupingOptions } from './span-grouping';
 import TraceGrouping from './trace';
 import ProcessGrouping from './process';
 import ServiceNameGrouping from './service-name';
-import { Span } from '../span';
-import { Trace } from '../trace';
 
 
 export enum SpanGroupingManagerEvent {
@@ -16,8 +14,8 @@ export enum SpanGroupingManagerEvent {
 let singletonIns: SpanGroupingManager;
 
 export default class SpanGroupingManager extends EventEmitterExtra {
-  private builtInSpanGroupings: (typeof BaseSpanGrouping)[] = [ TraceGrouping, ProcessGrouping, ServiceNameGrouping ];
-  private customSpanGroupings: (typeof BaseSpanGrouping)[] = [];
+  private builtInSpanGroupings: SpanGroupingOptions[] = [ TraceGrouping, ProcessGrouping, ServiceNameGrouping ];
+  private customSpanGroupings: SpanGroupingOptions[] = [];
 
   static getSingleton(): SpanGroupingManager {
     if (!singletonIns) singletonIns = new SpanGroupingManager();
@@ -28,27 +26,18 @@ export default class SpanGroupingManager extends EventEmitterExtra {
     // TODO: Fetch from database
   }
 
-  async add(options: {
-    key: string,
-    name: string,
-    groupBy: (span: Span, trace: Trace) => [ string, string ]
-  }) {
+  async add(options: SpanGroupingOptions) {
     const allGroupingClasses = [ ...this.builtInSpanGroupings, ...this.customSpanGroupings ];
-    const keyMatch = _.find(allGroupingClasses, c => c.KEY === options.key);
+    const keyMatch = _.find(allGroupingClasses, c => c.key === options.key);
     if (keyMatch) return false;
-    const NewGroupingClass = class extends BaseSpanGrouping {
-      static KEY = options.key;
-      static NAME = options.name;
-      constructor() { super({ groupBy: options.groupBy }); }
-    }
-    this.customSpanGroupings.push(NewGroupingClass);
+    this.customSpanGroupings.push(options);
     // TODO: Add to the db
-    this.emit(SpanGroupingManagerEvent.ADDED, NewGroupingClass);
+    this.emit(SpanGroupingManagerEvent.ADDED, options);
     return true;
   }
 
   async remove(groupingKey: string) {
-    const removeds = _.remove(this.customSpanGroupings, c => c.KEY === groupingKey);
+    const removeds = _.remove(this.customSpanGroupings, c => c.key === groupingKey);
     if (removeds.length === 0) return false;
     // TODO: Remove from db
     this.emit(SpanGroupingManagerEvent.REMOVED, removeds);
@@ -58,13 +47,13 @@ export default class SpanGroupingManager extends EventEmitterExtra {
   list() {
     const allGroupingClasses = [ ...this.builtInSpanGroupings, ...this.customSpanGroupings ];
     return allGroupingClasses.reduce((acc, c) => {
-      acc[c.KEY] = c.NAME;
+      acc[c.key] = c.name;
       return acc;
     }, {} as { [key: string]: string });
   }
 
-  getConstructor(groupingKey: string) {
+  getOptions(groupingKey: string) {
     const allGroupingClasses = [ ...this.builtInSpanGroupings, ...this.customSpanGroupings ];
-    return _.find(allGroupingClasses, c => c.KEY === groupingKey);
+    return _.find(allGroupingClasses, c => c.key === groupingKey);
   }
 }

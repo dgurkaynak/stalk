@@ -9,9 +9,9 @@ import { MouseHandlerEvent } from './mouse-handler';
 import prettyMilliseconds from 'pretty-ms';
 import scroll from 'scroll';
 import SpanView from './span-view';
-import ProcessGrouping from '../../model/span-grouping/process';
-import ServiceNameGrouping from '../../model/span-grouping/service-name';
-import TraceGrouping from '../../model/span-grouping/trace';
+import processGroupingOptions from '../../model/span-grouping/process';
+import serviceNameGroupingOptions from '../../model/span-grouping/service-name';
+import traceGroupingOptions from '../../model/span-grouping/trace';
 import SplitPane from 'react-split-pane';
 import { Trace } from '../../model/trace';
 import GroupView from './group-view';
@@ -39,7 +39,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   state = {
     stageTraces: this.stage.getAll(),
-    groupingMode: ProcessGrouping.KEY, // Do not forget to change default value of TimelineViewSettings
+    groupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineViewSettings
     selectedSpanView: null,
     highlightedLogId: '',
   };
@@ -446,13 +446,13 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               onClick={this.binded.onGroupingModeMenuClick}
               style={{ marginLeft: 5 }}
             >
-              <Menu.Item key={TraceGrouping.KEY}>
+              <Menu.Item key={traceGroupingOptions.key}>
                 Trace
               </Menu.Item>
-              <Menu.Item key={ProcessGrouping.KEY}>
+              <Menu.Item key={processGroupingOptions.key}>
                 Process
               </Menu.Item>
-              <Menu.Item key={ServiceNameGrouping.KEY}>
+              <Menu.Item key={serviceNameGroupingOptions.key}>
                 Service Name
               </Menu.Item>
               <Menu.Divider />

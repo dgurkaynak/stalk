@@ -1,22 +1,15 @@
-import { BaseSpanGrouping } from './base';
 import { Span } from '../span';
+import { Trace } from '../trace';
+import { SpanGroupingOptions } from './span-grouping';
 
+export default <SpanGroupingOptions>{
+  key: 'service-name',
+  name: 'Service Name',
+  groupBy: (span: Span, trace: Trace) => {
+    let serviceName = 'unknown';
+    if (span.process) serviceName = span.process.serviceName;
+    if (span.localEndpoint) serviceName = span.localEndpoint.serviceName;
+    return [ serviceName, serviceName ];
+  }
+};
 
-export class ServiceNameGrouping extends BaseSpanGrouping {
-    static KEY = 'service_name';
-    static NAME = 'Service Name';
-
-    constructor() {
-        super({
-            groupBy: (span: Span) => {
-                let serviceName = 'unknown';
-                if (span.process) serviceName = span.process.serviceName;
-                if (span.localEndpoint) serviceName = span.localEndpoint.serviceName;
-                return [ serviceName, serviceName ];
-            }
-        });
-    }
-}
-
-
-export default ServiceNameGrouping;

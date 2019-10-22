@@ -7,7 +7,7 @@ import AnnotationManager from './annotations/manager';
 import MouseHandler from './mouse-handler';
 import SpanView from './span-view';
 import { Trace } from '../../model/trace';
-import { BaseSpanGrouping } from '../../model/span-grouping/base';
+import { SpanGrouping } from '../../model/span-grouping/span-grouping';
 import SpanGroupingManager from '../../model/span-grouping/manager';
 import { TimelineInteractableElementAttribute, TimelineInteractedElementObject } from './interaction';
 
@@ -33,7 +33,7 @@ export default class TimelineView extends EventEmitterExtra {
   private traces: Trace[] = [];
   readonly viewSettings = new ViewSettings();
   private groupingManager = SpanGroupingManager.getSingleton();
-  private grouping: BaseSpanGrouping;
+  private spanGrouping: SpanGrouping;
   private groupViews: GroupView[] = [];
   private contentHeight = 0; // in pixels
 
@@ -84,9 +84,9 @@ export default class TimelineView extends EventEmitterExtra {
     this.defs.appendChild(arrowMarker);
 
     // Set-up grouping
-    const GroupingClass = this.groupingManager.getConstructor(this.viewSettings.groupingKey) as any;
-    if (!GroupingClass) throw new Error(`Grouping "${this.viewSettings.groupingKey}" not found`);
-    this.grouping = new GroupingClass();
+    const spanGroupingOptions = this.groupingManager.getOptions(this.viewSettings.groupingKey);
+    if (!spanGroupingOptions) throw new Error(`Grouping "${this.viewSettings.groupingKey}" not found`);
+    this.spanGrouping = new SpanGrouping(spanGroupingOptions);
   }
 
 
@@ -179,11 +179,11 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   onGroupingKeyChanged() {
-    const GroupingClass = this.groupingManager.getConstructor(this.viewSettings.groupingKey) as any;
-    if (!GroupingClass) throw new Error(`Grouping "${this.viewSettings.groupingKey}" not found`);
+    const groupingOptions = this.groupingManager.getOptions(this.viewSettings.groupingKey);
+    if (!groupingOptions) throw new Error(`Grouping "${this.viewSettings.groupingKey}" not found`);
     // TODO: Dispose previous grouping maybe?
-    this.grouping = new GroupingClass();
-    this.traces.forEach(t => t.spans.forEach(s => this.grouping.addSpan(s, t)));
+    this.spanGrouping = new SpanGrouping(groupingOptions);
+    this.traces.forEach(t => t.spans.forEach(s => this.spanGrouping.addSpan(s, t)));
     this.layout();
     this.annotation.logHighlightAnnotation.unmount();
     this.annotation.spanConnectionsAnnotation.unmount();
@@ -194,7 +194,7 @@ export default class TimelineView extends EventEmitterExtra {
     const idMatch = _.find(this.traces, t => t.id === trace.id);
     if (idMatch) return false;
     this.traces.push(trace);
-    trace.spans.forEach(s => this.grouping.addSpan(s, trace));
+    trace.spans.forEach(s => this.spanGrouping.addSpan(s, trace));
     this.layout();
     this.annotation.logHighlightAnnotation.unmount();
     this.annotation.spanConnectionsAnnotation.unmount();
@@ -206,7 +206,7 @@ export default class TimelineView extends EventEmitterExtra {
   removeTrace(trace: Trace) {
     const removeds = _.remove(this.traces, t => t.id === trace.id);
     if (removeds.length === 0) return false;
-    trace.spans.forEach(s => this.grouping.removeSpan(s));
+    trace.spans.forEach(s => this.spanGrouping.removeSpan(s));
     this.layout();
     this.annotation.logHighlightAnnotation.unmount();
     this.annotation.spanConnectionsAnnotation.unmount();
@@ -282,7 +282,7 @@ export default class TimelineView extends EventEmitterExtra {
                                                // no need to manually remove listener here
     this.groupViews = [];
 
-    const groups = this.grouping.getAllGroups().sort((a, b) => a.startTimestamp - b.startTimestamp);
+    const groups = this.spanGrouping.getAllGroups().sort((a, b) => a.startTimestamp - b.startTimestamp);
     groups.forEach((group) => {
       const groupView = new GroupView({ group, viewSettings: this.viewSettings });
       groupView.init({

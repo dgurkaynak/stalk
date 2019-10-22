@@ -1,39 +1,32 @@
-import { BaseSpanGrouping } from './base';
 import { Span } from '../span';
+import { Trace } from '../trace';
+import { SpanGroupingOptions } from './span-grouping';
 
+export default <SpanGroupingOptions>{
+  key: 'process',
+  name: 'Process',
+  groupBy: (span: Span, trace: Trace) => {
+    let processId = 'unknown';
+    let processName = 'unknown';
 
-export class ProcessGrouping extends BaseSpanGrouping {
-    static KEY = 'process';
-    static NAME = 'Process';
-
-    constructor() {
-        super({
-            groupBy: (span: Span) => {
-                let processId = 'unknown';
-                let processName = 'unknown';
-
-                // jaeger
-                if (span.process) {
-                    processId = span.process.id;
-                    processName = `${span.process.serviceName} ${processId}`;
-                }
-
-                // zipkin
-                if (span.localEndpoint) {
-                    const ipv4 = span.localEndpoint.ipv4 || '';
-                    const port = span.localEndpoint.port || '';
-                    processId = `${span.localEndpoint.serviceName}:${ipv4}:${port}`;
-                    processName = span.localEndpoint.serviceName;
-                    if (ipv4 || port) {
-                        processName += ` (${ipv4}:${port})`;
-                    }
-                }
-
-                return [ processId, processName ];
-            }
-        });
+    // jaeger
+    if (span.process) {
+      processId = span.process.id;
+      processName = `${span.process.serviceName} ${processId}`;
     }
-}
 
+    // zipkin
+    if (span.localEndpoint) {
+      const ipv4 = span.localEndpoint.ipv4 || '';
+      const port = span.localEndpoint.port || '';
+      processId = `${span.localEndpoint.serviceName}:${ipv4}:${port}`;
+      processName = span.localEndpoint.serviceName;
+      if (ipv4 || port) {
+        processName += ` (${ipv4}:${port})`;
+      }
+    }
 
-export default ProcessGrouping;
+    return [ processId, processName ];
+  }
+};
+

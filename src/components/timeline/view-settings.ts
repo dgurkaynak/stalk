@@ -1,6 +1,6 @@
 import Axis, { AxisEvent } from './axis';
 import EventEmitterExtra from 'event-emitter-extra';
-import ProcessGrouping from '../../model/span-grouping/process';
+import processGroupingOptions from '../../model/span-grouping/process';
 
 
 export enum TimelineViewSettingsEvent {
@@ -11,7 +11,7 @@ export default class TimelineViewSettings extends EventEmitterExtra {
   private axis = new Axis([0, 0], [0, 0]);
   width = NaN; // In pixels
   height = NaN; // In pixels
-  private _groupingKey = ProcessGrouping.KEY; // Do not forget to change default value of timeline sidebar dropdown
+  private _groupingKey = processGroupingOptions.key; // Do not forget to change default value of timeline sidebar dropdown
   get groupingKey() { return this._groupingKey; };
   readonly scrollToZoomFactor = 0.01;
 
