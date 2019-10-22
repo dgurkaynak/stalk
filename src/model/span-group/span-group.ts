@@ -1,10 +1,10 @@
 import * as _ from 'lodash';
 import { Span } from '../span';
-import { GroupSpanNode } from './group-span-node';
+import { SpanGroupNode } from './span-group-node';
 
 
 
-export class Group {
+export class SpanGroup {
     readonly id: string;
     readonly name: string;
     private spans: Span[] = [];
@@ -13,8 +13,8 @@ export class Group {
     private _finishTimestamp = -Infinity;
 
     private missingNodeDependents: { [key: string]: Set<string> } = {};
-    private nodes: { [key: string]: GroupSpanNode } = {};
-    rootNodes: GroupSpanNode[] = [];
+    private nodes: { [key: string]: SpanGroupNode } = {};
+    rootNodes: SpanGroupNode[] = [];
     get orphanNodes() {
         const sets = _.values(this.missingNodeDependents);
         return _.flatten(sets.map(set => Array.from(set))).map(spanId => this.nodes[spanId]);
@@ -142,7 +142,7 @@ export class Group {
         const node = this.nodes[id];
         if (node) return node;
         if (!createNew) return;
-        this.nodes[id] = new GroupSpanNode(id);
+        this.nodes[id] = new SpanGroupNode(id);
         return this.nodes[id];
     }
 

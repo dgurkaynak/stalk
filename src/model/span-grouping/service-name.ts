@@ -1,8 +1,8 @@
-import { BaseGrouping } from './base';
+import { BaseSpanGrouping } from './base';
 import { Span } from '../span';
 
 
-export class ServiceNameGrouping extends BaseGrouping {
+export class ServiceNameGrouping extends BaseSpanGrouping {
     static KEY = 'service_name';
     static NAME = 'Service Name';
 

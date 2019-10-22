@@ -1,11 +1,11 @@
 
 
 // Graph-like data structure for fast traversal
-export class GroupSpanNode {
+export class SpanGroupNode {
     spanId: string;
-    parent?: GroupSpanNode;
-    follows?: GroupSpanNode;
-    children: GroupSpanNode[] = [];
+    parent?: SpanGroupNode;
+    follows?: SpanGroupNode;
+    children: SpanGroupNode[] = [];
 
 
     constructor(spanId: string) {
@@ -20,4 +20,4 @@ export class GroupSpanNode {
 
 
 
-export default GroupSpanNode;
+export default SpanGroupNode;

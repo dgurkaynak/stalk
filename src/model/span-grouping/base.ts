@@ -1,15 +1,15 @@
 import * as _ from 'lodash';
 import { Span } from '../span';
 import { Trace } from '../trace';
-import { Group } from '../group/group';
+import { SpanGroup } from '../span-group/span-group';
 
 
-export class BaseGrouping {
+export class BaseSpanGrouping {
     static KEY = 'base';  // grouping unique key, like `trace`
     static NAME = 'Base Grouping'; // human readable name, `Trace`
 
     protected groupBy: (span: Span, trace: Trace) => [ string, string ]; // [ group id, human readable group name ]
-    protected groups: { [key: string]: Group } = {};
+    protected groups: { [key: string]: SpanGroup } = {};
     protected spanIdToGroupId: { [key: string]: string } = {};
 
 
@@ -29,7 +29,7 @@ export class BaseGrouping {
         }
 
         const [ groupId, groupName ] = result;
-        if (!this.groups[groupId]) this.groups[groupId] = new Group(groupId, groupName);
+        if (!this.groups[groupId]) this.groups[groupId] = new SpanGroup(groupId, groupName);
         const group = this.groups[groupId];
         group.add(span);
         this.spanIdToGroupId[span.id] = groupId;

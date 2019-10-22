@@ -4,13 +4,13 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import DatasourceManager from './model/datasource/manager';
-import GroupingManager from './model/grouping/manager';
+import SpanGroupingManager from './model/span-grouping/manager';
 
 
 async function main() {
     await Promise.all([
         DatasourceManager.getSingleton().init(),
-        GroupingManager.getSingleton().init(),
+        SpanGroupingManager.getSingleton().init(),
     ]);
 
     ReactDOM.render(<App />, document.getElementById('root'));

@@ -1,9 +1,9 @@
-import { BaseGrouping } from './base';
+import { BaseSpanGrouping } from './base';
 import { Span } from '../span';
 import { Trace } from '../trace';
 
 
-export class TraceGrouping extends BaseGrouping {
+export class TraceGrouping extends BaseSpanGrouping {
     static KEY = 'trace';
     static NAME = 'Trace';
 

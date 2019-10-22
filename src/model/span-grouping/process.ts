@@ -1,8 +1,8 @@
-import { BaseGrouping } from './base';
+import { BaseSpanGrouping } from './base';
 import { Span } from '../span';
 
 
-export class ProcessGrouping extends BaseGrouping {
+export class ProcessGrouping extends BaseSpanGrouping {
     static KEY = 'process';
     static NAME = 'Process';
 

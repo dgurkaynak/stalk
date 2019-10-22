@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
-import { Group } from '../../model/group/group';
+import { SpanGroup } from '../../model/span-group/span-group';
 import SpanView from './span-view';
-import GroupSpanNode from '../../model/group/group-span-node';
+import SpanGroupNode from '../../model/span-group/span-group-node';
 import ViewSettings from './view-settings';
 import EventEmitterExtra from 'event-emitter-extra';
 import { AxisEvent } from './axis';
@@ -23,7 +23,7 @@ export enum GroupViewEvent {
 
 
 export default class GroupView extends EventEmitterExtra {
-  readonly group: Group;
+  readonly spanGroup: SpanGroup;
   private viewSettings: ViewSettings;
   private spanViews: { [key: string]: SpanView} = {};
   get heightInRows() { return this.rowsAndSpanIntervals.length; } // How many rows containing
@@ -51,12 +51,12 @@ export default class GroupView extends EventEmitterExtra {
   };
 
   constructor(options: {
-    group: Group,
+    group: SpanGroup,
     viewSettings: ViewSettings
   }) {
     super();
 
-    this.group = options.group;
+    this.spanGroup = options.group;
     this.viewSettings = options.viewSettings;
 
     this.seperatorLine.setAttribute('x1', '0');
@@ -66,14 +66,14 @@ export default class GroupView extends EventEmitterExtra {
     this.seperatorLine.setAttribute('stroke', this.viewSettings.groupSeperatorLineColor);
     this.seperatorLine.setAttribute('stroke-width', this.viewSettings.groupSeperatorLineWidth + '');
 
-    this.labelText.textContent = this.group.name;
+    this.labelText.textContent = this.spanGroup.name;
     this.labelText.style.cursor = 'pointer';
     this.labelText.setAttribute('fill', this.viewSettings.groupLabelColor);
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
     this.labelText.setAttribute('font-size', `${this.viewSettings.groupLabelFontSize}px`);
     this.labelText.setAttribute(TimelineInteractableElementAttribute, TimelineInteractableElementType.GROUP_VIEW_LABEL_TEXT);
-    this.labelText.setAttribute('data-group-id', this.group.id);
+    this.labelText.setAttribute('data-group-id', this.spanGroup.id);
   }
 
   init(options: {
@@ -92,7 +92,7 @@ export default class GroupView extends EventEmitterExtra {
     axis.on(AxisEvent.ZOOMED, this.binded.handleAxisZoom);
 
     // Set-up span views
-    this.group.getAll().forEach((span) => {
+    this.spanGroup.getAll().forEach((span) => {
       // TODO: Reuse spanviews
       const spanView = new SpanView({ span, viewSettings: this.viewSettings });
       spanView.reuse(span);
@@ -174,8 +174,8 @@ export default class GroupView extends EventEmitterExtra {
   layout() {
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
-    const { group, spanViews, container } = this;
-    const nodeQueue: GroupSpanNode[] = [...group.rootNodes, ...group.orphanNodes].sort((a, b) => {
+    const { spanGroup: group, spanViews, container } = this;
+    const nodeQueue: SpanGroupNode[] = [...group.rootNodes, ...group.orphanNodes].sort((a, b) => {
       const spanA = group.get(a.spanId);
       const spanB = group.get(b.spanId);
       return spanA.startTime - spanB.startTime;

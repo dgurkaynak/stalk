@@ -7,8 +7,8 @@ import AnnotationManager from './annotations/manager';
 import MouseHandler from './mouse-handler';
 import SpanView from './span-view';
 import { Trace } from '../../model/trace';
-import { BaseGrouping } from '../../model/grouping/base';
-import GroupingManager from '../../model/grouping/manager';
+import { BaseSpanGrouping } from '../../model/span-grouping/base';
+import SpanGroupingManager from '../../model/span-grouping/manager';
 import { TimelineInteractableElementAttribute, TimelineInteractedElementObject } from './interaction';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -32,8 +32,8 @@ export default class TimelineView extends EventEmitterExtra {
 
   private traces: Trace[] = [];
   readonly viewSettings = new ViewSettings();
-  private groupingManager = GroupingManager.getSingleton();
-  private grouping: BaseGrouping;
+  private groupingManager = SpanGroupingManager.getSingleton();
+  private grouping: BaseSpanGrouping;
   private groupViews: GroupView[] = [];
   private contentHeight = 0; // in pixels
 
@@ -84,7 +84,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.defs.appendChild(arrowMarker);
 
     // Set-up grouping
-    const GroupingClass = this.groupingManager.getGroupingClass(this.viewSettings.groupingKey) as any;
+    const GroupingClass = this.groupingManager.getConstructor(this.viewSettings.groupingKey) as any;
     if (!GroupingClass) throw new Error(`Grouping "${this.viewSettings.groupingKey}" not found`);
     this.grouping = new GroupingClass();
   }
@@ -179,7 +179,7 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   onGroupingKeyChanged() {
-    const GroupingClass = this.groupingManager.getGroupingClass(this.viewSettings.groupingKey) as any;
+    const GroupingClass = this.groupingManager.getConstructor(this.viewSettings.groupingKey) as any;
     if (!GroupingClass) throw new Error(`Grouping "${this.viewSettings.groupingKey}" not found`);
     // TODO: Dispose previous grouping maybe?
     this.grouping = new GroupingClass();
@@ -217,7 +217,7 @@ export default class TimelineView extends EventEmitterExtra {
 
   findGroupView(groupId: string | ((groupView: GroupView) => boolean)): GroupView | undefined {
     if (_.isString(groupId)) {
-      return _.find(this.groupViews, g => g.group.id === groupId);
+      return _.find(this.groupViews, g => g.spanGroup.id === groupId);
     } else if (_.isFunction(groupId)) {
       return _.find(this.groupViews, groupId);
     } else {

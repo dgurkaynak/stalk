@@ -1,6 +1,6 @@
 import Axis, { AxisEvent } from './axis';
 import EventEmitterExtra from 'event-emitter-extra';
-import ProcessGrouping from '../../model/grouping/process';
+import ProcessGrouping from '../../model/span-grouping/process';
 
 
 export enum TimelineViewSettingsEvent {
