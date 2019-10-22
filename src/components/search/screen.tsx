@@ -10,7 +10,7 @@ import prettyMilliseconds from 'pretty-ms';
 import moment from 'moment';
 import chroma from 'chroma-js';
 import { TraceDurationScatterPlot } from '../ui/trace-duration-scatter-plot';
-import ColorManagers from '../color/managers';
+import MPN65ColorAssigner from '../color/assigners/mpn65';
 import scroll from 'scroll';
 
 import './search.css';
@@ -56,9 +56,10 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     onMouseLeaveOnScatterPlotDot: this.onMouseLeaveOnScatterPlotDot.bind(this),
     onStageTraceAddedOrRemoved: this.onStageTraceAddedOrRemoved.bind(this),
   };
-  chromaScale = chroma.scale(['#000', '#f00']).mode('lab');
-  containerRef: HTMLDivElement | null = null;
+  private chromaScale = chroma.scale(['#000', '#f00']).mode('lab');
+  private containerRef: HTMLDivElement | null = null;
   private stage = Stage.getSingleton();
+  private colorAssigner = new MPN65ColorAssigner();
 
 
   componentDidMount() {
@@ -184,6 +185,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
           <Affix target={() => this.containerRef} onChange={this.binded.onAffixStateChange}>
             <TraceDurationScatterPlot
               traces={searchResults}
+              colorAssigner={this.colorAssigner}
               width="100%"
               height={CHART_HEIGHT}
               style={{ backgroundColor: '#F0F2F5' }}
@@ -256,7 +258,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
                   title={
                     <>
                       <Badge
-                        color={ColorManagers.traceName.colorFor(item.name) as string}
+                        color={this.colorAssigner.colorFor(item.name)}
                         className="search-result-item-badge"
                       />
                       {item.name} &nbsp;

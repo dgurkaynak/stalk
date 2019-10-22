@@ -2,7 +2,6 @@ import * as _ from 'lodash';
 import React from 'react';
 import { Icon, Layout, Empty, Badge, Card, Tooltip, Menu, Dropdown, Divider, Alert } from 'antd';
 import { Stage, StageEvent } from '../../model/stage';
-import ColorManagers from '../color/managers';
 import TimelineView from './view';
 import { TimelineInteractableElementType, TimelineInteractedElementObject } from './interaction';
 import { MouseHandlerEvent } from './mouse-handler';
@@ -15,6 +14,7 @@ import traceGroupingOptions from '../../model/span-grouping/trace';
 import SplitPane from 'react-split-pane';
 import { Trace } from '../../model/trace';
 import GroupView from './group-view';
+import { operationColoringOptions } from '../color/span-coloring-manager'
 
 
 import './timeline.css';
@@ -40,6 +40,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   state = {
     stageTraces: this.stage.getAll(),
     groupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineViewSettings
+    spanColoringMode: operationColoringOptions.key, // Do not forget to change default value of TimelineViewSettings
     selectedSpanView: null,
     highlightedLogId: '',
   };
@@ -52,6 +53,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     // That's why we need to delay it's execution.
     onSidebarContainerMouseLeave: () => setTimeout(this.onSidebarContainerMouseLeave.bind(this), 100),
     onGroupingModeMenuClick: this.onGroupingModeMenuClick.bind(this),
+    onSpanColoringModeMenuClick: this.onSpanColoringModeMenuClick.bind(this),
     onTimelineMouseIdleMove: this.onTimelineMouseIdleMove.bind(this),
     onTimelineMouseIdleLeave: this.onTimelineMouseIdleLeave.bind(this),
     onTimelineMousePanStart: this.onTimelineMousePanStart.bind(this),
@@ -377,7 +379,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   }
 
   onGroupingModeMenuClick(data: any) {
-    if (data.key === 'add-grouping') {
+    if (data.key === 'create-new') {
       // TODO: Open modal to add/test grouping
       return;
     }
@@ -386,6 +388,16 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.setState({ groupingMode: data.key, selectedSpanView: null });
     // TODO: Instead of setting selectedSpanView to null,
     // you can keep it and select again
+  }
+
+  onSpanColoringModeMenuClick(data: any) {
+    if (data.key === 'create-new') {
+      // TODO: Open modal to add/test grouping
+      return;
+    }
+
+    this.timelineView.viewSettings.setSpanColoringKey(data.key);
+    this.setState({ spanColoringMode: data.key });
   }
 
   onSidebarSplitDragFinish(sidebarWidth: number) {
@@ -456,7 +468,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
                 Service Name
               </Menu.Item>
               <Menu.Divider />
-              <Menu.Item key="add-grouping">
+              <Menu.Item key="create-new">
                 <Icon type="plus" /> Create new
               </Menu.Item>
             </Menu>
@@ -470,10 +482,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
           <Dropdown overlay={
             <Menu>
-              <Menu.Item key="operation">Operation Name</Menu.Item>
-              <Menu.Item key="service-operation">Service + Operation Name</Menu.Item>
+              <Menu.Item key="operation">Operation</Menu.Item>
+              <Menu.Item key="service-operation">Service + Operation</Menu.Item>
               <Menu.Divider />
-              <Menu.Item key="add-grouping">
+              <Menu.Item key="create-new">
                 <Icon type="plus" /> Create new
               </Menu.Item>
             </Menu>
@@ -486,12 +498,14 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
           </Dropdown>
 
           <Dropdown overlay={
-            <Menu>
-              <Menu.Item key="service-name">Service Name</Menu.Item>
-              <Menu.Item key="operation-name">Operation Name</Menu.Item>
-              <Menu.Item key="label">Label</Menu.Item>
+            <Menu
+              selectedKeys={[ this.state.spanColoringMode ]}
+              onClick={this.binded.onSpanColoringModeMenuClick}
+            >
+              <Menu.Item key="operation">Operation</Menu.Item>
+              <Menu.Item key="service">Service</Menu.Item>
               <Menu.Divider />
-              <Menu.Item key="add-grouping">
+              <Menu.Item key="create-new">
                 <Icon type="plus" /> Create new
               </Menu.Item>
             </Menu>
@@ -513,13 +527,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
               {this.state.stageTraces.map((trace, i) => (
                 <div className="sidebar-row" key={i}>
-                  <span>
-                    <Badge
-                      color={ColorManagers.traceName.colorFor(trace.id) as string}
-                      className="search-result-item-badge"
-                    />
-                    {trace.name}
-                  </span>
+                  <span>{trace.name}</span>
                   <Icon
                     type="close"
                     onClick={() => this.stage.remove(trace.id)}

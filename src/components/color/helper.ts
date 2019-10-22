@@ -9,11 +9,9 @@ export function getSpanColors(hex: string) {
   const contrastWithBlack = chroma.contrast(color, BLACK);
   const textColor = contrastWithWhite >= contrastWithBlack ? '#fff' : '#000';
   const darkColor = chroma(hex).darken(1).hex();
-  const lightColor = chroma(hex).brighten(1).hex();
 
   return {
     textColor,
-    darkColor,
-    lightColor
+    borderColor: darkColor
   };
 }

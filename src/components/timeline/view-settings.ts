@@ -1,19 +1,22 @@
 import Axis, { AxisEvent } from './axis';
 import EventEmitterExtra from 'event-emitter-extra';
 import processGroupingOptions from '../../model/span-grouping/process';
+import SpanColoringManager, { operationColoringOptions } from '../color/span-coloring-manager';
 
 
 export enum TimelineViewSettingsEvent {
-  GROUPING_KEY_CHANGED = 'tvs_grouping_key_changed'
+  GROUPING_KEY_CHANGED = 'tvs_grouping_key_changed',
+  SPAN_COLORING_CHANGED = 'tvs_span_coloring_changed',
 }
 
 export default class TimelineViewSettings extends EventEmitterExtra {
   private axis = new Axis([0, 0], [0, 0]);
   width = NaN; // In pixels
   height = NaN; // In pixels
-  private _groupingKey = processGroupingOptions.key; // Do not forget to change default value of timeline sidebar dropdown
+  private _groupingKey = processGroupingOptions.key; // Do not forget to change default value of timeline header menu
   get groupingKey() { return this._groupingKey; };
   readonly scrollToZoomFactor = 0.01;
+  spanSelectionMode: 'hover' | 'click' = 'hover'; // TODO
 
   readonly cursorLineColor = '#ccc';
   showCursorLine = false;
@@ -42,6 +45,14 @@ export default class TimelineViewSettings extends EventEmitterExtra {
   readonly spanLogCircleRadius = 3;
   spanLogPreview = 'log.message'; // TODO
 
+  private _spanColoringKey = operationColoringOptions.key; // Do not forget to change default value of timeline header menu
+  get spanColoringKey() { return this._spanColoringKey; };
+  get spanColorFor() {
+    const options = SpanColoringManager.getSingleton().getOptions(this._spanColoringKey);
+    if (!options) throw new Error(`Span coloring "${this._spanColoringKey}" not found`);
+    return options.colorBy;
+  }
+
   getAxis() {
     return this.axis;
   }
@@ -59,4 +70,12 @@ export default class TimelineViewSettings extends EventEmitterExtra {
     this._groupingKey = groupingKey;
     this.emit(TimelineViewSettingsEvent.GROUPING_KEY_CHANGED);
   };
+
+  setSpanColoringKey(coloringKey: string) {
+    const options = SpanColoringManager.getSingleton().getOptions(coloringKey);
+    if (!options) throw new Error(`Span coloring "${coloringKey}" is not found`);
+    if (coloringKey === this._spanColoringKey) return false;
+    this._spanColoringKey = coloringKey;
+    this.emit(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED);
+  }
 }

@@ -2,13 +2,9 @@ import * as _ from 'lodash';
 import { Span, SpanLog } from '../../model/span';
 import ViewSettings from './view-settings';
 import * as shortid from 'shortid';
-// import { RandomColorAssigner } from '../color/assigners/randomcolor';
-import { MPN65ColorAssigner } from '../color/assigners/mpn65';
 import { getSpanColors } from '../color/helper';
 import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
 
-// const randomColorAssigner = new RandomColorAssigner();
-const randomColorAssigner = new MPN65ColorAssigner();
 
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -87,10 +83,10 @@ export default class SpanView {
   reuse(span: Span) {
     this.span = span;
 
-    this.viewPropertiesCache.barColor = randomColorAssigner.colorFor(span.operationName) as string;
-    const { textColor, darkColor } = getSpanColors(this.viewPropertiesCache.barColor);
+    this.viewPropertiesCache.barColor = this.viewSettings.spanColorFor(span);
+    const { textColor, borderColor } = getSpanColors(this.viewPropertiesCache.barColor);
     this.viewPropertiesCache.labelColor = textColor;
-    this.viewPropertiesCache.borderColor = darkColor;
+    this.viewPropertiesCache.borderColor = borderColor;
 
     this.updateColorStyle('normal');
     this.updateLabelText();
@@ -213,6 +209,17 @@ export default class SpanView {
     // Update label text positioning
     this.labelText.setAttribute('x', spanLabelOffsetLeft + '');
     this.labelText.setAttribute('y', (spanBarHeight / 2 + spanBarSpacing + spanLabelOffsetTop) + '');
+  }
+
+  updateColors() {
+    this.viewPropertiesCache.barColor = this.viewSettings.spanColorFor(this.span);
+    const { textColor, borderColor } = getSpanColors(this.viewPropertiesCache.barColor);
+    this.viewPropertiesCache.labelColor = textColor;
+    this.viewPropertiesCache.borderColor = borderColor;
+
+    this.barRect.setAttribute('fill', this.viewPropertiesCache.barColor);
+    // this.barRect.setAttribute('stroke', ??); // TODO: We don't know what the current style is
+    this.labelText.setAttribute('fill', this.viewPropertiesCache.labelColor);
   }
 
   showLabel() {

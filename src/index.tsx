@@ -5,12 +5,14 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 import DatasourceManager from './model/datasource/manager';
 import SpanGroupingManager from './model/span-grouping/manager';
+import SpanColoringManager from './components/color/span-coloring-manager';
 
 
 async function main() {
     await Promise.all([
         DatasourceManager.getSingleton().init(),
         SpanGroupingManager.getSingleton().init(),
+        SpanColoringManager.getSingleton().init(),
     ]);
 
     ReactDOM.render(<App />, document.getElementById('root'));

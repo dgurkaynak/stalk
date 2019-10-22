@@ -1,7 +1,6 @@
 import * as _ from 'lodash';
 import palette from 'google-palette';
-import chroma from 'chroma-js';
-import { IColorAssigner } from '../interfaces';
+import { IColorAssigner } from './interface';
 
 
 interface MPN65ColorAssignerOptions {
@@ -15,14 +14,7 @@ interface MPN65ColorAssignerOptions {
  */
 export class MPN65ColorAssigner implements IColorAssigner {
   private index = 0;
-  private colors: {
-    hex: string,
-    rgb: {
-      r: number,
-      g: number,
-      b: number
-    }
-  }[] = [];
+  private colors: string[] = [];
   private keyColorIndexMap: { [key: string]: number } = {};
 
 
@@ -50,27 +42,18 @@ export class MPN65ColorAssigner implements IColorAssigner {
       _.remove(rawColors, c => options!.excludeColors!.indexOf(c) > -1);
     }
 
-    this.colors = rawColors.map((rawColor: string) => {
-      const hex = `#${rawColor}`;
-      const color = chroma(hex);
-      const [r, g, b] = color.rgb();
-      return {
-        hex: hex,
-        rgb: { r, g, b }
-      };
-    });
+    this.colors = rawColors.map((c: string) => `#${c}`);
   }
 
 
-  colorFor(key: string, type: 'hex' | 'rgb' = 'hex') {
+  colorFor(key: string) {
     let index = this.keyColorIndexMap[key];
     if (!_.isNumber(index)) {
       index = this.index;
       this.keyColorIndexMap[key] = index;
       this.index = (this.index + 1) % this.colors.length;
     }
-    const color = this.colors[index];
-    return color[type];
+    return this.colors[index];
   }
 
 

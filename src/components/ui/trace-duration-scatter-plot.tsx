@@ -1,7 +1,7 @@
 import React from 'react';
 import { Trace } from '../../model/trace';
 import * as d3 from 'd3';
-import ColorManagers from '../color/managers';
+import { IColorAssigner } from '../color/assigners/interface';
 import prettyMilliseconds from 'pretty-ms';
 
 const MARGIN = { top: 20, right: 30, bottom: 30, left: 50 };
@@ -12,6 +12,7 @@ export interface TraceDurationScatterPlotProps {
   highlightedTrace?: Trace,
   width: number | string,
   height: number | string,
+  colorAssigner: IColorAssigner,
   style?: React.CSSProperties
   className?: string,
   onItemMouseEnter?: (t: Trace) => void,
@@ -21,8 +22,8 @@ export interface TraceDurationScatterPlotProps {
 
 
 export class TraceDurationScatterPlot extends React.Component<TraceDurationScatterPlotProps> {
-  svgRef: SVGSVGElement | null = null;
-  tooltipRef: HTMLDivElement | null = null;
+  private svgRef: SVGSVGElement | null = null;
+  private tooltipRef: HTMLDivElement | null = null;
 
 
   componentDidMount() {
@@ -117,7 +118,7 @@ export class TraceDurationScatterPlot extends React.Component<TraceDurationScatt
       .attr('cx', t => x(t.startTime / 1000))
       .attr('cy', t => y(t.duration / 1000))
       .attr('r', 7)
-      .style('fill', t => ColorManagers.traceName.colorFor(t.name) as string)
+      .style('fill', t => this.props.colorAssigner.colorFor(t.name))
       .style('opacity', 0.75)
       .on('click', t => this.props.onItemClick && this.props.onItemClick(t))
       .on('mouseenter', t => {
