@@ -2,11 +2,13 @@ import Axis, { AxisEvent } from './axis';
 import EventEmitterExtra from 'event-emitter-extra';
 import processGroupingOptions from '../../model/span-grouping/process';
 import SpanColoringManager, { operationColoringOptions } from '../../model/span-coloring-manager';
+import SpanLabellingManager, { operationLabellingOptions } from '../../model/span-labelling-manager';
 
 
 export enum TimelineViewSettingsEvent {
   GROUPING_KEY_CHANGED = 'tvs_grouping_key_changed',
   SPAN_COLORING_CHANGED = 'tvs_span_coloring_changed',
+  SPAN_LABELLING_CHANGED = 'tvs_span_labelling_changed',
 }
 
 export default class TimelineViewSettings extends EventEmitterExtra {
@@ -53,6 +55,14 @@ export default class TimelineViewSettings extends EventEmitterExtra {
     return options.colorBy;
   }
 
+  private _spanLabellingKey = operationColoringOptions.key; // Do not forget to change default value of timeline header menu
+  get spanLabellingKey() { return this._spanLabellingKey; };
+  get spanLabelFor() {
+    const options = SpanLabellingManager.getSingleton().getOptions(this._spanLabellingKey);
+    if (!options) throw new Error(`Span labelling "${this._spanLabellingKey}" not found`);
+    return options.labelBy;
+  }
+
   getAxis() {
     return this.axis;
   }
@@ -77,5 +87,13 @@ export default class TimelineViewSettings extends EventEmitterExtra {
     if (coloringKey === this._spanColoringKey) return false;
     this._spanColoringKey = coloringKey;
     this.emit(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED);
+  }
+
+  setSpanLabellingKey(labellingKey: string) {
+    const options = SpanLabellingManager.getSingleton().getOptions(labellingKey);
+    if (!options) throw new Error(`Span labelling "${labellingKey}" is not found`);
+    if (labellingKey === this._spanLabellingKey) return false;
+    this._spanLabellingKey = labellingKey;
+    this.emit(TimelineViewSettingsEvent.SPAN_LABELLING_CHANGED);
   }
 }

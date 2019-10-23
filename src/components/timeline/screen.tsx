@@ -14,7 +14,8 @@ import traceGroupingOptions from '../../model/span-grouping/trace';
 import SplitPane from 'react-split-pane';
 import { Trace } from '../../model/trace';
 import GroupView from './group-view';
-import { operationColoringOptions } from '../../model/span-coloring-manager'
+import { operationColoringOptions, serviceColoringOptions } from '../../model/span-coloring-manager'
+import { operationLabellingOptions, serviceOperationLabellingOptions } from '../../model/span-labelling-manager'
 
 
 import './timeline.css';
@@ -41,6 +42,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     stageTraces: this.stage.getAll(),
     groupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineViewSettings
     spanColoringMode: operationColoringOptions.key, // Do not forget to change default value of TimelineViewSettings
+    spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineViewSettings
     selectedSpanView: null,
     highlightedLogId: '',
   };
@@ -54,6 +56,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onSidebarContainerMouseLeave: () => setTimeout(this.onSidebarContainerMouseLeave.bind(this), 100),
     onGroupingModeMenuClick: this.onGroupingModeMenuClick.bind(this),
     onSpanColoringModeMenuClick: this.onSpanColoringModeMenuClick.bind(this),
+    onSpanLabellingModeMenuClick: this.onSpanLabellingModeMenuClick.bind(this),
     onTimelineMouseIdleMove: this.onTimelineMouseIdleMove.bind(this),
     onTimelineMouseIdleLeave: this.onTimelineMouseIdleLeave.bind(this),
     onTimelineMousePanStart: this.onTimelineMousePanStart.bind(this),
@@ -400,6 +403,16 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.setState({ spanColoringMode: data.key });
   }
 
+  onSpanLabellingModeMenuClick(data: any) {
+    if (data.key === 'create-new') {
+      // TODO: Open modal to add/test grouping
+      return;
+    }
+
+    this.timelineView.viewSettings.setSpanLabellingKey(data.key);
+    this.setState({ spanLabellingMode: data.key });
+  }
+
   onSidebarSplitDragFinish(sidebarWidth: number) {
     this.sidebarWidth = sidebarWidth;
     this.resizeTimelineView();
@@ -458,15 +471,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               onClick={this.binded.onGroupingModeMenuClick}
               style={{ marginLeft: 5 }}
             >
-              <Menu.Item key={traceGroupingOptions.key}>
-                Trace
-              </Menu.Item>
-              <Menu.Item key={processGroupingOptions.key}>
-                Process
-              </Menu.Item>
-              <Menu.Item key={serviceNameGroupingOptions.key}>
-                Service Name
-              </Menu.Item>
+              <Menu.Item key={traceGroupingOptions.key}>{traceGroupingOptions.name}</Menu.Item>
+              <Menu.Item key={processGroupingOptions.key}>{processGroupingOptions.name}</Menu.Item>
+              <Menu.Item key={serviceNameGroupingOptions.key}>{serviceNameGroupingOptions.name}</Menu.Item>
               <Menu.Divider />
               <Menu.Item key="create-new">
                 <Icon type="plus" /> Create new
@@ -481,9 +488,12 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
           </Dropdown>
 
           <Dropdown overlay={
-            <Menu>
-              <Menu.Item key="operation">Operation</Menu.Item>
-              <Menu.Item key="service-operation">Service + Operation</Menu.Item>
+            <Menu
+              selectedKeys={[ this.state.spanLabellingMode ]}
+              onClick={this.binded.onSpanLabellingModeMenuClick}
+            >
+              <Menu.Item key={operationLabellingOptions.key}>{operationLabellingOptions.name}</Menu.Item>
+              <Menu.Item key={serviceOperationLabellingOptions.key}>{serviceOperationLabellingOptions.name}</Menu.Item>
               <Menu.Divider />
               <Menu.Item key="create-new">
                 <Icon type="plus" /> Create new
@@ -502,8 +512,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               selectedKeys={[ this.state.spanColoringMode ]}
               onClick={this.binded.onSpanColoringModeMenuClick}
             >
-              <Menu.Item key="operation">Operation</Menu.Item>
-              <Menu.Item key="service">Service</Menu.Item>
+              <Menu.Item key={operationColoringOptions.key}>{operationColoringOptions.name}</Menu.Item>
+              <Menu.Item key={serviceColoringOptions.key}>{serviceColoringOptions.name}</Menu.Item>
               <Menu.Divider />
               <Menu.Item key="create-new">
                 <Icon type="plus" /> Create new

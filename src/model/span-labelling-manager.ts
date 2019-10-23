@@ -1,25 +1,24 @@
 import * as _ from 'lodash';
 import EventEmitterExtra from 'event-emitter-extra';
-import MPN65ColorAssigner from '../components/ui/color-assigner/mpn65';
 import { Span } from './span';
 
 
-export enum SpanColoringManagerEvent {
-  ADDED = 'scm_added',
-  REMOVED = 'scm_removed',
+export enum SpanLabellingManagerEvent {
+  ADDED = 'slm_added',
+  REMOVED = 'slm_removed',
 }
 
-export interface SpanColoringOptions {
+export interface SpanLabellingOptions {
   key: string;
   name: string;
-  colorBy: (span: Span) => string
+  labelBy: (span: Span) => string
 }
 
 let singletonIns: SpanColoringManager;
 
 export default class SpanColoringManager extends EventEmitterExtra {
-  private builtInOptions: SpanColoringOptions[] = [operationColoringOptions, serviceColoringOptions];
-  private customOptions: SpanColoringOptions[] = [];
+  private builtInOptions: SpanLabellingOptions[] = [operationLabellingOptions, serviceOperationLabellingOptions];
+  private customOptions: SpanLabellingOptions[] = [];
 
   static getSingleton(): SpanColoringManager {
     if (!singletonIns) singletonIns = new SpanColoringManager();
@@ -30,42 +29,40 @@ export default class SpanColoringManager extends EventEmitterExtra {
     // TODO: Fetch from database
   }
 
-  async add(options: SpanColoringOptions) {
+  async add(options: SpanLabellingOptions) {
     const allOptions = [ ...this.builtInOptions, ...this.customOptions ];
     const keyMatch = _.find(allOptions, c => c.key === options.key);
     if (keyMatch) return false;
     this.customOptions.push(options);
     // TODO: Add to the db
-    this.emit(SpanColoringManagerEvent.ADDED, options);
+    this.emit(SpanLabellingManagerEvent.ADDED, options);
     return true;
   }
 
-  async remove(coloringKey: string) {
-    const removeds = _.remove(this.customOptions, c => c.key === coloringKey);
+  async remove(labellingKey: string) {
+    const removeds = _.remove(this.customOptions, c => c.key === labellingKey);
     if (removeds.length === 0) return false;
     // TODO: Remove from db
-    this.emit(SpanColoringManagerEvent.REMOVED, removeds);
+    this.emit(SpanLabellingManagerEvent.REMOVED, removeds);
     return true;
   }
 
-  getOptions(coloringKey: string) {
+  getOptions(labellingKey: string) {
     const allOptions = [ ...this.builtInOptions, ...this.customOptions ];
-    return _.find(allOptions, c => c.key === coloringKey);
+    return _.find(allOptions, c => c.key === labellingKey);
   }
 }
 
-export const operationColorAssigner = new MPN65ColorAssigner();
-export const operationColoringOptions: SpanColoringOptions = {
+export const operationLabellingOptions: SpanLabellingOptions = {
   key: 'operation',
   name: 'Operation',
-  colorBy: span => operationColorAssigner.colorFor(span.operationName)
+  labelBy: span => span.operationName
 };
 
-export const serviceColorAssigner = new MPN65ColorAssigner();
-export const serviceColoringOptions: SpanColoringOptions = {
-  key: 'service',
-  name: 'Service',
-  colorBy: (span) => {
+export const serviceOperationLabellingOptions: SpanLabellingOptions = {
+  key: 'service-operation',
+  name: 'Service + Operation',
+  labelBy: (span) => {
     let serviceName = '';
 
     // Jaeger
@@ -75,7 +72,7 @@ export const serviceColoringOptions: SpanColoringOptions = {
       serviceName = span.localEndpoint.serviceName;
     }
 
-    return serviceColorAssigner.colorFor(serviceName);
+    return `${serviceName}${serviceName ? '::' : ''}${span.operationName}`;
   }
 };
 

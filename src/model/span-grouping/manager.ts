@@ -44,14 +44,6 @@ export default class SpanGroupingManager extends EventEmitterExtra {
     return true;
   }
 
-  list() {
-    const allGroupingClasses = [ ...this.builtInSpanGroupings, ...this.customSpanGroupings ];
-    return allGroupingClasses.reduce((acc, c) => {
-      acc[c.key] = c.name;
-      return acc;
-    }, {} as { [key: string]: string });
-  }
-
   getOptions(groupingKey: string) {
     const allGroupingClasses = [ ...this.builtInSpanGroupings, ...this.customSpanGroupings ];
     return _.find(allGroupingClasses, c => c.key === groupingKey);

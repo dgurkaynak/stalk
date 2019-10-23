@@ -106,7 +106,7 @@ export default class SpanView {
   }
 
   updateLabelText() {
-    this.labelText.textContent = this.span.operationName;
+    this.labelText.textContent = this.viewSettings.spanLabelFor(this.span);
   }
 
   updateColorStyle(style: 'normal' | 'hover' | 'selected') {

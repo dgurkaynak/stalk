@@ -47,6 +47,7 @@ export default class TimelineView extends EventEmitterExtra {
   private binded = {
     onGroupingKeyChanged: this.onGroupingKeyChanged.bind(this),
     onSpanColoringKeyChanged: this.onSpanColoringKeyChanged.bind(this),
+    onSpanLabellingKeyChanged: this.onSpanLabellingKeyChanged.bind(this),
   };
 
 
@@ -155,6 +156,7 @@ export default class TimelineView extends EventEmitterExtra {
   bindEvents() {
     this.viewSettings.on(TimelineViewSettingsEvent.GROUPING_KEY_CHANGED, this.binded.onGroupingKeyChanged)
     this.viewSettings.on(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED, this.binded.onSpanColoringKeyChanged)
+    this.viewSettings.on(TimelineViewSettingsEvent.SPAN_LABELLING_CHANGED, this.binded.onSpanLabellingKeyChanged)
   }
 
 
@@ -196,6 +198,13 @@ export default class TimelineView extends EventEmitterExtra {
     this.groupViews.forEach((g) => {
       const spanViews = g.getAllSpanViews();
       spanViews.forEach(s => s.updateColors());
+    });
+  }
+
+  onSpanLabellingKeyChanged() {
+    this.groupViews.forEach((g) => {
+      const spanViews = g.getAllSpanViews();
+      spanViews.forEach(s => s.updateLabelText());
     });
   }
 
