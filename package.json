@@ -8,7 +8,7 @@
   "scripts": {
     "build": "react-scripts build",
     "eject": "react-scripts eject",
-    "package": "electron-packager .",
+    "package": "electron-packager . --ignore=\node_modules/.cache",
     "start:electron": "node scripts/electron-wait-react.js",
     "start:react": "react-scripts start",
     "start": "cross-env BROWSER=none nf start -p 3000",
