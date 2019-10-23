@@ -5,7 +5,7 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 import DatasourceManager from './model/datasource/manager';
 import SpanGroupingManager from './model/span-grouping/manager';
-import SpanColoringManager from './components/color/span-coloring-manager';
+import SpanColoringManager from './model/span-coloring-manager';
 
 
 async function main() {

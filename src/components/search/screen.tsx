@@ -10,7 +10,7 @@ import prettyMilliseconds from 'pretty-ms';
 import moment from 'moment';
 import chroma from 'chroma-js';
 import { TraceDurationScatterPlot } from '../ui/trace-duration-scatter-plot';
-import MPN65ColorAssigner from '../color/assigners/mpn65';
+import MPN65ColorAssigner from '../ui/color-assigner/mpn65';
 import scroll from 'scroll';
 
 import './search.css';

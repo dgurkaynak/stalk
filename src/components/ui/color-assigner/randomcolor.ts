@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import * as randomColor from 'randomcolor';
-import { IColorAssigner } from './interface';
+import { IColorAssigner } from './interfaces';
 
 
 interface RandomColorAssignerOptions {

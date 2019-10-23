@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import palette from 'google-palette';
-import { IColorAssigner } from './interface';
+import { IColorAssigner } from './interfaces';
 
 
 interface MPN65ColorAssignerOptions {

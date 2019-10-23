@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import EventEmitterExtra from 'event-emitter-extra';
-import MPN65ColorAssigner from './assigners/mpn65';
-import { Span } from '../../model/span';
+import MPN65ColorAssigner from '../components/ui/color-assigner/mpn65';
+import { Span } from './span';
 
 
 export enum SpanColoringManagerEvent {

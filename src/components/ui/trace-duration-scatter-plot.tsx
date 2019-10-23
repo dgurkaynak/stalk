@@ -1,7 +1,7 @@
 import React from 'react';
 import { Trace } from '../../model/trace';
 import * as d3 from 'd3';
-import { IColorAssigner } from '../color/assigners/interface';
+import { IColorAssigner } from './color-assigner/interfaces';
 import prettyMilliseconds from 'pretty-ms';
 
 const MARGIN = { top: 20, right: 30, bottom: 30, left: 50 };

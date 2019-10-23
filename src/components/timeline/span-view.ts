@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { Span, SpanLog } from '../../model/span';
 import ViewSettings from './view-settings';
 import * as shortid from 'shortid';
-import { getSpanColors } from '../color/helper';
+import { getSpanColors } from '../ui/color-helper';
 import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
 
 

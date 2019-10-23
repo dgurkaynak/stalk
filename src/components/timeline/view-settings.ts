@@ -1,7 +1,7 @@
 import Axis, { AxisEvent } from './axis';
 import EventEmitterExtra from 'event-emitter-extra';
 import processGroupingOptions from '../../model/span-grouping/process';
-import SpanColoringManager, { operationColoringOptions } from '../color/span-coloring-manager';
+import SpanColoringManager, { operationColoringOptions } from '../../model/span-coloring-manager';
 
 
 export enum TimelineViewSettingsEvent {

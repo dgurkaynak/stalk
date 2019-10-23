@@ -14,7 +14,7 @@ import traceGroupingOptions from '../../model/span-grouping/trace';
 import SplitPane from 'react-split-pane';
 import { Trace } from '../../model/trace';
 import GroupView from './group-view';
-import { operationColoringOptions } from '../color/span-coloring-manager'
+import { operationColoringOptions } from '../../model/span-coloring-manager'
 
 
 import './timeline.css';
