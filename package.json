@@ -6,7 +6,7 @@
   "dependencies": {},
   "scripts": {
     "build": "webpack",
-    "package": "electron-packager . --ignore=\node_modules/.cache",
+    "package": "electron-packager . --ignore=node_modules/.cache",
     "start:electron": "node scripts/electron-wait-react.js",
     "start:dev-server": "webpack-dev-server --port 9000",
     "start": "cross-env BROWSER=none nf start"
