@@ -1,2 +1,2 @@
-react: npm run start:react
+react: npm run start:dev-server
 electron: npm run start:electron

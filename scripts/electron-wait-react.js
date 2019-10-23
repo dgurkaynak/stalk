@@ -1,7 +1,7 @@
 // https://github.com/nayunhwan/Electron-CRA-TypeScript
 
 const net = require('net');
-const port = process.env.PORT ? process.env.PORT - 100 : 3000;
+const port = 9000;
 
 process.env.ELECTRON_START_URL = `http://localhost:${port}`;
 

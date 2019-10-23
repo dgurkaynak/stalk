@@ -172,7 +172,7 @@ export default class TimelineView extends EventEmitterExtra {
           element: element
         });
       }
-      element = element.parentElement as (SVGElement | null);
+      element = (element.parentElement as unknown) as SVGElement;
     }
 
     return matches;
