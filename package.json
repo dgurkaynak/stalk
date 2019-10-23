@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "main": "scripts/electron-main.js",
+  "homepage": "./",
   "dependencies": {
     "@types/chroma-js": "^1.4.3",
     "@types/d3": "^5.7.2",
@@ -35,6 +36,7 @@
   "scripts": {
     "build": "react-scripts build",
     "eject": "react-scripts eject",
+    "package": "electron-packager .",
     "start:electron": "node scripts/electron-wait-react.js",
     "start:react": "react-scripts start",
     "start": "cross-env BROWSER=none nf start -p 3000",
@@ -58,6 +60,7 @@
   "devDependencies": {
     "cross-env": "^5.2.0",
     "electron": "^6.0.12",
+    "electron-packager": "^14.0.6",
     "foreman": "^3.0.1"
   }
 }
