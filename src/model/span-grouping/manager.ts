@@ -1,9 +1,11 @@
 import * as _ from 'lodash';
 import EventEmitterExtra from 'event-emitter-extra';
-import { SpanGroupingOptions } from './span-grouping';
+import { SpanGroupingOptions, SpanGroupingRawOptions } from './span-grouping';
 import TraceGrouping from './trace';
 import ProcessGrouping from './process';
 import ServiceNameGrouping from './service-name';
+import db from '../db';
+import TypeScriptManager from '../../components/customization/typescript-manager';
 
 
 export enum SpanGroupingManagerEvent {
@@ -23,15 +25,25 @@ export default class SpanGroupingManager extends EventEmitterExtra {
   }
 
   async init() {
-    // TODO: Fetch from database
+    await db.open();
+    const rawOptions = await db.spanGroupings.toArray();
+    rawOptions.forEach(raw => this.add(raw, true));
   }
 
-  async add(options: SpanGroupingOptions) {
+  async add(raw: SpanGroupingRawOptions, doNotPersistToDatabase = false) {
     const allGroupingClasses = [ ...this.builtInSpanGroupings, ...this.customSpanGroupings ];
     const keyMatch = _.find(allGroupingClasses, c => c.key === options.key);
     if (keyMatch) return false;
+
+    const options: SpanGroupingOptions = {
+      key: raw.key,
+      name: raw.name,
+      groupBy: TypeScriptManager.generateFunction(raw.compiledCode)
+    };
     this.customSpanGroupings.push(options);
-    // TODO: Add to the db
+
+    if (!doNotPersistToDatabase) await db.spanGroupings.put(raw);
+
     this.emit(SpanGroupingManagerEvent.ADDED, options);
     return true;
   }
@@ -39,7 +51,7 @@ export default class SpanGroupingManager extends EventEmitterExtra {
   async remove(groupingKey: string) {
     const removeds = _.remove(this.customSpanGroupings, c => c.key === groupingKey);
     if (removeds.length === 0) return false;
-    // TODO: Remove from db
+    await db.spanGroupings.delete(groupingKey);
     this.emit(SpanGroupingManagerEvent.REMOVED, removeds);
     return true;
   }

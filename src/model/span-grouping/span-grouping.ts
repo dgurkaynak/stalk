@@ -4,6 +4,13 @@ import { Trace } from '../trace';
 import { SpanGroup } from '../span-group/span-group';
 
 
+export interface SpanGroupingRawOptions {
+  key: string;
+  name: string;
+  rawCode: string;
+  compiledCode: string;
+}
+
 export interface SpanGroupingOptions {
   key: string; // grouping unique key, like `trace`
   name: string; // human readable name, `Trace`

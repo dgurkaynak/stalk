@@ -2,11 +2,20 @@ import * as _ from 'lodash';
 import EventEmitterExtra from 'event-emitter-extra';
 import MPN65ColorAssigner from '../components/ui/color-assigner/mpn65';
 import { Span } from './span';
+import db from './db';
+import TypeScriptManager from './../components/customization/typescript-manager';
 
 
 export enum SpanColoringManagerEvent {
   ADDED = 'scm_added',
   REMOVED = 'scm_removed',
+}
+
+export interface SpanColoringRawOptions {
+  key: string;
+  name: string;
+  rawCode: string;
+  compiledCode: string;
 }
 
 export interface SpanColoringOptions {
@@ -27,15 +36,25 @@ export default class SpanColoringManager extends EventEmitterExtra {
   }
 
   async init() {
-    // TODO: Fetch from database
+    await db.open();
+    const rawOptions = await db.spanColorings.toArray();
+    rawOptions.forEach(raw => this.add(raw, true));
   }
 
-  async add(options: SpanColoringOptions) {
+  async add(raw: SpanColoringRawOptions, doNotPersistToDatabase = false) {
     const allOptions = [ ...this.builtInOptions, ...this.customOptions ];
     const keyMatch = _.find(allOptions, c => c.key === options.key);
     if (keyMatch) return false;
+
+    const options: SpanColoringOptions = {
+      key: raw.key,
+      name: raw.name,
+      colorBy: TypeScriptManager.generateFunction(raw.compiledCode)
+    };
     this.customOptions.push(options);
-    // TODO: Add to the db
+
+    if (!doNotPersistToDatabase) await db.spanColorings.put(raw);
+
     this.emit(SpanColoringManagerEvent.ADDED, options);
     return true;
   }
@@ -43,7 +62,7 @@ export default class SpanColoringManager extends EventEmitterExtra {
   async remove(coloringKey: string) {
     const removeds = _.remove(this.customOptions, c => c.key === coloringKey);
     if (removeds.length === 0) return false;
-    // TODO: Remove from db
+    await db.spanColorings.delete(coloringKey);
     this.emit(SpanColoringManagerEvent.REMOVED, removeds);
     return true;
   }

@@ -1,11 +1,20 @@
 import * as _ from 'lodash';
 import EventEmitterExtra from 'event-emitter-extra';
 import { Span } from './span';
+import db from './db';
+import TypeScriptManager from './../components/customization/typescript-manager';
 
 
 export enum SpanLabellingManagerEvent {
   ADDED = 'slm_added',
   REMOVED = 'slm_removed',
+}
+
+export interface SpanLabellingRawOptions {
+  key: string;
+  name: string;
+  rawCode: string;
+  compiledCode: string;
 }
 
 export interface SpanLabellingOptions {
@@ -26,15 +35,25 @@ export default class SpanColoringManager extends EventEmitterExtra {
   }
 
   async init() {
-    // TODO: Fetch from database
+    await db.open();
+    const rawOptions = await db.spanLabellings.toArray();
+    rawOptions.forEach(raw => this.add(raw, true));
   }
 
-  async add(options: SpanLabellingOptions) {
+  async add(raw: SpanLabellingRawOptions, doNotPersistToDatabase = false) {
     const allOptions = [ ...this.builtInOptions, ...this.customOptions ];
     const keyMatch = _.find(allOptions, c => c.key === options.key);
     if (keyMatch) return false;
+
+    const options: SpanLabellingOptions = {
+      key: raw.key,
+      name: raw.name,
+      labelBy: TypeScriptManager.generateFunction(raw.compiledCode)
+    };
     this.customOptions.push(options);
-    // TODO: Add to the db
+
+    if (!doNotPersistToDatabase) await db.spanLabellings.put(raw);
+
     this.emit(SpanLabellingManagerEvent.ADDED, options);
     return true;
   }
@@ -42,7 +61,7 @@ export default class SpanColoringManager extends EventEmitterExtra {
   async remove(labellingKey: string) {
     const removeds = _.remove(this.customOptions, c => c.key === labellingKey);
     if (removeds.length === 0) return false;
-    // TODO: Remove from db
+    await db.spanLabellings.delete(labellingKey);
     this.emit(SpanLabellingManagerEvent.REMOVED, removeds);
     return true;
   }
