@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 
 module.exports = {
@@ -40,6 +41,9 @@ module.exports = {
   },
   plugins: [
     new HardSourceWebpackPlugin(),
+    new MonacoWebpackPlugin({
+      languages: ['typescript']
+    }),
     new HtmlWebpackPlugin({
       title: 'Stalk Studio',
       template: path.resolve(__dirname, 'src/index.html'),

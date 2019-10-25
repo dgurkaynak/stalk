@@ -5,7 +5,7 @@
   "main": "scripts/electron-main.js",
   "dependencies": {},
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --mode production",
     "package": "electron-packager . --ignore=node_modules/.cache",
     "start:electron": "node scripts/electron-wait-react.js",
     "start:dev-server": "webpack-dev-server --port 9000",
@@ -34,6 +34,8 @@
     "html-webpack-plugin": "^3.2.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
+    "monaco-editor": "^0.18.1",
+    "monaco-editor-webpack-plugin": "^1.7.0",
     "parse-duration": "^0.1.1",
     "pretty-ms": "^5.0.0",
     "randomcolor": "^0.5.4",
