@@ -339,14 +339,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
           return;
         }
 
-        case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
-          const { id: spanId } = SpanView.getPropsFromContainer(element);
-          if (!spanId) return;
-          const [groupView] = this.timelineView.findSpanView(spanId);
-          groupView && groupView.toggleSpanView(spanId);
-          return;
-        }
-
       }
     });
 
