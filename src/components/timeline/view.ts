@@ -186,7 +186,14 @@ export default class TimelineView extends EventEmitterExtra {
 
   dispose() {
     this.mouseHandler.dispose();
-    // TODO: Unbind from view settings events?
+
+    this.viewSettings.removeListener(TimelineViewSettingsEvent.GROUP_LAYOUT_TYPE_CHANGED, [this.binded.onGroupLayoutModeChanged] as any);
+    this.viewSettings.removeListener(TimelineViewSettingsEvent.SPAN_GROUPING_CHANGED, [this.binded.onSpanGroupingChanged] as any);
+    this.viewSettings.removeListener(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED, [this.binded.onSpanColoringKeyChanged] as any);
+    this.viewSettings.removeListener(TimelineViewSettingsEvent.SPAN_LABELLING_CHANGED, [this.binded.onSpanLabellingKeyChanged] as any);
+    this.viewSettings.removeListener(AxisEvent.TRANSLATED, [this.binded.onAxisTranslated] as any);
+    this.viewSettings.removeListener(AxisEvent.UPDATED, [this.binded.onAxisUpdated] as any);
+    this.viewSettings.removeListener(AxisEvent.ZOOMED, [this.binded.onAxisZoomed] as any);
   }
 
   onGroupLayoutModeChanged() {
