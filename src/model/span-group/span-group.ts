@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { Span } from '../span';
+import { Span } from '../interfaces';
 import { SpanGroupNode } from './span-group-node';
 
 

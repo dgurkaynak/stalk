@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import React from 'react';
 import { Button, Modal, Form, Input, Alert, Typography } from 'antd';
 import * as shortid from 'shortid';
-import { SpanLabellingRawOptions, SpanLabellingOptions } from '../../../model/span-labelling-manager';
+import { SpanGroupingRawOptions, SpanGroupingOptions } from '../../../model/span-grouping/span-grouping';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import TypeScriptManager from '../typescript-manager';
 import Stage from '../../../model/stage';
@@ -25,21 +25,21 @@ const formItemProps = {
   style: styles.formItem
 };
 
-export interface SpanLabellingFormModalProps {
+export interface SpanGroupingFormModalProps {
   visible: boolean,
-  onSave: (options: SpanLabellingOptions, rawOptions: SpanLabellingRawOptions, isNew: boolean) => void,
+  onSave: (options: SpanGroupingOptions, rawOptions: SpanGroupingRawOptions, isNew: boolean) => void,
   onCancel: () => void,
   form: any,
-  rawOptions?: SpanLabellingRawOptions,
+  rawOptions?: SpanGroupingRawOptions,
   hideNameField?: boolean,
   modalTitle?: string,
 }
 
-export const SpanLabellingFormModal: any = Form.create({
-  name: 'span-labelling-form-modal',
+export const SpanGroupingFormModal: any = Form.create({
+  name: 'span-grouping-form-modal',
   mapPropsToFields: (props: any) => _.mapValues(props.dataSource || {}, (value) => Form.createFormField({ value }))
 })(
-  class extends React.Component<SpanLabellingFormModalProps> {
+  class extends React.Component<SpanGroupingFormModalProps> {
     private editorContainerEl?: HTMLDivElement;
     private model?: monaco.editor.ITextModel;
     private editor?: monaco.editor.IStandaloneCodeEditor;
@@ -53,7 +53,7 @@ export const SpanLabellingFormModal: any = Form.create({
       testResult: undefined as {
         tsCode: string,
         compiledJSCode: string,
-        labelBy: Function,
+        groupBy: Function,
         testedSpans: { span: Span, rv: string }[]
       } | undefined,
     };
@@ -86,9 +86,22 @@ export const SpanLabellingFormModal: any = Form.create({
 
       const code = this.props.rawOptions ?
         this.props.rawOptions.rawCode :
-        `// Do something with "span" and return a string\n` +
-        `function labelBy(span: Span): string {\n` +
-        `    return span.operationName;\n` +
+        `// Do something with "span" and "trace"\n` +
+        `// and return a tuple [groupId, groupName]\n` +
+        `// where groupId is a unique string to be used for grouping\n` +
+        `// and groupName is human readable string for displaying\n` +
+        `function groupBy(span: Span, trace: Trace): [string, string] {\n` +
+        `    // Let's group by service name\n` +
+        `    let serviceName = 'unknown';\n\n` +
+        `    // Handle jaeger spans\n` +
+        `    if (span.process && span.process.serviceName) {\n` +
+        `        serviceName = span.process.serviceName;\n` +
+        `    }\n\n` +
+        `    // Handle zipkin spans\n` +
+        `    if (span.localEndpoint && span.localEndpoint.serviceName) {\n` +
+        `        serviceName = span.localEndpoint.serviceName;\n` +
+        `    }\n\n` +
+        `    return [serviceName, serviceName];\n` +
         `}\n`;
 
       this.model = monaco.editor.createModel(code, 'typescript');
@@ -123,7 +136,7 @@ export const SpanLabellingFormModal: any = Form.create({
           {
             key,
             name,
-            labelBy: this.state.testResult.labelBy as any
+            groupBy: this.state.testResult.groupBy as any
           },
           {
             key,
@@ -166,41 +179,44 @@ export const SpanLabellingFormModal: any = Form.create({
       const tsCode = this.editor.getValue();
       const compiledJSCode = await this.tsManager.compile(this.model.uri);
 
-      let labelByFn: Function | undefined = undefined;
+      let groupByFn: Function | undefined = undefined;
       try {
-        labelByFn = TypeScriptManager.generateFunction(compiledJSCode, 'labelBy');
+        groupByFn = TypeScriptManager.generateFunction(compiledJSCode, 'groupBy');
       } catch(err) {
-        if (err.message == `labelBy is not defined`) {
-          const customErr = new Error(`Unexpected "labelBy" function`);
-          (customErr as any).description = `You have to declare a function named "labelBy" and it has to return a string.`;
+        if (err.message == `groupBy is not defined`) {
+          const customErr = new Error(`Unexpected "groupBy" function`);
+          (customErr as any).description = `You have to declare a function named "groupBy" and it has to return a tuple [string, string].`;
           throw customErr;
         }
 
         throw err;
       }
 
-      if (!_.isFunction(labelByFn)) {
-        const err = new Error(`Unexpected "labelBy" function`);
-        (err as any).description = `You have to declare a function named "labelBy" and it has to return a string.`;
+      if (!_.isFunction(groupByFn)) {
+        const err = new Error(`Unexpected "groupBy" function`);
+        (err as any).description = `You have to declare a function named "groupBy" and it has to return a tuple [string, string].`;
         throw err;
       }
 
-      const spansToTest = this.stage.getAll().flatMap(t => t.spans);
-      const testedSpans: { span: Span, rv: string }[] = [];
-      for (let span of spansToTest) {
-        const rv = labelByFn(span);
-        if (!_.isString(rv)) {
-          console.error(`Return value of "labelBy" function must be string, but recieved "${typeof rv}" for span`, span);
-          const err = new Error(`Function returned not a string`);
-          (err as any).description = `Return value of "labelBy" function has to be a string, but got "${typeof rv}" ` +
-            `for a span. Please check your console for further details. Press Command+Option+I or Ctrl+Option+I to ` +
-            `open devtools.`;
-          throw err;
+      const testedSpans: { span: Span, rv: string[] }[] = [];
+      const tracesToTest = this.stage.getAll();
+      for (let trace of tracesToTest) {
+        for (let span of trace.spans) {
+          const rv = groupByFn(span, trace);
+          if (!_.isArray(rv)) {
+            console.error(`Return value of "groupBy" function must be string tuple, but recieved "${typeof rv}" for span`, span);
+            const err = new Error(`Function returned not a string`);
+            (err as any).description = `Return value of "groupBy" function has to be a string tuple, but got "${typeof rv}" ` +
+              `for a span. Please check your console for further details. Press Command+Option+I or Ctrl+Option+I to ` +
+              `open devtools.`;
+            throw err;
+          }
+          testedSpans.push({ span, rv });
         }
-        testedSpans.push({ span, rv });
       }
 
-      return { tsCode, compiledJSCode, labelBy: labelByFn, testedSpans };
+
+      return { tsCode, compiledJSCode, groupBy: groupByFn, testedSpans };
     }
 
     onMonacoEditorContentChange() {
@@ -217,7 +233,7 @@ export const SpanLabellingFormModal: any = Form.create({
           visible={visible}
           destroyOnClose={true}
           maskClosable={false}
-          title={modalTitle || (rawOptions ? 'Update span labelling' : 'New span labelling')}
+          title={modalTitle || (rawOptions ? 'Update span grouping' : 'New span grouping')}
           onCancel={onCancel}
           onOk={this.binded.onSaveButtonClick}
           width={600}
@@ -244,8 +260,8 @@ export const SpanLabellingFormModal: any = Form.create({
             {!hideNameField && (
               <Form.Item label="Name" {...formItemProps}>
                 {getFieldDecorator('name', {
-                  rules: [{ required: true, whitespace: true, message: 'Please enter name for span labelling' }],
-                })(<Input style={styles.formItemInput} placeholder="Custom labelling" />)}
+                  rules: [{ required: true, whitespace: true, message: 'Please enter name for span grouping' }],
+                })(<Input style={styles.formItemInput} placeholder="Custom grouping" />)}
               </Form.Item>
             )}
 
@@ -284,19 +300,19 @@ export const SpanLabellingFormModal: any = Form.create({
         if (testResult.testedSpans.length > 0) {
           description = (
             <>
-              Span labelling function seems OK. It's tested on {testResult.testedSpans.length} span(s) in
+              Span grouping function seems OK. It's tested on {testResult.testedSpans.length} span(s) in
               the stage and here are some samples: <br /><br />
               <ul>
                 {_.sampleSize(testResult.testedSpans, 5).map((test) => (
                   <li key={test.span.id}>
-                    {test.span.operationName} => <Text code>{test.rv}</Text>
+                    {test.span.operationName} => <Text code>{JSON.stringify(test.rv)}</Text>
                   </li>
                 ))}
               </ul>
             </>
           );
         } else {
-          description = `Span labelling function seems OK, you can save it. However it's not tested on any real ` +
+          description = `Span grouping function seems OK, you can save it. However it's not tested on any real ` +
             `spans, since there is no trace added to the stage.`;
         }
 
@@ -315,4 +331,4 @@ export const SpanLabellingFormModal: any = Form.create({
   }
 );
 
-export default SpanLabellingFormModal;
+export default SpanGroupingFormModal;

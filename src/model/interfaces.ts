@@ -81,3 +81,43 @@ export interface Span {
     port?: number
   }
 }
+
+
+export interface Trace {
+  /**
+   * Spans array
+   */
+  spans: Span[];
+  /**
+   * Timestamp of the earliest span in us
+   */
+  startTime: number;
+  /**
+   * Finish timestamp of the latest span in us
+   */
+  finishTime: number;
+  /**
+   * Duration of a trace in us (finishTime - startTime)
+   */
+  duration: number;
+  /**
+   * Root span
+   */
+  rootSpan: Span | undefined;
+  /**
+   * Trace ID
+   */
+  id: string;
+  /**
+   * Root span's operation name (if exists)
+   */
+  name: string | undefined;
+  /**
+   * Total span count
+   */
+  spanCount: number;
+  /**
+   * Count of spans that have `error` tag
+   */
+  errorCount: number;
+}

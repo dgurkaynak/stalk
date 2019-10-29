@@ -1,10 +1,10 @@
-import { Span } from '../span';
+import { Span } from '../interfaces';
 import { Trace } from '../trace';
 import { SpanGroupingOptions } from './span-grouping';
 
 export default <SpanGroupingOptions>{
   key: 'service-name',
-  name: 'Service Name',
+  name: 'Service',
   groupBy: (span: Span, trace: Trace) => {
     let serviceName = 'unknown';
     if (span.process) serviceName = span.process.serviceName;

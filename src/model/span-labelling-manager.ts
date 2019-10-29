@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import EventEmitterExtra from 'event-emitter-extra';
-import { Span } from './span';
+import { Span } from './interfaces';
 import db from './db';
 import TypeScriptManager from './../components/customization/typescript-manager';
 

@@ -16,8 +16,11 @@ import { Trace } from '../../model/trace';
 import GroupView from './group-view';
 import SpanColoringManager, { SpanColoringRawOptions, SpanColoringOptions, operationColoringOptions, serviceColoringOptions } from '../../model/span-coloring-manager';
 import SpanLabellingManager, { SpanLabellingRawOptions, SpanLabellingOptions, operationLabellingOptions, serviceOperationLabellingOptions } from '../../model/span-labelling-manager';
+import SpanGroupingFormModal from '../customization/span-grouping/form-modal';
 import SpanColoringFormModal from '../customization/span-coloring/form-modal';
 import SpanLabellingFormModal from '../customization/span-labelling/form-modal';
+import SpanGroupingManager from '../../model/span-grouping/manager';
+import { SpanGroupingOptions, SpanGroupingRawOptions } from '../../model/span-grouping/span-grouping';
 
 
 import './timeline.css';
@@ -39,18 +42,20 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private sidebarContainerRef = React.createRef();
   private hoveredTimelineElements: TimelineInteractedElementObject[] = [];
   private sidebarWidth = SIDEBAR_WIDTH;
+  private customSpanGroupingRawOptions: SpanGroupingRawOptions | undefined;
   private customSpanColoringRawOptions: SpanColoringRawOptions | undefined;
   private customSpanLabellingRawOptions: SpanLabellingRawOptions | undefined;
 
   state = {
     stageTraces: this.stage.getAll(),
-    groupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineViewSettings
+    spanGroupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineViewSettings
     spanColoringMode: operationColoringOptions.key, // Do not forget to change default value of TimelineViewSettings
     spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineViewSettings
     selectedSpanView: null,
     highlightedLogId: '',
     isCustomSpanColoringFormModalVisible: false,
     isCustomSpanLabellingFormModalVisible: false,
+    isCustomSpanGroupingFormModalVisible: false,
   };
   binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
@@ -60,7 +65,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     // Since we throttle mose move & wheel event, they can triggered after mouse leave,
     // That's why we need to delay it's execution.
     onSidebarContainerMouseLeave: () => setTimeout(this.onSidebarContainerMouseLeave.bind(this), 100),
-    onGroupingModeMenuClick: this.onGroupingModeMenuClick.bind(this),
+    onSpanGroupingModeMenuClick: this.onSpanGroupingModeMenuClick.bind(this),
     onSpanColoringModeMenuClick: this.onSpanColoringModeMenuClick.bind(this),
     onSpanLabellingModeMenuClick: this.onSpanLabellingModeMenuClick.bind(this),
     onTimelineMouseIdleMove: this.onTimelineMouseIdleMove.bind(this),
@@ -74,6 +79,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     resizeTimelineView: _.throttle(this.resizeTimelineView.bind(this), 500),
     onCustomSpanColoringFormModalSave: this.onCustomSpanColoringFormModalSave.bind(this),
     onCustomSpanLabellingFormModalSave: this.onCustomSpanLabellingFormModalSave.bind(this),
+    onCustomSpanGroupingFormModalSave: this.onCustomSpanGroupingFormModalSave.bind(this),
   };
 
   componentDidMount() {
@@ -389,19 +395,25 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.setState({ highlightedLogId: logId });
   }
 
-  onGroupingModeMenuClick(data: any) {
+  onSpanGroupingModeMenuClick(data: any) {
     if (data.key === 'manage-all') {
       // TODO
       return;
     }
 
     if (data.key === 'custom') {
-      // TODO
+      this.setState({ isCustomSpanGroupingFormModalVisible: true });
       return;
     }
 
-    this.timelineView.viewSettings.setGroupingKey(data.key);
-    this.setState({ groupingMode: data.key, selectedSpanView: null });
+    const spanGroupingOptions = SpanGroupingManager.getSingleton().getOptions(data.key);
+    if (!spanGroupingOptions) {
+      message.error(`Unknown span grouping: "${data.key}"`);
+      return;
+    }
+
+    this.timelineView.viewSettings.setSpanGroupingOptions(spanGroupingOptions);
+    this.setState({ spanGroupingMode: data.key, selectedSpanView: null });
     // TODO: Instead of setting selectedSpanView to null,
     // you can keep it and select again
   }
@@ -446,6 +458,12 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
     this.timelineView.viewSettings.setSpanLabellingOptions(spanLabellingOptions);
     this.setState({ spanLabellingMode: data.key });
+  }
+
+  onCustomSpanGroupingFormModalSave(options: SpanGroupingOptions, rawOptions: SpanGroupingRawOptions) {
+    this.customSpanGroupingRawOptions = rawOptions;
+    this.timelineView.viewSettings.setSpanGroupingOptions(options, true);
+    this.setState({ spanGroupingMode: 'custom', isCustomSpanGroupingFormModalVisible: false });
   }
 
   onCustomSpanColoringFormModalSave(options: SpanColoringOptions, rawOptions: SpanColoringRawOptions) {
@@ -504,6 +522,15 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
           </Content>
         </Layout>
 
+        <SpanGroupingFormModal
+          visible={this.state.isCustomSpanGroupingFormModalVisible}
+          modalTitle="Custom Span Grouping"
+          hideNameField={true}
+          rawOptions={this.customSpanGroupingRawOptions}
+          onSave={this.binded.onCustomSpanGroupingFormModalSave}
+          onCancel={() => this.setState({ isCustomSpanGroupingFormModalVisible: false })}
+        />
+
         <SpanColoringFormModal
           visible={this.state.isCustomSpanColoringFormModalVisible}
           modalTitle="Custom Span Coloring"
@@ -532,8 +559,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
           <Dropdown overlay={
             <Menu
-              selectedKeys={[ this.state.groupingMode ]}
-              onClick={this.binded.onGroupingModeMenuClick}
+              selectedKeys={[ this.state.spanGroupingMode ]}
+              onClick={this.binded.onSpanGroupingModeMenuClick}
               style={{ marginLeft: 5 }}
             >
               <Menu.Item key={traceGroupingOptions.key}>{traceGroupingOptions.name}</Menu.Item>

@@ -1,6 +1,6 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as languageFeatures from 'monaco-editor/esm/vs/language/typescript/languageFeatures';
-import DefaultSpanInterfacesRawText from '!!raw-loader!../../model/span.ts';
+import DefaultInterfacesRawText from '!!raw-loader!../../model/interfaces.ts';
 
 
 let _singletonIns: TypeScriptManager;
@@ -26,7 +26,7 @@ export default class TypeScriptManager {
       module: monaco.languages.typescript.ModuleKind.None
     });
 
-    this.defaultInterfacesDisposable = monaco.languages.typescript.typescriptDefaults.addExtraLib(DefaultSpanInterfacesRawText.replace(/export/g, ''));
+    this.defaultInterfacesDisposable = monaco.languages.typescript.typescriptDefaults.addExtraLib(DefaultInterfacesRawText.replace(/export/g, ''));
   }
 
   async compile(uri: monaco.Uri) {

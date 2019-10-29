@@ -1,5 +1,5 @@
 import { DataSource } from "../datasource/interfaces";
-import { Span } from '../span';
+import { Span } from '../interfaces';
 
 export interface API {
     search(query: SearchQuery): Promise<SearchResulList>;

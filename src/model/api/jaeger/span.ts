@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { Span } from '../../span';
+import { Span } from '../../interfaces';
 
 
 export function isJaegerJSON(json: any) {

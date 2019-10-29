@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { Span, SpanLog } from '../../model/span';
+import { Span, SpanLog } from '../../model/interfaces';
 import ViewSettings from './view-settings';
 import * as shortid from 'shortid';
 import { getSpanColors } from '../ui/color-helper';

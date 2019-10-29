@@ -17,6 +17,9 @@ export default class Axis extends EventEmitterExtra {
   ) {
     super();
 
+    // Disable max listener check
+    this.setMaxListeners(Number.MAX_SAFE_INTEGER);
+
     this.scale = (outputRange[1] - outputRange[0]) / (inputRange[1] - inputRange[0]);
     this.offset = outputRange[0] - (this.scale * inputRange[0]);
     this.minScale = this.scale;

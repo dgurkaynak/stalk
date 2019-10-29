@@ -45,7 +45,7 @@ export default class TimelineView extends EventEmitterExtra {
   });
 
   private binded = {
-    onGroupingKeyChanged: this.onGroupingKeyChanged.bind(this),
+    onSpanGroupingChanged: this.onSpanGroupingChanged.bind(this),
     onSpanColoringKeyChanged: this.onSpanColoringKeyChanged.bind(this),
     onSpanLabellingKeyChanged: this.onSpanLabellingKeyChanged.bind(this),
   };
@@ -86,9 +86,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.defs.appendChild(arrowMarker);
 
     // Set-up grouping
-    const spanGroupingOptions = this.groupingManager.getOptions(this.viewSettings.groupingKey);
-    if (!spanGroupingOptions) throw new Error(`Grouping "${this.viewSettings.groupingKey}" not found`);
-    this.spanGrouping = new SpanGrouping(spanGroupingOptions);
+    this.spanGrouping = new SpanGrouping(this.viewSettings.spanGroupingOptions);
   }
 
 
@@ -154,7 +152,7 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   bindEvents() {
-    this.viewSettings.on(TimelineViewSettingsEvent.GROUPING_KEY_CHANGED, this.binded.onGroupingKeyChanged)
+    this.viewSettings.on(TimelineViewSettingsEvent.SPAN_GROUPING_CHANGED, this.binded.onSpanGroupingChanged)
     this.viewSettings.on(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED, this.binded.onSpanColoringKeyChanged)
     this.viewSettings.on(TimelineViewSettingsEvent.SPAN_LABELLING_CHANGED, this.binded.onSpanLabellingKeyChanged)
   }
@@ -182,11 +180,9 @@ export default class TimelineView extends EventEmitterExtra {
     this.mouseHandler.dispose();
   }
 
-  onGroupingKeyChanged() {
-    const groupingOptions = this.groupingManager.getOptions(this.viewSettings.groupingKey);
-    if (!groupingOptions) throw new Error(`Grouping "${this.viewSettings.groupingKey}" not found`);
+  onSpanGroupingChanged() {
     // TODO: Dispose previous grouping maybe?
-    this.spanGrouping = new SpanGrouping(groupingOptions);
+    this.spanGrouping = new SpanGrouping(this.viewSettings.spanGroupingOptions);
     this.traces.forEach(t => t.spans.forEach(s => this.spanGrouping.addSpan(s, t)));
     this.layout();
     this.annotation.logHighlightAnnotation.unmount();

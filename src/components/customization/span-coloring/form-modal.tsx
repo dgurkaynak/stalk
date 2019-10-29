@@ -6,7 +6,7 @@ import { SpanColoringRawOptions, SpanColoringOptions } from '../../../model/span
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import TypeScriptManager from '../typescript-manager';
 import Stage from '../../../model/stage';
-import { Span } from '../../../model/span';
+import { Span } from '../../../model/interfaces';
 
 
 const { Text } = Typography;

@@ -1,12 +1,13 @@
 import Axis, { AxisEvent } from './axis';
 import EventEmitterExtra from 'event-emitter-extra';
+import { SpanGroupingOptions } from '../../model/span-grouping/span-grouping';
 import processGroupingOptions from '../../model/span-grouping/process';
 import { operationColoringOptions, SpanColoringOptions } from '../../model/span-coloring-manager';
-import SpanLabellingManager, { operationLabellingOptions, SpanLabellingOptions } from '../../model/span-labelling-manager';
+import { operationLabellingOptions, SpanLabellingOptions } from '../../model/span-labelling-manager';
 
 
 export enum TimelineViewSettingsEvent {
-  GROUPING_KEY_CHANGED = 'tvs_grouping_key_changed',
+  SPAN_GROUPING_CHANGED = 'tvs_span_grouping_changed',
   SPAN_COLORING_CHANGED = 'tvs_span_coloring_changed',
   SPAN_LABELLING_CHANGED = 'tvs_span_labelling_changed',
 }
@@ -15,8 +16,6 @@ export default class TimelineViewSettings extends EventEmitterExtra {
   private axis = new Axis([0, 0], [0, 0]);
   width = NaN; // In pixels
   height = NaN; // In pixels
-  private _groupingKey = processGroupingOptions.key; // Do not forget to change default value of timeline header menu
-  get groupingKey() { return this._groupingKey; };
   readonly scrollToZoomFactor = 0.01;
   spanSelectionMode: 'hover' | 'click' = 'hover'; // TODO
 
@@ -47,6 +46,11 @@ export default class TimelineViewSettings extends EventEmitterExtra {
   readonly spanLogCircleRadius = 3;
   spanLogPreview = 'log.message'; // TODO
 
+  private _spanGroupingOptions = processGroupingOptions;  // Do not forget to change default value of timeline header menu
+  get spanGroupingOptions() {
+    return this._spanGroupingOptions;
+  };
+
   private _spanColoringOptions = operationColoringOptions;  // Do not forget to change default value of timeline header menu
   get spanColorFor() {
     return this._spanColoringOptions.colorBy;
@@ -69,10 +73,10 @@ export default class TimelineViewSettings extends EventEmitterExtra {
     axis.on(AxisEvent.UPDATED, () => this.emit(AxisEvent.UPDATED));
   }
 
-  setGroupingKey(groupingKey: string) {
-    if (groupingKey === this._groupingKey) return false;
-    this._groupingKey = groupingKey;
-    this.emit(TimelineViewSettingsEvent.GROUPING_KEY_CHANGED);
+  setSpanGroupingOptions(spanGroupingOptions: SpanGroupingOptions, force = false) {
+    if (!force && this._spanGroupingOptions.key === spanGroupingOptions.key) return false;
+    this._spanGroupingOptions = spanGroupingOptions;
+    this.emit(TimelineViewSettingsEvent.SPAN_GROUPING_CHANGED);
   };
 
   setSpanColoringOptions(spanColoringOptions: SpanColoringOptions, force = false) {

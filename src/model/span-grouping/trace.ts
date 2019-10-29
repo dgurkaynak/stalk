@@ -1,4 +1,4 @@
-import { Span } from '../span';
+import { Span } from '../interfaces';
 import { Trace } from '../trace';
 import { SpanGroupingOptions } from './span-grouping';
 

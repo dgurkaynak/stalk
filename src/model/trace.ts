@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
-import { Span } from './span';
+import { Span, Trace as ITrace } from './interfaces';
 
 
-export class Trace {
+export class Trace implements ITrace {
     readonly spans: Span[];
     readonly startTime = Infinity;
     readonly finishTime = -Infinity;
