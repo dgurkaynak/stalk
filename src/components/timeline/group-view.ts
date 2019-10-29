@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { SpanGroup } from '../../model/span-group/span-group';
 import SpanView from './span-view';
 import SpanGroupNode from '../../model/span-group/span-group-node';
-import ViewSettings from './view-settings';
+import ViewSettings, { TimelineViewSettingsEvent } from './view-settings';
 import EventEmitterExtra from 'event-emitter-extra';
 import { AxisEvent } from './axis';
 import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
@@ -19,6 +19,11 @@ enum Visibility {
 export enum GroupViewEvent {
   // TODO: Make this more optimized HEIGHT_CHANGED?
   LAYOUT = 'layout'
+}
+
+export enum GroupLayoutType {
+  COMPACT = 'compact',
+  CONSIDER_SPAN_DEPTH = 'consider_span_depth'
 }
 
 
@@ -237,7 +242,24 @@ export default class GroupView extends EventEmitterExtra {
         case Visibility.VISIBLE_COLLAPSED:
         case Visibility.VISIBLE_OPEN: {
           const { startTime, finishTime } = spanView.span!;
-          const availableRowIndex = this.getAvailableRow({ startTime, finishTime });
+          let availableRowIndex = 0;
+
+          switch (this.viewSettings.groupLayoutType) {
+            case GroupLayoutType.COMPACT: {
+              availableRowIndex = this.getAvailableRow({ startTime, finishTime });
+              break;
+            }
+            case GroupLayoutType.CONSIDER_SPAN_DEPTH: {
+              let minRowIndex = 0;
+              if (node.parentOrFollows) {
+                let parentRowIndex = this.spanIdToRowIndex[node.parentOrFollows.spanId];
+                if (_.isNumber(parentRowIndex)) minRowIndex = parentRowIndex + 1;
+              }
+              availableRowIndex = this.getAvailableRow({ startTime, finishTime, minRowIndex });
+              break;
+            }
+          }
+
           if (!this.rowsAndSpanIntervals[availableRowIndex]) this.rowsAndSpanIntervals[availableRowIndex] = [];
           this.rowsAndSpanIntervals[availableRowIndex].push([startTime, finishTime]);
           this.spanIdToRowIndex[node.spanId] = availableRowIndex;
@@ -310,8 +332,9 @@ export default class GroupView extends EventEmitterExtra {
   getAvailableRow(options: {
     startTime: number,
     finishTime: number,
+    minRowIndex?: number
   }) {
-    let rowIndex = 0;
+    let rowIndex = options.minRowIndex || 0;
     while (rowIndex < this.rowsAndSpanIntervals.length) {
       const spanIntervals = this.rowsAndSpanIntervals[rowIndex];
 

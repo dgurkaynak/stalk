@@ -45,6 +45,7 @@ export default class TimelineView extends EventEmitterExtra {
   });
 
   private binded = {
+    onGroupLayoutModeChanged: this.onGroupLayoutModeChanged.bind(this),
     onSpanGroupingChanged: this.onSpanGroupingChanged.bind(this),
     onSpanColoringKeyChanged: this.onSpanColoringKeyChanged.bind(this),
     onSpanLabellingKeyChanged: this.onSpanLabellingKeyChanged.bind(this),
@@ -152,6 +153,7 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   bindEvents() {
+    this.viewSettings.on(TimelineViewSettingsEvent.GROUP_LAYOUT_TYPE_CHANGED, this.binded.onGroupLayoutModeChanged)
     this.viewSettings.on(TimelineViewSettingsEvent.SPAN_GROUPING_CHANGED, this.binded.onSpanGroupingChanged)
     this.viewSettings.on(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED, this.binded.onSpanColoringKeyChanged)
     this.viewSettings.on(TimelineViewSettingsEvent.SPAN_LABELLING_CHANGED, this.binded.onSpanLabellingKeyChanged)
@@ -178,6 +180,15 @@ export default class TimelineView extends EventEmitterExtra {
 
   dispose() {
     this.mouseHandler.dispose();
+    // TODO: Unbind from view settings events?
+  }
+
+  onGroupLayoutModeChanged() {
+    this.groupViews.forEach(g => g.layout());
+    this.layout();
+    this.annotation.logHighlightAnnotation.unmount();
+    this.annotation.spanConnectionsAnnotation.unmount();
+    this.annotation.intervalHighlightAnnotation.unmount();
   }
 
   onSpanGroupingChanged() {

@@ -13,7 +13,7 @@ import serviceNameGroupingOptions from '../../model/span-grouping/service-name';
 import traceGroupingOptions from '../../model/span-grouping/trace';
 import SplitPane from 'react-split-pane';
 import { Trace } from '../../model/trace';
-import GroupView from './group-view';
+import GroupView, { GroupLayoutType } from './group-view';
 import SpanColoringManager, { SpanColoringRawOptions, SpanColoringOptions, operationColoringOptions, serviceColoringOptions } from '../../model/span-coloring-manager';
 import SpanLabellingManager, { SpanLabellingRawOptions, SpanLabellingOptions, operationLabellingOptions, serviceOperationLabellingOptions } from '../../model/span-labelling-manager';
 import SpanGroupingFormModal from '../customization/span-grouping/form-modal';
@@ -48,6 +48,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   state = {
     stageTraces: this.stage.getAll(),
+    groupLayoutMode: GroupLayoutType.COMPACT,
     spanGroupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineViewSettings
     spanColoringMode: operationColoringOptions.key, // Do not forget to change default value of TimelineViewSettings
     spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineViewSettings
@@ -65,6 +66,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     // Since we throttle mose move & wheel event, they can triggered after mouse leave,
     // That's why we need to delay it's execution.
     onSidebarContainerMouseLeave: () => setTimeout(this.onSidebarContainerMouseLeave.bind(this), 100),
+    onGroupLayoutModeMenuClick: this.onGroupLayoutModeMenuClick.bind(this),
     onSpanGroupingModeMenuClick: this.onSpanGroupingModeMenuClick.bind(this),
     onSpanColoringModeMenuClick: this.onSpanColoringModeMenuClick.bind(this),
     onSpanLabellingModeMenuClick: this.onSpanLabellingModeMenuClick.bind(this),
@@ -395,6 +397,15 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.setState({ highlightedLogId: logId });
   }
 
+  onGroupLayoutModeMenuClick(data: any) {
+    this.timelineView.viewSettings.setGroupLayoutType(data.key);
+    this.setState({ groupLayoutMode: data.key, selectedSpanView: null });
+    this.timelineView.annotation.spanConnectionsAnnotation.unmount();
+    this.timelineView.annotation.intervalHighlightAnnotation.unmount();
+    // TODO: Instead of setting selectedSpanView to null,
+    // you can keep it and select again
+  }
+
   onSpanGroupingModeMenuClick(data: any) {
     if (data.key === 'manage-all') {
       // TODO
@@ -556,6 +567,23 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     return (
       <div className="timeline-screen-header">
         <div className="left">
+
+          <Dropdown overlay={
+            <Menu
+              selectedKeys={[ this.state.groupLayoutMode ]}
+              onClick={this.binded.onGroupLayoutModeMenuClick}
+              style={{ marginLeft: 5 }}
+            >
+              <Menu.Item key={GroupLayoutType.COMPACT}>Compact</Menu.Item>
+              <Menu.Item key={GroupLayoutType.CONSIDER_SPAN_DEPTH}>Consider Span Depth</Menu.Item>
+            </Menu>
+          } trigger={['click']}>
+            <Tooltip placement="right" title="Group Layout Mode" mouseEnterDelay={1}>
+              <span className="timeline-header-button">
+                <Icon type="build" />
+              </span>
+            </Tooltip>
+          </Dropdown>
 
           <Dropdown overlay={
             <Menu

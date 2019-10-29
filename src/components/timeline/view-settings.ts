@@ -4,12 +4,14 @@ import { SpanGroupingOptions } from '../../model/span-grouping/span-grouping';
 import processGroupingOptions from '../../model/span-grouping/process';
 import { operationColoringOptions, SpanColoringOptions } from '../../model/span-coloring-manager';
 import { operationLabellingOptions, SpanLabellingOptions } from '../../model/span-labelling-manager';
+import { GroupLayoutType } from '../timeline/group-view';
 
 
 export enum TimelineViewSettingsEvent {
   SPAN_GROUPING_CHANGED = 'tvs_span_grouping_changed',
   SPAN_COLORING_CHANGED = 'tvs_span_coloring_changed',
   SPAN_LABELLING_CHANGED = 'tvs_span_labelling_changed',
+  GROUP_LAYOUT_TYPE_CHANGED = 'tvs_group_layout_type_changed',
 }
 
 export default class TimelineViewSettings extends EventEmitterExtra {
@@ -61,6 +63,11 @@ export default class TimelineViewSettings extends EventEmitterExtra {
     return this._spanLabellingOptions.labelBy;
   }
 
+  private _groupLayoutType: GroupLayoutType = GroupLayoutType.COMPACT;
+  get groupLayoutType() {
+    return this._groupLayoutType;
+  }
+
   getAxis() {
     return this.axis;
   }
@@ -89,5 +96,11 @@ export default class TimelineViewSettings extends EventEmitterExtra {
     if (!force && this._spanLabellingOptions.key === spanlabellingOptions.key) return false;
     this._spanLabellingOptions = spanlabellingOptions;
     this.emit(TimelineViewSettingsEvent.SPAN_LABELLING_CHANGED);
+  }
+
+  setGroupLayoutType(layoutType: GroupLayoutType) {
+    if (this._groupLayoutType === layoutType) return false;
+    this._groupLayoutType = layoutType;
+    this.emit(TimelineViewSettingsEvent.GROUP_LAYOUT_TYPE_CHANGED);
   }
 }
