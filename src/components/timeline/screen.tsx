@@ -266,6 +266,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     if (previousSelectedSpan) {
       previousSelectedSpan.updateColorStyle('normal');
       this.setState({ selectedSpanView: undefined });
+      this.timelineView.annotation.spanConnectionsAnnotation.unmount();
+      this.timelineView.annotation.intervalHighlightAnnotation.unmount();
     }
 
     let clickedLogId: string | null = null;
@@ -314,12 +316,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
       }
     });
-
-    if (!this.state.selectedSpanView) {
-      this.setState({ selectedSpanView: null });
-      this.timelineView.annotation.spanConnectionsAnnotation.unmount();
-      this.timelineView.annotation.intervalHighlightAnnotation.unmount();
-    }
 
   }
 
