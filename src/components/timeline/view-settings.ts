@@ -19,10 +19,9 @@ export default class TimelineViewSettings extends EventEmitterExtra {
   width = NaN; // In pixels
   height = NaN; // In pixels
   readonly scrollToZoomFactor = 0.01;
-  spanSelectionMode: 'hover' | 'click' = 'hover'; // TODO
 
   readonly cursorLineColor = '#ccc';
-  showCursorLine = false;
+  showCursorLine = true;
 
   readonly groupSeperatorLineColor = '#cccccc';
   readonly groupSeperatorLineWidth = 1;

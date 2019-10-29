@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
 import BaseAnnotation from './base';
+import prettyMilliseconds from 'pretty-ms';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -24,7 +25,7 @@ export default class VerticalLineAnnotation extends BaseAnnotation {
       lineColor: '#000',
       lineWidth: 1,
       position: 'underlay',
-      displayTime: false,
+      displayTime: true,
       timeOffsetToBottom: 10,
       timeOffsetToLine: 5,
       timeFontColor: '#aaa',
@@ -66,7 +67,13 @@ export default class VerticalLineAnnotation extends BaseAnnotation {
     const height = Math.max(this.deps.timelineView.getContentHeight(), this.deps.viewSettings.height);
     this.line.setAttribute('y2', height + '');
     // TODO: Are you sure it's always in nanoseconds, for both zipkin & jaeger?
-    this.text.textContent = new Date(this.settings.timestamp / 1000).toString();
+    const relativeTimeFromStart = (this.settings.timestamp - this.deps.viewSettings.getAxis().getInputRange()[0]) / 1000;
+    this.text.textContent = prettyMilliseconds(relativeTimeFromStart, {
+      secondsDecimalDigits: 3,
+      millisecondsDecimalDigits: 1,
+      keepDecimalsOnWholeSeconds: true,
+      unitCount: 1
+    } as any);
 
     const x = this.deps.viewSettings.getAxis().input2output(this.settings.timestamp);
 

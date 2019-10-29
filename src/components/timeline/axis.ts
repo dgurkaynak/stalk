@@ -25,6 +25,10 @@ export default class Axis extends EventEmitterExtra {
     this.minScale = this.scale;
   }
 
+  getInputRange() {
+    return this.inputRange.slice();
+  }
+
   updateOutputRange(outputRange: [number, number]) {
     this.outputRange = outputRange;
     this.minScale = (outputRange[1] - outputRange[0]) / (this.inputRange[1] - this.inputRange[0]);
