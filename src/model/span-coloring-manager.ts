@@ -49,7 +49,7 @@ export default class SpanColoringManager extends EventEmitterExtra {
     const options: SpanColoringOptions = {
       key: raw.key,
       name: raw.name,
-      colorBy: TypeScriptManager.generateFunction(raw.compiledCode)
+      colorBy: TypeScriptManager.generateFunction(raw.compiledCode, 'colorBy')
     };
     this.customOptions.push(options);
 

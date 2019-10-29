@@ -48,7 +48,7 @@ export default class SpanColoringManager extends EventEmitterExtra {
     const options: SpanLabellingOptions = {
       key: raw.key,
       name: raw.name,
-      labelBy: TypeScriptManager.generateFunction(raw.compiledCode)
+      labelBy: TypeScriptManager.generateFunction(raw.compiledCode, 'labelBy')
     };
     this.customOptions.push(options);
 

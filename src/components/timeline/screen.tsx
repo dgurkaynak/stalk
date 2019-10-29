@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import React from 'react';
-import { Icon, Layout, Empty, Badge, Card, Tooltip, Menu, Dropdown, Divider, Alert } from 'antd';
+import { Icon, Layout, Empty, Badge, Card, Tooltip, Menu, Dropdown, Divider, message } from 'antd';
 import { Stage, StageEvent } from '../../model/stage';
 import TimelineView from './view';
 import { TimelineInteractableElementType, TimelineInteractedElementObject } from './interaction';
@@ -14,8 +14,9 @@ import traceGroupingOptions from '../../model/span-grouping/trace';
 import SplitPane from 'react-split-pane';
 import { Trace } from '../../model/trace';
 import GroupView from './group-view';
-import { operationColoringOptions, serviceColoringOptions } from '../../model/span-coloring-manager'
-import { operationLabellingOptions, serviceOperationLabellingOptions } from '../../model/span-labelling-manager'
+import SpanColoringManager, { operationColoringOptions, serviceColoringOptions, SpanColoringRawOptions, SpanColoringOptions } from '../../model/span-coloring-manager';
+import { operationLabellingOptions, serviceOperationLabellingOptions } from '../../model/span-labelling-manager';
+import SpanColoringFormModal from '../customization/span-coloring/form-modal';
 
 
 import './timeline.css';
@@ -37,6 +38,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private sidebarContainerRef = React.createRef();
   private hoveredTimelineElements: TimelineInteractedElementObject[] = [];
   private sidebarWidth = SIDEBAR_WIDTH;
+  private customSpanColoringRawOptions: SpanColoringRawOptions | undefined;
+  private customSpanColoringOptions: SpanColoringOptions | undefined;
 
   state = {
     stageTraces: this.stage.getAll(),
@@ -45,6 +48,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineViewSettings
     selectedSpanView: null,
     highlightedLogId: '',
+    isCustomSpanColoringFormModalVisible: false,
   };
   binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
@@ -66,6 +70,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onTimelineDoubleClick: this.onTimelineDoubleClick.bind(this),
     onSidebarSplitDragFinish: this.onSidebarSplitDragFinish.bind(this),
     resizeTimelineView: _.throttle(this.resizeTimelineView.bind(this), 500),
+    onCustomSpanColoringFormModalSave: this.onCustomSpanColoringFormModalSave.bind(this),
   };
 
   componentDidMount() {
@@ -382,8 +387,13 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   }
 
   onGroupingModeMenuClick(data: any) {
-    if (data.key === 'create-new') {
-      // TODO: Open modal to add/test grouping
+    if (data.key === 'manage-all') {
+      // TODO
+      return;
+    }
+
+    if (data.key === 'custom') {
+      // TODO
       return;
     }
 
@@ -394,23 +404,46 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   }
 
   onSpanColoringModeMenuClick(data: any) {
-    if (data.key === 'create-new') {
-      // TODO: Open modal to add/test grouping
+    if (data.key === 'manage-all') {
+      // TODO
       return;
     }
 
-    this.timelineView.viewSettings.setSpanColoringKey(data.key);
+    if (data.key === 'custom') {
+      this.setState({ isCustomSpanColoringFormModalVisible: true });
+      return;
+    }
+
+    const spanColoringOptions = SpanColoringManager.getSingleton().getOptions(data.key);
+    if (!spanColoringOptions) {
+      message.error(`Unknown span coloring: "${data.key}"`);
+      return;
+    }
+
+    this.timelineView.viewSettings.setSpanColoringOptions(spanColoringOptions);
     this.setState({ spanColoringMode: data.key });
   }
 
   onSpanLabellingModeMenuClick(data: any) {
-    if (data.key === 'create-new') {
-      // TODO: Open modal to add/test grouping
+    if (data.key === 'manage-all') {
+      // TODO
+      return;
+    }
+
+    if (data.key === 'custom') {
+      // TODO
       return;
     }
 
     this.timelineView.viewSettings.setSpanLabellingKey(data.key);
     this.setState({ spanLabellingMode: data.key });
+  }
+
+  onCustomSpanColoringFormModalSave(options: SpanColoringOptions, rawOptions: SpanColoringRawOptions) {
+    this.customSpanColoringOptions = options;
+    this.customSpanColoringRawOptions = rawOptions;
+    this.timelineView.viewSettings.setSpanColoringOptions(options, true);
+    this.setState({ spanColoringMode: 'custom', isCustomSpanColoringFormModalVisible: false });
   }
 
   onSidebarSplitDragFinish(sidebarWidth: number) {
@@ -456,6 +489,15 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
             </SplitPane>
           </Content>
         </Layout>
+
+        <SpanColoringFormModal
+          visible={this.state.isCustomSpanColoringFormModalVisible}
+          modalTitle="Custom Span Coloring"
+          hideNameField={true}
+          rawOptions={this.customSpanColoringRawOptions}
+          onSave={this.binded.onCustomSpanColoringFormModalSave}
+          onCancel={() => this.setState({ isCustomSpanColoringFormModalVisible: false })}
+        />
       </div>
     );
   }
@@ -475,8 +517,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               <Menu.Item key={processGroupingOptions.key}>{processGroupingOptions.name}</Menu.Item>
               <Menu.Item key={serviceNameGroupingOptions.key}>{serviceNameGroupingOptions.name}</Menu.Item>
               <Menu.Divider />
-              <Menu.Item key="create-new">
-                <Icon type="plus" /> Create new
+              <Menu.Item key="custom">
+                <Icon type="code" /> Custom
+              </Menu.Item>
+              <Menu.Item key="manage-all">
+                <Icon type="setting" /> Manage All
               </Menu.Item>
             </Menu>
           } trigger={['click']}>
@@ -495,8 +540,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               <Menu.Item key={operationLabellingOptions.key}>{operationLabellingOptions.name}</Menu.Item>
               <Menu.Item key={serviceOperationLabellingOptions.key}>{serviceOperationLabellingOptions.name}</Menu.Item>
               <Menu.Divider />
-              <Menu.Item key="create-new">
-                <Icon type="plus" /> Create new
+              <Menu.Item key="custom">
+                <Icon type="code" /> Custom
+              </Menu.Item>
+              <Menu.Item key="manage-all">
+                <Icon type="setting" /> Manage All
               </Menu.Item>
             </Menu>
           } trigger={['click']}>
@@ -515,8 +563,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               <Menu.Item key={operationColoringOptions.key}>{operationColoringOptions.name}</Menu.Item>
               <Menu.Item key={serviceColoringOptions.key}>{serviceColoringOptions.name}</Menu.Item>
               <Menu.Divider />
-              <Menu.Item key="create-new">
-                <Icon type="plus" /> Create new
+              <Menu.Item key="custom">
+                <Icon type="code" /> Custom
+              </Menu.Item>
+              <Menu.Item key="manage-all">
+                <Icon type="setting" /> Manage All
               </Menu.Item>
             </Menu>
           } trigger={['click']}>

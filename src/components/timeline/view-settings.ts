@@ -1,7 +1,7 @@
 import Axis, { AxisEvent } from './axis';
 import EventEmitterExtra from 'event-emitter-extra';
 import processGroupingOptions from '../../model/span-grouping/process';
-import SpanColoringManager, { operationColoringOptions } from '../../model/span-coloring-manager';
+import { operationColoringOptions, SpanColoringOptions } from '../../model/span-coloring-manager';
 import SpanLabellingManager, { operationLabellingOptions } from '../../model/span-labelling-manager';
 
 
@@ -47,12 +47,9 @@ export default class TimelineViewSettings extends EventEmitterExtra {
   readonly spanLogCircleRadius = 3;
   spanLogPreview = 'log.message'; // TODO
 
-  private _spanColoringKey = operationColoringOptions.key; // Do not forget to change default value of timeline header menu
-  get spanColoringKey() { return this._spanColoringKey; };
+  private _spanColoringOptions = operationColoringOptions;  // Do not forget to change default value of timeline header menu
   get spanColorFor() {
-    const options = SpanColoringManager.getSingleton().getOptions(this._spanColoringKey);
-    if (!options) throw new Error(`Span coloring "${this._spanColoringKey}" not found`);
-    return options.colorBy;
+    return this._spanColoringOptions.colorBy;
   }
 
   private _spanLabellingKey = operationColoringOptions.key; // Do not forget to change default value of timeline header menu
@@ -81,11 +78,9 @@ export default class TimelineViewSettings extends EventEmitterExtra {
     this.emit(TimelineViewSettingsEvent.GROUPING_KEY_CHANGED);
   };
 
-  setSpanColoringKey(coloringKey: string) {
-    const options = SpanColoringManager.getSingleton().getOptions(coloringKey);
-    if (!options) throw new Error(`Span coloring "${coloringKey}" is not found`);
-    if (coloringKey === this._spanColoringKey) return false;
-    this._spanColoringKey = coloringKey;
+  setSpanColoringOptions(spanColoringOptions: SpanColoringOptions, force = false) {
+    if (!force && this._spanColoringOptions.key === spanColoringOptions.key) return false;
+    this._spanColoringOptions = spanColoringOptions;
     this.emit(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED);
   }
 

@@ -117,7 +117,7 @@ export const DataSourceFormModal: any = Form.create({
         <Modal
           visible={visible}
           destroyOnClose={true}
-          title={dataSource ? 'Update data source' : 'Create a data source'}
+          title={dataSource ? 'Update data source' : 'New data source'}
           onCancel={onCancel}
           onOk={this.binded.onSave}
           footer={[

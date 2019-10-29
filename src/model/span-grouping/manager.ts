@@ -38,7 +38,7 @@ export default class SpanGroupingManager extends EventEmitterExtra {
     const options: SpanGroupingOptions = {
       key: raw.key,
       name: raw.name,
-      groupBy: TypeScriptManager.generateFunction(raw.compiledCode)
+      groupBy: TypeScriptManager.generateFunction(raw.compiledCode, 'groupBy')
     };
     this.customSpanGroupings.push(options);
 
