@@ -2,9 +2,8 @@ import * as _ from 'lodash';
 import { SpanGroup } from '../../model/span-group/span-group';
 import SpanView from './span-view';
 import SpanGroupNode from '../../model/span-group/span-group-node';
-import ViewSettings, { TimelineViewSettingsEvent } from './view-settings';
+import ViewSettings from './view-settings';
 import EventEmitterExtra from 'event-emitter-extra';
-import { AxisEvent } from './axis';
 import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
 
 
@@ -49,11 +48,7 @@ export default class GroupView extends EventEmitterExtra {
     y: 0,
   };
 
-  private binded = {
-    handleAxisTranslate: this.handleAxisTranslate.bind(this),
-    handleAxisZoom: this.handleAxisZoom.bind(this),
-    handleAxisUpdate: this.handleAxisUpdate.bind(this),
-  };
+  private binded = {};
 
   constructor(options: {
     group: SpanGroup,
@@ -91,11 +86,6 @@ export default class GroupView extends EventEmitterExtra {
     options.groupNamePanel.appendChild(this.labelText);
     this.svgDefs = options.svgDefs;
 
-    const axis = this.viewSettings.getAxis();
-    axis.on(AxisEvent.UPDATED, this.binded.handleAxisUpdate);
-    axis.on(AxisEvent.TRANSLATED, this.binded.handleAxisTranslate);
-    axis.on(AxisEvent.ZOOMED, this.binded.handleAxisZoom);
-
     // Set-up span views
     this.spanGroup.getAll().forEach((span) => {
       // TODO: Reuse spanviews
@@ -124,11 +114,6 @@ export default class GroupView extends EventEmitterExtra {
     this.spanIdToRowIndex = {};
 
     this.removeAllListeners();
-
-    const axis = this.viewSettings.getAxis();
-    axis.removeListener(AxisEvent.UPDATED, [ this.binded.handleAxisUpdate ] as any);
-    axis.removeListener(AxisEvent.TRANSLATED, [ this.binded.handleAxisTranslate ] as any);
-    axis.removeListener(AxisEvent.ZOOMED, [ this.binded.handleAxisZoom ] as any);
   }
 
   toggleSpanView(spanId: string) {

@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import GroupView, { GroupViewEvent } from './group-view';
-import Axis from './axis';
+import Axis, { AxisEvent } from './axis';
 import ViewSettings, { TimelineViewSettingsEvent } from './view-settings';
 import EventEmitterExtra from 'event-emitter-extra';
 import AnnotationManager from './annotations/manager';
@@ -49,6 +49,9 @@ export default class TimelineView extends EventEmitterExtra {
     onSpanGroupingChanged: this.onSpanGroupingChanged.bind(this),
     onSpanColoringKeyChanged: this.onSpanColoringKeyChanged.bind(this),
     onSpanLabellingKeyChanged: this.onSpanLabellingKeyChanged.bind(this),
+    onAxisTranslated: this.onAxisTranslated.bind(this),
+    onAxisUpdated: this.onAxisUpdated.bind(this),
+    onAxisZoomed: this.onAxisZoomed.bind(this),
   };
 
 
@@ -153,10 +156,13 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   bindEvents() {
-    this.viewSettings.on(TimelineViewSettingsEvent.GROUP_LAYOUT_TYPE_CHANGED, this.binded.onGroupLayoutModeChanged)
-    this.viewSettings.on(TimelineViewSettingsEvent.SPAN_GROUPING_CHANGED, this.binded.onSpanGroupingChanged)
-    this.viewSettings.on(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED, this.binded.onSpanColoringKeyChanged)
-    this.viewSettings.on(TimelineViewSettingsEvent.SPAN_LABELLING_CHANGED, this.binded.onSpanLabellingKeyChanged)
+    this.viewSettings.on(TimelineViewSettingsEvent.GROUP_LAYOUT_TYPE_CHANGED, this.binded.onGroupLayoutModeChanged);
+    this.viewSettings.on(TimelineViewSettingsEvent.SPAN_GROUPING_CHANGED, this.binded.onSpanGroupingChanged);
+    this.viewSettings.on(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED, this.binded.onSpanColoringKeyChanged);
+    this.viewSettings.on(TimelineViewSettingsEvent.SPAN_LABELLING_CHANGED, this.binded.onSpanLabellingKeyChanged);
+    this.viewSettings.on(AxisEvent.TRANSLATED, this.binded.onAxisTranslated);
+    this.viewSettings.on(AxisEvent.UPDATED, this.binded.onAxisUpdated);
+    this.viewSettings.on(AxisEvent.ZOOMED, this.binded.onAxisZoomed);
   }
 
 
@@ -213,6 +219,18 @@ export default class TimelineView extends EventEmitterExtra {
       const spanViews = g.getAllSpanViews();
       spanViews.forEach(s => s.updateLabelText());
     });
+  }
+
+  onAxisTranslated() {
+    this.groupViews.forEach(g => g.handleAxisTranslate());
+  }
+
+  onAxisUpdated() {
+    this.groupViews.forEach(g => g.handleAxisUpdate());
+  }
+
+  onAxisZoomed() {
+    this.groupViews.forEach(g => g.handleAxisZoom());
   }
 
   addTrace(trace: Trace) {
