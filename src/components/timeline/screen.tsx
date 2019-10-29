@@ -14,9 +14,10 @@ import traceGroupingOptions from '../../model/span-grouping/trace';
 import SplitPane from 'react-split-pane';
 import { Trace } from '../../model/trace';
 import GroupView from './group-view';
-import SpanColoringManager, { operationColoringOptions, serviceColoringOptions, SpanColoringRawOptions, SpanColoringOptions } from '../../model/span-coloring-manager';
-import { operationLabellingOptions, serviceOperationLabellingOptions } from '../../model/span-labelling-manager';
+import SpanColoringManager, { SpanColoringRawOptions, SpanColoringOptions, operationColoringOptions, serviceColoringOptions } from '../../model/span-coloring-manager';
+import SpanLabellingManager, { SpanLabellingRawOptions, SpanLabellingOptions, operationLabellingOptions, serviceOperationLabellingOptions } from '../../model/span-labelling-manager';
 import SpanColoringFormModal from '../customization/span-coloring/form-modal';
+import SpanLabellingFormModal from '../customization/span-labelling/form-modal';
 
 
 import './timeline.css';
@@ -39,7 +40,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private hoveredTimelineElements: TimelineInteractedElementObject[] = [];
   private sidebarWidth = SIDEBAR_WIDTH;
   private customSpanColoringRawOptions: SpanColoringRawOptions | undefined;
-  private customSpanColoringOptions: SpanColoringOptions | undefined;
+  private customSpanLabellingRawOptions: SpanLabellingRawOptions | undefined;
 
   state = {
     stageTraces: this.stage.getAll(),
@@ -49,6 +50,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     selectedSpanView: null,
     highlightedLogId: '',
     isCustomSpanColoringFormModalVisible: false,
+    isCustomSpanLabellingFormModalVisible: false,
   };
   binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
@@ -71,6 +73,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onSidebarSplitDragFinish: this.onSidebarSplitDragFinish.bind(this),
     resizeTimelineView: _.throttle(this.resizeTimelineView.bind(this), 500),
     onCustomSpanColoringFormModalSave: this.onCustomSpanColoringFormModalSave.bind(this),
+    onCustomSpanLabellingFormModalSave: this.onCustomSpanLabellingFormModalSave.bind(this),
   };
 
   componentDidMount() {
@@ -431,19 +434,30 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     }
 
     if (data.key === 'custom') {
-      // TODO
+      this.setState({ isCustomSpanLabellingFormModalVisible: true });
       return;
     }
 
-    this.timelineView.viewSettings.setSpanLabellingKey(data.key);
+    const spanLabellingOptions = SpanLabellingManager.getSingleton().getOptions(data.key);
+    if (!spanLabellingOptions) {
+      message.error(`Unknown span labelling: "${data.key}"`);
+      return;
+    }
+
+    this.timelineView.viewSettings.setSpanLabellingOptions(spanLabellingOptions);
     this.setState({ spanLabellingMode: data.key });
   }
 
   onCustomSpanColoringFormModalSave(options: SpanColoringOptions, rawOptions: SpanColoringRawOptions) {
-    this.customSpanColoringOptions = options;
     this.customSpanColoringRawOptions = rawOptions;
     this.timelineView.viewSettings.setSpanColoringOptions(options, true);
     this.setState({ spanColoringMode: 'custom', isCustomSpanColoringFormModalVisible: false });
+  }
+
+  onCustomSpanLabellingFormModalSave(options: SpanLabellingOptions, rawOptions: SpanLabellingRawOptions) {
+    this.customSpanLabellingRawOptions = rawOptions;
+    this.timelineView.viewSettings.setSpanLabellingOptions(options, true);
+    this.setState({ spanLabellingMode: 'custom', isCustomSpanLabellingFormModalVisible: false });
   }
 
   onSidebarSplitDragFinish(sidebarWidth: number) {
@@ -497,6 +511,15 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
           rawOptions={this.customSpanColoringRawOptions}
           onSave={this.binded.onCustomSpanColoringFormModalSave}
           onCancel={() => this.setState({ isCustomSpanColoringFormModalVisible: false })}
+        />
+
+        <SpanLabellingFormModal
+          visible={this.state.isCustomSpanLabellingFormModalVisible}
+          modalTitle="Custom Span Labelling"
+          hideNameField={true}
+          rawOptions={this.customSpanLabellingRawOptions}
+          onSave={this.binded.onCustomSpanLabellingFormModalSave}
+          onCancel={() => this.setState({ isCustomSpanLabellingFormModalVisible: false })}
         />
       </div>
     );

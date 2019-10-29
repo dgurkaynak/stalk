@@ -2,7 +2,7 @@ import Axis, { AxisEvent } from './axis';
 import EventEmitterExtra from 'event-emitter-extra';
 import processGroupingOptions from '../../model/span-grouping/process';
 import { operationColoringOptions, SpanColoringOptions } from '../../model/span-coloring-manager';
-import SpanLabellingManager, { operationLabellingOptions } from '../../model/span-labelling-manager';
+import SpanLabellingManager, { operationLabellingOptions, SpanLabellingOptions } from '../../model/span-labelling-manager';
 
 
 export enum TimelineViewSettingsEvent {
@@ -52,12 +52,9 @@ export default class TimelineViewSettings extends EventEmitterExtra {
     return this._spanColoringOptions.colorBy;
   }
 
-  private _spanLabellingKey = operationColoringOptions.key; // Do not forget to change default value of timeline header menu
-  get spanLabellingKey() { return this._spanLabellingKey; };
+  private _spanLabellingOptions = operationLabellingOptions; // Do not forget to change default value of timeline header menu
   get spanLabelFor() {
-    const options = SpanLabellingManager.getSingleton().getOptions(this._spanLabellingKey);
-    if (!options) throw new Error(`Span labelling "${this._spanLabellingKey}" not found`);
-    return options.labelBy;
+    return this._spanLabellingOptions.labelBy;
   }
 
   getAxis() {
@@ -84,11 +81,9 @@ export default class TimelineViewSettings extends EventEmitterExtra {
     this.emit(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED);
   }
 
-  setSpanLabellingKey(labellingKey: string) {
-    const options = SpanLabellingManager.getSingleton().getOptions(labellingKey);
-    if (!options) throw new Error(`Span labelling "${labellingKey}" is not found`);
-    if (labellingKey === this._spanLabellingKey) return false;
-    this._spanLabellingKey = labellingKey;
+  setSpanLabellingOptions(spanlabellingOptions: SpanLabellingOptions, force = false) {
+    if (!force && this._spanLabellingOptions.key === spanlabellingOptions.key) return false;
+    this._spanLabellingOptions = spanlabellingOptions;
     this.emit(TimelineViewSettingsEvent.SPAN_LABELLING_CHANGED);
   }
 }
