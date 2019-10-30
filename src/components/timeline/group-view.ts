@@ -1,18 +1,12 @@
 import * as _ from 'lodash';
 import { SpanGroup } from '../../model/span-group/span-group';
-import SpanView from './span-view';
+import SpanView, { SpanViewSharedOptions } from './span-view';
 import SpanGroupNode from '../../model/span-group/span-group-node';
-import ViewSettings from './view-settings';
-import EventEmitterExtra from 'event-emitter-extra';
+import vc from './view-constants';
 import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
 
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
-
-export enum GroupViewEvent {
-  // TODO: Make this more optimized HEIGHT_CHANGED?
-  LAYOUT = 'layout'
-}
 
 export enum GroupLayoutType {
   COMPACT = 'compact',
@@ -20,9 +14,8 @@ export enum GroupLayoutType {
 }
 
 
-export default class GroupView extends EventEmitterExtra {
+export default class GroupView {
   readonly spanGroup: SpanGroup;
-  private viewSettings: ViewSettings;
   private spanViews: { [key: string]: SpanView} = {};
   get heightInRows() { return this.rowsAndSpanIntervals.length; } // How many rows containing
   options = {
@@ -32,40 +25,36 @@ export default class GroupView extends EventEmitterExtra {
   private container = document.createElementNS(SVG_NS, 'g');
   private seperatorLine = document.createElementNS(SVG_NS, 'line');
   private labelText = document.createElementNS(SVG_NS, 'text');
+  private svgDefs?: SVGDefsElement;
 
+  private layoutType = GroupLayoutType.COMPACT;
   private rowsAndSpanIntervals: number[][][] = [];
   private spanIdToRowIndex: { [key: string]: number } = {};
-
-  private svgDefs?: SVGDefsElement;
 
   private viewPropertiesCache = {
     y: 0,
   };
 
-  private binded = {};
-
-  constructor(options: {
-    group: SpanGroup,
-    viewSettings: ViewSettings
+  constructor(group: SpanGroup, options: {
+    width: number,
+    layoutType: GroupLayoutType
   }) {
-    super();
-
-    this.spanGroup = options.group;
-    this.viewSettings = options.viewSettings;
+    this.spanGroup = group;
+    this.layoutType = options.layoutType;
 
     this.seperatorLine.setAttribute('x1', '0');
-    this.seperatorLine.setAttribute('x2', this.viewSettings.width + '');
+    this.seperatorLine.setAttribute('x2', options.width + '');
     this.seperatorLine.setAttribute('y1', '0');
     this.seperatorLine.setAttribute('y2', '0');
-    this.seperatorLine.setAttribute('stroke', this.viewSettings.groupSeperatorLineColor);
-    this.seperatorLine.setAttribute('stroke-width', this.viewSettings.groupSeperatorLineWidth + '');
+    this.seperatorLine.setAttribute('stroke', vc.groupSeperatorLineColor);
+    this.seperatorLine.setAttribute('stroke-width', vc.groupSeperatorLineWidth + '');
 
     this.labelText.textContent = this.spanGroup.name;
     this.labelText.style.cursor = 'pointer';
-    this.labelText.setAttribute('fill', this.viewSettings.groupLabelColor);
+    this.labelText.setAttribute('fill', vc.groupLabelColor);
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
-    this.labelText.setAttribute('font-size', `${this.viewSettings.groupLabelFontSize}px`);
+    this.labelText.setAttribute('font-size', `${vc.groupLabelFontSize}px`);
     this.labelText.setAttribute(TimelineInteractableElementAttribute, TimelineInteractableElementType.GROUP_VIEW_LABEL_TEXT);
     this.labelText.setAttribute('data-group-id', this.spanGroup.id);
   }
@@ -73,7 +62,8 @@ export default class GroupView extends EventEmitterExtra {
   init(options: {
     groupNamePanel: SVGGElement,
     timelinePanel: SVGGElement,
-    svgDefs: SVGDefsElement
+    svgDefs: SVGDefsElement,
+    spanViewSharedOptions: SpanViewSharedOptions
   }) {
     options.timelinePanel.appendChild(this.container);
     options.groupNamePanel.appendChild(this.seperatorLine);
@@ -83,7 +73,7 @@ export default class GroupView extends EventEmitterExtra {
     // Set-up span views
     this.spanGroup.getAll().forEach((span) => {
       // TODO: Reuse spanviews
-      const spanView = new SpanView({ span, viewSettings: this.viewSettings });
+      const spanView = new SpanView(span, options.spanViewSharedOptions);
       spanView.reuse(span);
       this.spanViews[span.id] = spanView;
     });
@@ -106,8 +96,6 @@ export default class GroupView extends EventEmitterExtra {
 
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
-
-    this.removeAllListeners();
   }
 
   toggleView() {
@@ -125,15 +113,15 @@ export default class GroupView extends EventEmitterExtra {
   }
 
   updatePosition(options: { y: number }) {
-    const { groupLabelOffsetX: groupTextOffsetX, groupLabelOffsetY: groupTextOffsetY } = this.viewSettings;
+    const { groupLabelOffsetX: groupTextOffsetX, groupLabelOffsetY: groupTextOffsetY } = vc;
     this.container.setAttribute('transform', `translate(0, ${options.y})`);
     this.seperatorLine.setAttribute('transform', `translate(0, ${options.y})`);
     this.labelText.setAttribute('transform', `translate(${groupTextOffsetX}, ${options.y + groupTextOffsetY})`);
     this.viewPropertiesCache.y = options.y;
   }
 
-  updateSeperatorLineWidths() {
-    this.seperatorLine.setAttribute('x2', this.viewSettings.width + '');
+  updateSeperatorLineWidths(width: number) {
+    this.seperatorLine.setAttribute('x2', width + '');
   }
 
   updateLabelTextDecoration() {
@@ -146,6 +134,11 @@ export default class GroupView extends EventEmitterExtra {
       groupContainer: this.container,
       svgDefs: this.svgDefs!
     });
+  }
+
+  setLayoutType(layoutType: GroupLayoutType) {
+    this.layoutType = layoutType;
+    // TODO: Call .layout() maybe?
   }
 
   layout() {
@@ -164,7 +157,6 @@ export default class GroupView extends EventEmitterExtra {
 
       this.rowsAndSpanIntervals = [];
       this.spanIdToRowIndex = {};
-      this.emit(GroupViewEvent.LAYOUT);
 
       return;
     }
@@ -177,7 +169,7 @@ export default class GroupView extends EventEmitterExtra {
       const { startTime, finishTime } = spanView.span;
       let availableRowIndex = 0;
 
-      switch (this.viewSettings.groupLayoutType) {
+      switch (this.layoutType) {
         case GroupLayoutType.COMPACT: {
           availableRowIndex = this.getAvailableRow({ startTime, finishTime });
           break;
@@ -199,7 +191,6 @@ export default class GroupView extends EventEmitterExtra {
 
       spanView.showLabel();
       spanView.showLogs();
-      spanView.updateHeight();
       spanView.updateWidth();
       spanView.updateVerticalPosition(availableRowIndex, true);
       spanView.updateHorizontalPosition();
@@ -219,7 +210,6 @@ export default class GroupView extends EventEmitterExtra {
         .forEach(childNode => nodeQueue.unshift(childNode));
     } // while loop ended
 
-    this.emit(GroupViewEvent.LAYOUT);
   }
 
   handleAxisTranslate() {

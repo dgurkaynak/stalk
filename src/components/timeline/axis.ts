@@ -1,12 +1,5 @@
-import EventEmitterExtra from 'event-emitter-extra';
 
-export enum AxisEvent {
-  TRANSLATED = 'ax_translated',
-  ZOOMED = 'ax_zoomed',
-  UPDATED = 'ax_updated'
-}
-
-export default class Axis extends EventEmitterExtra {
+export default class Axis {
   private scale: number;
   private offset: number;
   private minScale: number;
@@ -15,20 +8,40 @@ export default class Axis extends EventEmitterExtra {
     private inputRange: [number, number],
     private outputRange: [number, number]
   ) {
-    super();
-
-    // Disable max listener check
-    this.setMaxListeners(Number.MAX_SAFE_INTEGER);
-
-    this.scale = (outputRange[1] - outputRange[0]) / (inputRange[1] - inputRange[0]);
-    this.offset = outputRange[0] - (this.scale * inputRange[0]);
-    this.minScale = this.scale;
+    this.reset(inputRange, outputRange);
   }
 
   getInputRange() {
     return this.inputRange.slice();
   }
 
+  getOutputRange() {
+    return this.outputRange.slice();
+  }
+
+  /**
+   * Resets the both input and output domain range and re-inits
+   * scale & offset & minScale to fit them all.
+   *
+   * TODO: Generalize this logic like updateOutputRange(), but it accepts
+   * both input + output range and it will try to preserve current settings while
+   * updating all.
+   */
+  reset(inputRange: [number, number], outputRange: [number, number]) {
+    this.inputRange = inputRange;
+    this.outputRange = outputRange;
+
+    this.scale = (outputRange[1] - outputRange[0]) / (inputRange[1] - inputRange[0]);
+    this.offset = outputRange[0] - (this.scale * inputRange[0]);
+    this.minScale = this.scale;
+  }
+
+  /**
+   * Updates output domain range. It's used when window is resized.
+   * It tries to preserve current scale and offset, however they may change
+   * like when window size is increasing, scale may increase due to fill
+   * empty spaces.
+   */
   updateOutputRange(outputRange: [number, number]) {
     this.outputRange = outputRange;
     this.minScale = (outputRange[1] - outputRange[0]) / (this.inputRange[1] - this.inputRange[0]);
@@ -39,7 +52,6 @@ export default class Axis extends EventEmitterExtra {
     }
 
     this.preventTranslatingOutOfRange();
-    this.emit(AxisEvent.UPDATED);
   }
 
   input2output(x: number) {
@@ -56,13 +68,11 @@ export default class Axis extends EventEmitterExtra {
     this.scale = newScale;
     this.offset = anchorOutputPoint * (1 - factor) + (this.offset * factor);
     this.preventTranslatingOutOfRange();
-    this.emit(AxisEvent.ZOOMED);
   }
 
   translate(delta: number) {
     this.offset += delta;
     this.preventTranslatingOutOfRange();
-    this.emit(AxisEvent.TRANSLATED);
   }
 
   preventTranslatingOutOfRange() {

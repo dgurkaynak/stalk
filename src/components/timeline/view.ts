@@ -1,14 +1,17 @@
 import * as _ from 'lodash';
-import GroupView, { GroupViewEvent } from './group-view';
-import Axis, { AxisEvent } from './axis';
-import ViewSettings, { TimelineViewSettingsEvent } from './view-settings';
+import GroupView, { GroupLayoutType } from './group-view';
+import Axis from './axis';
+import vc from './view-constants';
 import EventEmitterExtra from 'event-emitter-extra';
-import AnnotationManager from './annotations/manager';
+// import AnnotationManager from './annotations/manager';
 import MouseHandler from './mouse-handler';
-import SpanView from './span-view';
+import SpanView, { SpanViewSharedOptions } from './span-view';
 import { Trace } from '../../model/trace';
-import { SpanGrouping } from '../../model/span-grouping/span-grouping';
+import { SpanGrouping, SpanGroupingOptions } from '../../model/span-grouping/span-grouping';
+import processSpanGroupingOptions from '../../model/span-grouping/process';
 import { TimelineInteractableElementAttribute, TimelineInteractedElementObject } from './interaction';
+import { SpanColoringOptions, operationColoringOptions } from '../../model/span-coloring-manager';
+import { SpanLabellingOptions, operationLabellingOptions } from '../../model/span-labelling-manager';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -25,47 +28,48 @@ export default class TimelineView extends EventEmitterExtra {
   private timelinePanel = document.createElementNS(SVG_NS, 'g');
   private annotationUnderlayPanel = document.createElementNS(SVG_NS, 'g');
   private annotationOverlayPanel = document.createElementNS(SVG_NS, 'g');
+
+  private width = 0; // svg width
+  private height = 0; // svg height
   private panelTranslateY = 0;
-
-  readonly mouseHandler = new MouseHandler(this.svg);
-
-  private traces: Trace[] = [];
-  readonly viewSettings = new ViewSettings();
-  private spanGrouping: SpanGrouping;
-  private groupViews: GroupView[] = [];
   private contentHeight = 0; // in pixels
 
-  annotation = new AnnotationManager({
-    timelineView: this,
-    underlayPanel: this.annotationUnderlayPanel,
-    overlayPanel: this.annotationOverlayPanel,
-    viewSettings: this.viewSettings
-  });
+  readonly mouseHandler = new MouseHandler(this.svg);
+  private readonly axis = new Axis([0, 0], [0, 0]);
 
-  private binded = {
-    onGroupLayoutModeChanged: this.onGroupLayoutModeChanged.bind(this),
-    onSpanGroupingChanged: this.onSpanGroupingChanged.bind(this),
-    onSpanColoringKeyChanged: this.onSpanColoringKeyChanged.bind(this),
-    onSpanLabellingKeyChanged: this.onSpanLabellingKeyChanged.bind(this),
-    onAxisTranslated: this.onAxisTranslated.bind(this),
-    onAxisUpdated: this.onAxisUpdated.bind(this),
-    onAxisZoomed: this.onAxisZoomed.bind(this),
+  private traces: Trace[] = [];
+  private spanGrouping: SpanGrouping;
+  private groupViews: GroupView[] = [];
+
+  private groupLayoutMode = GroupLayoutType.COMPACT;
+  private readonly spanViewSharedOptions: SpanViewSharedOptions = {
+    axis: this.axis,
+    colorFor: operationColoringOptions.colorBy,
+    labelFor: operationLabellingOptions.labelBy,
   };
 
+  // annotation = new AnnotationManager({
+  //   timelineView: this,
+  //   underlayPanel: this.annotationUnderlayPanel,
+  //   overlayPanel: this.annotationOverlayPanel,
+  //   viewSettings: this.viewSettings
+  // });
+  // this.logHighlightAnnotation = new LogHighlightAnnotation(this.annotationDeps);
+  // this.spanConnectionsAnnotation = new SpanConnectionsAnnotation(this.annotationDeps);
+  // this.cursorLineAnnotation = new VerticalLineAnnotation(this.annotationDeps);
+  // this.intervalHighlightAnnotation = new IntervalHighlightAnnotation(this.annotationDeps);
 
-  constructor(options?: {
-    viewSettings?: ViewSettings
-  }) {
+
+  constructor() {
     super();
 
-    if (options && options.viewSettings) this.viewSettings = options.viewSettings;
     this.svg.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
     this.svg.classList.add('timeline-svg');
 
     this.svg.appendChild(this.defs);
 
-    this.annotation.cursorLineAnnotation.prepare({ timestamp: null, lineColor: this.viewSettings.cursorLineColor });
-    this.viewSettings.showCursorLine && this.annotation.cursorLineAnnotation.mount();
+    // this.annotation.cursorLineAnnotation.prepare({ timestamp: null, lineColor: this.viewSettings.cursorLineColor });
+    // this.viewSettings.showCursorLine && this.annotation.cursorLineAnnotation.mount();
 
     const spanShadowFilter = document.createElementNS(SVG_NS, 'filter');
     spanShadowFilter.id = 'span-shadow';
@@ -88,7 +92,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.defs.appendChild(arrowMarker);
 
     // Set-up grouping
-    this.spanGrouping = new SpanGrouping(this.viewSettings.spanGroupingOptions);
+    this.spanGrouping = new SpanGrouping(processSpanGroupingOptions);
   }
 
 
@@ -105,7 +109,6 @@ export default class TimelineView extends EventEmitterExtra {
     }
     this.resize(width, height);
     this.setupPanels();
-    this.bindEvents();
     this.mouseHandler.init();
 
     parentElement.appendChild(this.svg);
@@ -113,29 +116,32 @@ export default class TimelineView extends EventEmitterExtra {
 
 
   resize(width: number, height: number) {
-    this.viewSettings.width = width;
-    this.viewSettings.height = height;
+    this.width = width;
+    this.height = height;
 
     this.svg.setAttribute('width', `${width}`);
     this.svg.setAttribute('height', `${height}`);
     this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-    this.viewSettings.showCursorLine && this.annotation.cursorLineAnnotation.update();
+    // this.viewSettings.showCursorLine && this.annotation.cursorLineAnnotation.update();
 
     this.viewportClipPathRect.setAttribute('width', `${width}`);
     this.viewportClipPathRect.setAttribute('height', `${height}`);
 
-    this.viewSettings.getAxis().updateOutputRange([
-      this.viewSettings.spanBarViewportMargin,
-      this.viewSettings.width - this.viewSettings.spanBarViewportMargin
+    this.axis.updateOutputRange([
+      vc.spanBarViewportMargin,
+      width - vc.spanBarViewportMargin
     ]);
+    // TODO: Look for who listens AxisEvent.UPDATED event and trigger here
+    this.groupViews.forEach(g => g.handleAxisUpdate());
+    // this.annotationManager.updateAllAnnotations()
 
-    this.groupViews.forEach(v => v.updateSeperatorLineWidths());
+    this.groupViews.forEach(v => v.updateSeperatorLineWidths(width));
   }
 
 
   setupPanels() {
-    const { width, height } = this.viewSettings;
+    const { width, height } = this;
 
     this.viewportClipPath.id = 'viewport-clip-path';
     this.viewportClipPathRect.setAttribute('x', `0`);
@@ -152,17 +158,6 @@ export default class TimelineView extends EventEmitterExtra {
     this.viewportContainer.appendChild(this.annotationOverlayPanel);
     this.svg.appendChild(this.viewportContainer);
   }
-
-  bindEvents() {
-    this.viewSettings.on(TimelineViewSettingsEvent.GROUP_LAYOUT_TYPE_CHANGED, this.binded.onGroupLayoutModeChanged);
-    this.viewSettings.on(TimelineViewSettingsEvent.SPAN_GROUPING_CHANGED, this.binded.onSpanGroupingChanged);
-    this.viewSettings.on(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED, this.binded.onSpanColoringKeyChanged);
-    this.viewSettings.on(TimelineViewSettingsEvent.SPAN_LABELLING_CHANGED, this.binded.onSpanLabellingKeyChanged);
-    this.viewSettings.on(AxisEvent.TRANSLATED, this.binded.onAxisTranslated);
-    this.viewSettings.on(AxisEvent.UPDATED, this.binded.onAxisUpdated);
-    this.viewSettings.on(AxisEvent.ZOOMED, this.binded.onAxisZoomed);
-  }
-
 
   // Array order is from deepest element to root
   getInteractedElementsFromMouseEvent(e: MouseEvent): TimelineInteractedElementObject[] {
@@ -184,58 +179,44 @@ export default class TimelineView extends EventEmitterExtra {
 
   dispose() {
     this.mouseHandler.dispose();
-
-    this.viewSettings.removeListener(TimelineViewSettingsEvent.GROUP_LAYOUT_TYPE_CHANGED, [this.binded.onGroupLayoutModeChanged] as any);
-    this.viewSettings.removeListener(TimelineViewSettingsEvent.SPAN_GROUPING_CHANGED, [this.binded.onSpanGroupingChanged] as any);
-    this.viewSettings.removeListener(TimelineViewSettingsEvent.SPAN_COLORING_CHANGED, [this.binded.onSpanColoringKeyChanged] as any);
-    this.viewSettings.removeListener(TimelineViewSettingsEvent.SPAN_LABELLING_CHANGED, [this.binded.onSpanLabellingKeyChanged] as any);
-    this.viewSettings.removeListener(AxisEvent.TRANSLATED, [this.binded.onAxisTranslated] as any);
-    this.viewSettings.removeListener(AxisEvent.UPDATED, [this.binded.onAxisUpdated] as any);
-    this.viewSettings.removeListener(AxisEvent.ZOOMED, [this.binded.onAxisZoomed] as any);
   }
 
-  onGroupLayoutModeChanged() {
-    this.groupViews.forEach(g => g.layout());
-    this.layout();
-    this.annotation.logHighlightAnnotation.unmount();
-    this.annotation.spanConnectionsAnnotation.unmount();
-    this.annotation.intervalHighlightAnnotation.unmount();
+  updateGroupLayoutMode(groupLayoutType: GroupLayoutType) {
+    this.groupLayoutMode = groupLayoutType;
+    this.groupViews.forEach((g) => {
+      g.setLayoutType(groupLayoutType);
+      g.layout();
+    });
+    this.updateGroupVerticalPositions();
+    // this.annotation.logHighlightAnnotation.unmount();
+    // this.annotation.spanConnectionsAnnotation.unmount();
+    // this.annotation.intervalHighlightAnnotation.unmount();
   }
 
-  onSpanGroupingChanged() {
+  updateSpanGrouping(spanGroupingOptions: SpanGroupingOptions) {
     // TODO: Dispose previous grouping maybe?
-    this.spanGrouping = new SpanGrouping(this.viewSettings.spanGroupingOptions);
+    this.spanGrouping = new SpanGrouping(spanGroupingOptions);
     this.traces.forEach(t => t.spans.forEach(s => this.spanGrouping.addSpan(s, t)));
     this.layout();
-    this.annotation.logHighlightAnnotation.unmount();
-    this.annotation.spanConnectionsAnnotation.unmount();
-    this.annotation.intervalHighlightAnnotation.unmount();
+    // this.annotation.logHighlightAnnotation.unmount();
+    // this.annotation.spanConnectionsAnnotation.unmount();
+    // this.annotation.intervalHighlightAnnotation.unmount();
   }
 
-  onSpanColoringKeyChanged() {
+  updateSpanColoring(options: SpanColoringOptions) {
+    this.spanViewSharedOptions.colorFor = options.colorBy;
     this.groupViews.forEach((g) => {
       const spanViews = g.getAllSpanViews();
       spanViews.forEach(s => s.updateColors());
     });
   }
 
-  onSpanLabellingKeyChanged() {
+  updateSpanLabelling(options: SpanLabellingOptions) {
+    this.spanViewSharedOptions.labelFor = options.labelBy;
     this.groupViews.forEach((g) => {
       const spanViews = g.getAllSpanViews();
       spanViews.forEach(s => s.updateLabelText());
     });
-  }
-
-  onAxisTranslated() {
-    this.groupViews.forEach(g => g.handleAxisTranslate());
-  }
-
-  onAxisUpdated() {
-    this.groupViews.forEach(g => g.handleAxisUpdate());
-  }
-
-  onAxisZoomed() {
-    this.groupViews.forEach(g => g.handleAxisZoom());
   }
 
   addTrace(trace: Trace) {
@@ -244,10 +225,10 @@ export default class TimelineView extends EventEmitterExtra {
     this.traces.push(trace);
     trace.spans.forEach(s => this.spanGrouping.addSpan(s, trace));
     this.layout();
-    this.annotation.logHighlightAnnotation.unmount();
-    this.annotation.spanConnectionsAnnotation.unmount();
-    this.annotation.intervalHighlightAnnotation.unmount();
-    this.annotation.cursorLineAnnotation.unmount();
+    // this.annotation.logHighlightAnnotation.unmount();
+    // this.annotation.spanConnectionsAnnotation.unmount();
+    // this.annotation.intervalHighlightAnnotation.unmount();
+    // this.annotation.cursorLineAnnotation.unmount();
     return true;
   }
 
@@ -256,10 +237,10 @@ export default class TimelineView extends EventEmitterExtra {
     if (removeds.length === 0) return false;
     trace.spans.forEach(s => this.spanGrouping.removeSpan(s));
     this.layout();
-    this.annotation.logHighlightAnnotation.unmount();
-    this.annotation.spanConnectionsAnnotation.unmount();
-    this.annotation.intervalHighlightAnnotation.unmount();
-    this.annotation.cursorLineAnnotation.unmount();
+    // this.annotation.logHighlightAnnotation.unmount();
+    // this.annotation.spanConnectionsAnnotation.unmount();
+    // this.annotation.intervalHighlightAnnotation.unmount();
+    // this.annotation.cursorLineAnnotation.unmount();
     return true;
   }
 
@@ -318,13 +299,15 @@ export default class TimelineView extends EventEmitterExtra {
       finishTimestamp = Math.max(finishTimestamp, trace.finishTime);
     });
 
-    this.viewSettings.setAxis(new Axis(
+    this.axis.reset(
       [startTimestamp, finishTimestamp],
       [
-        this.viewSettings.spanBarViewportMargin,
-        this.viewSettings.width - this.viewSettings.spanBarViewportMargin
+        vc.spanBarViewportMargin,
+        this.width - vc.spanBarViewportMargin
       ]
-    ));
+    );
+    // TODO: Look for how to update related parts?
+    // this.annotationManager.updateAllAnnotations()
 
     this.groupViews.forEach(v => v.dispose()); // This will unmount self, unbind all handlers,
                                                // no need to manually remove listener here
@@ -332,16 +315,14 @@ export default class TimelineView extends EventEmitterExtra {
 
     const groups = this.spanGrouping.getAllGroups().sort((a, b) => a.startTimestamp - b.startTimestamp);
     groups.forEach((group) => {
-      const groupView = new GroupView({ group, viewSettings: this.viewSettings });
+      const groupView = new GroupView(group, { width: this.width, layoutType: this.groupLayoutMode });
       groupView.init({
         groupNamePanel: this.groupNamePanel,
         timelinePanel: this.timelinePanel,
-        svgDefs: this.defs
+        svgDefs: this.defs,
+        spanViewSharedOptions: this.spanViewSharedOptions
       });
       groupView.layout();
-
-      // Bind layout event after initial layout
-      groupView.on(GroupViewEvent.LAYOUT, this.onGroupLayout.bind(this));
 
       this.groupViews.push(groupView);
     });
@@ -349,7 +330,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.updateGroupVerticalPositions();
 
     // Annotations
-    this.annotation.updateData(this.groupViews);
+    // this.annotation.updateData(this.groupViews);
 
     // Reset vertical panning
     this.panelTranslateY = 0;
@@ -359,15 +340,11 @@ export default class TimelineView extends EventEmitterExtra {
     this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
 
     // Hide cursor line
-    this.annotation.cursorLineAnnotation.unmount();
-  }
-
-  onGroupLayout() {
-    this.updateGroupVerticalPositions();
+    // this.annotation.cursorLineAnnotation.unmount();
   }
 
   updateGroupVerticalPositions() {
-    const { groupPaddingTop, groupPaddingBottom, rowHeight } = this.viewSettings;
+    const { groupPaddingTop, groupPaddingBottom, rowHeight } = vc;
     let y = 0;
 
     this.groupViews.forEach((groupView, i) => {
@@ -386,19 +363,22 @@ export default class TimelineView extends EventEmitterExtra {
     return this.contentHeight;
   }
 
-  showOrHideLogHighlightAnnotation(options: { spanView: SpanView, logId: string } | null) {
-    if (!options) return this.annotation.logHighlightAnnotation.unmount();
-    this.annotation.logHighlightAnnotation.prepare({ spanView: options.spanView, logId: options.logId });
-    this.annotation.logHighlightAnnotation.update();
-    this.annotation.logHighlightAnnotation.mount();
-  }
+  // showOrHideLogHighlightAnnotation(options: { spanView: SpanView, logId: string } | null) {
+  //   if (!options) return this.annotation.logHighlightAnnotation.unmount();
+  //   this.annotation.logHighlightAnnotation.prepare({ spanView: options.spanView, logId: options.logId });
+  //   this.annotation.logHighlightAnnotation.update();
+  //   this.annotation.logHighlightAnnotation.mount();
+  // }
 
   translateX(delta: number) {
-    this.viewSettings.getAxis().translate(delta);
+    this.axis.translate(delta);
+    // TODO: Look for who listens AxisEvent.TRANSLATED
+    this.groupViews.forEach(g => g.handleAxisTranslate());
+    // this.annotationManager.updateAllAnnotations()
   }
 
   translateY(delta: number) {
-    const { height: viewportHeight } = this.viewSettings;
+    const { height: viewportHeight } = this;
     if (this.getContentHeight() <= viewportHeight) return;
 
     const newTranslateY = this.panelTranslateY + delta;
@@ -410,7 +390,10 @@ export default class TimelineView extends EventEmitterExtra {
     this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
   }
 
-  scale(scaleFactor: number, anchorPosX: number) {
-    this.viewSettings.getAxis().zoom(scaleFactor, anchorPosX);
+  zoom(scaleFactor: number, anchorPosX: number) {
+    this.axis.zoom(scaleFactor, anchorPosX);
+    // TODO: Look for who listens AxisEvent.ZOOMED
+    this.groupViews.forEach(g => g.handleAxisZoom());
+    // this.annotationManager.updateAllAnnotations()
   }
 }

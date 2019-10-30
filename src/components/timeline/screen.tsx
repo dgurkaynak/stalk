@@ -152,11 +152,11 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     if (this.state.stageTraces.length === 0) return;
 
     // Update the cursor line
-    if (this.timelineView.viewSettings.showCursorLine) {
-      this.timelineView.annotation.cursorLineAnnotation.setTimestampFromScreenPositionX(e.offsetX);
-      this.timelineView.annotation.cursorLineAnnotation.update();
-      this.timelineView.annotation.cursorLineAnnotation.mount();
-    }
+    // if (this.timelineView.viewSettings.showCursorLine) {
+    //   this.timelineView.annotation.cursorLineAnnotation.setTimestampFromScreenPositionX(e.offsetX);
+    //   this.timelineView.annotation.cursorLineAnnotation.update();
+    //   this.timelineView.annotation.cursorLineAnnotation.mount();
+    // }
 
     // TODO: Maybe debounce below?
     const matches = this.timelineView.getInteractedElementsFromMouseEvent(e);
@@ -236,12 +236,12 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   onTimelineMouseIdleLeave(e: MouseEvent) {
     // Hide cursor line
-    this.timelineView.annotation.cursorLineAnnotation.unmount();
+    // this.timelineView.annotation.cursorLineAnnotation.unmount();
   }
 
   onTimelineMousePanStart(e: MouseEvent) {
     // Hide cursor line
-    this.timelineView.annotation.cursorLineAnnotation.unmount();
+    // this.timelineView.annotation.cursorLineAnnotation.unmount();
   }
 
   onTimelineMousePanMove(e: MouseEvent) {
@@ -251,7 +251,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   onTimelineWheel(e: WheelEvent) {
     if (this.state.stageTraces.length === 0) return;
-    this.timelineView.scale(1 - (this.timelineView.viewSettings.scrollToZoomFactor * e.deltaY), e.offsetX);
+    this.timelineView.zoom(1 - (0.01 * e.deltaY), e.offsetX);
   }
 
   onTimelineClick(e: MouseEvent) {
@@ -262,8 +262,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     if (previousSelectedSpan) {
       previousSelectedSpan.updateColorStyle('normal');
       this.setState({ selectedSpanView: undefined });
-      this.timelineView.annotation.spanConnectionsAnnotation.unmount();
-      this.timelineView.annotation.intervalHighlightAnnotation.unmount();
+      // this.timelineView.annotation.spanConnectionsAnnotation.unmount();
+      // this.timelineView.annotation.intervalHighlightAnnotation.unmount();
     }
 
     let clickedLogId: string | null = null;
@@ -288,18 +288,18 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
           spanView.updateColorStyle('selected');
           groupView.bringSpanViewToTop(spanId);
 
-          this.timelineView.annotation.spanConnectionsAnnotation.prepare({ spanView });
-          this.timelineView.annotation.spanConnectionsAnnotation.update();
-          this.timelineView.annotation.spanConnectionsAnnotation.mount();
+          // this.timelineView.annotation.spanConnectionsAnnotation.prepare({ spanView });
+          // this.timelineView.annotation.spanConnectionsAnnotation.update();
+          // this.timelineView.annotation.spanConnectionsAnnotation.mount();
 
-          this.timelineView.annotation.intervalHighlightAnnotation.prepare({
-            startTimestamp: spanView.span.startTime,
-            finishTimestamp: spanView.span.finishTime,
-            lineColor: 'rgba(0, 0, 0, 0.5)',
-            fillColor: `rgba(0, 0, 0, 0.035)`
-          });
-          this.timelineView.annotation.intervalHighlightAnnotation.update();
-          this.timelineView.annotation.intervalHighlightAnnotation.mount();
+          // this.timelineView.annotation.intervalHighlightAnnotation.prepare({
+          //   startTimestamp: spanView.span.startTime,
+          //   finishTimestamp: spanView.span.finishTime,
+          //   lineColor: 'rgba(0, 0, 0, 0.5)',
+          //   fillColor: `rgba(0, 0, 0, 0.035)`
+          // });
+          // this.timelineView.annotation.intervalHighlightAnnotation.update();
+          // this.timelineView.annotation.intervalHighlightAnnotation.mount();
 
           this.setState({ selectedSpanView: spanView }, () => {
             setTimeout(() => {
@@ -346,13 +346,13 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     if (!logContainerElement) return;
     const logId = logContainerElement.id.replace('log-item-', '');
 
-    this.timelineView.annotation.logHighlightAnnotation.prepare({ spanView: selectedSpanView, logId });
-    this.timelineView.annotation.logHighlightAnnotation.mount();
-    this.timelineView.annotation.logHighlightAnnotation.update();
+    // this.timelineView.annotation.logHighlightAnnotation.prepare({ spanView: selectedSpanView, logId });
+    // this.timelineView.annotation.logHighlightAnnotation.mount();
+    // this.timelineView.annotation.logHighlightAnnotation.update();
   }
 
   onSidebarContainerMouseLeave(e: MouseEvent) {
-    this.timelineView.annotation.logHighlightAnnotation.unmount();
+    // this.timelineView.annotation.logHighlightAnnotation.unmount();
   }
 
   onSidebarContainerWheel(e: WheelEvent) {
@@ -382,10 +382,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   }
 
   onGroupLayoutModeMenuClick(data: any) {
-    this.timelineView.viewSettings.setGroupLayoutType(data.key);
+    this.timelineView.updateGroupLayoutMode(data.key);
     this.setState({ groupLayoutMode: data.key, selectedSpanView: null });
-    this.timelineView.annotation.spanConnectionsAnnotation.unmount();
-    this.timelineView.annotation.intervalHighlightAnnotation.unmount();
+    // this.timelineView.annotation.spanConnectionsAnnotation.unmount();
+    // this.timelineView.annotation.intervalHighlightAnnotation.unmount();
     // TODO: Instead of setting selectedSpanView to null,
     // you can keep it and select again
   }
@@ -407,7 +407,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       return;
     }
 
-    this.timelineView.viewSettings.setSpanGroupingOptions(spanGroupingOptions);
+    this.timelineView.updateSpanGrouping(spanGroupingOptions);
     this.setState({ spanGroupingMode: data.key, selectedSpanView: null });
     // TODO: Instead of setting selectedSpanView to null,
     // you can keep it and select again
@@ -430,7 +430,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       return;
     }
 
-    this.timelineView.viewSettings.setSpanColoringOptions(spanColoringOptions);
+    this.timelineView.updateSpanColoring(spanColoringOptions);
     this.setState({ spanColoringMode: data.key });
   }
 
@@ -451,25 +451,25 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       return;
     }
 
-    this.timelineView.viewSettings.setSpanLabellingOptions(spanLabellingOptions);
+    this.timelineView.updateSpanLabelling(spanLabellingOptions);
     this.setState({ spanLabellingMode: data.key });
   }
 
   onCustomSpanGroupingFormModalSave(options: SpanGroupingOptions, rawOptions: SpanGroupingRawOptions) {
     this.customSpanGroupingRawOptions = rawOptions;
-    this.timelineView.viewSettings.setSpanGroupingOptions(options, true);
+    this.timelineView.updateSpanGrouping(options);
     this.setState({ spanGroupingMode: 'custom', isCustomSpanGroupingFormModalVisible: false });
   }
 
   onCustomSpanColoringFormModalSave(options: SpanColoringOptions, rawOptions: SpanColoringRawOptions) {
     this.customSpanColoringRawOptions = rawOptions;
-    this.timelineView.viewSettings.setSpanColoringOptions(options, true);
+    this.timelineView.updateSpanColoring(options);
     this.setState({ spanColoringMode: 'custom', isCustomSpanColoringFormModalVisible: false });
   }
 
   onCustomSpanLabellingFormModalSave(options: SpanLabellingOptions, rawOptions: SpanLabellingRawOptions) {
     this.customSpanLabellingRawOptions = rawOptions;
-    this.timelineView.viewSettings.setSpanLabellingOptions(options, true);
+    this.timelineView.updateSpanLabelling(options);
     this.setState({ spanLabellingMode: 'custom', isCustomSpanLabellingFormModalVisible: false });
   }
 

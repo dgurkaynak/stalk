@@ -1,13 +1,20 @@
 import * as _ from 'lodash';
 import { Span, SpanLog } from '../../model/interfaces';
-import ViewSettings from './view-settings';
+import vc from './view-constants';
 import * as shortid from 'shortid';
 import { getSpanColors } from '../ui/color-helper';
 import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
+import Axis from './axis';
 
 
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
+
+export interface SpanViewSharedOptions {
+  axis: Axis;
+  labelFor: (span: Span) => string;
+  colorFor: (span: Span) => string;
+}
 
 export interface SpanLogViewObject {
   id: string,
@@ -17,7 +24,7 @@ export interface SpanLogViewObject {
 
 export default class SpanView {
   span: Span;
-  private viewSettings: ViewSettings;
+  private sharedOptions: SpanViewSharedOptions;
 
   private container = document.createElementNS(SVG_NS, 'g');
   private barRect = document.createElementNS(SVG_NS, 'rect');
@@ -35,29 +42,28 @@ export default class SpanView {
     borderColor: ''
   };
 
-  constructor(options: {
-    span: Span,
-    viewSettings: ViewSettings
-  }) {
-    this.span = options.span;
-    this.viewSettings = options.viewSettings;
+  constructor(span: Span, sharedOptions: SpanViewSharedOptions) {
+    this.span = span;
+    this.sharedOptions = sharedOptions;
 
     this.container.style.cursor = 'pointer';
     this.labelText.style.cursor = 'pointer';
 
     this.barRect.setAttribute('x', '0');
     this.barRect.setAttribute('y', '0');
-    this.barRect.setAttribute('rx', this.viewSettings.spanBarRadius + '');
-    this.barRect.setAttribute('ry', this.viewSettings.spanBarRadius + '');
+    this.barRect.setAttribute('rx', vc.spanBarRadius + '');
+    this.barRect.setAttribute('ry', vc.spanBarRadius + '');
+    this.barRect.setAttribute('height', vc.spanBarHeight + '');
     this.container.appendChild(this.barRect);
 
-    this.labelText.setAttribute('x', '0');
-    this.labelText.setAttribute('y', '0');
-    this.labelText.setAttribute('font-size', this.viewSettings.spanLabelFontSize + '');
+    this.labelText.setAttribute('x', vc.spanLabelOffsetLeft + '');
+    this.labelText.setAttribute('y', (vc.spanBarHeight / 2 + vc.spanBarSpacing + vc.spanLabelOffsetTop) + '');
+    this.labelText.setAttribute('font-size', vc.spanLabelFontSize + '');
     // this.labelText.setAttribute('font-weight', '600');
 
-    this.clipPathRect.setAttribute('rx', this.viewSettings.spanBarRadius + '');
-    this.clipPathRect.setAttribute('ry', this.viewSettings.spanBarRadius + '');
+    this.clipPathRect.setAttribute('rx', vc.spanBarRadius + '');
+    this.clipPathRect.setAttribute('ry', vc.spanBarRadius + '');
+    this.clipPathRect.setAttribute('height', vc.spanBarHeight + '');
     this.clipPath.appendChild(this.clipPathRect);
   }
 
@@ -80,7 +86,7 @@ export default class SpanView {
   reuse(span: Span) {
     this.span = span;
 
-    this.viewPropertiesCache.barColor = this.viewSettings.spanColorFor(span);
+    this.viewPropertiesCache.barColor = this.sharedOptions.colorFor(span);
     const { textColor, borderColor } = getSpanColors(this.viewPropertiesCache.barColor);
     this.viewPropertiesCache.labelColor = textColor;
     this.viewPropertiesCache.borderColor = borderColor;
@@ -103,7 +109,7 @@ export default class SpanView {
   }
 
   updateLabelText() {
-    this.labelText.textContent = this.viewSettings.spanLabelFor(this.span);
+    this.labelText.textContent = this.sharedOptions.labelFor(this.span);
   }
 
   updateColorStyle(style: 'normal' | 'hover' | 'selected') {
@@ -149,7 +155,7 @@ export default class SpanView {
   }
 
   updateVerticalPosition(rowIndex: number, dontApplyTransform = false) {
-    const { spanBarSpacing, rowHeight, groupPaddingTop } = this.viewSettings;
+    const { spanBarSpacing, rowHeight, groupPaddingTop } = vc;
     const { x } = this.viewPropertiesCache;
     const y = groupPaddingTop + (rowIndex * rowHeight) + spanBarSpacing; // Relative y in pixels to group container
     this.viewPropertiesCache.y = y;
@@ -157,7 +163,7 @@ export default class SpanView {
   }
 
   updateHorizontalPosition() {
-    const axis = this.viewSettings.getAxis();
+    const axis = this.sharedOptions.axis;
     const { y } = this.viewPropertiesCache;
     const x = axis.input2output(this.span.startTime);
     this.viewPropertiesCache.x = x;
@@ -165,9 +171,9 @@ export default class SpanView {
 
     // Snap the label text to left of the screen
     if (x < 0) {
-      this.labelText.setAttribute('x', (-x + this.viewSettings.spanLabelSnappedOffsetLeft) + '');
+      this.labelText.setAttribute('x', (-x + vc.spanLabelSnappedOffsetLeft) + '');
     } else {
-      this.labelText.setAttribute('x', this.viewSettings.spanLabelOffsetLeft + '');
+      this.labelText.setAttribute('x', vc.spanLabelOffsetLeft + '');
     }
 
     // Update logs
@@ -178,8 +184,8 @@ export default class SpanView {
   }
 
   updateWidth() {
-    const { spanBarMinWidth } = this.viewSettings;
-    const axis = this.viewSettings.getAxis();
+    const { spanBarMinWidth } = vc;
+    const axis = this.sharedOptions.axis;
     const startX = axis.input2output(this.span.startTime);
     const width = Math.max(axis.input2output(this.span.finishTime) - startX, spanBarMinWidth);
     this.viewPropertiesCache.width = width;
@@ -187,25 +193,8 @@ export default class SpanView {
     this.clipPathRect.setAttribute('width',  width + '');
   }
 
-  updateHeight() {
-    const {
-      spanBarHeight,
-      spanBarSpacing,
-      spanLabelOffsetLeft,
-      spanLabelOffsetTop,
-    } = this.viewSettings;
-
-    // Update bar height
-    this.barRect.setAttribute('height', spanBarHeight + '');
-    this.clipPathRect.setAttribute('height', spanBarHeight + '');
-
-    // Update label text positioning
-    this.labelText.setAttribute('x', spanLabelOffsetLeft + '');
-    this.labelText.setAttribute('y', (spanBarHeight / 2 + spanBarSpacing + spanLabelOffsetTop) + '');
-  }
-
   updateColors() {
-    this.viewPropertiesCache.barColor = this.viewSettings.spanColorFor(this.span);
+    this.viewPropertiesCache.barColor = this.sharedOptions.colorFor(this.span);
     const { textColor, borderColor } = getSpanColors(this.viewPropertiesCache.barColor);
     this.viewPropertiesCache.labelColor = textColor;
     this.viewPropertiesCache.borderColor = borderColor;
@@ -224,7 +213,7 @@ export default class SpanView {
   }
 
   showLogs() {
-    const { spanBarHeight, spanLogCircleRadius } = this.viewSettings;
+    const { spanBarHeight, spanLogCircleRadius } = vc;
     const centerY = spanBarHeight / 2;
 
     this.logViews.forEach(l => this.container.removeChild(l.circle));
