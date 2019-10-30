@@ -8,7 +8,6 @@ import MouseHandler from './mouse-handler';
 import SpanView from './span-view';
 import { Trace } from '../../model/trace';
 import { SpanGrouping } from '../../model/span-grouping/span-grouping';
-import SpanGroupingManager from '../../model/span-grouping/manager';
 import { TimelineInteractableElementAttribute, TimelineInteractedElementObject } from './interaction';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -32,7 +31,6 @@ export default class TimelineView extends EventEmitterExtra {
 
   private traces: Trace[] = [];
   readonly viewSettings = new ViewSettings();
-  private groupingManager = SpanGroupingManager.getSingleton();
   private spanGrouping: SpanGrouping;
   private groupViews: GroupView[] = [];
   private contentHeight = 0; // in pixels

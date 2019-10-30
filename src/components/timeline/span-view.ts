@@ -18,9 +18,6 @@ export interface SpanLogViewObject {
 export default class SpanView {
   span: Span;
   private viewSettings: ViewSettings;
-  options = {
-    isCollapsed: false
-  };
 
   private container = document.createElementNS(SVG_NS, 'g');
   private barRect = document.createElementNS(SVG_NS, 'rect');
@@ -149,10 +146,6 @@ export default class SpanView {
     logView.circle.setAttribute('fill', fillColor);
     logView.circle.setAttribute('stroke-width', strokeWidth + '');
     logView.circle.setAttribute('stroke', strokeColor);
-  }
-
-  updateLabelTextDecoration() {
-    this.labelText.setAttribute('text-decoration', this.options.isCollapsed ? 'underline': '');
   }
 
   updateVerticalPosition(rowIndex: number, dontApplyTransform = false) {

@@ -9,12 +9,6 @@ import { TimelineInteractableElementAttribute, TimelineInteractableElementType }
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-enum Visibility {
-  VISIBLE_OPEN,
-  VISIBLE_COLLAPSED,
-  HIDDEN
-}
-
 export enum GroupViewEvent {
   // TODO: Make this more optimized HEIGHT_CHANGED?
   LAYOUT = 'layout'
@@ -116,13 +110,6 @@ export default class GroupView extends EventEmitterExtra {
     this.removeAllListeners();
   }
 
-  toggleSpanView(spanId: string) {
-    const spanView = this.spanViews[spanId];
-    spanView.options.isCollapsed = !spanView.options.isCollapsed;
-    spanView.updateLabelTextDecoration();
-    this.layout();
-  }
-
   toggleView() {
     this.options.isCollapsed = !this.options.isCollapsed;
     this.updateLabelTextDecoration();
@@ -182,89 +169,45 @@ export default class GroupView extends EventEmitterExtra {
       return;
     }
 
-    const visibilityMap: { [key: string]: Visibility } = {};
-
     // Depth-first search
     while (nodeQueue.length > 0) {
       const node = nodeQueue.shift()!;
       const spanView = spanViews[node.spanId];
 
-      // Calculate visibility map
-      let visibility: Visibility;
-      if (node.parent) {
-        // Span has a parent, check parent visibility
-        const parentVisibility = visibilityMap[node.parent.spanId];
+      const { startTime, finishTime } = spanView.span;
+      let availableRowIndex = 0;
 
-        switch (parentVisibility) {
-          case Visibility.HIDDEN:
-          case Visibility.VISIBLE_COLLAPSED: {
-            visibility = Visibility.HIDDEN;
-            break;
-          }
-
-          case Visibility.VISIBLE_OPEN: {
-            visibility = spanView.options.isCollapsed ? Visibility.VISIBLE_COLLAPSED : Visibility.VISIBLE_OPEN;
-            break;
-          }
-
-          default: throw new Error('Unknown parent span visiblity');
-        }
-      } else {
-        // Span does not have parent (root or oprhan)
-        visibility = spanView.options.isCollapsed ? Visibility.VISIBLE_COLLAPSED : Visibility.VISIBLE_OPEN;
-      }
-
-      // Save visibility value for children
-      visibilityMap[node.spanId] = visibility;
-
-      // Apply the calculated visibility
-      switch (visibility) {
-        case Visibility.HIDDEN: {
-          spanView.unmount();
+      switch (this.viewSettings.groupLayoutType) {
+        case GroupLayoutType.COMPACT: {
+          availableRowIndex = this.getAvailableRow({ startTime, finishTime });
           break;
         }
-
-        case Visibility.VISIBLE_COLLAPSED:
-        case Visibility.VISIBLE_OPEN: {
-          const { startTime, finishTime } = spanView.span!;
-          let availableRowIndex = 0;
-
-          switch (this.viewSettings.groupLayoutType) {
-            case GroupLayoutType.COMPACT: {
-              availableRowIndex = this.getAvailableRow({ startTime, finishTime });
-              break;
-            }
-            case GroupLayoutType.CONSIDER_SPAN_DEPTH: {
-              let minRowIndex = 0;
-              if (node.parentOrFollows) {
-                let parentRowIndex = this.spanIdToRowIndex[node.parentOrFollows.spanId];
-                if (_.isNumber(parentRowIndex)) minRowIndex = parentRowIndex + 1;
-              }
-              availableRowIndex = this.getAvailableRow({ startTime, finishTime, minRowIndex });
-              break;
-            }
+        case GroupLayoutType.CONSIDER_SPAN_DEPTH: {
+          let minRowIndex = 0;
+          if (node.parentOrFollows) {
+            let parentRowIndex = this.spanIdToRowIndex[node.parentOrFollows.spanId];
+            if (_.isNumber(parentRowIndex)) minRowIndex = parentRowIndex + 1;
           }
-
-          if (!this.rowsAndSpanIntervals[availableRowIndex]) this.rowsAndSpanIntervals[availableRowIndex] = [];
-          this.rowsAndSpanIntervals[availableRowIndex].push([startTime, finishTime]);
-          this.spanIdToRowIndex[node.spanId] = availableRowIndex;
-
-          spanView.showLabel();
-          spanView.showLogs();
-          spanView.updateHeight();
-          spanView.updateWidth();
-          spanView.updateVerticalPosition(availableRowIndex, true);
-          spanView.updateHorizontalPosition();
-
-          spanView.mount({
-            groupContainer: container,
-            svgDefs: this.svgDefs!
-          });
+          availableRowIndex = this.getAvailableRow({ startTime, finishTime, minRowIndex });
           break;
         }
-
-        default: throw new Error('Unknown span visibility');
       }
+
+      if (!this.rowsAndSpanIntervals[availableRowIndex]) this.rowsAndSpanIntervals[availableRowIndex] = [];
+      this.rowsAndSpanIntervals[availableRowIndex].push([startTime, finishTime]);
+      this.spanIdToRowIndex[node.spanId] = availableRowIndex;
+
+      spanView.showLabel();
+      spanView.showLogs();
+      spanView.updateHeight();
+      spanView.updateWidth();
+      spanView.updateVerticalPosition(availableRowIndex, true);
+      spanView.updateHorizontalPosition();
+
+      spanView.mount({
+        groupContainer: container,
+        svgDefs: this.svgDefs!
+      });
 
       node.children
         .sort((a, b) => {
