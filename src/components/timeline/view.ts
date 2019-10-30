@@ -393,16 +393,24 @@ export default class TimelineView extends EventEmitterExtra {
     this.annotation.logHighlightAnnotation.mount();
   }
 
-  updatePanelsTranslateY(offsetY: number) {
+  translateX(delta: number) {
+    this.viewSettings.getAxis().translate(delta);
+  }
+
+  translateY(delta: number) {
     const { height: viewportHeight } = this.viewSettings;
     if (this.getContentHeight() <= viewportHeight) return;
 
-    const newTranslateY = this.panelTranslateY + offsetY;
+    const newTranslateY = this.panelTranslateY + delta;
     this.panelTranslateY = Math.min(Math.max(newTranslateY, viewportHeight - this.contentHeight), 0);
 
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+  }
+
+  scale(scaleFactor: number, anchorPosX: number) {
+    this.viewSettings.getAxis().zoom(scaleFactor, anchorPosX);
   }
 }

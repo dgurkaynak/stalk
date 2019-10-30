@@ -245,17 +245,13 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   }
 
   onTimelineMousePanMove(e: MouseEvent) {
-    this.timelineView.viewSettings.getAxis().translate(e.movementX);
-    this.timelineView.updatePanelsTranslateY(e.movementY);
+    this.timelineView.translateX(e.movementX);
+    this.timelineView.translateY(e.movementY);
   }
 
   onTimelineWheel(e: WheelEvent) {
     if (this.state.stageTraces.length === 0) return;
-
-    this.timelineView.viewSettings.getAxis().zoom(
-      1 - (this.timelineView.viewSettings.scrollToZoomFactor * e.deltaY),
-      e.offsetX
-    );
+    this.timelineView.scale(1 - (this.timelineView.viewSettings.scrollToZoomFactor * e.deltaY), e.offsetX);
   }
 
   onTimelineClick(e: MouseEvent) {
