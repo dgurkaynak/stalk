@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import React from 'react';
 import { Icon, Layout, Empty, Badge, Card, Tooltip, Menu, Dropdown, Divider, message } from 'antd';
 import { Stage, StageEvent } from '../../model/stage';
-import TimelineView from './view';
+import TimelineView from './timeline-view';
 import { TimelineInteractableElementType, TimelineInteractedElementObject } from './interaction';
 import { MouseHandlerEvent } from './mouse-handler';
 import prettyMilliseconds from 'pretty-ms';
@@ -49,9 +49,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   state = {
     stageTraces: this.stage.getAll(),
     groupLayoutMode: GroupLayoutType.COMPACT,
-    spanGroupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineViewSettings
-    spanColoringMode: operationColoringOptions.key, // Do not forget to change default value of TimelineViewSettings
-    spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineViewSettings
+    spanGroupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineView
+    spanColoringMode: operationColoringOptions.key, // Do not forget to change default value of TimelineView
+    spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineView
     selectedSpanView: null,
     highlightedLogId: '',
     isCustomSpanColoringFormModalVisible: false,
