@@ -12,6 +12,10 @@ import processSpanGroupingOptions from '../../model/span-grouping/process';
 import { TimelineInteractableElementAttribute, TimelineInteractedElementObject } from './interaction';
 import { SpanColoringOptions, operationColoringOptions } from '../../model/span-coloring-manager';
 import { SpanLabellingOptions, operationLabellingOptions } from '../../model/span-labelling-manager';
+import LogHighlightDecoration from './decorations/log-highlight';
+import SpanConnectionsDecoration from './decorations/span-connections';
+import VerticalLineDecoration from './decorations/vertical-line';
+import IntervalHighlightDecoration from './decorations/interval-highlight';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -26,16 +30,26 @@ export default class TimelineView extends EventEmitterExtra {
   private viewportContainer = document.createElementNS(SVG_NS, 'g');
   private groupNamePanel = document.createElementNS(SVG_NS, 'g');
   private timelinePanel = document.createElementNS(SVG_NS, 'g');
-  private annotationUnderlayPanel = document.createElementNS(SVG_NS, 'g');
-  private annotationOverlayPanel = document.createElementNS(SVG_NS, 'g');
 
-  private width = 0; // svg width
-  private height = 0; // svg height
+  readonly decorationUnderlayPanel = document.createElementNS(SVG_NS, 'g');
+  readonly decorationOverlayPanel = document.createElementNS(SVG_NS, 'g');
+  readonly decorations = {
+    logHighlight: new LogHighlightDecoration(this),
+    spanConnections: new SpanConnectionsDecoration(this),
+    cursorLine: new VerticalLineDecoration(this),
+    intervalHighlight: new IntervalHighlightDecoration(this),
+  };
+
+  private _width = 0; // svg width
+  get width() { return this._width; }
+  private _height = 0; // svg height
+  get height() { return this._height; }
   private panelTranslateY = 0;
-  private contentHeight = 0; // in pixels
+  private _contentHeight = 0; // in pixels
+  get contentHeight() { return this._contentHeight; }
 
   readonly mouseHandler = new MouseHandler(this.svg);
-  private readonly axis = new Axis([0, 0], [0, 0]);
+  readonly axis = new Axis([0, 0], [0, 0]);
 
   private traces: Trace[] = [];
   private spanGrouping: SpanGrouping;
@@ -47,18 +61,6 @@ export default class TimelineView extends EventEmitterExtra {
     colorFor: operationColoringOptions.colorBy,
     labelFor: operationLabellingOptions.labelBy,
   };
-
-  // annotation = new AnnotationManager({
-  //   timelineView: this,
-  //   underlayPanel: this.annotationUnderlayPanel,
-  //   overlayPanel: this.annotationOverlayPanel,
-  //   viewSettings: this.viewSettings
-  // });
-  // this.logHighlightAnnotation = new LogHighlightAnnotation(this.annotationDeps);
-  // this.spanConnectionsAnnotation = new SpanConnectionsAnnotation(this.annotationDeps);
-  // this.cursorLineAnnotation = new VerticalLineAnnotation(this.annotationDeps);
-  // this.intervalHighlightAnnotation = new IntervalHighlightAnnotation(this.annotationDeps);
-
 
   constructor() {
     super();
@@ -95,7 +97,6 @@ export default class TimelineView extends EventEmitterExtra {
     this.spanGrouping = new SpanGrouping(processSpanGroupingOptions);
   }
 
-
   init(parentElement: HTMLElement, options?: {
     width?: number,
     height?: number,
@@ -114,16 +115,15 @@ export default class TimelineView extends EventEmitterExtra {
     parentElement.appendChild(this.svg);
   }
 
-
   resize(width: number, height: number) {
-    this.width = width;
-    this.height = height;
+    this._width = width;
+    this._height = height;
 
     this.svg.setAttribute('width', `${width}`);
     this.svg.setAttribute('height', `${height}`);
     this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-    // this.viewSettings.showCursorLine && this.annotation.cursorLineAnnotation.update();
+    this.decorations.cursorLine.update();
 
     this.viewportClipPathRect.setAttribute('width', `${width}`);
     this.viewportClipPathRect.setAttribute('height', `${height}`);
@@ -134,14 +134,23 @@ export default class TimelineView extends EventEmitterExtra {
     ]);
     // TODO: Look for who listens AxisEvent.UPDATED event and trigger here
     this.groupViews.forEach(g => g.handleAxisUpdate());
-    // this.annotationManager.updateAllAnnotations()
+    this.updateAllDecorations();
 
     this.groupViews.forEach(v => v.updateSeperatorLineWidths(width));
   }
 
+  updateAllDecorations(forceReprepare = false) {
+    _.forEach(this.decorations, (decoration) => {
+      if (forceReprepare) {
+        const rv = decoration.prepare({} as any);
+        if (rv === false) decoration.unmount();
+      }
+      decoration.update();
+    });
+  }
 
   setupPanels() {
-    const { width, height } = this;
+    const { _width: width, _height: height } = this;
 
     this.viewportClipPath.id = 'viewport-clip-path';
     this.viewportClipPathRect.setAttribute('x', `0`);
@@ -152,10 +161,10 @@ export default class TimelineView extends EventEmitterExtra {
     this.defs.appendChild(this.viewportClipPath);
 
     this.viewportContainer.setAttribute('clip-path', 'url(#viewport-clip-path)');
-    this.viewportContainer.appendChild(this.annotationUnderlayPanel);
+    this.viewportContainer.appendChild(this.decorationUnderlayPanel);
     this.viewportContainer.appendChild(this.groupNamePanel);
     this.viewportContainer.appendChild(this.timelinePanel);
-    this.viewportContainer.appendChild(this.annotationOverlayPanel);
+    this.viewportContainer.appendChild(this.decorationOverlayPanel);
     this.svg.appendChild(this.viewportContainer);
   }
 
@@ -188,9 +197,7 @@ export default class TimelineView extends EventEmitterExtra {
       g.layout();
     });
     this.updateGroupVerticalPositions();
-    // this.annotation.logHighlightAnnotation.unmount();
-    // this.annotation.spanConnectionsAnnotation.unmount();
-    // this.annotation.intervalHighlightAnnotation.unmount();
+    this.updateAllDecorations();
   }
 
   updateSpanGrouping(spanGroupingOptions: SpanGroupingOptions) {
@@ -198,9 +205,6 @@ export default class TimelineView extends EventEmitterExtra {
     this.spanGrouping = new SpanGrouping(spanGroupingOptions);
     this.traces.forEach(t => t.spans.forEach(s => this.spanGrouping.addSpan(s, t)));
     this.layout();
-    // this.annotation.logHighlightAnnotation.unmount();
-    // this.annotation.spanConnectionsAnnotation.unmount();
-    // this.annotation.intervalHighlightAnnotation.unmount();
   }
 
   updateSpanColoring(options: SpanColoringOptions) {
@@ -225,10 +229,6 @@ export default class TimelineView extends EventEmitterExtra {
     this.traces.push(trace);
     trace.spans.forEach(s => this.spanGrouping.addSpan(s, trace));
     this.layout();
-    // this.annotation.logHighlightAnnotation.unmount();
-    // this.annotation.spanConnectionsAnnotation.unmount();
-    // this.annotation.intervalHighlightAnnotation.unmount();
-    // this.annotation.cursorLineAnnotation.unmount();
     return true;
   }
 
@@ -237,10 +237,6 @@ export default class TimelineView extends EventEmitterExtra {
     if (removeds.length === 0) return false;
     trace.spans.forEach(s => this.spanGrouping.removeSpan(s));
     this.layout();
-    // this.annotation.logHighlightAnnotation.unmount();
-    // this.annotation.spanConnectionsAnnotation.unmount();
-    // this.annotation.intervalHighlightAnnotation.unmount();
-    // this.annotation.cursorLineAnnotation.unmount();
     return true;
   }
 
@@ -303,19 +299,16 @@ export default class TimelineView extends EventEmitterExtra {
       [startTimestamp, finishTimestamp],
       [
         vc.spanBarViewportMargin,
-        this.width - vc.spanBarViewportMargin
+        this._width - vc.spanBarViewportMargin
       ]
     );
-    // TODO: Look for how to update related parts?
-    // this.annotationManager.updateAllAnnotations()
 
-    this.groupViews.forEach(v => v.dispose()); // This will unmount self, unbind all handlers,
-                                               // no need to manually remove listener here
+    this.groupViews.forEach(v => v.dispose());
     this.groupViews = [];
 
     const groups = this.spanGrouping.getAllGroups().sort((a, b) => a.startTimestamp - b.startTimestamp);
     groups.forEach((group) => {
-      const groupView = new GroupView(group, { width: this.width, layoutType: this.groupLayoutMode });
+      const groupView = new GroupView(group, { width: this._width, layoutType: this.groupLayoutMode });
       groupView.init({
         groupNamePanel: this.groupNamePanel,
         timelinePanel: this.timelinePanel,
@@ -330,17 +323,14 @@ export default class TimelineView extends EventEmitterExtra {
     this.updateGroupVerticalPositions();
 
     // Annotations
-    // this.annotation.updateData(this.groupViews);
+    this.updateAllDecorations(true); // Force re-prepare because all the groupViews and spanViews are replaced w/ new
 
     // Reset vertical panning
     this.panelTranslateY = 0;
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-
-    // Hide cursor line
-    // this.annotation.cursorLineAnnotation.unmount();
+    this.decorationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.decorationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
   }
 
   updateGroupVerticalPositions() {
@@ -356,44 +346,33 @@ export default class TimelineView extends EventEmitterExtra {
       }
     });
 
-    this.contentHeight = y;
+    this._contentHeight = y;
   }
-
-  getContentHeight() {
-    return this.contentHeight;
-  }
-
-  // showOrHideLogHighlightAnnotation(options: { spanView: SpanView, logId: string } | null) {
-  //   if (!options) return this.annotation.logHighlightAnnotation.unmount();
-  //   this.annotation.logHighlightAnnotation.prepare({ spanView: options.spanView, logId: options.logId });
-  //   this.annotation.logHighlightAnnotation.update();
-  //   this.annotation.logHighlightAnnotation.mount();
-  // }
 
   translateX(delta: number) {
     this.axis.translate(delta);
     // TODO: Look for who listens AxisEvent.TRANSLATED
     this.groupViews.forEach(g => g.handleAxisTranslate());
-    // this.annotationManager.updateAllAnnotations()
+    this.updateAllDecorations();
   }
 
   translateY(delta: number) {
-    const { height: viewportHeight } = this;
-    if (this.getContentHeight() <= viewportHeight) return;
+    const { _height: viewportHeight } = this;
+    if (this._contentHeight <= viewportHeight) return;
 
     const newTranslateY = this.panelTranslateY + delta;
-    this.panelTranslateY = Math.min(Math.max(newTranslateY, viewportHeight - this.contentHeight), 0);
+    this.panelTranslateY = Math.min(Math.max(newTranslateY, viewportHeight - this._contentHeight), 0);
 
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.annotationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.annotationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.decorationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.decorationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
   }
 
   zoom(scaleFactor: number, anchorPosX: number) {
     this.axis.zoom(scaleFactor, anchorPosX);
     // TODO: Look for who listens AxisEvent.ZOOMED
     this.groupViews.forEach(g => g.handleAxisZoom());
-    // this.annotationManager.updateAllAnnotations()
+    this.updateAllDecorations();
   }
 }

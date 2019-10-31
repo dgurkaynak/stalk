@@ -1,61 +1,67 @@
 import * as _ from 'lodash';
-import BaseAnnotation from './base';
+import BaseDecoration from './base';
 import SpanView from '../span-view';
 import GroupView from '../group-view';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-interface SpanConnectionsAnnotationSettings {
-  spanView: SpanView,
+interface SpanConnectionsDecorationSettings {
+  spanId: string,
   strokeWidth?: number,
   strokeColor?: string,
   barHeight?: number,
 }
 
-export default class SpanConnectionsAnnotation extends BaseAnnotation {
-  private settings?: SpanConnectionsAnnotationSettings;
-  private parents: {
-    spanView: SpanView,
-    groupView: GroupView,
-    refType: 'childOf' | 'followsFrom',
-    type: 'parent' | 'child',
-    path: SVGPathElement
-  }[] = [];
-  private children: {
-    spanView: SpanView,
-    groupView: GroupView,
-    refType: 'childOf' | 'followsFrom',
-    type: 'parent' | 'child',
-    path: SVGPathElement
-  }[] = [];
-  private groupView?: GroupView;
+interface SpanConnection {
+  spanView: SpanView,
+  groupView: GroupView,
+  refType: 'childOf' | 'followsFrom',
+  type: 'parent' | 'child',
+  path: SVGPathElement
+}
 
-  prepare(settings: SpanConnectionsAnnotationSettings) {
-    this.settings = _.defaults(settings, {
-      strokeWidth: 1,
-      strokeColor: '#000',
-      barHeight: 20
-    });
+export default class SpanConnectionsDecoration extends BaseDecoration {
+  private settings: SpanConnectionsDecorationSettings = {
+    spanId: '',
+    strokeWidth: 1,
+    strokeColor: '#000',
+    barHeight: 20
+  };
+  private container = document.createElementNS(SVG_NS, 'g');
+  private parents: SpanConnection[] = [];
+  private children: SpanConnection[] = [];
+  private groupView: GroupView;
+  private spanView: SpanView;
+
+  prepare(settings: SpanConnectionsDecorationSettings) {
+    this.settings = _.defaults(settings, this.settings);
 
     this.parents.forEach(({ path }) => path.parentElement && path.parentElement.removeChild(path));
     this.parents = [];
     this.children.forEach(({ path }) => path.parentElement && path.parentElement.removeChild(path));
     this.children = [];
 
-    const [groupView, spanView] = this.deps.findSpanView(this.settings.spanView.span.id);
-    if (!groupView || !spanView) return;
-    this.groupView = groupView;
+    this.groupView = null;
+    this.spanView = null;
 
-    this.settings.spanView.span.references.forEach((ref) => {
-      const [refGroupView, refSpanView] = this.deps.findSpanView(ref.spanId);
+    const [groupView, spanView] = this.timelineView.findSpanView(this.settings.spanId);
+    if (!groupView || !spanView) return false; // this will force timelineview to unmount this decoration
+    this.groupView = groupView;
+    this.spanView = spanView;
+
+    spanView.span.references.forEach((ref) => {
+      const [refGroupView, refSpanView] = this.timelineView.findSpanView(ref.spanId);
       if (!refGroupView || !refSpanView) return;
+      // TODO: Indicate when span could not found
+      // TODO: Handle if groupView is collapsed
 
       const path = document.createElementNS(SVG_NS, 'path');
       path.setAttribute('fill', 'transparent');
       path.setAttribute('stroke-width', settings.strokeWidth + '');
-      path.setAttribute('stroke', settings.strokeColor!);
+      path.setAttribute('stroke', settings.strokeColor);
       path.setAttribute('marker-end', `url(#arrow-head)`);
       path.setAttribute('stroke-dasharray', ref.type === 'followsFrom' ? '2' : '0');
+      this.container.appendChild(path);
 
       this.parents.push({
         spanView: refSpanView,
@@ -66,8 +72,8 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       });
     });
 
-    const childrenMatches = this.deps.findSpanViews((v) => {
-      const selfReferences = _.find(v.span.references, r => r.spanId === spanView.span.id);
+    const childrenMatches = this.timelineView.findSpanViews((v) => {
+      const selfReferences = _.find(v.span.references, r => r.spanId === this.settings.spanId);
       return !!selfReferences;
     });
 
@@ -75,10 +81,11 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       const path = document.createElementNS(SVG_NS, 'path');
       path.setAttribute('fill', 'transparent');
       path.setAttribute('stroke-width', settings.strokeWidth + '');
-      path.setAttribute('stroke', settings.strokeColor!);
+      path.setAttribute('stroke', settings.strokeColor);
       path.setAttribute('marker-end', `url(#arrow-head)`);
-      const ref = _.find(refSpanView.span.references, r => r.spanId === spanView.span.id);
+      const ref = _.find(refSpanView.span.references, r => r.spanId === this.settings.spanId);
       path.setAttribute('stroke-dasharray', ref!.type === 'followsFrom' ? '2' : '0');
+      this.container.appendChild(path);
 
       this.children.push({
         spanView: refSpanView,
@@ -89,23 +96,18 @@ export default class SpanConnectionsAnnotation extends BaseAnnotation {
       });
     });
 
-    const parentPaths = this.parents.map(p => p.path);
-    const childrenPaths = this.children.map(p => p.path);
-    this.overlayElements = [ ...parentPaths, ...childrenPaths ];
+    this.overlayElements = [ this.container ];
   }
 
   update() {
-    if (!this.settings) return;
-    if (!this.groupView) return;
+    if (!this.groupView || !this.spanView) return;
 
-    const spanViewProps = this.settings.spanView.getViewPropertiesCache();
+    const spanViewProps = this.spanView.getViewPropertiesCache();
     const groupViewProps = this.groupView.getViewPropertiesCache();
-    const halfBarHeight = this.settings!.barHeight! / 2;
+    const halfBarHeight = this.settings.barHeight / 2;
 
     [ ...this.parents, ...this.children ].forEach((ref) => {
-      const refSpanView = ref.spanView;
       const refSpanViewProps = ref.spanView.getViewPropertiesCache();
-      const refGroupView = ref.groupView;
       const refGroupViewProps = ref.groupView.getViewPropertiesCache();
       const path = ref.path;
       const arrowHeadOffsetLeft = -3;
