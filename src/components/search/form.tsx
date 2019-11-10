@@ -78,13 +78,14 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
 
 
     async onDataSourceChange(dataSource: DataSource | null) {
-      this.setState({ dataSource, serviceOrOperation: null });
+      this.setState({ serviceOrOperation: null });
       this.props.form.setFieldsValue({ dataSource, serviceOrOperation: null });
 
       if (dataSource) {
         try {
           const api = DataSourceManager.getSingleton().apiFor(dataSource);
           await api.updateServicesAndOperationsCache();
+          this.setState({ dataSource });
         } catch (err) {
           message.error(`Could not access to "${dataSource.name}": ${err.message}`);
         }
