@@ -675,14 +675,22 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       return <div style={{ margin: 15 }}>No span selected</div>;
     }
 
-    const selectedSpanView: SpanView = this.state.selectedSpanView as any;
+    const selectedSpanView = this.state.selectedSpanView as SpanView;
     const tagCount = Object.keys(selectedSpanView.span.tags).length;
     const logsCount = selectedSpanView.getLogViews().length;
+    const processTags = (selectedSpanView.span.process && selectedSpanView.span.process.tags) || {};
 
     return (
       <>
         <Divider orientation="center" style={{ marginTop: 10 }}>Span Info</Divider>
         {this.renderSpanInfo()}
+
+        {Object.keys(processTags).length > 0 ? (
+          <>
+            <Divider orientation="center">{tagCount} Process Tag(s)</Divider>
+            {this.renderProcessTags()}
+          </>
+        ) : null}
 
         <Divider orientation="center">{tagCount} Tag(s)</Divider>
         {this.renderSpanTags()}
@@ -729,6 +737,24 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
             })()}</span>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  renderProcessTags() {
+    const selectedSpanView: SpanView | undefined = this.state.selectedSpanView as any;
+    if (!selectedSpanView) return null;
+    const span = selectedSpanView.span;
+    const processTags = (span.process && span.process.tags) || {};
+
+    return (
+      <div className="timeline-sidebar-content">
+        {Object.keys(processTags).length > 0 ? _.map(processTags, (value, tag) => (
+          <div className="sidebar-row mono even-odd" key={tag}>
+            <span>{tag}:</span>
+            <span>{value}</span>
+          </div>
+        )) : null}
       </div>
     );
   }
