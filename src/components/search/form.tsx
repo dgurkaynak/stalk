@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tooltip, Form, Row, Col, Input, Button, Icon, Select, DatePicker, TimePicker, InputNumber, Tag, message } from 'antd';
+import { Tooltip, Form, Row, Col, Input, Button, Icon, Select, DatePicker, TimePicker, InputNumber, Tag, message, Popover, Typography } from 'antd';
 import DataSourceManager from '../../model/datasource/manager';
 import DataSourceSelect from '../datasource/select';
 import { DataSource, DataSourceType } from '../../model/datasource/interfaces';
@@ -12,6 +12,7 @@ import { SearchQuery } from '../../model/api/interfaces';
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
+const { Text } = Typography;
 
 const timeFormat = 'HH:mm';
 
@@ -336,14 +337,46 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
           <Row gutter={24}>
             <Col span={12}>
               <Form.Item
-                label={
+                label={this.state.dataSource && this.state.dataSource.type == DataSourceType.JAEGER ? (
                   <span>
-                    Tags/Annotations&nbsp;
-                    <Tooltip title="What do you want others to call you?">
+                    Tags&nbsp;
+                    <Popover
+                      title={(
+                        <>Values should be in the <a href="https://brandur.org/logfmt" target="_blank">logfmt</a> format.</>
+                      )}
+                      content={(
+                        <>
+                          <ul>
+                            <li>Use seperate tags for conjunctions</li>
+                            <li>Values containing whitespace should be enclosed in quotes</li>
+                          </ul>
+                          <Text code>error=true</Text>
+                          <Text code>db.statement="select * from User"</Text>
+                        </>
+                      )}
+                    >
                       <Icon type="question-circle-o" />
-                    </Tooltip>
+                    </Popover>
                   </span>
-                }
+                ) : this.state.dataSource && this.state.dataSource.type == DataSourceType.ZIPKIN ? (
+                  <span>
+                    Annotation Query&nbsp;
+                    <Popover
+                      content={(
+                        <>
+                          <ul>
+                            <li>Use seperate tags for "and" conjunctions</li>
+                          </ul>
+                          <Text code>http.path=/foo/bar/</Text>
+                          <Text code>cluster=foo</Text>
+                          <Text code>cache.miss</Text>
+                        </>
+                      )}
+                    >
+                      <Icon type="question-circle-o" />
+                    </Popover>
+                  </span>
+                ) : <span>Tags/Annotations</span>}
               >
                 <div
                   className={this.binded.isJsonDataSourceSelected() ? 'ant-input-disabled' : ''}
