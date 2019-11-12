@@ -126,6 +126,7 @@ export default class GroupView {
 
   updateLabelTextDecoration() {
     this.labelText.setAttribute('text-decoration', this.options.isCollapsed ? 'underline': '');
+    this.labelText.setAttribute('font-style', this.options.isCollapsed ? 'italic': '');
   }
 
   bringSpanViewToTop(spanId: string) {
