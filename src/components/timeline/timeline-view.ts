@@ -370,6 +370,10 @@ export default class TimelineView extends EventEmitterExtra {
     this.decorationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
   }
 
+  getPanelTranslateY() {
+    return this.panelTranslateY;
+  }
+
   keepPanelTraslateYInScreen() {
     const { _height: viewportHeight } = this;
     const bottomY = this.panelTranslateY + this._contentHeight;

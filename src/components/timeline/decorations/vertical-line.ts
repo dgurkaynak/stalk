@@ -80,7 +80,8 @@ export default class VerticalLineDecoration extends BaseDecoration {
       const isOnLeftSide = x <= this.timelineView.width / 2;
       const textX = isOnLeftSide ? x + this.settings.timeOffsetToLine : x - this.settings.timeOffsetToLine;
       this.line.setAttribute('transform', `translate(${x}, 0)`);
-      this.text.setAttribute('transform', `translate(${textX}, ${this.timelineView.height - this.settings.timeOffsetToBottom})`);
+      const textY = this.timelineView.height - this.settings.timeOffsetToBottom - this.timelineView.getPanelTranslateY();
+      this.text.setAttribute('transform', `translate(${textX}, ${textY})`);
       this.text.setAttribute('text-anchor', isOnLeftSide ? 'start' : 'end');
     }
 
