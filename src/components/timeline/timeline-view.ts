@@ -198,6 +198,7 @@ export default class TimelineView extends EventEmitterExtra {
     });
     this.updateGroupVerticalPositions();
     this.updateAllDecorations();
+    this.keepPanelTraslateYInScreen();
   }
 
   updateSpanGrouping(spanGroupingOptions: SpanGroupingOptions) {
