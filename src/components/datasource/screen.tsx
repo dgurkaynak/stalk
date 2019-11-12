@@ -8,7 +8,8 @@ import DataSourceList from './list';
 
 
 export interface DataSourcesScreenProps {
-  visible: boolean
+  visible: boolean,
+  onDataSourceSearch?: (ds: DataSource) => void
 }
 
 
@@ -76,7 +77,7 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
 
 
   onDataSourceSearch(dataSource: DataSource) {
-    // TODO
+    this.props.onDataSourceSearch && this.props.onDataSourceSearch(dataSource);
   }
 
 

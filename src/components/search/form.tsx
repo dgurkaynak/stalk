@@ -19,6 +19,8 @@ const timeFormat = 'HH:mm';
 
 export interface SearchFormProps {
   form: any,
+  selectedDataSource?: DataSource,
+  onDataSourceChange?: (ds: DataSource) => void
   onSearch: (query: SearchQuery) => void
 }
 
@@ -78,15 +80,25 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
     };
 
 
+    componentDidUpdate(prevProps, prevState) {
+      // If `selectedDataSource` prop changed, handle it
+      if (this.props.selectedDataSource != prevProps.selectedDataSource) {
+        this.onDataSourceChange(this.props.selectedDataSource);
+      }
+    }
+
+
     async onDataSourceChange(dataSource: DataSource | null) {
       this.setState({ serviceOrOperation: null });
       this.props.form.setFieldsValue({ dataSource, serviceOrOperation: null });
+
+      this.setState({ dataSource });
+      this.props.onDataSourceChange && this.props.onDataSourceChange(dataSource);
 
       if (dataSource) {
         try {
           const api = DataSourceManager.getSingleton().apiFor(dataSource);
           await api.updateServicesAndOperationsCache();
-          this.setState({ dataSource });
 
           if (dataSource.type == DataSourceType.ZIPKIN_JSON || dataSource.type == DataSourceType.JAEGER_JSON) {
             this.props.form.validateFields((err: any, values: any) => {

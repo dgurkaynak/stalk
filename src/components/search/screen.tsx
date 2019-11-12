@@ -14,6 +14,7 @@ import MPN65ColorAssigner from '../ui/color-assigner/mpn65';
 import scroll from 'scroll';
 
 import './search.css';
+import { DataSource } from '../../model/datasource/interfaces';
 const { Text } = Typography;
 const CHART_HEIGHT = 200;
 
@@ -42,12 +43,14 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     shouldShowResults: boolean,
     searchResults: Trace[],
     scatterPlotHighlightedTrace: Trace | undefined,
-    scatterPlotAffixed: boolean
+    scatterPlotAffixed: boolean,
+    selectedDataSource: DataSource | undefined
   } = {
     shouldShowResults: false,
     searchResults: [] as Trace[],
     scatterPlotHighlightedTrace: undefined,
-    scatterPlotAffixed: false
+    scatterPlotAffixed: false,
+    selectedDataSource: undefined
   };
   binded = {
     onSearch: this.onSearch.bind(this),
@@ -55,6 +58,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
     onMouseEnterOnScatterPlotDot: this.onMouseEnterOnScatterPlotDot.bind(this),
     onMouseLeaveOnScatterPlotDot: this.onMouseLeaveOnScatterPlotDot.bind(this),
     onStageTraceAddedOrRemoved: this.onStageTraceAddedOrRemoved.bind(this),
+    hideSearchResults: this.hideSearchResults.bind(this),
   };
   private chromaScale = chroma.scale(['#000', '#f00']).mode('lab');
   private containerRef: HTMLDivElement | null = null;
@@ -79,6 +83,11 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
   }
 
 
+  selectDataSourceInForm(ds: DataSource) {
+    this.setState({ selectedDataSource: ds });
+  }
+
+
   async onSearch(query: SearchQuery) {
     const api = DataSourceManager.getSingleton().apiFor(query.dataSource!);
     this.setState({ shouldShowResults: false });
@@ -95,6 +104,14 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
       const chartEl = this.containerRef.querySelector('.trace-duration-scatter-plot') as HTMLDivElement;
       scroll.top(this.containerRef, chartEl.offsetTop);
     }
+  }
+
+
+  hideSearchResults() {
+    this.setState({
+      shouldShowResults: false,
+      searchResults: []
+    });
   }
 
 
@@ -165,7 +182,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
 
   render() {
     const { visible } = this.props;
-    const { shouldShowResults, searchResults, scatterPlotHighlightedTrace } = this.state;
+    const { shouldShowResults, searchResults, scatterPlotHighlightedTrace, selectedDataSource } = this.state;
 
     return (
       <div
@@ -178,7 +195,11 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
           title="Search Traces"
           style={{ background: '#fff' }}
         >
-          <SearchForm onSearch={this.binded.onSearch} />
+          <SearchForm
+            selectedDataSource={selectedDataSource}
+            onDataSourceChange={this.binded.hideSearchResults}
+            onSearch={this.binded.onSearch}
+          />
         </PageHeader>
 
         {shouldShowResults && searchResults && searchResults.length > 0 ? (

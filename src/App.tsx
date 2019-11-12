@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Layout, Menu, Icon } from 'antd';
 import DataSourcesScreen from './components/datasource/screen';
 import SearchScreen from './components/search/screen';
@@ -18,6 +18,7 @@ enum RouteKey {
 
 const App: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState(RouteKey.SEARCH);
+  const searchScreen = useRef<SearchScreen>(null);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -53,8 +54,14 @@ const App: React.FC = () => {
       </Sider>
       <Layout style={{ marginLeft: 80 }}>
         <Content>
-          <DataSourcesScreen visible={selectedItem === RouteKey.DATA_SOURCES} />
-          <SearchScreen visible={selectedItem === RouteKey.SEARCH} />
+          <DataSourcesScreen
+            visible={selectedItem === RouteKey.DATA_SOURCES}
+            onDataSourceSearch={(ds) => {
+              searchScreen.current && searchScreen.current.selectDataSourceInForm(ds);
+              setSelectedItem(RouteKey.SEARCH);
+            }}
+          />
+          <SearchScreen ref={searchScreen} visible={selectedItem === RouteKey.SEARCH} />
           <TimelineScreen visible={selectedItem === RouteKey.TIMELINE} />
         </Content>
       </Layout>
