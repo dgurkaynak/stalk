@@ -12,7 +12,7 @@ export default <SpanGroupingOptions>{
     // jaeger
     if (span.process) {
       processId = span.process.id;
-      processName = `${span.process.serviceName} ${processId}`;
+      processName = `${processId}:${span.process.serviceName}`;
     }
 
     // zipkin
