@@ -17,7 +17,7 @@ enum RouteKey {
 
 
 const App: React.FC = () => {
-  const [selectedItem, setSelectedItem] = useState(RouteKey.SEARCH);
+  const [selectedItem, setSelectedItem] = useState(RouteKey.DATA_SOURCES);
   const searchScreen = useRef<SearchScreen>(null);
 
   return (
