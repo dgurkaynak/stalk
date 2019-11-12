@@ -551,10 +551,37 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
         <div className="left">
 
           <Dropdown overlay={
+            <div style={{ background: '#fff', width: 300, marginLeft: 5, overflowY: 'auto', borderRadius: 4, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}>
+              {this.state.stageTraces.length === 0 ? (
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No trace added to stage" />
+              ) : null}
+
+              {this.state.stageTraces.map((trace, i) => (
+                <div className="sidebar-row" key={i}>
+                  <span>{trace.name}</span>
+                  <Icon
+                    type="close"
+                    onClick={() => this.stage.remove(trace.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          } trigger={['click']}>
+            <Tooltip placement="left" title="Trace List" mouseEnterDelay={1}>
+              <span className="timeline-header-button">
+                <Badge count={this.state.stageTraces.length}>
+                  <Icon type="branches" />
+                </Badge>
+              </span>
+            </Tooltip>
+          </Dropdown>
+
+          <Divider type="vertical" />
+
+          <Dropdown overlay={
             <Menu
               selectedKeys={[ this.state.groupLayoutMode ]}
               onClick={this.binded.onGroupLayoutModeMenuClick}
-              style={{ marginLeft: 5 }}
             >
               <Menu.Item key={GroupLayoutType.COMPACT}>Compact</Menu.Item>
               <Menu.Item key={GroupLayoutType.CONSIDER_SPAN_DEPTH}>Consider Span Depth</Menu.Item>
@@ -580,7 +607,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               <Menu.Item key="custom">
                 <Icon type="code" /> Custom
               </Menu.Item>
-              <Menu.Item key="manage-all">
+              <Menu.Item key="manage-all" disabled={true}>
                 <Icon type="setting" /> Manage All
               </Menu.Item>
             </Menu>
@@ -603,7 +630,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               <Menu.Item key="custom">
                 <Icon type="code" /> Custom
               </Menu.Item>
-              <Menu.Item key="manage-all">
+              <Menu.Item key="manage-all" disabled={true}>
                 <Icon type="setting" /> Manage All
               </Menu.Item>
             </Menu>
@@ -626,7 +653,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               <Menu.Item key="custom">
                 <Icon type="code" /> Custom
               </Menu.Item>
-              <Menu.Item key="manage-all">
+              <Menu.Item key="manage-all" disabled={true}>
                 <Icon type="setting" /> Manage All
               </Menu.Item>
             </Menu>
@@ -640,31 +667,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
         </div>
         <div className="right">
-          <Dropdown overlay={
-            <div style={{ background: '#fff', width: 300, marginRight: 5, overflowY: 'auto', borderRadius: 4, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}>
-              {this.state.stageTraces.length === 0 ? (
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No trace added to stage" />
-              ) : null}
 
-              {this.state.stageTraces.map((trace, i) => (
-                <div className="sidebar-row" key={i}>
-                  <span>{trace.name}</span>
-                  <Icon
-                    type="close"
-                    onClick={() => this.stage.remove(trace.id)}
-                  />
-                </div>
-              ))}
-            </div>
-          } trigger={['click']}>
-            <Tooltip placement="left" title="Trace List" mouseEnterDelay={1}>
-              <span className="timeline-header-button">
-                <Badge count={this.state.stageTraces.length}>
-                  <Icon type="branches" />
-                </Badge>
-              </span>
-            </Tooltip>
-          </Dropdown>
         </div>
       </div>
     );
