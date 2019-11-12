@@ -68,8 +68,8 @@ export default class DataSourceManager extends EventEmitterExtra {
 
     if (!doNotPersistToDatabase) await db.dataSources.put(ds);
     this.datasources.push(ds);
+    this.datasources.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
     this.apis[id] = api;
-
     this.emit(DataSourceManagerEvent.UPDATED);
     return ds;
   }
@@ -80,6 +80,7 @@ export default class DataSourceManager extends EventEmitterExtra {
     if (index === -1) return false;
     await db.dataSources.update(this.datasources[index].id, ds);
     this.datasources[index] = ds;
+    this.datasources.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
     this.emit(DataSourceManagerEvent.UPDATED);
   }
 
