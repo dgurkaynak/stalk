@@ -685,15 +685,15 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
         <Divider orientation="center" style={{ marginTop: 10 }}>Span Info</Divider>
         {this.renderSpanInfo()}
 
+        <Divider orientation="center">{tagCount} Tag(s)</Divider>
+        {this.renderSpanTags()}
+
         {Object.keys(processTags).length > 0 ? (
           <>
-            <Divider orientation="center">{tagCount} Process Tag(s)</Divider>
+            <Divider orientation="center">{Object.keys(processTags).length} Process Tag(s)</Divider>
             {this.renderProcessTags()}
           </>
         ) : null}
-
-        <Divider orientation="center">{tagCount} Tag(s)</Divider>
-        {this.renderSpanTags()}
 
         <Divider orientation="center">{logsCount} Log(s)</Divider>
         {this.renderSpanLogs()}
