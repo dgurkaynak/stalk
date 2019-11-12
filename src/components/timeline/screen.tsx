@@ -327,8 +327,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
           if (!groupId) return;
           const groupView = this.timelineView.findGroupView(groupId);
           if (!groupView) return;
-          groupView.toggleView();
+          const isVisible = groupView.toggleView();
           this.timelineView.updateGroupVerticalPositions();
+          this.timelineView.keepPanelTraslateYInScreen();
+          // TODO: A reference-connected span can be collapsed/expanded now
           return;
         }
 

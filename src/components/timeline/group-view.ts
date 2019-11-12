@@ -103,6 +103,7 @@ export default class GroupView {
     this.options.isCollapsed = !this.options.isCollapsed;
     this.updateLabelTextDecoration();
     this.layout();
+    return !this.options.isCollapsed;
   }
 
   getSpanViewById(spanId: string) {

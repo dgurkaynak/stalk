@@ -326,11 +326,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.updateAllDecorations(true); // Force re-prepare because all the groupViews and spanViews are replaced w/ new
 
     // Reset vertical panning
-    this.panelTranslateY = 0;
-    this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.decorationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
-    this.decorationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+    this.setPanelTranslateY(0);
   }
 
   updateGroupVerticalPositions() {
@@ -361,12 +357,25 @@ export default class TimelineView extends EventEmitterExtra {
     if (this._contentHeight <= viewportHeight) return;
 
     const newTranslateY = this.panelTranslateY + delta;
-    this.panelTranslateY = Math.min(Math.max(newTranslateY, viewportHeight - this._contentHeight), 0);
+    const panelTranslateY = Math.min(Math.max(newTranslateY, viewportHeight - this._contentHeight), 0);
+    this.setPanelTranslateY(panelTranslateY);
+  }
 
+  setPanelTranslateY(y: number) {
+    this.panelTranslateY = y;
     this.groupNamePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.timelinePanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.decorationUnderlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
     this.decorationOverlayPanel.setAttribute('transform', `translate(0, ${this.panelTranslateY})`);
+  }
+
+  keepPanelTraslateYInScreen() {
+    const { _height: viewportHeight } = this;
+    const bottomY = this.panelTranslateY + this._contentHeight;
+    const offsetSnapToBottom = viewportHeight - bottomY;
+    if (offsetSnapToBottom <= 0) return;
+    const newTranslateY = Math.min(this.panelTranslateY + offsetSnapToBottom, 0); // Can be max 0
+    this.setPanelTranslateY(newTranslateY);
   }
 
   zoom(scaleFactor: number, anchorPosX: number) {
