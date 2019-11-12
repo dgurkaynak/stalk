@@ -327,7 +327,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
           if (!groupId) return;
           const groupView = this.timelineView.findGroupView(groupId);
           if (!groupView) return;
-          groupView && groupView.toggleView();
+          groupView.toggleView();
+          this.timelineView.updateGroupVerticalPositions();
           return;
         }
 
