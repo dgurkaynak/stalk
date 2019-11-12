@@ -1,7 +1,7 @@
 import React from 'react';
 import { Select } from 'antd';
 import DataSourceManager, { DataSourceManagerEvent } from '../../model/datasource/manager';
-import { DataSource } from '../../model/datasource/interfaces';
+import { DataSource, DataSourceType } from '../../model/datasource/interfaces';
 
 const { Option } = Select;
 
@@ -9,7 +9,8 @@ const { Option } = Select;
 export interface DataSourceSelectProps {
   style?: React.CSSProperties,
   onChange: (dataSource: DataSource | null) => void,
-  value?: DataSource
+  value?: DataSource,
+  hideJsonFiles?: boolean
 }
 
 
@@ -17,7 +18,10 @@ export class DataSourceSelect extends React.Component<DataSourceSelectProps> {
   private dsManager = DataSourceManager.getSingleton();
   private currentValue: any = null;
   state = {
-    dataSources: this.dsManager.getAll()
+    dataSources: this.dsManager.getAll().filter((ds) => {
+      if (!this.props.hideJsonFiles) return true;
+      return ds.type == DataSourceType.ZIPKIN || ds.type == DataSourceType.JAEGER;
+    })
   };
   binded = {
     onChange: this.onChange.bind(this),
@@ -36,7 +40,10 @@ export class DataSourceSelect extends React.Component<DataSourceSelectProps> {
 
 
   onDataSourceManagerUpdated() {
-    const dataSources = this.dsManager.getAll();
+    const dataSources = this.dsManager.getAll().filter((ds) => {
+      if (!this.props.hideJsonFiles) return true;
+      return ds.type == DataSourceType.ZIPKIN || ds.type == DataSourceType.JAEGER;
+    });
     this.setState({ dataSources });
     if (this.currentValue && dataSources.indexOf(this.currentValue) === -1) {
       this.props.onChange(null);

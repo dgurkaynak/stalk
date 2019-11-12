@@ -46,14 +46,16 @@ export class ZipkinJsonAPI implements API {
         return {
             query,
             data: this.traces
-                .filter((trace) => {
-                    return _.some(trace.spans, (span) => {
-                        const serviceName = span.localEndpoint && span.localEndpoint.serviceName;
-                        if (query.serviceName && serviceName && serviceName === query.serviceName) return true;
-                        if (query.operationName && query.operationName === span.operationName) return true;
-                        return false;
-                    });
-                })
+                // Disable serviceName & operation name filtering for now, because we just want to
+                // use listing all functionality.
+                // .filter((trace) => {
+                //     return _.some(trace.spans, (span) => {
+                //         const serviceName = span.localEndpoint && span.localEndpoint.serviceName;
+                //         if (query.serviceName && serviceName && serviceName === query.serviceName) return true;
+                //         if (query.operationName && query.operationName === span.operationName) return true;
+                //         return false;
+                //     });
+                // })
                 .map(trace => trace.spans)
         }
     }

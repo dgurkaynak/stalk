@@ -23,7 +23,8 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
   binded = {
     onJsonImported: this.onJsonImported.bind(this),
     onFormModalSave: this.onFormModalSave.bind(this),
-    onDataSourceClick: this.onDataSourceClick.bind(this),
+    onDataSourceSearch: this.onDataSourceSearch.bind(this),
+    onDataSourceEdit: this.onDataSourceEdit.bind(this),
     onDataSourceDelete: this.onDataSourceDelete.bind(this),
     onDataSourceManagerUpdated: this.onDataSourceManagerUpdated.bind(this),
   };
@@ -74,7 +75,12 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
   }
 
 
-  onDataSourceClick(dataSource: DataSource) {
+  onDataSourceSearch(dataSource: DataSource) {
+    // TODO
+  }
+
+
+  onDataSourceEdit(dataSource: DataSource) {
     this.setState({
       isFormModalVisible: true,
       formModalDataSource: dataSource
@@ -132,7 +138,8 @@ export class DataSourcesScreen extends React.Component<DataSourcesScreenProps> {
         <div style={{ background: '#fff', margin: 24, borderRadius: 3 }}>
           <DataSourceList
             dataSources={this.state.dataSources}
-            onItemNameClick={this.binded.onDataSourceClick}
+            onItemSearch={this.binded.onDataSourceSearch}
+            onItemEdit={this.binded.onDataSourceEdit}
             onItemDelete={this.binded.onDataSourceDelete}
           />
         </div>

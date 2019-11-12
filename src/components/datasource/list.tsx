@@ -13,7 +13,8 @@ const styles = {
 
 interface DataSourceListProps {
   dataSources: DataSource[],
-  onItemNameClick: (datasource: DataSource) => void,
+  onItemSearch: (datasource: DataSource) => void
+  onItemEdit: (datasource: DataSource) => void
   onItemDelete: (datasource: DataSource) => void
 }
 
@@ -27,28 +28,30 @@ export const DataSourceList: React.FC<DataSourceListProps> = (props) => {
         item.type === DataSourceType.JAEGER ? (
           <List.Item style={styles.listItem}>
             <List.Item.Meta
-              title={<a href="#/" onClick={() => props.onItemNameClick(item)}><Tag color="blue">JAEGER</Tag>{item.name}</a>}
+              title={<a href="#/" onClick={() => props.onItemSearch(item)}><Tag color="blue">JAEGER</Tag>{item.name}</a>}
             />
+            <Button shape="circle" icon="edit" onClick={() => props.onItemEdit(item)} />
             <Button shape="circle" icon="delete" onClick={() => props.onItemDelete(item)} />
           </List.Item>
         ) : item.type === DataSourceType.JAEGER_JSON ? (
           <List.Item style={styles.listItem}>
             <List.Item.Meta
-              title={<a href="#/"><Tag color="blue">JAEGER JSON</Tag>{item.name}</a>}
+              title={<a href="#/" onClick={() => props.onItemSearch(item)}><Tag color="blue">JAEGER JSON</Tag>{item.name}</a>}
             />
             <Button shape="circle" icon="delete" onClick={() => props.onItemDelete(item)} />
           </List.Item>
         ) : item.type === DataSourceType.ZIPKIN ? (
           <List.Item style={styles.listItem}>
             <List.Item.Meta
-              title={<a href="#/" onClick={() => props.onItemNameClick(item)}><Tag color="orange">ZIPKIN</Tag>{item.name}</a>}
+              title={<a href="#/" onClick={() => props.onItemSearch(item)}><Tag color="orange">ZIPKIN</Tag>{item.name}</a>}
             />
+            <Button shape="circle" icon="edit" onClick={() => props.onItemEdit(item)} />
             <Button shape="circle" icon="delete" onClick={() => props.onItemDelete(item)} />
           </List.Item>
         ) : item.type === DataSourceType.ZIPKIN_JSON ? (
           <List.Item style={styles.listItem}>
             <List.Item.Meta
-              title={<a href="#/"><Tag color="orange">ZIPKIN JSON</Tag>{item.name}</a>}
+              title={<a href="#/" onClick={() => props.onItemSearch(item)}><Tag color="orange">ZIPKIN JSON</Tag>{item.name}</a>}
             />
             <Button shape="circle" icon="delete" onClick={() => props.onItemDelete(item)} />
           </List.Item>

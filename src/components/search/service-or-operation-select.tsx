@@ -23,6 +23,7 @@ export interface ServiceOrOperationSelectProps {
   api?: JaegerAPI | ZipkinAPI,
   onChange: (serviceOrOperation: ServiceOrOperationEntity) => void,
   value?: ServiceOrOperationEntity
+  disabled?: boolean
 }
 
 
@@ -69,6 +70,7 @@ export class ServiceOrOperationSelect extends React.Component<ServiceOrOperation
         placeholder="Select a service or an operation"
         onChange={this.binded.onChange}
         // treeDefaultExpandAll
+        disabled={this.props.disabled}
       />
     );
   }

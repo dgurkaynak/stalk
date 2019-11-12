@@ -86,6 +86,14 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
           const api = DataSourceManager.getSingleton().apiFor(dataSource);
           await api.updateServicesAndOperationsCache();
           this.setState({ dataSource });
+
+          if (dataSource.type == DataSourceType.ZIPKIN_JSON || dataSource.type == DataSourceType.JAEGER_JSON) {
+            this.props.form.validateFields((err: any, values: any) => {
+              if (err) return;
+              const query = this.toQuery();
+              this.props.onSearch(query);
+            });
+          }
         } catch (err) {
           message.error(`Could not access to "${dataSource.name}": ${err.message}`);
         }
@@ -202,7 +210,6 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
 
     toQuery(): SearchQuery {
       if (!this.state.dataSource) throw new Error('Data source must be set');
-      if (!this.state.serviceOrOperation) throw new Error('Service/Operation must be set');
 
       let start: number;
       let finish: number;
@@ -253,8 +260,8 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
 
       return {
         dataSource: this.state.dataSource,
-        serviceName: this.state.serviceOrOperation.service,
-        operationName: this.state.serviceOrOperation.operation,
+        serviceName: this.state.serviceOrOperation && this.state.serviceOrOperation.service,
+        operationName: this.state.serviceOrOperation && this.state.serviceOrOperation.operation,
         startTime: start,
         finishTime: finish,
         tags,
@@ -279,6 +286,7 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
                   <DataSourceSelect
                     style={{ width: '100%' }}
                     onChange={this.binded.onDataSourceChange}
+                    hideJsonFiles={false}
                   />
                 )}
               </Form.Item>
@@ -287,12 +295,13 @@ export const SearchForm: any = Form.create({ name: 'search-form' })(
             <Col span={8}>
               <Form.Item label="Service/Operation">
                 {getFieldDecorator(`serviceOrOperation`, {
-                  rules: [{ required: true, message: 'Please select a service or an operation!' }],
+                  rules: [{ required: !this.binded.isJsonDataSourceSelected(), message: 'Please select a service or an operation!' }],
                 })(
                   <ServiceOrOperationSelect
                     style={{ width: '100%' }}
                     api={this.state.dataSource ? DataSourceManager.getSingleton().apiFor(this.state.dataSource as any) : null as any}
                     onChange={this.binded.onServiceOrOperationChange}
+                    disabled={this.binded.isJsonDataSourceSelected()}
                   />
                 )}
               </Form.Item>
