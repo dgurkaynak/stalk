@@ -64,6 +64,7 @@ export class DataSourceSelect extends React.Component<DataSourceSelectProps> {
     return (
       <Select
         showSearch
+        optionFilterProp="children" // Filter by datasource name
         {...conditionalProps}
         onChange={this.binded.onChange}
         placeholder="Select a data source"
