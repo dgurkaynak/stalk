@@ -55,7 +55,7 @@ export default class TimelineView extends EventEmitterExtra {
   private spanGrouping: SpanGrouping;
   private groupViews: GroupView[] = [];
 
-  private groupLayoutMode = GroupLayoutType.COMPACT;
+  private groupLayoutMode = GroupLayoutType.FILL;
   private readonly spanViewSharedOptions: SpanViewSharedOptions = {
     axis: this.axis,
     colorFor: operationColoringOptions.colorBy,

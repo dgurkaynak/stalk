@@ -9,8 +9,9 @@ import { TimelineInteractableElementAttribute, TimelineInteractableElementType }
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export enum GroupLayoutType {
+  FILL = 'fill',
   COMPACT = 'compact',
-  CONSIDER_SPAN_DEPTH = 'consider_span_depth'
+  WATERFALL = 'waterfall'
 }
 
 
@@ -27,7 +28,7 @@ export default class GroupView {
   private labelText = document.createElementNS(SVG_NS, 'text');
   private svgDefs?: SVGDefsElement;
 
-  private layoutType = GroupLayoutType.COMPACT;
+  private layoutType = GroupLayoutType.FILL;
   private rowsAndSpanIntervals: number[][][] = [];
   private spanIdToRowIndex: { [key: string]: number } = {};
 
@@ -163,6 +164,7 @@ export default class GroupView {
     }
 
     // Depth-first search
+    let i = 0;
     while (nodeQueue.length > 0) {
       const node = nodeQueue.shift()!;
       const spanView = spanViews[node.spanId];
@@ -171,17 +173,21 @@ export default class GroupView {
       let availableRowIndex = 0;
 
       switch (this.layoutType) {
-        case GroupLayoutType.COMPACT: {
+        case GroupLayoutType.FILL: {
           availableRowIndex = this.getAvailableRow({ startTime, finishTime });
           break;
         }
-        case GroupLayoutType.CONSIDER_SPAN_DEPTH: {
+        case GroupLayoutType.COMPACT: {
           let minRowIndex = 0;
           if (node.parentOrFollows) {
             let parentRowIndex = this.spanIdToRowIndex[node.parentOrFollows.spanId];
             if (_.isNumber(parentRowIndex)) minRowIndex = parentRowIndex + 1;
           }
           availableRowIndex = this.getAvailableRow({ startTime, finishTime, minRowIndex });
+          break;
+        }
+        case GroupLayoutType.WATERFALL: {
+          availableRowIndex = i;
           break;
         }
       }
@@ -209,6 +215,8 @@ export default class GroupView {
         })
         .reverse()
         .forEach(childNode => nodeQueue.unshift(childNode));
+
+      i++;
     } // while loop ended
 
   }

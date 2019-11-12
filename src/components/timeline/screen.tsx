@@ -48,7 +48,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
 
   state = {
     stageTraces: this.stage.getAll(),
-    groupLayoutMode: GroupLayoutType.COMPACT,
+    groupLayoutMode: GroupLayoutType.FILL,
     spanGroupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineView
     spanColoringMode: operationColoringOptions.key, // Do not forget to change default value of TimelineView
     spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineView
@@ -584,8 +584,9 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               selectedKeys={[ this.state.groupLayoutMode ]}
               onClick={this.binded.onGroupLayoutModeMenuClick}
             >
+              <Menu.Item key={GroupLayoutType.FILL}>Fill</Menu.Item>
               <Menu.Item key={GroupLayoutType.COMPACT}>Compact</Menu.Item>
-              <Menu.Item key={GroupLayoutType.CONSIDER_SPAN_DEPTH}>Consider Span Depth</Menu.Item>
+              <Menu.Item key={GroupLayoutType.WATERFALL}>Waterfall</Menu.Item>
             </Menu>
           } trigger={['click']}>
             <Tooltip placement="right" title="Group Layout Mode" mouseEnterDelay={1}>
