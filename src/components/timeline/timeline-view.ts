@@ -13,7 +13,6 @@ import { SpanColoringOptions, operationColoringOptions } from '../../model/span-
 import { SpanLabellingOptions, operationLabellingOptions } from '../../model/span-labelling-manager';
 import LogHighlightDecoration from './decorations/log-highlight';
 import SpanConnectionsDecoration from './decorations/span-connections';
-import VerticalLineDecoration from './decorations/vertical-line';
 import IntervalHighlightDecoration from './decorations/interval-highlight';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -40,7 +39,6 @@ export default class TimelineView extends EventEmitterExtra {
   readonly decorations = {
     logHighlight: new LogHighlightDecoration(this),
     spanConnections: new SpanConnectionsDecoration(this),
-    cursorLine: new VerticalLineDecoration(this),
     intervalHighlight: new IntervalHighlightDecoration(this),
   };
 
@@ -143,8 +141,6 @@ export default class TimelineView extends EventEmitterExtra {
     this.svg.setAttribute('width', `${width}`);
     this.svg.setAttribute('height', `${height}`);
     this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-
-    this.decorations.cursorLine.update();
 
     this.viewportClipPathRect.setAttribute('width', `${width}`);
     this.viewportClipPathRect.setAttribute('height', `${height}`);
@@ -468,13 +464,6 @@ export default class TimelineView extends EventEmitterExtra {
   onMouseIdleMove(e: MouseEvent) {
     if (this.traces.length === 0) return;
 
-    // Update the cursor line
-    if (true) {
-      this.decorations.cursorLine.setTimestampFromScreenPositionX(e.offsetX);
-      this.decorations.cursorLine.update();
-      this.decorations.cursorLine.mount();
-    }
-
     // TODO: Maybe debounce below?
     const matches = this.getInteractedElementsFromMouseEvent(e);
 
@@ -553,13 +542,11 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   onMouseIdleLeave(e: MouseEvent) {
-    // Hide cursor line
-    this.decorations.cursorLine.unmount();
+    // Noop?
   }
 
   onMousePanStart(e: MouseEvent) {
-    // Hide cursor line
-    this.decorations.cursorLine.unmount();
+    // Noop?
   }
 
   onMousePanMove(e: MouseEvent) {
