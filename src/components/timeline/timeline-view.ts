@@ -3,13 +3,12 @@ import GroupView, { GroupLayoutType } from './group-view';
 import Axis from './axis';
 import vc from './view-constants';
 import EventEmitterExtra from 'event-emitter-extra';
-// import AnnotationManager from './annotations/manager';
-import MouseHandler from './mouse-handler';
+import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
 import SpanView, { SpanViewSharedOptions } from './span-view';
 import { Trace } from '../../model/trace';
 import { SpanGrouping, SpanGroupingOptions } from '../../model/span-grouping/span-grouping';
 import processSpanGroupingOptions from '../../model/span-grouping/process';
-import { TimelineInteractableElementAttribute, TimelineInteractedElementObject } from './interaction';
+import { TimelineInteractableElementAttribute, TimelineInteractableElementType, TimelineInteractedElementObject } from './interaction';
 import { SpanColoringOptions, operationColoringOptions } from '../../model/span-coloring-manager';
 import { SpanLabellingOptions, operationLabellingOptions } from '../../model/span-labelling-manager';
 import LogHighlightDecoration from './decorations/log-highlight';
@@ -18,6 +17,11 @@ import VerticalLineDecoration from './decorations/vertical-line';
 import IntervalHighlightDecoration from './decorations/interval-highlight';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
+
+
+export enum TimelineViewEvent {
+  SPAN_SELECTED = 'tve_span_selected'
+}
 
 
 export default class TimelineView extends EventEmitterExtra {
@@ -62,6 +66,18 @@ export default class TimelineView extends EventEmitterExtra {
     labelFor: operationLabellingOptions.labelBy,
   };
 
+  private hoveredElements: TimelineInteractedElementObject[] = [];
+  private selectedSpanId?: string;
+
+  private binded = {
+    onMouseIdleMove: this.onMouseIdleMove.bind(this),
+    onMouseIdleLeave: this.onMouseIdleLeave.bind(this),
+    onMousePanStart: this.onMousePanStart.bind(this),
+    onMousePanMove: this.onMousePanMove.bind(this),
+    onWheel: this.onWheel.bind(this),
+    onClick: this.onClick.bind(this),
+  };
+
   constructor() {
     super();
 
@@ -69,9 +85,6 @@ export default class TimelineView extends EventEmitterExtra {
     this.svg.classList.add('timeline-svg');
 
     this.svg.appendChild(this.defs);
-
-    // this.annotation.cursorLineAnnotation.prepare({ timestamp: null, lineColor: this.viewSettings.cursorLineColor });
-    // this.viewSettings.showCursorLine && this.annotation.cursorLineAnnotation.mount();
 
     const spanShadowFilter = document.createElementNS(SVG_NS, 'filter');
     spanShadowFilter.id = 'span-shadow';
@@ -111,6 +124,14 @@ export default class TimelineView extends EventEmitterExtra {
     this.resize(width, height);
     this.setupPanels();
     this.mouseHandler.init();
+
+    // Bind events
+    this.mouseHandler.on(MouseHandlerEvent.IDLE_MOVE, this.binded.onMouseIdleMove);
+    this.mouseHandler.on(MouseHandlerEvent.IDLE_LEAVE, this.binded.onMouseIdleLeave);
+    this.mouseHandler.on(MouseHandlerEvent.PAN_START, this.binded.onMousePanStart);
+    this.mouseHandler.on(MouseHandlerEvent.PAN_MOVE, this.binded.onMousePanMove);
+    this.mouseHandler.on(MouseHandlerEvent.WHEEL, this.binded.onWheel);
+    this.mouseHandler.on(MouseHandlerEvent.CLICK, this.binded.onClick);
 
     parentElement.appendChild(this.svg);
   }
@@ -187,7 +208,16 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   dispose() {
+    this.mouseHandler.removeListener(MouseHandlerEvent.IDLE_MOVE, [this.binded.onMouseIdleMove] as any);
+    this.mouseHandler.removeListener(MouseHandlerEvent.IDLE_LEAVE, [this.binded.onMouseIdleLeave] as any);
+    this.mouseHandler.removeListener(MouseHandlerEvent.PAN_START, [this.binded.onMousePanStart] as any);
+    this.mouseHandler.removeListener(MouseHandlerEvent.PAN_MOVE, [this.binded.onMousePanMove] as any);
+    this.mouseHandler.removeListener(MouseHandlerEvent.WHEEL, [this.binded.onWheel] as any);
+    this.mouseHandler.removeListener(MouseHandlerEvent.CLICK, [this.binded.onClick] as any);
+
     this.mouseHandler.dispose();
+
+    this.removeAllListeners();
   }
 
   updateGroupLayoutMode(groupLayoutType: GroupLayoutType) {
@@ -374,7 +404,7 @@ export default class TimelineView extends EventEmitterExtra {
     return this.panelTranslateY;
   }
 
-  keepPanelTraslateYInScreen() {
+  private keepPanelTraslateYInScreen() {
     const { _height: viewportHeight } = this;
     const bottomY = this.panelTranslateY + this._contentHeight;
     const offsetSnapToBottom = viewportHeight - bottomY;
@@ -389,4 +419,215 @@ export default class TimelineView extends EventEmitterExtra {
     this.groupViews.forEach(g => g.handleAxisZoom());
     this.updateAllDecorations();
   }
+
+  selectSpan(spanId: string | null) {
+    // If a span is already selected, update its style
+    const previousSelectedSpanId = this.selectedSpanId;
+    if (previousSelectedSpanId) {
+      this.selectedSpanId = null;
+      const previousSelectedSpanView = this.findSpanView(previousSelectedSpanId)[1];
+      previousSelectedSpanView && previousSelectedSpanView.updateColorStyle('normal');
+      this.decorations.spanConnections.unmount();
+      this.decorations.intervalHighlight.unmount();
+    }
+
+    // If new span exists
+    const [groupView, spanView] = spanId ? this.findSpanView(spanId) : [null, null];
+    if (spanId && spanView && groupView) {
+      spanView.updateColorStyle('selected');
+      groupView.bringSpanViewToTop(spanId);
+
+      this.decorations.spanConnections.prepare({ spanId: spanId });
+      this.decorations.spanConnections.update();
+      this.decorations.spanConnections.mount();
+
+      this.decorations.intervalHighlight.prepare({
+        startTimestamp: spanView.span.startTime,
+        finishTimestamp: spanView.span.finishTime,
+        lineColor: 'rgba(0, 0, 0, 0.5)',
+        fillColor: `rgba(0, 0, 0, 0.035)`
+      });
+      this.decorations.intervalHighlight.update();
+      this.decorations.intervalHighlight.mount();
+
+      this.selectedSpanId = spanId;
+      this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
+
+      return;
+    }
+
+    if (previousSelectedSpanId) {
+      this.emit(TimelineViewEvent.SPAN_SELECTED, null);
+    }
+  }
+
+  ////////////////////////////////////////
+  //////////// EVENT-HANDLING ////////////
+  ////////////////////////////////////////
+
+  onMouseIdleMove(e: MouseEvent) {
+    if (this.traces.length === 0) return;
+
+    // Update the cursor line
+    if (true) {
+      this.decorations.cursorLine.setTimestampFromScreenPositionX(e.offsetX);
+      this.decorations.cursorLine.update();
+      this.decorations.cursorLine.mount();
+    }
+
+    // TODO: Maybe debounce below?
+    const matches = this.getInteractedElementsFromMouseEvent(e);
+
+    const previousHoveredElements = this.hoveredElements;
+    this.hoveredElements = matches;
+
+    const removed = _.differenceBy(previousHoveredElements, matches, ({element}) => element);
+    const added = _.differenceBy(matches, previousHoveredElements, ({element}) => element);
+
+    removed.forEach(({ type, element }) => {
+      switch (type) {
+
+        case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
+          const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
+          if (!spanId || !logId) return;
+          const spanView = this.findSpanView(spanId)[1];
+          if (!spanView) return;
+          spanView.updateLogStyle(logId, 'normal');
+          return;
+        }
+
+        case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
+          const { id: spanId } = SpanView.getPropsFromContainer(element);
+          if (!spanId) return;
+          if (spanId === this.selectedSpanId) return;
+          const spanView = this.findSpanView(spanId)[1];
+          if (!spanView) return;
+          spanView.updateColorStyle('normal');
+          return;
+        }
+
+      }
+    });
+
+    added.forEach(({ type, element }) => {
+      switch (type) {
+
+        case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
+          const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
+          if (!spanId || !logId) return;
+          const spanView = this.findSpanView(spanId)[1];
+          if (!spanView) return;
+          spanView.updateLogStyle(logId, 'hover');
+          return;
+        }
+
+        case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
+          const { id: spanId } = SpanView.getPropsFromContainer(element);
+          if (!spanId) return;
+          if (spanId === this.selectedSpanId) return;
+          const spanView = this.findSpanView(spanId)[1];
+          if (!spanView) return;
+          spanView.updateColorStyle('hover');
+          return;
+        }
+
+      }
+    });
+
+    if (removed.length === 0 && added.length === 0) return;
+
+    // Previous implementation
+    if (!this.selectedSpanId) return;
+
+    // TODO: Unhighligh logs in the sidebar
+    // this.setState({ highlightedLogId: '' });
+
+    // TODO: If log is hovered and its span is selected, highlight and scroll to log
+    // added.forEach(({ type, element }) => {
+    //   if (type !== TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE) return;
+    //   const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
+    //   if (!spanId || !logId) return;
+    //   if (spanId !== selectedSpanView.span.id) return;
+    //   this.highlightAndScrollToLog(logId);
+    // });
+  }
+
+  onMouseIdleLeave(e: MouseEvent) {
+    // Hide cursor line
+    this.decorations.cursorLine.unmount();
+  }
+
+  onMousePanStart(e: MouseEvent) {
+    // Hide cursor line
+    this.decorations.cursorLine.unmount();
+  }
+
+  onMousePanMove(e: MouseEvent) {
+    if (this.traces.length === 0) return;
+    this.translateX(e.movementX);
+    this.translateY(e.movementY);
+  }
+
+  onWheel(e: WheelEvent) {
+    if (this.traces.length === 0) return;
+    this.zoom(1 - (0.01 * e.deltaY), e.offsetX);
+  }
+
+  onClick(e: MouseEvent) {
+    if (!e) return; // Sometimes event can be garbage-collected
+    const matches = this.getInteractedElementsFromMouseEvent(e);
+
+    let clickedLogId: string | null = null;
+    let clickedSpanId: string | null = null;
+    let clickedGroupLabelId: string | null = null;
+
+    _.forEach(matches, ({ type, element }) => {
+      switch (type) {
+
+        case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
+          const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
+          if (!spanId || !logId) return;
+          clickedLogId = logId;
+          return;
+        }
+
+        case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
+          const { id: spanId } = SpanView.getPropsFromContainer(element);
+          if (!spanId) return;
+          clickedSpanId = spanId;
+          return;
+        }
+
+        case TimelineInteractableElementType.GROUP_VIEW_LABEL_TEXT: {
+          const { id: groupId } = GroupView.getPropsFromLabelText(element);
+          if (!groupId) return;
+          clickedGroupLabelId = groupId;
+          return;
+        }
+
+      }
+    });
+
+    const groupView = clickedGroupLabelId && this.findGroupView(clickedGroupLabelId);
+    if (clickedGroupLabelId && groupView) {
+      const isVisible = groupView.toggleView();
+      this.updateGroupVerticalPositions();
+      this.keepPanelTraslateYInScreen();
+      this.updateAllDecorations();
+
+      // TODO: Selected span can be collapsed right now
+      // TODO: A reference-connected span can be collapsed/expanded now
+
+      return; // Early terminate so that selection does not lost
+    }
+
+    this.selectSpan(clickedSpanId);
+
+    if (clickedSpanId && clickedLogId) {
+      // TODO: If `clickedLogId` exists (so user clicked on log)
+      // setTimeout(this.highlightAndScrollToLog(clickedLogId), 250)
+    }
+
+  }
+
 }

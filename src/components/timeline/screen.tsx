@@ -2,9 +2,7 @@ import * as _ from 'lodash';
 import React from 'react';
 import { Icon, Layout, Empty, Badge, Card, Tooltip, Menu, Dropdown, Divider, message } from 'antd';
 import { Stage, StageEvent } from '../../model/stage';
-import TimelineView from './timeline-view';
-import { TimelineInteractableElementType, TimelineInteractedElementObject } from './interaction';
-import { MouseHandlerEvent } from './mouse-handler';
+import TimelineView, { TimelineViewEvent } from './timeline-view';
 import prettyMilliseconds from 'pretty-ms';
 import scroll from 'scroll';
 import SpanView from './span-view';
@@ -13,7 +11,7 @@ import serviceNameGroupingOptions from '../../model/span-grouping/service-name';
 import traceGroupingOptions from '../../model/span-grouping/trace';
 import SplitPane from 'react-split-pane';
 import { Trace } from '../../model/trace';
-import GroupView, { GroupLayoutType } from './group-view';
+import { GroupLayoutType } from './group-view';
 import SpanColoringManager, { SpanColoringRawOptions, SpanColoringOptions, operationColoringOptions, serviceColoringOptions } from '../../model/span-coloring-manager';
 import SpanLabellingManager, { SpanLabellingRawOptions, SpanLabellingOptions, operationLabellingOptions, serviceOperationLabellingOptions } from '../../model/span-labelling-manager';
 import SpanGroupingFormModal from '../customization/span-grouping/form-modal';
@@ -40,7 +38,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   private timelineContainerRef = React.createRef();
   private timelineView = new TimelineView();
   private sidebarContainerRef = React.createRef();
-  private hoveredTimelineElements: TimelineInteractedElementObject[] = [];
   private sidebarWidth = SIDEBAR_WIDTH;
   private customSpanGroupingRawOptions: SpanGroupingRawOptions | undefined;
   private customSpanColoringRawOptions: SpanColoringRawOptions | undefined;
@@ -70,13 +67,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onSpanGroupingModeMenuClick: this.onSpanGroupingModeMenuClick.bind(this),
     onSpanColoringModeMenuClick: this.onSpanColoringModeMenuClick.bind(this),
     onSpanLabellingModeMenuClick: this.onSpanLabellingModeMenuClick.bind(this),
-    onTimelineMouseIdleMove: this.onTimelineMouseIdleMove.bind(this),
-    onTimelineMouseIdleLeave: this.onTimelineMouseIdleLeave.bind(this),
-    onTimelineMousePanStart: this.onTimelineMousePanStart.bind(this),
-    onTimelineMousePanMove: this.onTimelineMousePanMove.bind(this),
-    onTimelineWheel: this.onTimelineWheel.bind(this),
-    onTimelineClick: this.onTimelineClick.bind(this),
-    onTimelineDoubleClick: this.onTimelineDoubleClick.bind(this),
     onSidebarSplitDragFinish: this.onSidebarSplitDragFinish.bind(this),
     resizeTimelineView: _.throttle(this.resizeTimelineView.bind(this), 500),
     onCustomSpanColoringFormModalSave: this.onCustomSpanColoringFormModalSave.bind(this),
@@ -95,13 +85,10 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       width: innerWidth - LEFT_MENU_WIDTH - this.sidebarWidth,
       height: innerHeight - HEADER_MENU_HEIGHT
     });
-    this.timelineView.mouseHandler.on(MouseHandlerEvent.IDLE_MOVE, this.binded.onTimelineMouseIdleMove);
-    this.timelineView.mouseHandler.on(MouseHandlerEvent.IDLE_LEAVE, this.binded.onTimelineMouseIdleLeave);
-    this.timelineView.mouseHandler.on(MouseHandlerEvent.PAN_START, this.binded.onTimelineMousePanStart);
-    this.timelineView.mouseHandler.on(MouseHandlerEvent.PAN_MOVE, this.binded.onTimelineMousePanMove);
-    this.timelineView.mouseHandler.on(MouseHandlerEvent.WHEEL, this.binded.onTimelineWheel);
-    this.timelineView.mouseHandler.on(MouseHandlerEvent.CLICK, this.binded.onTimelineClick);
-    this.timelineView.mouseHandler.on(MouseHandlerEvent.DOUBLE_CLICK, this.binded.onTimelineDoubleClick);
+
+    this.timelineView.on(TimelineViewEvent.SPAN_SELECTED, (spanView: SpanView | null) => {
+      this.setState({ selectedSpanView: spanView });
+    })
 
     const sidebarContainerRef = this.sidebarContainerRef.current as HTMLDivElement;
     sidebarContainerRef.addEventListener('mousemove', this.binded.onSidebarContainerMouseMove, false);
@@ -113,13 +100,8 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.removeListener(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
     window.removeEventListener('resize', this.binded.resizeTimelineView, false);
-    this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.IDLE_MOVE, [this.binded.onTimelineMouseIdleMove] as any);
-    this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.IDLE_LEAVE, [this.binded.onTimelineMouseIdleLeave] as any);
-    this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.PAN_START, [this.binded.onTimelineMousePanStart] as any);
-    this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.PAN_MOVE, [this.binded.onTimelineMousePanMove] as any);
-    this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.WHEEL, [this.binded.onTimelineWheel] as any);
-    this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.CLICK, [this.binded.onTimelineClick] as any);
-    this.timelineView.mouseHandler.removeListener(MouseHandlerEvent.DOUBLE_CLICK, [this.binded.onTimelineDoubleClick] as any);
+
+    this.timelineView.dispose(); // This will dispose its all listeners, including span_select
 
     const sidebarContainerRef = this.sidebarContainerRef.current as HTMLDivElement;
     sidebarContainerRef.addEventListener('mousemove', this.binded.onSidebarContainerMouseMove, false);
@@ -143,200 +125,6 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       highlightedLogId: '',
     });
     this.timelineView.removeTrace(trace);
-  }
-
-  /**
-   * Handle timeline mouse events
-   */
-  onTimelineMouseIdleMove(e: MouseEvent) {
-    if (this.state.stageTraces.length === 0) return;
-
-    // Update the cursor line
-    if (true) {
-      this.timelineView.decorations.cursorLine.setTimestampFromScreenPositionX(e.offsetX);
-      this.timelineView.decorations.cursorLine.update();
-      this.timelineView.decorations.cursorLine.mount();
-    }
-
-    // TODO: Maybe debounce below?
-    const matches = this.timelineView.getInteractedElementsFromMouseEvent(e);
-
-    const previousHoveredElements = this.hoveredTimelineElements;
-    this.hoveredTimelineElements = matches;
-
-    const removed = _.differenceBy(previousHoveredElements, matches, ({element}) => element);
-    const added = _.differenceBy(matches, previousHoveredElements, ({element}) => element);
-
-    removed.forEach(({ type, element }) => {
-      switch (type) {
-
-        case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
-          const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
-          if (!spanId || !logId) return;
-          const spanView = this.timelineView.findSpanView(spanId)[1];
-          if (!spanView) return;
-          spanView.updateLogStyle(logId, 'normal');
-          return;
-        }
-
-        case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
-          const { id: spanId } = SpanView.getPropsFromContainer(element);
-          if (!spanId) return;
-          const spanView = this.timelineView.findSpanView(spanId)[1];
-          if (!spanView) return;
-          if (spanView === this.state.selectedSpanView) return;
-          spanView.updateColorStyle('normal');
-          return;
-        }
-
-      }
-    });
-
-    added.forEach(({ type, element }) => {
-      switch (type) {
-
-        case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
-          const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
-          if (!spanId || !logId) return;
-          const spanView = this.timelineView.findSpanView(spanId)[1];
-          if (!spanView) return;
-          spanView.updateLogStyle(logId, 'hover');
-          return;
-        }
-
-        case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
-          const { id: spanId } = SpanView.getPropsFromContainer(element);
-          if (!spanId) return;
-          const spanView = this.timelineView.findSpanView(spanId)[1];
-          if (!spanView) return;
-          if (spanView === this.state.selectedSpanView) return;
-          spanView.updateColorStyle('hover');
-          return;
-        }
-
-      }
-    });
-
-    if (removed.length === 0 && added.length === 0) return;
-
-    // Previous implementation
-    const selectedSpanView = this.state.selectedSpanView! as SpanView;
-    if (!selectedSpanView) return;
-
-    this.setState({ highlightedLogId: '' });
-
-    added.forEach(({ type, element }) => {
-      if (type !== TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE) return;
-      const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
-      if (!spanId || !logId) return;
-      if (spanId !== selectedSpanView.span.id) return;
-      this.highlightAndScrollToLog(logId);
-    });
-  }
-
-  onTimelineMouseIdleLeave(e: MouseEvent) {
-    // Hide cursor line
-    this.timelineView.decorations.cursorLine.unmount();
-  }
-
-  onTimelineMousePanStart(e: MouseEvent) {
-    // Hide cursor line
-    this.timelineView.decorations.cursorLine.unmount();
-  }
-
-  onTimelineMousePanMove(e: MouseEvent) {
-    this.timelineView.translateX(e.movementX);
-    this.timelineView.translateY(e.movementY);
-  }
-
-  onTimelineWheel(e: WheelEvent) {
-    if (this.state.stageTraces.length === 0) return;
-    this.timelineView.zoom(1 - (0.01 * e.deltaY), e.offsetX);
-  }
-
-  onTimelineClick(e: MouseEvent) {
-    if (!e) return; // Sometimes event can be garbage-collected
-    const matches = this.timelineView.getInteractedElementsFromMouseEvent(e);
-
-    const previousSelectedSpan: SpanView = this.state.selectedSpanView as any;
-    if (previousSelectedSpan) {
-      previousSelectedSpan.updateColorStyle('normal');
-      this.setState({ selectedSpanView: undefined });
-      this.timelineView.decorations.spanConnections.unmount();
-      this.timelineView.decorations.intervalHighlight.unmount();
-    }
-
-    let clickedLogId: string | null = null;
-
-    _.forEach(matches, ({ type, element }) => {
-      switch (type) {
-
-        case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
-          const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
-          if (!spanId || !logId) return;
-          clickedLogId = logId;
-          return;
-        }
-
-        case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
-          const { id: spanId } = SpanView.getPropsFromContainer(element);
-          if (!spanId) return;
-          const [groupView, spanView] = this.timelineView.findSpanView(spanId);
-          if (!spanView || !groupView) return;
-
-          // Select this one and bring it to front
-          spanView.updateColorStyle('selected');
-          groupView.bringSpanViewToTop(spanId);
-
-          this.timelineView.decorations.spanConnections.prepare({ spanId: spanId });
-          this.timelineView.decorations.spanConnections.update();
-          this.timelineView.decorations.spanConnections.mount();
-
-          this.timelineView.decorations.intervalHighlight.prepare({
-            startTimestamp: spanView.span.startTime,
-            finishTimestamp: spanView.span.finishTime,
-            lineColor: 'rgba(0, 0, 0, 0.5)',
-            fillColor: `rgba(0, 0, 0, 0.035)`
-          });
-          this.timelineView.decorations.intervalHighlight.update();
-          this.timelineView.decorations.intervalHighlight.mount();
-
-          this.setState({ selectedSpanView: spanView }, () => {
-            setTimeout(() => {
-              if (!clickedLogId) return;
-              this.highlightAndScrollToLog(clickedLogId);
-            }, 250);
-          });
-          return;
-        }
-
-      }
-    });
-
-  }
-
-  onTimelineDoubleClick(e: MouseEvent) {
-    if (!e) return; // Sometimes event can be garbage-collected
-    const matches = this.timelineView.getInteractedElementsFromMouseEvent(e);
-
-    matches.forEach(({ type, element }) => {
-      switch (type) {
-
-        case TimelineInteractableElementType.GROUP_VIEW_LABEL_TEXT: {
-          const { id: groupId } = GroupView.getPropsFromLabelText(element);
-          if (!groupId) return;
-          const groupView = this.timelineView.findGroupView(groupId);
-          if (!groupView) return;
-          const isVisible = groupView.toggleView();
-          this.timelineView.updateGroupVerticalPositions();
-          this.timelineView.keepPanelTraslateYInScreen();
-          // TODO: A reference-connected span can be collapsed/expanded now
-          return;
-        }
-
-      }
-    });
-
   }
 
   onSidebarContainerMouseMove(e: MouseEvent) {
