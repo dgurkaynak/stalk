@@ -196,6 +196,8 @@ export default class SpanView {
     this.viewPropertiesCache.width = width;
     this.barRect.setAttribute('width',  width + '');
     this.clipPathRect.setAttribute('width',  width + '');
+
+    this.labelText.setAttribute('display', width < 30 ? 'none' : '')
   }
 
   updateColors() {
