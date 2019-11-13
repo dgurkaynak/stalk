@@ -50,7 +50,8 @@ export default class GroupView {
     this.seperatorLine.setAttribute('stroke', vc.groupSeperatorLineColor);
     this.seperatorLine.setAttribute('stroke-width', vc.groupSeperatorLineWidth + '');
 
-    this.labelText.textContent = this.spanGroup.name;
+    const prefixChar = this.options.isCollapsed ? '►' : '▼';
+    this.labelText.textContent = `${prefixChar} ${this.spanGroup.name}`;
     this.labelText.style.cursor = 'pointer';
     this.labelText.setAttribute('fill', vc.groupLabelColor);
     this.labelText.setAttribute('x', '0');
@@ -101,8 +102,13 @@ export default class GroupView {
 
   toggleView() {
     this.options.isCollapsed = !this.options.isCollapsed;
-    this.updateLabelTextDecoration();
+
+    const prefixChar = this.options.isCollapsed ? '►' : '▼';
+    this.labelText.textContent = `${prefixChar} ${this.spanGroup.name}`;
+    // this.updateLabelTextDecoration();
+
     this.layout();
+
     return !this.options.isCollapsed;
   }
 
