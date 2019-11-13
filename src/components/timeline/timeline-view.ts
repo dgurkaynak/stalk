@@ -39,7 +39,7 @@ export default class TimelineView extends EventEmitterExtra {
   readonly decorations = {
     logHighlight: new LogHighlightDecoration(this),
     spanConnections: new SpanConnectionsDecoration(this),
-    intervalHighlight: new IntervalHighlightDecoration(this),
+    // intervalHighlight: new IntervalHighlightDecoration(this),
   };
 
   private _width = 0; // svg width
@@ -424,7 +424,7 @@ export default class TimelineView extends EventEmitterExtra {
       const previousSelectedSpanView = this.findSpanView(previousSelectedSpanId)[1];
       previousSelectedSpanView && previousSelectedSpanView.updateColorStyle('normal');
       this.decorations.spanConnections.unmount();
-      this.decorations.intervalHighlight.unmount();
+      // this.decorations.intervalHighlight.unmount();
     }
 
     // If new span exists
@@ -437,14 +437,14 @@ export default class TimelineView extends EventEmitterExtra {
       this.decorations.spanConnections.update();
       this.decorations.spanConnections.mount();
 
-      this.decorations.intervalHighlight.prepare({
-        startTimestamp: spanView.span.startTime,
-        finishTimestamp: spanView.span.finishTime,
-        lineColor: 'rgba(0, 0, 0, 0.5)',
-        fillColor: `rgba(0, 0, 0, 0.035)`
-      });
-      this.decorations.intervalHighlight.update();
-      this.decorations.intervalHighlight.mount();
+      // this.decorations.intervalHighlight.prepare({
+      //   startTimestamp: spanView.span.startTime,
+      //   finishTimestamp: spanView.span.finishTime,
+      //   lineColor: 'rgba(0, 0, 0, 0.5)',
+      //   fillColor: `rgba(0, 0, 0, 0.035)`
+      // });
+      // this.decorations.intervalHighlight.update();
+      // this.decorations.intervalHighlight.mount();
 
       this.selectedSpanId = spanId;
       this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);

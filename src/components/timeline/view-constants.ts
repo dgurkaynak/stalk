@@ -10,11 +10,11 @@ class ViewConstants {
   readonly groupPaddingTop = 20;
   readonly groupPaddingBottom = 10;
 
-  readonly spanBarHeight = 20;
+  readonly spanBarHeight = 18;
   readonly spanBarSpacing = 3;
-  readonly spanBarRadius = 5;
-  readonly spanBarMinWidth = 2;
-  readonly spanBarViewportMargin = 5;
+  readonly spanBarRadius = 0;
+  readonly spanBarMinWidth = 1;
+  readonly spanBarViewportMargin = 3;
   get rowHeight() { return (2 * this.spanBarSpacing) + this.spanBarHeight; };
 
   readonly spanLabelFontSize = 10;

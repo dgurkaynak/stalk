@@ -2,9 +2,10 @@ import * as _ from 'lodash';
 import { Span, SpanLog } from '../../model/interfaces';
 import vc from './view-constants';
 import * as shortid from 'shortid';
-import { getSpanColors } from '../ui/color-helper';
+import { getContrastColor } from '../ui/color-helper';
 import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
 import Axis from './axis';
+import chroma from 'chroma-js';
 
 
 
@@ -37,7 +38,8 @@ export default class SpanView {
     width: 0,
     x: 0,
     y: 0,
-    barColor: '',
+    barColorDefault: '',
+    barColorHover: '',
     labelColor: '',
     borderColor: ''
   };
@@ -86,10 +88,12 @@ export default class SpanView {
   reuse(span: Span) {
     this.span = span;
 
-    this.viewPropertiesCache.barColor = this.sharedOptions.colorFor(span);
-    const { textColor, borderColor } = getSpanColors(this.viewPropertiesCache.barColor);
+    const baseColor = this.sharedOptions.colorFor(span);
+    this.viewPropertiesCache.barColorDefault = chroma(baseColor).alpha(0.8).css();
+    this.viewPropertiesCache.barColorHover = chroma(baseColor).alpha(1.0).css();
+    const textColor = getContrastColor(this.viewPropertiesCache.barColorDefault);
     this.viewPropertiesCache.labelColor = textColor;
-    this.viewPropertiesCache.borderColor = borderColor;
+    this.viewPropertiesCache.borderColor = chroma(baseColor).darken(1).alpha(1.0).css();
 
     this.updateColorStyle('normal');
     this.updateLabelText();
@@ -113,15 +117,16 @@ export default class SpanView {
   }
 
   updateColorStyle(style: 'normal' | 'hover' | 'selected') {
-    let barColor = this.viewPropertiesCache.barColor;
+    let barColor = this.viewPropertiesCache.barColorDefault;
     let labelTextColor = this.viewPropertiesCache.labelColor;
     let strokeWidth = 0;
     let strokeColor = 'transparent';
     let filter = '';
 
     if (style === 'hover') {
-      strokeWidth = 2;
-      strokeColor = this.viewPropertiesCache.borderColor;
+      barColor = this.viewPropertiesCache.barColorHover;
+      strokeWidth = 0;
+      strokeColor = 'transparent';
       filter = '';
     } else if (style === 'selected') {
       strokeWidth = 2;
@@ -194,12 +199,14 @@ export default class SpanView {
   }
 
   updateColors() {
-    this.viewPropertiesCache.barColor = this.sharedOptions.colorFor(this.span);
-    const { textColor, borderColor } = getSpanColors(this.viewPropertiesCache.barColor);
+    const baseColor = this.sharedOptions.colorFor(this.span);
+    this.viewPropertiesCache.barColorDefault = chroma(baseColor).alpha(0.8).css();
+    this.viewPropertiesCache.barColorHover = chroma(baseColor).alpha(1.0).css();
+    const textColor = getContrastColor(this.viewPropertiesCache.barColorDefault);
     this.viewPropertiesCache.labelColor = textColor;
-    this.viewPropertiesCache.borderColor = borderColor;
+    this.viewPropertiesCache.borderColor = chroma(baseColor).darken(1).alpha(1.0).css();
 
-    this.barRect.setAttribute('fill', this.viewPropertiesCache.barColor);
+    this.barRect.setAttribute('fill', this.viewPropertiesCache.barColorDefault);
     // this.barRect.setAttribute('stroke', ??); // TODO: We don't know what the current style is
     this.labelText.setAttribute('fill', this.viewPropertiesCache.labelColor);
   }
