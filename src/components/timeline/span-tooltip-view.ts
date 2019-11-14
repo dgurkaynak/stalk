@@ -14,6 +14,7 @@ export default class SpanTooltipView {
   private rect = document.createElementNS(SVG_NS, 'rect');
   private durationText = document.createElementNS(SVG_NS, 'text');
   private labelText = document.createElementNS(SVG_NS, 'text');
+  private summaryText = document.createElementNS(SVG_NS, 'text');
   private viewportSize = { width: 0, height: 0 };
   private labelBy: (span: Span) => string = (span) => span.operationName;
   private viewPropertiesCache = { width: 0 };
@@ -22,6 +23,7 @@ export default class SpanTooltipView {
     this.container.appendChild(this.rect);
     this.container.appendChild(this.durationText);
     this.container.appendChild(this.labelText);
+    this.container.appendChild(this.summaryText);
 
     this.rect.setAttribute('filter', 'url(#tooltip-shadow)');
   }
@@ -50,6 +52,12 @@ export default class SpanTooltipView {
     this.labelText.setAttribute('x', '50');
     this.labelText.setAttribute('y', '14');
 
+    this.summaryText.textContent = `${Object.keys(span.tags).length} tag(s), ${span.logs.length} log(s)`;
+    this.summaryText.setAttribute('font-size', vc.spanTooltipFontSize + '');
+    this.summaryText.setAttribute('font-style', 'italic');
+    this.summaryText.setAttribute('x', '100');
+    this.summaryText.setAttribute('y', '14');
+
     this.updateInternalPositionsAndWidth();
   }
 
@@ -74,12 +82,15 @@ export default class SpanTooltipView {
   // This method should be executed after mount!
   updateInternalPositionsAndWidth() {
     const durationBB = this.durationText.getBBox();
-    const labelX = durationBB.width + 5;
+    const labelX = 5 + durationBB.width + 6;
     const labelBB = this.labelText.getBBox();
-    const width = 5 + labelX + 6 + labelBB.width + 5;
+    const summaryX = labelX + labelBB.width + 6;
+    const summaryBB = this.summaryText.getBBox();
+    const width = summaryX + summaryBB.width + 5;
 
     this.durationText.setAttribute('x', '5');
-    this.labelText.setAttribute('x', (labelX + 6) + '');
+    this.labelText.setAttribute('x', (labelX) + '');
+    this.summaryText.setAttribute('x', (summaryX) + '');
     this.rect.setAttribute('width', width + '');
 
     this.viewPropertiesCache.width = width;
