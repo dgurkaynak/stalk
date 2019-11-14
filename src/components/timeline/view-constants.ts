@@ -32,7 +32,8 @@ class ViewConstants {
 
   readonly spanTooltipHeight = 20;
   readonly spanTooltipBackgroundColor = '#ffffff';
-  readonly spanTooltipLabelFontSize = 10;
+  readonly spanTooltipFontSize = 10;
+  readonly spanTooltipDurationTextColor = '#009900';
 }
 
 export default new ViewConstants();

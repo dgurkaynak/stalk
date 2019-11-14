@@ -16,6 +16,7 @@ export default class SpanTooltipView {
   private labelText = document.createElementNS(SVG_NS, 'text');
   private viewportSize = { width: 0, height: 0 };
   private labelBy: (span: Span) => string = (span) => span.operationName;
+  private viewPropertiesCache = { width: 0 };
 
   constructor(private parentEl: SVGElement) {
     this.container.appendChild(this.rect);
@@ -40,10 +41,12 @@ export default class SpanTooltipView {
     this.durationText.textContent = duration;
     this.durationText.setAttribute('x', '5');
     this.durationText.setAttribute('y', '14');
-    this.durationText.setAttribute('font-size', vc.spanTooltipLabelFontSize + '');
+    this.durationText.setAttribute('font-size', vc.spanTooltipFontSize + '');
+    this.durationText.setAttribute('fill', vc.spanTooltipDurationTextColor);
 
     this.labelText.textContent = this.labelBy(span);
-    this.labelText.setAttribute('font-size', vc.spanTooltipLabelFontSize + '');
+    this.labelText.setAttribute('font-size', vc.spanTooltipFontSize + '');
+    this.labelText.setAttribute('font-weight', '500');
     this.labelText.setAttribute('x', '50');
     this.labelText.setAttribute('y', '14');
 
@@ -52,6 +55,7 @@ export default class SpanTooltipView {
 
   mount() {
     this.parentEl.appendChild(this.container);
+    this.updateInternalPositionsAndWidth();
   }
 
   unmount() {
@@ -67,6 +71,7 @@ export default class SpanTooltipView {
     this.viewportSize = { width, height };
   }
 
+  // This method should be executed after mount!
   updateInternalPositionsAndWidth() {
     const durationBB = this.durationText.getBBox();
     const labelX = durationBB.width + 5;
@@ -77,12 +82,11 @@ export default class SpanTooltipView {
     this.labelText.setAttribute('x', (labelX + 6) + '');
     this.rect.setAttribute('width', width + '');
 
-    return {labelX, width};
+    this.viewPropertiesCache.width = width;
   }
 
   update(mouseX: number, mouseY: number) {
-    // TODO: You don't have to do this on every update
-    const {width} = this.updateInternalPositionsAndWidth();
+    const width = this.viewPropertiesCache.width;
 
     const offset = 10;
     let x = 0;
