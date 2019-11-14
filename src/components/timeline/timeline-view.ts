@@ -42,7 +42,8 @@ export default class TimelineView extends EventEmitterExtra {
   readonly decorationOverlayPanel = document.createElementNS(SVG_NS, 'g');
   readonly decorations = {
     logHighlight: new LogHighlightDecoration(this),
-    spanConnections: new SpanConnectionsDecoration(this),
+    selectedSpanConnections: new SpanConnectionsDecoration(this),
+    hoveredSpanConnections: new SpanConnectionsDecoration(this),
     // intervalHighlight: new IntervalHighlightDecoration(this),
   };
 
@@ -436,7 +437,8 @@ export default class TimelineView extends EventEmitterExtra {
       this.selectedSpanId = null;
       const previousSelectedSpanView = this.findSpanView(previousSelectedSpanId)[1];
       previousSelectedSpanView && previousSelectedSpanView.updateColorStyle('normal');
-      this.decorations.spanConnections.unmount();
+      this.decorations.selectedSpanConnections.unmount();
+      this.decorations.hoveredSpanConnections.unmount();
       // this.decorations.intervalHighlight.unmount();
     }
 
@@ -446,9 +448,9 @@ export default class TimelineView extends EventEmitterExtra {
       spanView.updateColorStyle('selected');
       groupView.bringSpanViewToTop(spanId);
 
-      this.decorations.spanConnections.prepare({ spanId: spanId });
-      this.decorations.spanConnections.update();
-      this.decorations.spanConnections.mount();
+      this.decorations.selectedSpanConnections.prepare({ spanId: spanId });
+      this.decorations.selectedSpanConnections.update();
+      this.decorations.selectedSpanConnections.mount();
 
       // this.decorations.intervalHighlight.prepare({
       //   startTimestamp: spanView.span.startTime,
@@ -505,6 +507,7 @@ export default class TimelineView extends EventEmitterExtra {
           const spanView = this.findSpanView(spanId)[1];
           if (!spanView) return;
           spanView.updateColorStyle('normal');
+          this.decorations.hoveredSpanConnections.unmount();
           return;
         }
 
@@ -530,6 +533,11 @@ export default class TimelineView extends EventEmitterExtra {
           const spanView = this.findSpanView(spanId)[1];
           if (!spanView) return;
           spanView.updateColorStyle('hover');
+
+          this.decorations.hoveredSpanConnections.prepare({ spanId: spanId });
+          this.decorations.hoveredSpanConnections.update();
+          this.decorations.hoveredSpanConnections.mount();
+
           return;
         }
 
@@ -555,7 +563,7 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   onMouseIdleLeave(e: MouseEvent) {
-    // Noop?
+    this.decorations.hoveredSpanConnections.unmount();
   }
 
   onMousePanStart(e: MouseEvent) {
