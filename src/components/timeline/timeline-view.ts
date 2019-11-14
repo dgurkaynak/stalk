@@ -14,6 +14,7 @@ import { SpanLabellingOptions, operationLabellingOptions } from '../../model/spa
 import LogHighlightDecoration from './decorations/log-highlight';
 import SpanConnectionsDecoration from './decorations/span-connections';
 import IntervalHighlightDecoration from './decorations/interval-highlight';
+import prettyMilliseconds from 'pretty-ms';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -25,12 +26,15 @@ export enum TimelineViewEvent {
 
 export default class TimelineView extends EventEmitterExtra {
   private svg = document.createElementNS(SVG_NS, 'svg');
-
   private defs = document.createElementNS(SVG_NS, 'defs');
-  private viewportClipPath = document.createElementNS(SVG_NS, 'clipPath');
-  private viewportClipPathRect = document.createElementNS(SVG_NS, 'rect');
 
-  private viewportContainer = document.createElementNS(SVG_NS, 'g');
+  private tickContainer = document.createElementNS(SVG_NS, 'g');
+  private tickElements: { text: SVGTextElement, line: SVGLineElement }[] = [];
+
+  private bodyContainer = document.createElementNS(SVG_NS, 'g');
+  private bodyClipPath = document.createElementNS(SVG_NS, 'clipPath');
+  private bodyClipPathRect = document.createElementNS(SVG_NS, 'rect');
+
   private groupNamePanel = document.createElementNS(SVG_NS, 'g');
   private timelinePanel = document.createElementNS(SVG_NS, 'g');
 
@@ -51,7 +55,7 @@ export default class TimelineView extends EventEmitterExtra {
   get contentHeight() { return this._contentHeight; }
 
   readonly mouseHandler = new MouseHandler(this.svg);
-  readonly axis = new Axis([0, 0], [0, 0]);
+  readonly axis = (window as any).axis = new Axis([0, 0], [0, 0]);
 
   private traces: Trace[] = [];
   private spanGrouping: SpanGrouping;
@@ -142,8 +146,8 @@ export default class TimelineView extends EventEmitterExtra {
     this.svg.setAttribute('height', `${height}`);
     this.svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
-    this.viewportClipPathRect.setAttribute('width', `${width}`);
-    this.viewportClipPathRect.setAttribute('height', `${height}`);
+    this.bodyClipPathRect.setAttribute('width', `${width}`);
+    this.bodyClipPathRect.setAttribute('height', `${height - vc.timeHeaderHeight}`);
 
     this.axis.updateOutputRange([
       vc.spanBarViewportMargin,
@@ -152,6 +156,7 @@ export default class TimelineView extends EventEmitterExtra {
     // TODO: Look for who listens AxisEvent.UPDATED event and trigger here
     this.groupViews.forEach(g => g.handleAxisUpdate());
     this.updateAllDecorations();
+    this.updateTicks();
 
     this.groupViews.forEach(v => v.updateSeperatorLineWidths(width));
   }
@@ -169,20 +174,25 @@ export default class TimelineView extends EventEmitterExtra {
   setupPanels() {
     const { _width: width, _height: height } = this;
 
-    this.viewportClipPath.id = 'viewport-clip-path';
-    this.viewportClipPathRect.setAttribute('x', `0`);
-    this.viewportClipPathRect.setAttribute('y', `0`);
-    this.viewportClipPathRect.setAttribute('width', `${width}`);
-    this.viewportClipPathRect.setAttribute('height', `${height}`);
-    this.viewportClipPath.appendChild(this.viewportClipPathRect);
-    this.defs.appendChild(this.viewportClipPath);
+    this.bodyClipPath.id = 'body-clip-path';
+    this.bodyClipPathRect.setAttribute('x', `0`);
+    this.bodyClipPathRect.setAttribute('y', `0`);
+    this.bodyClipPathRect.setAttribute('width', `${width}`);
+    this.bodyClipPathRect.setAttribute('height', `${height - vc.timeHeaderHeight}`);
+    this.bodyClipPath.appendChild(this.bodyClipPathRect);
+    this.defs.appendChild(this.bodyClipPath);
 
-    this.viewportContainer.setAttribute('clip-path', 'url(#viewport-clip-path)');
-    this.viewportContainer.appendChild(this.decorationUnderlayPanel);
-    this.viewportContainer.appendChild(this.groupNamePanel);
-    this.viewportContainer.appendChild(this.timelinePanel);
-    this.viewportContainer.appendChild(this.decorationOverlayPanel);
-    this.svg.appendChild(this.viewportContainer);
+    this.svg.appendChild(this.tickContainer);
+
+    this.bodyContainer.setAttribute('x', `0`);
+    this.bodyContainer.setAttribute('y', `0`);
+    this.bodyContainer.setAttribute('transform', `translate(0, ${vc.timeHeaderHeight})`);
+    this.bodyContainer.setAttribute('clip-path', 'url(#body-clip-path)');
+    this.bodyContainer.appendChild(this.decorationUnderlayPanel);
+    this.bodyContainer.appendChild(this.groupNamePanel);
+    this.bodyContainer.appendChild(this.timelinePanel);
+    this.bodyContainer.appendChild(this.decorationOverlayPanel);
+    this.svg.appendChild(this.bodyContainer);
   }
 
   // Array order is from deepest element to root
@@ -351,6 +361,7 @@ export default class TimelineView extends EventEmitterExtra {
 
     // Annotations
     this.updateAllDecorations(true); // Force re-prepare because all the groupViews and spanViews are replaced w/ new
+    this.updateTicks();
 
     // Reset vertical panning
     this.setPanelTranslateY(0);
@@ -377,14 +388,15 @@ export default class TimelineView extends EventEmitterExtra {
     // TODO: Look for who listens AxisEvent.TRANSLATED
     this.groupViews.forEach(g => g.handleAxisTranslate());
     this.updateAllDecorations();
+    this.updateTicks();
   }
 
   translateY(delta: number) {
-    const { _height: viewportHeight } = this;
-    if (this._contentHeight <= viewportHeight) return;
+    const bodyHeight = this._height - vc.timeHeaderHeight;
+    if (this._contentHeight <= bodyHeight) return;
 
     const newTranslateY = this.panelTranslateY + delta;
-    const panelTranslateY = Math.min(Math.max(newTranslateY, viewportHeight - this._contentHeight), 0);
+    const panelTranslateY = Math.min(Math.max(newTranslateY, bodyHeight - this._contentHeight), 0);
     this.setPanelTranslateY(panelTranslateY);
   }
 
@@ -401,9 +413,9 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   private keepPanelTraslateYInScreen() {
-    const { _height: viewportHeight } = this;
+    const bodyHeight = this._height - vc.timeHeaderHeight;
     const bottomY = this.panelTranslateY + this._contentHeight;
-    const offsetSnapToBottom = viewportHeight - bottomY;
+    const offsetSnapToBottom = bodyHeight - bottomY;
     if (offsetSnapToBottom <= 0) return;
     const newTranslateY = Math.min(this.panelTranslateY + offsetSnapToBottom, 0); // Can be max 0
     this.setPanelTranslateY(newTranslateY);
@@ -414,6 +426,7 @@ export default class TimelineView extends EventEmitterExtra {
     // TODO: Look for who listens AxisEvent.ZOOMED
     this.groupViews.forEach(g => g.handleAxisZoom());
     this.updateAllDecorations();
+    this.updateTicks();
   }
 
   selectSpan(spanId: string | null) {
@@ -615,6 +628,64 @@ export default class TimelineView extends EventEmitterExtra {
       // setTimeout(this.highlightAndScrollToLog(clickedLogId), 250)
     }
 
+  }
+
+  ///////////////////////////////////////
+  //////////// TICK HANDLING ////////////
+  ///////////////////////////////////////
+
+  updateTicks() {
+    if (this.traces.length == 0) {
+      this.tickElements.forEach(({text, line}) => {
+        this.tickContainer.removeChild(text);
+        this.tickContainer.removeChild(line);
+      });
+      return;
+    }
+
+    const tickCount = Math.round(this._width / vc.tickLength);
+    const ticks = this.axis.ticks(tickCount);
+
+    ticks.forEach((tick, i) => {
+      if (!this.tickElements[i]) {
+        this.tickElements[i] = {
+          line: document.createElementNS(SVG_NS, 'line'),
+          text: document.createElementNS(SVG_NS, 'text')
+        };
+      }
+
+      const { line, text } = this.tickElements[i];
+
+      line.setAttribute('x1', tick.output + '');
+      line.setAttribute('x2', tick.output + '');
+      line.setAttribute('y1', '0');
+      line.setAttribute('y2', this._height + '');
+      line.setAttribute('stroke', vc.tickLineColor);
+      line.setAttribute('stroke-width', '1');
+      this.tickContainer.appendChild(line);
+
+      text.textContent = prettyMilliseconds(tick.inputRelative / 1000, {
+        secondsDecimalDigits: 3,
+        millisecondsDecimalDigits: 1,
+        keepDecimalsOnWholeSeconds: true,
+        unitCount: 1
+      } as any).replace('~', '');
+      text.setAttribute('x', (tick.output - 4) + '');
+      text.setAttribute('y', vc.tickTextOffsetY + '');
+      text.setAttribute('fill', vc.tickTextColor);
+      text.setAttribute('font-size', vc.tickTextFontSize + '');
+      text.setAttribute('text-anchor', 'end');
+      this.tickContainer.appendChild(text);
+    });
+
+    // Remove unused ones
+    if (this.tickElements.length > ticks.length) {
+      for (let i = ticks.length; i < this.tickElements.length; i++) {
+        const { line, text } = this.tickElements[i];
+        line.parentElement && line.parentElement.removeChild(line);
+        text.parentElement && text.parentElement.removeChild(text);
+      }
+    }
   }
 
 }

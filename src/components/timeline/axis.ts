@@ -1,3 +1,5 @@
+import ticks from './ticks';
+
 
 export default class Axis {
   private scale: number;
@@ -75,7 +77,7 @@ export default class Axis {
     this.preventTranslatingOutOfRange();
   }
 
-  preventTranslatingOutOfRange() {
+  private preventTranslatingOutOfRange() {
     const minInput = this.inputRange[0];
     const minOutput = this.input2output(minInput);
     if (minOutput > this.outputRange[0]) {
@@ -87,5 +89,23 @@ export default class Axis {
     if (maxOutput < this.outputRange[1]) {
       this.offset += this.outputRange[1] - maxOutput;
     }
+  }
+
+  ticks(count: number) {
+    const originInput = this.inputRange[0];
+    // We want to use a time domain that t=0 is trace start
+    // Relative means "relative to trace start"
+    const visibleInputStart = this.output2input(this.outputRange[0]);
+    const visibleRelativeInputStart = visibleInputStart - originInput;
+    const visibleInputFinish = this.output2input(this.outputRange[1]);
+    const visibleRelativeFinishStart = visibleInputFinish - originInput;
+    return ticks(visibleRelativeInputStart, visibleRelativeFinishStart, count).map((inputRelative: number) => {
+      const input = inputRelative + originInput; // in us probably
+      return {
+        inputRelative,
+        input,
+        output: this.input2output(input)
+      };
+    });
   }
 }

@@ -1,12 +1,19 @@
 class ViewConstants {
   readonly cursorLineColor = '#ccc';
 
+  readonly timeHeaderHeight = 20;
+  readonly tickLength = 200; // in px
+  readonly tickLineColor = '#cccccc';
+  readonly tickTextOffsetY = 14;
+  readonly tickTextColor = '#999999';
+  readonly tickTextFontSize = 10;
+
   readonly groupSeperatorLineColor = '#cccccc';
   readonly groupSeperatorLineWidth = 1;
   readonly groupLabelOffsetX = 3;
   readonly groupLabelOffsetY = 13;
-  readonly groupLabelFontSize = 12;
-  readonly groupLabelColor = '#999999';
+  readonly groupLabelFontSize = 10;
+  readonly groupLabelColor = '#000000';
   readonly groupPaddingTop = 20;
   readonly groupPaddingBottom = 10;
 
