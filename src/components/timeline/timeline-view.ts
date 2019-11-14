@@ -15,6 +15,7 @@ import LogHighlightDecoration from './decorations/log-highlight';
 import SpanConnectionsDecoration from './decorations/span-connections';
 import IntervalHighlightDecoration from './decorations/interval-highlight';
 import prettyMilliseconds from 'pretty-ms';
+import SpanTooltipView from './span-tooltip-view';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -72,6 +73,8 @@ export default class TimelineView extends EventEmitterExtra {
   private hoveredElements: TimelineInteractedElementObject[] = [];
   private selectedSpanId?: string;
 
+  private spanTooltip = new SpanTooltipView(this.svg);
+
   private binded = {
     onMouseIdleMove: this.onMouseIdleMove.bind(this),
     onMouseIdleLeave: this.onMouseIdleLeave.bind(this),
@@ -89,14 +92,14 @@ export default class TimelineView extends EventEmitterExtra {
 
     this.svg.appendChild(this.defs);
 
-    const spanShadowFilter = document.createElementNS(SVG_NS, 'filter');
-    spanShadowFilter.id = 'span-shadow';
-    spanShadowFilter.setAttribute('x', '-50%');
-    spanShadowFilter.setAttribute('y', '-50%');
-    spanShadowFilter.setAttribute('width', '200%');
-    spanShadowFilter.setAttribute('height', '200%');
-    spanShadowFilter.innerHTML = `<feDropShadow stdDeviation="3 3" in="SourceGraphic" dx="0" dy="0" flood-color="#1F3646" flood-opacity="0.5" result="dropShadow"/>`;
-    this.defs.appendChild(spanShadowFilter);
+    const tooltipShadowFilter = document.createElementNS(SVG_NS, 'filter');
+    tooltipShadowFilter.id = 'tooltip-shadow';
+    tooltipShadowFilter.setAttribute('x', '-50%');
+    tooltipShadowFilter.setAttribute('y', '-50%');
+    tooltipShadowFilter.setAttribute('width', '200%');
+    tooltipShadowFilter.setAttribute('height', '200%');
+    tooltipShadowFilter.innerHTML = `<feDropShadow stdDeviation="3 3" in="SourceGraphic" dx="0" dy="5" flood-color="#1F3646" flood-opacity="0.5" result="dropShadow"/>`;
+    this.defs.appendChild(tooltipShadowFilter);
 
     const arrowMarker = document.createElementNS(SVG_NS, 'marker');
     arrowMarker.id = 'arrow-head';
@@ -128,6 +131,8 @@ export default class TimelineView extends EventEmitterExtra {
     this.setupPanels();
     this.mouseHandler.init();
 
+    this.spanTooltip.updateSpanLabelling(operationLabellingOptions.labelBy);
+
     // Bind events
     this.mouseHandler.on(MouseHandlerEvent.IDLE_MOVE, this.binded.onMouseIdleMove);
     this.mouseHandler.on(MouseHandlerEvent.IDLE_LEAVE, this.binded.onMouseIdleLeave);
@@ -158,6 +163,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.groupViews.forEach(g => g.handleAxisUpdate());
     this.updateAllDecorations();
     this.updateTicks();
+    this.spanTooltip.updateViewportSize(width, height);
 
     this.groupViews.forEach(v => v.updateSeperatorLineWidths(width));
   }
@@ -194,6 +200,8 @@ export default class TimelineView extends EventEmitterExtra {
     this.bodyContainer.appendChild(this.timelinePanel);
     this.bodyContainer.appendChild(this.decorationOverlayPanel);
     this.svg.appendChild(this.bodyContainer);
+
+    this.spanTooltip.mount();
   }
 
   // Array order is from deepest element to root
@@ -255,6 +263,7 @@ export default class TimelineView extends EventEmitterExtra {
 
   updateSpanLabelling(options: SpanLabellingOptions) {
     this.spanViewSharedOptions.labelFor = options.labelBy;
+    this.spanTooltip.updateSpanLabelling(options.labelBy);
     this.groupViews.forEach((g) => {
       const spanViews = g.getAllSpanViews();
       spanViews.forEach(s => s.updateLabelText());
@@ -479,6 +488,9 @@ export default class TimelineView extends EventEmitterExtra {
   onMouseIdleMove(e: MouseEvent) {
     if (this.traces.length === 0) return;
 
+    // We want to update immdieadely span tooltip
+    this.spanTooltip.update(e.offsetX, e.offsetY);
+
     // TODO: Maybe debounce below?
     const matches = this.getInteractedElementsFromMouseEvent(e);
 
@@ -503,6 +515,7 @@ export default class TimelineView extends EventEmitterExtra {
         case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
           const { id: spanId } = SpanView.getPropsFromContainer(element);
           if (!spanId) return;
+          this.spanTooltip.unmount();
           if (spanId === this.selectedSpanId) return;
           const spanView = this.findSpanView(spanId)[1];
           if (!spanView) return;
@@ -529,8 +542,18 @@ export default class TimelineView extends EventEmitterExtra {
         case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
           const { id: spanId } = SpanView.getPropsFromContainer(element);
           if (!spanId) return;
-          if (spanId === this.selectedSpanId) return;
           const spanView = this.findSpanView(spanId)[1];
+
+          if (spanView) {
+            // Show span tooltip, even if it's selected!
+            this.spanTooltip.reuse(spanView);
+            this.spanTooltip.mount();
+          }
+
+          // If it's already selected, early terminate
+          // Because we don't want to update span style or show span connection
+          // It's already showing by selection logic
+          if (spanId === this.selectedSpanId) return;
           if (!spanView) return;
           spanView.updateColorStyle('hover');
 
@@ -582,6 +605,8 @@ export default class TimelineView extends EventEmitterExtra {
   }
 
   onClick(e: MouseEvent) {
+    this.spanTooltip.unmount();
+
     if (!e) return; // Sometimes event can be garbage-collected
     const matches = this.getInteractedElementsFromMouseEvent(e);
 

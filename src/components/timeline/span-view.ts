@@ -89,7 +89,7 @@ export default class SpanView {
     this.span = span;
 
     const baseColor = this.sharedOptions.colorFor(span);
-    this.viewPropertiesCache.barColorDefault = chroma(baseColor).alpha(0.8).css();
+    this.viewPropertiesCache.barColorDefault = chroma(baseColor).alpha(0.75).css();
     this.viewPropertiesCache.barColorHover = chroma(baseColor).alpha(1.0).css();
     const textColor = getContrastColor(this.viewPropertiesCache.barColorDefault);
     this.viewPropertiesCache.labelColor = textColor;
@@ -103,7 +103,6 @@ export default class SpanView {
     this.container.setAttribute('data-span-id', span.id);
     this.clipPath.id = `clip-path-span-${span.id}`;
     this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
-    this.barRect.removeAttribute('filter');
 
     this.hideLogs();
   }
@@ -121,23 +120,19 @@ export default class SpanView {
     let labelTextColor = this.viewPropertiesCache.labelColor;
     let strokeWidth = 0;
     let strokeColor = 'transparent';
-    let filter = '';
 
     if (style === 'hover') {
       barColor = this.viewPropertiesCache.barColorHover;
       strokeWidth = 0;
       strokeColor = 'transparent';
-      filter = '';
     } else if (style === 'selected') {
       strokeWidth = 2;
       strokeColor = this.viewPropertiesCache.borderColor;
-      filter = 'url(#span-shadow)';
     }
 
     this.barRect.setAttribute('fill', barColor);
     this.barRect.setAttribute('stroke-width', strokeWidth + '');
     this.barRect.setAttribute('stroke', strokeColor);
-    filter ? this.barRect.setAttribute('filter', filter) : this.barRect.removeAttribute('filter');
     this.labelText.setAttribute('fill', labelTextColor);
   }
 
