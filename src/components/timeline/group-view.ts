@@ -204,7 +204,6 @@ export default class GroupView {
       this.spanIdToRowIndex[node.spanId] = availableRowIndex;
 
       spanView.showLabel();
-      spanView.showLogs();
       spanView.updateWidth();
       spanView.updateVerticalPosition(availableRowIndex, true);
       spanView.updateHorizontalPosition();

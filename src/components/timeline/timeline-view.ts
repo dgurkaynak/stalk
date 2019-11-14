@@ -445,7 +445,10 @@ export default class TimelineView extends EventEmitterExtra {
     if (previousSelectedSpanId) {
       this.selectedSpanId = null;
       const previousSelectedSpanView = this.findSpanView(previousSelectedSpanId)[1];
-      previousSelectedSpanView && previousSelectedSpanView.updateColorStyle('normal');
+      if (previousSelectedSpanView) {
+        previousSelectedSpanView.updateColorStyle('normal');
+        previousSelectedSpanView.hideLogs();
+      }
       this.decorations.selectedSpanConnections.unmount();
       this.decorations.hoveredSpanConnections.unmount();
       // this.decorations.intervalHighlight.unmount();
@@ -455,6 +458,7 @@ export default class TimelineView extends EventEmitterExtra {
     const [groupView, spanView] = spanId ? this.findSpanView(spanId) : [null, null];
     if (spanId && spanView && groupView) {
       spanView.updateColorStyle('selected');
+      spanView.showLogs();
       groupView.bringSpanViewToTop(spanId);
 
       this.decorations.selectedSpanConnections.prepare({ spanId: spanId });
@@ -503,14 +507,14 @@ export default class TimelineView extends EventEmitterExtra {
     removed.forEach(({ type, element }) => {
       switch (type) {
 
-        case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
-          const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
-          if (!spanId || !logId) return;
-          const spanView = this.findSpanView(spanId)[1];
-          if (!spanView) return;
-          spanView.updateLogStyle(logId, 'normal');
-          return;
-        }
+        // case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
+        //   const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
+        //   if (!spanId || !logId) return;
+        //   const spanView = this.findSpanView(spanId)[1];
+        //   if (!spanView) return;
+        //   spanView.updateLogStyle(logId, 'normal');
+        //   return;
+        // }
 
         case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
           const { id: spanId } = SpanView.getPropsFromContainer(element);
@@ -520,6 +524,7 @@ export default class TimelineView extends EventEmitterExtra {
           const spanView = this.findSpanView(spanId)[1];
           if (!spanView) return;
           spanView.updateColorStyle('normal');
+          spanView.hideLogs();
           this.decorations.hoveredSpanConnections.unmount();
           return;
         }
@@ -530,14 +535,14 @@ export default class TimelineView extends EventEmitterExtra {
     added.forEach(({ type, element }) => {
       switch (type) {
 
-        case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
-          const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
-          if (!spanId || !logId) return;
-          const spanView = this.findSpanView(spanId)[1];
-          if (!spanView) return;
-          spanView.updateLogStyle(logId, 'hover');
-          return;
-        }
+        // case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
+        //   const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
+        //   if (!spanId || !logId) return;
+        //   const spanView = this.findSpanView(spanId)[1];
+        //   if (!spanView) return;
+        //   spanView.updateLogStyle(logId, 'hover');
+        //   return;
+        // }
 
         case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
           const { id: spanId } = SpanView.getPropsFromContainer(element);
@@ -556,6 +561,7 @@ export default class TimelineView extends EventEmitterExtra {
           if (spanId === this.selectedSpanId) return;
           if (!spanView) return;
           spanView.updateColorStyle('hover');
+          spanView.showLogs();
 
           this.decorations.hoveredSpanConnections.prepare({ spanId: spanId });
           this.decorations.hoveredSpanConnections.update();
@@ -617,12 +623,12 @@ export default class TimelineView extends EventEmitterExtra {
     _.forEach(matches, ({ type, element }) => {
       switch (type) {
 
-        case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
-          const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
-          if (!spanId || !logId) return;
-          clickedLogId = logId;
-          return;
-        }
+        // case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
+        //   const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
+        //   if (!spanId || !logId) return;
+        //   clickedLogId = logId;
+        //   return;
+        // }
 
         case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
           const { id: spanId } = SpanView.getPropsFromContainer(element);

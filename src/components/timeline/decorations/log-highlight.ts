@@ -24,7 +24,7 @@ export default class LogHighlightDecoration extends BaseDecoration {
     lineColor: '#000',
     lineDashArray: '0',
     circleColor: '#fff',
-    circleRadius: vc.spanLogCircleRadius,
+    circleRadius: 2,
     circleStrokeWidth: 2,
     circleStrokeColor: '#000'
   };

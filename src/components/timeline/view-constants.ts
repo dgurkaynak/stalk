@@ -28,7 +28,6 @@ class ViewConstants {
   readonly spanLabelOffsetLeft = 5;
   readonly spanLabelSnappedOffsetLeft = 5;
   readonly spanLabelOffsetTop = 1;
-  readonly spanLogCircleRadius = 3;
 
   readonly spanTooltipHeight = 20;
   readonly spanTooltipBackgroundColor = '#ffffff';

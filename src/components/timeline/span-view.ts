@@ -19,7 +19,7 @@ export interface SpanViewSharedOptions {
 
 export interface SpanLogViewObject {
   id: string,
-  circle: SVGCircleElement,
+  line: SVGLineElement,
   log: SpanLog
 }
 
@@ -136,24 +136,6 @@ export default class SpanView {
     this.labelText.setAttribute('fill', labelTextColor);
   }
 
-  updateLogStyle(logId: string, style: 'normal' | 'hover') {
-    const logView = _.find(this.logViews, v => v.id === logId);
-    if (!logView) return false;
-
-    let fillColor = '#fff';
-    let strokeWidth = 1;
-    let strokeColor = '#000';
-    if (style === 'hover') {
-      fillColor = '#000';
-      strokeWidth = 2;
-      strokeColor = '#000';
-    }
-
-    logView.circle.setAttribute('fill', fillColor);
-    logView.circle.setAttribute('stroke-width', strokeWidth + '');
-    logView.circle.setAttribute('stroke', strokeColor);
-  }
-
   updateVerticalPosition(rowIndex: number, dontApplyTransform = false) {
     const { spanBarSpacing, rowHeight, groupPaddingTop } = vc;
     const { x } = this.viewPropertiesCache;
@@ -179,7 +161,8 @@ export default class SpanView {
     // Update logs
     this.logViews.forEach((logView) => {
       const logX = axis.input2output(logView.log.timestamp) - x;
-      logView.circle.setAttribute('cx', logX + '');
+      logView.line.setAttribute('x1', logX + '');
+      logView.line.setAttribute('x2', logX + '');
     });
   }
 
@@ -217,30 +200,31 @@ export default class SpanView {
   }
 
   showLogs() {
-    const { spanBarHeight, spanLogCircleRadius } = vc;
-    const centerY = spanBarHeight / 2;
+    const { spanBarHeight } = vc;
+    const { x } = this.viewPropertiesCache;
 
-    this.logViews.forEach(l => this.container.removeChild(l.circle));
+    this.logViews.forEach(l => this.container.removeChild(l.line));
 
     this.logViews = this.span.logs.map((log) => {
       const id = shortid.generate();
-      const circle = document.createElementNS(SVG_NS, 'circle');
-      circle.setAttribute('r', spanLogCircleRadius + '');
-      circle.setAttribute('cy', centerY + '');
-      circle.setAttribute('fill', '#fff');
-      circle.setAttribute('stroke', '#000');
-      circle.setAttribute('stroke-width', '1');
-      circle.setAttribute('clip-path', `url(#${this.clipPath.id})`);
-      circle.setAttribute(TimelineInteractableElementAttribute, TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE);
-      circle.setAttribute('data-log-id', id);
-      circle.setAttribute('data-span-id', this.span.id);
-      this.container.appendChild(circle);
-      return { id, log, circle };
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('y1', '-3');
+      line.setAttribute('y2', (spanBarHeight + 3) + '');
+      line.setAttribute('stroke', 'rgba(0, 0, 0, 0.5)');
+      line.setAttribute('stroke-width', '1');
+      // line.setAttribute('clip-path', `url(#${this.clipPath.id})`);
+
+      const logX = this.sharedOptions.axis.input2output(log.timestamp) - x;
+      line.setAttribute('x1', logX + '');
+      line.setAttribute('x2', logX + '');
+
+      this.container.appendChild(line);
+      return { id, log, line };
     });
   }
 
   hideLogs() {
-    this.logViews.forEach(l => this.container.removeChild(l.circle));
+    this.logViews.forEach(l => this.container.removeChild(l.line));
     this.logViews = [];
   }
 
