@@ -20,8 +20,7 @@ export interface SpanViewSharedOptions {
 export interface SpanLogViewObject {
   id: string,
   line: SVGLineElement,
-  log: SpanLog,
-  relativeTime: number
+  log: SpanLog
 }
 
 export default class SpanView {
@@ -122,7 +121,7 @@ export default class SpanView {
       line.setAttribute('x1', logX + '');
       line.setAttribute('x2', logX + '');
 
-      return { id, log, line, relativeTime: log.timestamp - this.span.startTime };
+      return { id, log, line };
     });
   }
 
@@ -232,6 +231,14 @@ export default class SpanView {
 
   getLogViews() {
     return this.logViews;
+  }
+
+  // Get
+  getNearbyLogViews(absoluteX: number, threshold = 10) {
+    return this.logViews.filter((l) => {
+      const logX = this.sharedOptions.axis.input2output(l.log.timestamp);
+      return Math.abs(absoluteX - logX) <= 10;
+    });
   }
 
   getViewPropertiesCache() {

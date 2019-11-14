@@ -25,7 +25,7 @@ export default class SpanConnectionsDecoration extends BaseDecoration {
     spanId: '',
     strokeWidth: 1,
     strokeColor: '#000',
-    barHeight: 20
+    barHeight: 18
   };
   private container = document.createElementNS(SVG_NS, 'g');
   private parents: SpanConnection[] = [];

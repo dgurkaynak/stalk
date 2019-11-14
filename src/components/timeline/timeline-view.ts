@@ -73,7 +73,11 @@ export default class TimelineView extends EventEmitterExtra {
   private hoveredElements: TimelineInteractedElementObject[] = [];
   private selectedSpanId?: string;
 
-  private spanTooltip = new SpanTooltipView(this.svg);
+  private spanTooltip = new SpanTooltipView({
+    parentEl: this.svg,
+    defsEl: this.defs,
+    axis: this.axis
+  });
 
   private binded = {
     onMouseIdleMove: this.onMouseIdleMove.bind(this),
@@ -593,10 +597,11 @@ export default class TimelineView extends EventEmitterExtra {
 
   onMouseIdleLeave(e: MouseEvent) {
     this.decorations.hoveredSpanConnections.unmount();
+    this.spanTooltip.unmount();
   }
 
   onMousePanStart(e: MouseEvent) {
-    // Noop?
+    this.spanTooltip.unmount();
   }
 
   onMousePanMove(e: MouseEvent) {
@@ -607,6 +612,7 @@ export default class TimelineView extends EventEmitterExtra {
 
   onWheel(e: WheelEvent) {
     if (this.traces.length === 0) return;
+    this.spanTooltip.unmount();
     this.zoom(1 - (0.01 * e.deltaY), e.offsetX);
   }
 
