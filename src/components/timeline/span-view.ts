@@ -20,7 +20,8 @@ export interface SpanViewSharedOptions {
 export interface SpanLogViewObject {
   id: string,
   line: SVGLineElement,
-  log: SpanLog
+  log: SpanLog,
+  relativeTime: number
 }
 
 export default class SpanView {
@@ -104,7 +105,25 @@ export default class SpanView {
     this.clipPath.id = `clip-path-span-${span.id}`;
     this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
 
-    this.hideLogs();
+    const { spanBarHeight } = vc;
+    const { x } = this.viewPropertiesCache;
+    this.logViews.forEach(l => this.container.removeChild(l.line));
+
+    this.logViews = this.span.logs.map((log) => {
+      const id = shortid.generate();
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('y1', '-3');
+      line.setAttribute('y2', (spanBarHeight + 3) + '');
+      line.setAttribute('stroke', 'rgba(0, 0, 0, 0.5)');
+      line.setAttribute('stroke-width', '1');
+      // line.setAttribute('clip-path', `url(#${this.clipPath.id})`);
+
+      const logX = this.sharedOptions.axis.input2output(log.timestamp) - x;
+      line.setAttribute('x1', logX + '');
+      line.setAttribute('x2', logX + '');
+
+      return { id, log, line, relativeTime: log.timestamp - this.span.startTime };
+    });
   }
 
   dispose() {
@@ -200,32 +219,11 @@ export default class SpanView {
   }
 
   showLogs() {
-    const { spanBarHeight } = vc;
-    const { x } = this.viewPropertiesCache;
-
-    this.logViews.forEach(l => this.container.removeChild(l.line));
-
-    this.logViews = this.span.logs.map((log) => {
-      const id = shortid.generate();
-      const line = document.createElementNS(SVG_NS, 'line');
-      line.setAttribute('y1', '-3');
-      line.setAttribute('y2', (spanBarHeight + 3) + '');
-      line.setAttribute('stroke', 'rgba(0, 0, 0, 0.5)');
-      line.setAttribute('stroke-width', '1');
-      // line.setAttribute('clip-path', `url(#${this.clipPath.id})`);
-
-      const logX = this.sharedOptions.axis.input2output(log.timestamp) - x;
-      line.setAttribute('x1', logX + '');
-      line.setAttribute('x2', logX + '');
-
-      this.container.appendChild(line);
-      return { id, log, line };
-    });
+    this.logViews.forEach(({line}) => this.container.appendChild(line));
   }
 
   hideLogs() {
-    this.logViews.forEach(l => this.container.removeChild(l.line));
-    this.logViews = [];
+    this.logViews.forEach(l => l.line.parentElement && l.line.parentElement.removeChild(l.line));
   }
 
   getLogViewById(logId: string) {
