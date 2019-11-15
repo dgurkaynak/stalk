@@ -347,6 +347,32 @@ export default class TimelineView extends EventEmitterExtra {
     return acc;
   }
 
+  findSpanViewsByRect(rect: { x: number, y: number, width: number, height: number }) { // in px, relative to svg
+    // Substract time header height to match with internal representation
+    rect.y -= vc.timeHeaderHeight;
+
+    const acc: [GroupView, SpanView][] = [];
+    const startTime = this.axis.output2input(rect.x);
+    const finishTime = this.axis.output2input(rect.x + rect.width);
+
+    for (let groupView of this.groupViews) {
+      const spanViews = groupView.getAllSpanViews();
+      const groupY = groupView.getViewPropertiesCache().y;
+      spanViews.forEach((spanView) => {
+        const spanAbsoluteY = spanView.getViewPropertiesCache().y + groupY;
+        const isInstersected = !(spanView.span.startTime > finishTime ||
+          spanView.span.finishTime < startTime ||
+          spanAbsoluteY > (rect.y + rect.height) ||
+          (spanAbsoluteY + vc.spanBarHeight) < rect.y);
+        if (isInstersected) {
+          acc.push([groupView, spanView]);
+        }
+      });
+    }
+
+    return acc;
+  }
+
   layout() {
     let startTimestamp = Infinity;
     let finishTimestamp = -Infinity;
@@ -631,9 +657,14 @@ export default class TimelineView extends EventEmitterExtra {
     this.selectionView.unmount();
 
     if (wasDrawingSelection && !isMouseLeaveBeforeUp) {
-      // TODO: Selection sogic?
+      // TODO: e.offsetX, e.offsetY are way wrong, fix it in MouseHandler;
+      const rect = this.selectionView.stop();
+      const matches = this.findSpanViewsByRect(rect);
+      const spanIds = matches.map(([g, s]) => s.span.id);
+      this.selectSpans(spanIds);
     }
 
+    // TODO: Handle if cmd/ctrol is pressed, it should expand the selection
   }
 
   onWheel(e: WheelEvent) {
