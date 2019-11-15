@@ -72,7 +72,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       height: innerHeight - HEADER_MENU_HEIGHT
     });
 
-    this.timelineView.on(TimelineViewEvent.SPAN_SELECTED, (spanView: SpanView | null) => {
+    this.timelineView.on(TimelineViewEvent.SPANS_SELECTED, (spanView: SpanView | null) => {
       this.setState({ selectedSpanView: spanView });
     });
   }
