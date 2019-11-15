@@ -16,6 +16,7 @@ import SpanConnectionsDecoration from './decorations/span-connections';
 import IntervalHighlightDecoration from './decorations/interval-highlight';
 import prettyMilliseconds from 'pretty-ms';
 import SpanTooltipView from './span-tooltip-view';
+import SelectionView from './selection-view';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -79,11 +80,15 @@ export default class TimelineView extends EventEmitterExtra {
     axis: this.axis
   });
 
+  private selectionView = new SelectionView({ parentEl: this.svg, axis: this.axis });
+  private isDrawingSelection = false;
+
   private binded = {
     onMouseIdleMove: this.onMouseIdleMove.bind(this),
     onMouseIdleLeave: this.onMouseIdleLeave.bind(this),
     onMousePanStart: this.onMousePanStart.bind(this),
     onMousePanMove: this.onMousePanMove.bind(this),
+    onMousePanEnd: this.onMousePanEnd.bind(this),
     onWheel: this.onWheel.bind(this),
     onClick: this.onClick.bind(this),
   };
@@ -142,6 +147,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.mouseHandler.on(MouseHandlerEvent.IDLE_LEAVE, this.binded.onMouseIdleLeave);
     this.mouseHandler.on(MouseHandlerEvent.PAN_START, this.binded.onMousePanStart);
     this.mouseHandler.on(MouseHandlerEvent.PAN_MOVE, this.binded.onMousePanMove);
+    this.mouseHandler.on(MouseHandlerEvent.PAN_END, this.binded.onMousePanEnd);
     this.mouseHandler.on(MouseHandlerEvent.WHEEL, this.binded.onWheel);
     this.mouseHandler.on(MouseHandlerEvent.CLICK, this.binded.onClick);
 
@@ -602,12 +608,43 @@ export default class TimelineView extends EventEmitterExtra {
 
   onMousePanStart(e: MouseEvent) {
     this.spanTooltip.unmount();
+    this.selectionView.unmount();
+
+    if (this.traces.length === 0) return;
+
+    // If alt key is press, start to draw selection
+    if (e.altKey) {
+      this.isDrawingSelection = true;
+      this.selectionView.start(e.offsetX, e.offsetY);
+      this.selectionView.update(e.offsetX, e.offsetY);
+      this.selectionView.mount();
+    }
   }
 
   onMousePanMove(e: MouseEvent) {
     if (this.traces.length === 0) return;
-    this.translateX(e.movementX);
-    this.translateY(e.movementY);
+
+    if (this.isDrawingSelection) {
+      this.selectionView.update(e.offsetX, e.offsetY);
+    } else {
+      // Translate
+      this.translateX(e.movementX);
+      this.translateY(e.movementY);
+    }
+  }
+
+  onMousePanEnd(e: MouseEvent) {
+    if (this.traces.length === 0) return;
+
+    const wasDrawingSelection = this.isDrawingSelection;
+    const isMouseLeaveBeforeUp = e.type == 'mouseleave';
+    this.isDrawingSelection = false;
+    this.selectionView.unmount();
+
+    if (wasDrawingSelection && !isMouseLeaveBeforeUp) {
+      // TODO: Selection sogic?
+    }
+
   }
 
   onWheel(e: WheelEvent) {

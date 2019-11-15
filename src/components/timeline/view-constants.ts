@@ -34,6 +34,12 @@ class ViewConstants {
   readonly spanTooltipBackgroundColor = '#ffffff';
   readonly spanTooltipFontSize = 10;
   readonly spanTooltipDurationTextColor = '#009900';
+
+  readonly selectionBorderColor = '#3E7CD6';
+  readonly selectionBorderWidth = 1;
+  readonly selectionBackgroundColor = 'rgba(58, 122, 217, 0.25)';
+  readonly selectionTextColor = '#3E7CD6';
+  readonly selectionTextSize = 10;
 }
 
 export default new ViewConstants();
