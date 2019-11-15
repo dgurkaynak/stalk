@@ -13,7 +13,6 @@ import { SpanColoringOptions, operationColoringOptions } from '../../model/span-
 import { SpanLabellingOptions, operationLabellingOptions } from '../../model/span-labelling-manager';
 import LogHighlightDecoration from './decorations/log-highlight';
 import SpanConnectionsDecoration from './decorations/span-connections';
-import IntervalHighlightDecoration from './decorations/interval-highlight';
 import prettyMilliseconds from 'pretty-ms';
 import SpanTooltipView from './span-tooltip-view';
 import SelectionView from './selection-view';
@@ -46,7 +45,6 @@ export default class TimelineView extends EventEmitterExtra {
     logHighlight: new LogHighlightDecoration(this),
     selectedSpanConnections: new SpanConnectionsDecoration(this),
     hoveredSpanConnections: new SpanConnectionsDecoration(this),
-    // intervalHighlight: new IntervalHighlightDecoration(this),
   };
 
   private _width = 0; // svg width
@@ -461,7 +459,6 @@ export default class TimelineView extends EventEmitterExtra {
       }
       this.decorations.selectedSpanConnections.unmount();
       this.decorations.hoveredSpanConnections.unmount();
-      // this.decorations.intervalHighlight.unmount();
     }
 
     // If new span exists
@@ -474,15 +471,6 @@ export default class TimelineView extends EventEmitterExtra {
       this.decorations.selectedSpanConnections.prepare({ spanId: spanId });
       this.decorations.selectedSpanConnections.update();
       this.decorations.selectedSpanConnections.mount();
-
-      // this.decorations.intervalHighlight.prepare({
-      //   startTimestamp: spanView.span.startTime,
-      //   finishTimestamp: spanView.span.finishTime,
-      //   lineColor: 'rgba(0, 0, 0, 0.5)',
-      //   fillColor: `rgba(0, 0, 0, 0.035)`
-      // });
-      // this.decorations.intervalHighlight.update();
-      // this.decorations.intervalHighlight.mount();
 
       this.selectedSpanId = spanId;
       this.emit(TimelineViewEvent.SPAN_SELECTED, spanView);
@@ -517,15 +505,6 @@ export default class TimelineView extends EventEmitterExtra {
     removed.forEach(({ type, element }) => {
       switch (type) {
 
-        // case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
-        //   const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
-        //   if (!spanId || !logId) return;
-        //   const spanView = this.findSpanView(spanId)[1];
-        //   if (!spanView) return;
-        //   spanView.updateLogStyle(logId, 'normal');
-        //   return;
-        // }
-
         case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
           const { id: spanId } = SpanView.getPropsFromContainer(element);
           if (!spanId) return;
@@ -544,15 +523,6 @@ export default class TimelineView extends EventEmitterExtra {
 
     added.forEach(({ type, element }) => {
       switch (type) {
-
-        // case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
-        //   const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
-        //   if (!spanId || !logId) return;
-        //   const spanView = this.findSpanView(spanId)[1];
-        //   if (!spanView) return;
-        //   spanView.updateLogStyle(logId, 'hover');
-        //   return;
-        // }
 
         case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
           const { id: spanId } = SpanView.getPropsFromContainer(element);
@@ -659,19 +629,11 @@ export default class TimelineView extends EventEmitterExtra {
     if (!e) return; // Sometimes event can be garbage-collected
     const matches = this.getInteractedElementsFromMouseEvent(e);
 
-    let clickedLogId: string | null = null;
     let clickedSpanId: string | null = null;
     let clickedGroupLabelId: string | null = null;
 
     _.forEach(matches, ({ type, element }) => {
       switch (type) {
-
-        // case TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE: {
-        //   const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
-        //   if (!spanId || !logId) return;
-        //   clickedLogId = logId;
-        //   return;
-        // }
 
         case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
           const { id: spanId } = SpanView.getPropsFromContainer(element);
@@ -704,11 +666,6 @@ export default class TimelineView extends EventEmitterExtra {
     }
 
     this.selectSpan(clickedSpanId);
-
-    if (clickedSpanId && clickedLogId) {
-      // TODO: If `clickedLogId` exists (so user clicked on log)
-      // setTimeout(this.highlightAndScrollToLog(clickedLogId), 250)
-    }
 
   }
 
