@@ -23,9 +23,10 @@ const { Content } = Layout;
 
 
 export interface TimelineScreenProps {
-  visible: boolean
+  visible: boolean,
+  onDataSourceClick: () => void,
+  onSearchTraceClick: () => void,
 }
-const LEFT_MENU_WIDTH = 80;
 const HEADER_MENU_HEIGHT = 45;
 
 export class TimelineScreen extends React.Component<TimelineScreenProps> {
@@ -68,7 +69,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     const containerEl = this.timelineContainerRef.current as HTMLDivElement;
     const { innerWidth, innerHeight } = window;
     this.timelineView.init(containerEl, {
-      width: innerWidth - LEFT_MENU_WIDTH,
+      width: innerWidth,
       height: innerHeight - HEADER_MENU_HEIGHT
     });
 
@@ -194,7 +195,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   resizeTimelineView() {
     const { innerWidth, innerHeight } = window;
     this.timelineView.resize(
-      innerWidth - LEFT_MENU_WIDTH,
+      innerWidth,
       innerHeight - HEADER_MENU_HEIGHT
     );
   }
@@ -247,6 +248,20 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     return (
       <div className="timeline-screen-header">
         <div className="left">
+
+          <Tooltip placement="right" title="Data Sources" mouseEnterDelay={1}>
+            <span className="timeline-header-button" onClick={() => this.props.onDataSourceClick && this.props.onDataSourceClick()}>
+              <Icon type="database" />
+            </span>
+          </Tooltip>
+
+          <Tooltip placement="right" title="Search Traces" mouseEnterDelay={1}>
+            <span className="timeline-header-button" onClick={() => this.props.onSearchTraceClick && this.props.onSearchTraceClick()}>
+              <Icon type="search" />
+            </span>
+          </Tooltip>
+
+          <Divider type="vertical" />
 
           <Dropdown overlay={
             <div style={{ background: '#fff', width: 300, marginLeft: 5, overflowY: 'auto', borderRadius: 4, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}>
