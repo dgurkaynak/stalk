@@ -249,13 +249,13 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       <div className="timeline-screen-header">
         <div className="left">
 
-          <Tooltip placement="right" title="Data Sources" mouseEnterDelay={1}>
+          <Tooltip placement="bottom" title="Data Sources" mouseEnterDelay={1}>
             <span className="timeline-header-button" onClick={() => this.props.onDataSourceClick && this.props.onDataSourceClick()}>
               <Icon type="database" />
             </span>
           </Tooltip>
 
-          <Tooltip placement="right" title="Search Traces" mouseEnterDelay={1}>
+          <Tooltip placement="bottom" title="Search Traces" mouseEnterDelay={1}>
             <span className="timeline-header-button" onClick={() => this.props.onSearchTraceClick && this.props.onSearchTraceClick()}>
               <Icon type="search" />
             </span>
@@ -289,7 +289,15 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
             </Tooltip>
           </Dropdown>
 
-          <Divider type="vertical" />
+          <Tooltip placement="bottom" title="Table View" mouseEnterDelay={1}>
+            <span className="timeline-header-button">
+              <Icon type="table" />
+            </span>
+          </Tooltip>
+
+        </div>
+
+        <div className="center">
 
           <Dropdown overlay={
             <Menu
@@ -301,7 +309,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               <Menu.Item key={GroupLayoutType.WATERFALL}>Waterfall</Menu.Item>
             </Menu>
           } trigger={['click']}>
-            <Tooltip placement="right" title="Group Layout Mode" mouseEnterDelay={1}>
+            <Tooltip placement="left" title="Group Layout Mode" mouseEnterDelay={1}>
               <span className="timeline-header-button">
                 <Icon type="build" />
               </span>
@@ -326,7 +334,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
               </Menu.Item>
             </Menu>
           } trigger={['click']}>
-            <Tooltip placement="right" title="Grouping Mode" mouseEnterDelay={1}>
+            <Tooltip placement="left" title="Grouping Mode" mouseEnterDelay={1}>
               <span className="timeline-header-button">
                 <Icon type="team" />
               </span>
@@ -380,7 +388,20 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
           </Dropdown>
 
         </div>
+
         <div className="right">
+
+          <Tooltip placement="left" title="Toggle bottom pane" mouseEnterDelay={1}>
+            <span className="timeline-header-button">
+              <Icon type="layout" />
+            </span>
+          </Tooltip>
+
+          <Tooltip placement="left" title="Settings" mouseEnterDelay={1}>
+            <span className="timeline-header-button">
+              <Icon type="setting" />
+            </span>
+          </Tooltip>
 
         </div>
       </div>
