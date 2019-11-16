@@ -351,6 +351,8 @@ export default class TimelineView extends EventEmitterExtra {
   findSpanViewsByRect(rect: { x: number, y: number, width: number, height: number }) { // in px, relative to svg
     // Substract time header height to match with internal representation
     rect.y -= vc.timeHeaderHeight;
+    // Add already translated y
+    rect.y -= this.panelTranslateY;
 
     const acc: [GroupView, SpanView][] = [];
     const startTime = this.axis.output2input(rect.x);
