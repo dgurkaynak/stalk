@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "main": "scripts/electron-main.js",
-  "dependencies": {},
+  "dependencies": {
+    "react-reflex": "^3.0.19"
+  },
   "scripts": {
     "build": "webpack --mode production",
     "package": "electron-packager . --ignore=node_modules/.cache",

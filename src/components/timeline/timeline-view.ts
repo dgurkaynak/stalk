@@ -174,6 +174,7 @@ export default class TimelineView extends EventEmitterExtra {
     this.spanTooltip.updateViewportSize(width, height);
 
     this.groupViews.forEach(v => v.updateSeperatorLineWidths(width));
+    this.keepPanelTraslateYInScreen();
   }
 
   updateAllDecorations(forceReprepare = false) {

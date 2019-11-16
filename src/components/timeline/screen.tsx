@@ -16,6 +16,14 @@ import SpanColoringFormModal from '../customization/span-coloring/form-modal';
 import SpanLabellingFormModal from '../customization/span-labelling/form-modal';
 import SpanGroupingManager from '../../model/span-grouping/manager';
 import { SpanGroupingOptions, SpanGroupingRawOptions } from '../../model/span-grouping/span-grouping';
+import vc from './view-constants';
+
+import {
+  ReflexContainer,
+  ReflexSplitter,
+  ReflexElement
+} from 'react-reflex';
+import 'react-reflex/styles.css';
 
 
 import './timeline.css';
@@ -59,9 +67,22 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     onCustomSpanColoringFormModalSave: this.onCustomSpanColoringFormModalSave.bind(this),
     onCustomSpanLabellingFormModalSave: this.onCustomSpanLabellingFormModalSave.bind(this),
     onCustomSpanGroupingFormModalSave: this.onCustomSpanGroupingFormModalSave.bind(this),
+    onTimelineReflexElementResize: this.onTimelineReflexElementResize.bind(this),
+    onTimelineReflexElementResizeThrottle: _.throttle(this.onTimelineReflexElementResize.bind(this), 500),
   };
 
   componentDidMount() {
+    this.init();
+  }
+
+  init() {
+    // Re-flex package does not render it's children (our timeline container ref),
+    // on componentDidMount. As a workaround, we keep retrying until ref is ready.
+    if (!this.timelineContainerRef.current) {
+      setTimeout(() => this.init(), 50);
+      return;
+    }
+
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
     window.addEventListener('resize', this.binded.resizeTimelineView, false);
@@ -70,7 +91,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
     const { innerWidth, innerHeight } = window;
     this.timelineView.init(containerEl, {
       width: innerWidth,
-      height: innerHeight - HEADER_MENU_HEIGHT
+      height: innerHeight - HEADER_MENU_HEIGHT - vc.bottomPaneHeight
     });
 
     this.timelineView.on(TimelineViewEvent.SPANS_SELECTED, (spanView: SpanView | null) => {
@@ -193,11 +214,15 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
   }
 
   resizeTimelineView() {
-    const { innerWidth, innerHeight } = window;
-    this.timelineView.resize(
-      innerWidth,
-      innerHeight - HEADER_MENU_HEIGHT
-    );
+    if (this.timelineContainerRef.current && (this.timelineContainerRef.current as any).parentElement) {
+      const { offsetWidth, offsetHeight } = (this.timelineContainerRef.current as any).parentElement;
+      this.timelineView.resize(offsetWidth, offsetHeight);
+    }
+  }
+
+  onTimelineReflexElementResize(options: { domElement: HTMLElement }) {
+    const { offsetWidth, offsetHeight } = options.domElement;
+    this.timelineView.resize(offsetWidth, offsetHeight);
   }
 
   render() {
@@ -210,7 +235,55 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
         <Layout style={{ height: '100%', overflow: 'hidden' }}>
           <Content style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {this.renderHeader()}
-            <div ref={this.timelineContainerRef as any}></div>
+
+            <ReflexContainer orientation="horizontal">
+              <ReflexElement
+                onResize={this.binded.onTimelineReflexElementResize}
+                onStopResize={this.binded.onTimelineReflexElementResizeThrottle}
+                style={{ overflowY: 'hidden' }}
+              >
+                <div ref={this.timelineContainerRef as any}></div>
+              </ReflexElement>
+
+              <ReflexSplitter/>
+
+              <ReflexElement size={vc.bottomPaneHeight}>
+
+                <ReflexContainer orientation="vertical">
+                  <ReflexElement flex={0.25}>
+                    <div className="pane-content">
+                      <label>
+                      Left Pane (resizable)
+                      </label>
+                    </div>
+                  </ReflexElement>
+
+                  <ReflexSplitter propagate={true}/>
+
+                  <ReflexElement flex={0.25}>
+                    <div className="pane-content">
+                      <label>
+                      Middle Pane 1 (resizable)
+                      </label>
+                    </div>
+                  </ReflexElement>
+
+                  <ReflexSplitter propagate={true}/>
+
+                  <ReflexElement flex={0.5}>
+                    <div className="pane-content">
+                      <label>
+                      Right Pane (resizable)
+                      </label>
+                    </div>
+                  </ReflexElement>
+
+                </ReflexContainer>
+
+              </ReflexElement>
+
+            </ReflexContainer>
+
           </Content>
         </Layout>
 
