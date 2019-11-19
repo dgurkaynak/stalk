@@ -1,4 +1,6 @@
 import Split from 'split.js';
+import { Toolbar } from './components/toolbar/toolbar';
+import 'tippy.js/dist/tippy.css';
 
 export interface AppOptions {
   element: HTMLDivElement;
@@ -16,6 +18,7 @@ export class App {
     bottomCenter: HTMLDivElement;
     bottomRight: HTMLDivElement;
   };
+  private toolbar: Toolbar;
 
   constructor(private options: AppOptions) {
     // Get dom references of required children components
@@ -41,11 +44,14 @@ export class App {
 
     for (let key in this.elements) {
       const el = this.elements[key];
-      if (!el) throw new Error(`Expected child element with id #${key}`);
+      if (!el) throw new Error(`Expected child element: #${key}`);
     }
+
+    // Create child components
+    this.toolbar = new Toolbar({ element: toolbar });
   }
 
   async init() {
-    // Init flow
+    await this.toolbar.init();
   }
 }
