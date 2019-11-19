@@ -1,4 +1,5 @@
 import tippy, { createSingleton, Instance as TippyInstance } from 'tippy.js';
+import { ToolbarMenu, ToolbarMenuItemOptions } from './menu';
 import './toolbar.css';
 
 export interface ToolbarOptions {
@@ -51,7 +52,6 @@ export class Toolbar {
     settings: TippyInstance;
   };
   private dropdowns: {
-    singleton: TippyInstance;
     traces: TippyInstance;
     groupLayoutMode: TippyInstance;
     groupingMode: TippyInstance;
@@ -64,8 +64,56 @@ export class Toolbar {
 
   private binded = {
     onLeftPaneToggleClick: this.onLeftPaneToggleClick.bind(this),
-    onBottomPaneToggleClick: this.onBottomPaneToggleClick.bind(this)
+    onBottomPaneToggleClick: this.onBottomPaneToggleClick.bind(this),
+    onGroupingModeMenuItemClick: this.onGroupingModeMenuItemClick.bind(this),
+    onSpanLabellingMenuItemClick: this.onSpanLabellingMenuItemClick.bind(this),
+    onSpanColoringMenuItemClick: this.onSpanColoringMenuItemClick.bind(this),
+    onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this)
   };
+
+  private groupingModeMenu = new ToolbarMenu({
+    // width: 150,
+    items: [
+      { type: 'item', text: 'Trace' },
+      { type: 'item', text: 'Process' },
+      { type: 'item', text: 'Service' },
+      { type: 'divider' },
+      { type: 'item', text: 'Custom', icon: '' },
+      { type: 'item', text: 'Manage All', icon: '', disabled: true }
+    ],
+    onClick: this.binded.onGroupingModeMenuItemClick
+  });
+  private spanLabellingMenu = new ToolbarMenu({
+    // width: 150,
+    items: [
+      { type: 'item', text: 'Operation' },
+      { type: 'item', text: 'Service + Operation' },
+      { type: 'divider' },
+      { type: 'item', text: 'Custom', icon: '' },
+      { type: 'item', text: 'Manage All', icon: '', disabled: true }
+    ],
+    onClick: this.binded.onSpanLabellingMenuItemClick
+  });
+  private spanColoringMenu = new ToolbarMenu({
+    // width: 150,
+    items: [
+      { type: 'item', text: 'Operation' },
+      { type: 'item', text: 'Service' },
+      { type: 'divider' },
+      { type: 'item', text: 'Custom', icon: '' },
+      { type: 'item', text: 'Manage All', icon: '', disabled: true }
+    ],
+    onClick: this.binded.onSpanColoringMenuItemClick
+  });
+  private groupLayoutModeMenu = new ToolbarMenu({
+    // width: 150,
+    items: [
+      { type: 'item', text: 'Fill' },
+      { type: 'item', text: 'Compact' },
+      { type: 'item', text: 'Waterfall' }
+    ],
+    onClick: this.binded.onGroupLayoutMenuItemClick
+  });
 
   constructor(private options: ToolbarOptions) {
     const el = options.element;
@@ -184,39 +232,58 @@ export class Toolbar {
   }
 
   private initDropdowns() {
-    const dropdowns = {
+    this.dropdowns = {
       traces: tippy(this.elements.btn.traces, {
         content: 'Traces',
-        multiple: true
+        multiple: true,
+        appendTo: document.body,
+        placement: 'bottom',
+        updateDuration: 500,
+        theme: 'toolbar-menu',
+        trigger: 'click',
+        interactive: true
       }),
       groupLayoutMode: tippy(this.elements.btn.groupLayoutMode, {
-        content: 'Layout Mode',
-        multiple: true
+        content: this.groupLayoutModeMenu.element,
+        multiple: true,
+        appendTo: document.body,
+        placement: 'bottom',
+        updateDuration: 500,
+        theme: 'toolbar-menu',
+        trigger: 'click',
+        interactive: true
       }),
       groupingMode: tippy(this.elements.btn.groupingMode, {
-        content: 'Grouping',
-        multiple: true
+        content: this.groupingModeMenu.element,
+        multiple: true,
+        appendTo: document.body,
+        placement: 'bottom',
+        updateDuration: 500,
+        theme: 'toolbar-menu',
+        trigger: 'click',
+        interactive: true
       }),
       spanLabellingMode: tippy(this.elements.btn.spanLabellingMode, {
-        content: 'Span Labelling',
-        multiple: true
+        content: this.spanLabellingMenu.element,
+        multiple: true,
+        appendTo: document.body,
+        placement: 'bottom',
+        updateDuration: 500,
+        theme: 'toolbar-menu',
+        trigger: 'click',
+        interactive: true
       }),
       spanColoringMode: tippy(this.elements.btn.spanColoringMode, {
-        content: 'Span Coloring',
-        multiple: true
+        content: this.spanColoringMenu.element,
+        multiple: true,
+        appendTo: document.body,
+        placement: 'bottom',
+        updateDuration: 500,
+        theme: 'toolbar-menu',
+        trigger: 'click',
+        interactive: true
       })
     };
-
-    const singleton = createSingleton(Object.values(dropdowns), {
-      placement: 'bottom',
-      updateDuration: 500,
-      theme: 'light',
-      trigger: 'click',
-      interactive: true,
-      appendTo: document.body
-    });
-
-    this.dropdowns = { ...dropdowns, singleton };
   }
 
   private initTracesBadgeCount() {
@@ -274,6 +341,38 @@ export class Toolbar {
       this.binded.onBottomPaneToggleClick,
       false
     );
+  }
+
+  private onGroupingModeMenuItemClick(
+    item: ToolbarMenuItemOptions,
+    index: number
+  ) {
+    this.groupingModeMenu.selectAt(index);
+    this.dropdowns.groupingMode.hide();
+  }
+
+  private onSpanLabellingMenuItemClick(
+    item: ToolbarMenuItemOptions,
+    index: number
+  ) {
+    this.spanLabellingMenu.selectAt(index);
+    this.dropdowns.spanLabellingMode.hide();
+  }
+
+  private onSpanColoringMenuItemClick(
+    item: ToolbarMenuItemOptions,
+    index: number
+  ) {
+    this.spanColoringMenu.selectAt(index);
+    this.dropdowns.spanColoringMode.hide();
+  }
+
+  private onGroupLayoutMenuItemClick(
+    item: ToolbarMenuItemOptions,
+    index: number
+  ) {
+    this.groupLayoutModeMenu.selectAt(index);
+    this.dropdowns.groupLayoutMode.hide();
   }
 
   private onLeftPaneToggleClick(e: MouseEvent) {
