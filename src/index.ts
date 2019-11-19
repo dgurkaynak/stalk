@@ -9,7 +9,6 @@ async function main() {
   // Get elements from the dom
   const els = {
     container: document.getElementById('app') as HTMLDivElement,
-    toolbar: document.getElementById('toolbar') as HTMLDivElement,
     mainSplitContainer: document.getElementById(
       'main-split-container'
     ) as HTMLDivElement,
@@ -52,10 +51,10 @@ async function main() {
   // Lazy-load app and init it
   const { App } = await import(/* webpackChunkName: "app" */ './app');
   const app = new App({
-    ...els,
     mainSplit,
     bodySplit,
-    bottomSplit
+    bottomSplit,
+    element: els.container
   });
   await app.init();
 }
