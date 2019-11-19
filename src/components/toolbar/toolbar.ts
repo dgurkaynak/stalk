@@ -50,6 +50,14 @@ export class Toolbar {
     bottomPaneToggle: TippyInstance;
     settings: TippyInstance;
   };
+  private dropdowns: {
+    singleton: TippyInstance;
+    traces: TippyInstance;
+    groupLayoutMode: TippyInstance;
+    groupingMode: TippyInstance;
+    spanLabellingMode: TippyInstance;
+    spanColoringMode: TippyInstance;
+  };
 
   private isLeftPanelExpanded = false;
   private isBottomPanelExpanded = true;
@@ -114,6 +122,7 @@ export class Toolbar {
 
   async init() {
     this.initTooltips();
+    this.initDropdowns();
     this.initTracesBadgeCount();
 
     this.updateButtonSelection(
@@ -137,19 +146,24 @@ export class Toolbar {
       }),
       search: tippy(this.elements.btn.search, { content: 'Search Traces' }),
       traces: tippy(this.elements.btn.traces, {
-        content: 'Traces in the Stage'
+        content: 'Traces in the Stage',
+        multiple: true
       }),
       groupLayoutMode: tippy(this.elements.btn.groupLayoutMode, {
-        content: 'Group Layout Mode'
+        content: 'Group Layout Mode',
+        multiple: true
       }),
       groupingMode: tippy(this.elements.btn.groupingMode, {
-        content: 'Grouping Mode'
+        content: 'Grouping Mode',
+        multiple: true
       }),
       spanLabellingMode: tippy(this.elements.btn.spanLabellingMode, {
-        content: 'Span Labelling'
+        content: 'Span Labelling',
+        multiple: true
       }),
       spanColoringMode: tippy(this.elements.btn.spanColoringMode, {
-        content: 'Span Coloring'
+        content: 'Span Coloring',
+        multiple: true
       }),
       leftPaneToggle: tippy(this.elements.btn.leftPaneToggle, {
         content: 'Toggle Left Pane'
@@ -167,6 +181,42 @@ export class Toolbar {
     });
 
     this.tooltips = { ...tooltips, singleton };
+  }
+
+  private initDropdowns() {
+    const dropdowns = {
+      traces: tippy(this.elements.btn.traces, {
+        content: 'Traces',
+        multiple: true
+      }),
+      groupLayoutMode: tippy(this.elements.btn.groupLayoutMode, {
+        content: 'Layout Mode',
+        multiple: true
+      }),
+      groupingMode: tippy(this.elements.btn.groupingMode, {
+        content: 'Grouping',
+        multiple: true
+      }),
+      spanLabellingMode: tippy(this.elements.btn.spanLabellingMode, {
+        content: 'Span Labelling',
+        multiple: true
+      }),
+      spanColoringMode: tippy(this.elements.btn.spanColoringMode, {
+        content: 'Span Coloring',
+        multiple: true
+      })
+    };
+
+    const singleton = createSingleton(Object.values(dropdowns), {
+      placement: 'bottom',
+      updateDuration: 500,
+      theme: 'light',
+      trigger: 'click',
+      interactive: true,
+      appendTo: document.body
+    });
+
+    this.dropdowns = { ...dropdowns, singleton };
   }
 
   private initTracesBadgeCount() {
@@ -257,10 +307,15 @@ export class Toolbar {
   }
 
   dispose() {
-    for (let tippyIns of Object.values(this.tooltips)) {
+    const tippies = [].concat(
+      Object.values(this.tooltips),
+      Object.values(this.dropdowns)
+    );
+    for (let tippyIns of tippies) {
       tippyIns.destroy();
     }
     this.tooltips = null;
+    this.dropdowns = null;
     this.unbindEvents();
     this.elements = null;
     this.options = null;
