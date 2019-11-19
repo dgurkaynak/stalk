@@ -2,3 +2,18 @@
 .tippy-tooltip.toolbar-tooltip-theme {
   font-size: 1em;
 }
+
+.toolbar-traces-badge-count {
+  background: #f5222d;
+  color: #fff;
+  font-size: 1em;
+  height: 1.5em;
+  line-height: 1.5em;
+  border-radius: 0.75em;
+  font-size: 0.9em;
+  font-weight: 700;
+  top: 0.5em;
+  left: 1.75em;
+  position: absolute;
+  padding: 0 0.5em;
+}

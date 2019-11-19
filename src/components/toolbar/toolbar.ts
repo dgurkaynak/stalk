@@ -18,7 +18,8 @@ export class Toolbar {
       leftPaneToggle: HTMLDivElement;
       bottomPaneToggle: HTMLDivElement;
       settings: HTMLDivElement;
-    };
+    },
+    tracesBadgeCount: HTMLDivElement
   };
   private tooltips: {
     singleton: TippyInstance;
@@ -77,7 +78,8 @@ export class Toolbar {
         leftPaneToggle,
         bottomPaneToggle,
         settings
-      }
+      },
+      tracesBadgeCount: document.createElement('div')
     };
 
     for (let key in this.elements.btn) {
@@ -88,6 +90,7 @@ export class Toolbar {
 
   async init() {
     this.initTooltips();
+    this.initTracesBadgeCount();
   }
 
   initTooltips() {
@@ -127,6 +130,21 @@ export class Toolbar {
     });
 
     this.tooltips = { ...tooltips, singleton };
+  }
+
+  initTracesBadgeCount() {
+    const el = this.elements.tracesBadgeCount;
+    el.classList.add('toolbar-traces-badge-count');
+  }
+
+  updateTracesBadgeCount(count: number) {
+    const el = this.elements.tracesBadgeCount;
+    if (count > 0) {
+      el.textContent = count + '';
+      !el.parentElement && this.elements.btn.traces.appendChild(el);
+    } else {
+      el.parentElement && this.elements.btn.traces.removeChild(el);
+    }
   }
 
   dispose() {

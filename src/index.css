@@ -97,5 +97,6 @@ input, button, textarea, :focus {
 
 /* Toolbar button fine-tuning */
 .toolbar-button.search svg { height: 1.9em; position: relative; top: 1px; }
+.toolbar-button.traces { position: relative; }
 .toolbar-button.traces svg { height: 1.6em; }
 .toolbar-button.span-coloring svg { height: 2em; position: relative; top: 3px; }
