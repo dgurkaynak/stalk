@@ -128,4 +128,13 @@ export class Toolbar {
 
     this.tooltips = { ...tooltips, singleton };
   }
+
+  dispose() {
+    for (let tippyIns of Object.values(this.tooltips)) {
+      tippyIns.destroy();
+    }
+    this.tooltips = null;
+    this.elements = null;
+    this.options = null;
+  }
 }

@@ -54,4 +54,11 @@ export class App {
   async init() {
     await this.toolbar.init();
   }
+
+  dispose() {
+    this.toolbar.dispose();
+    this.toolbar = null;
+    this.elements = null;
+    this.options = null;
+  }
 }
