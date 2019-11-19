@@ -1,6 +1,6 @@
 /**
  * Just critical styles for initial rendering.
- * This file will be inlided to index.html by webpack.
+ * This file will be inlided to index.html by webpack (checkout webpack.config.js).
  */
 
 body {
