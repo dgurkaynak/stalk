@@ -1,11 +1,11 @@
 const path = require('path');
 const fs = require('fs');
-const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const uglifycss = require('uglifycss');
 
 
 module.exports = {
@@ -54,7 +54,7 @@ module.exports = {
       template: path.resolve(__dirname, 'src/index.html'),
       templateParameters: {
         title: 'Stalk Studio',
-        indexCssInline: fs.readFileSync('./src/index.css').toString()
+        indexCssInline: uglifycss.processString(fs.readFileSync('./src/index.css').toString(), {})
       },
     }),
     new BundleAnalyzerPlugin({
