@@ -1,19 +1,5 @@
 @import '~antd/dist/antd.css';
 
-/*
-  This disables text/element selection
-  https://github.com/electron/electron/issues/2538
- */
-:not(input):not(textarea),
-:not(input):not(textarea)::after,
-:not(input):not(textarea)::before {
-    -webkit-user-select: none;
-    user-select: none;
-}
-input, button, textarea, :focus {
-    outline: none;
-}
-
 .app-sidebar .logo {
   height: 32px;
   background: rgba(255, 255, 255, 0.2);

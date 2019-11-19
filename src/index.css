@@ -9,3 +9,16 @@ body {
   font-size: 12px;
   -webkit-font-smoothing: antialiased;
 }
+
+/*
+  This disables text/element selection
+  https://github.com/electron/electron/issues/2538
+ */
+:not(input):not(textarea),
+:not(input):not(textarea)::after,
+:not(input):not(textarea)::before {
+  user-select: none;
+}
+input, button, textarea, :focus {
+  outline: none;
+}
