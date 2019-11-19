@@ -5,6 +5,20 @@ export interface ToolbarOptions {
   element: HTMLDivElement;
 }
 
+export type ToolbarButtonType =
+  | 'dataSources'
+  | 'search'
+  | 'traces'
+  | 'groupLayoutMode'
+  | 'groupingMode'
+  | 'spanLabelling'
+  | 'spanColoring'
+  | 'leftPaneToggle'
+  | 'bottomPaneToggle'
+  | 'settings';
+
+export type ToolbarButtonState = 'selected' | 'disabled';
+
 export class Toolbar {
   private elements: {
     btn: {
@@ -18,8 +32,8 @@ export class Toolbar {
       leftPaneToggle: HTMLDivElement;
       bottomPaneToggle: HTMLDivElement;
       settings: HTMLDivElement;
-    },
-    tracesBadgeCount: HTMLDivElement
+    };
+    tracesBadgeCount: HTMLDivElement;
   };
   private tooltips: {
     singleton: TippyInstance;
@@ -145,6 +159,20 @@ export class Toolbar {
     } else {
       el.parentElement && this.elements.btn.traces.removeChild(el);
     }
+  }
+
+  updateButtonSelection(
+    type: ToolbarButtonType,
+    isSelected: boolean,
+    style: 'background-fill' | 'svg-fill'
+  ) {
+    const el = this.elements.btn[type];
+    if (!el) return;
+    const className = {
+      'background-fill': 'selected',
+      'svg-fill': 'selected-fill'
+    }[style];
+    isSelected ? el.classList.add(className) : el.classList.remove(className);
   }
 
   dispose() {
