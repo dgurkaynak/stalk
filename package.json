@@ -2,7 +2,7 @@
   "name": "stalk-studio",
   "version": "0.1.0",
   "private": true,
-  "main": "scripts/electron-main.js",
+  "main": "main.js",
   "dependencies": {},
   "scripts": {
     "build": "webpack --mode production",
