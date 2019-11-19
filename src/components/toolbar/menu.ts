@@ -1,4 +1,7 @@
 import './menu.css';
+import CodeSvgText from '!!raw-loader!@mdi/svg/svg/code-tags.svg';
+import SettingsSvgText from '!!raw-loader!@mdi/svg/svg/settings-outline.svg';
+import { text } from 'd3';
 
 export interface ToolbarMenuOptions {
   width?: number;
@@ -9,7 +12,7 @@ export interface ToolbarMenuOptions {
 export interface ToolbarMenuItemOptions {
   type: ToolbarMenuItemType;
   text?: string;
-  icon?: string;
+  icon?: 'code-tags' | 'settings-outline';
   altText?: string;
   className?: string;
   disabled?: boolean;
@@ -52,13 +55,28 @@ export class ToolbarMenu {
       el.classList.add('toolbar-menu-item');
       options.disabled && el.classList.add('disabled');
 
+      // Decorate
+      let iconHtml = '';
+      let textHtml = options.text;
+      let altTextHtml = '';
+      if (options.icon == 'code-tags') {
+        iconHtml = CodeSvgText;
+        textHtml = `<span class="text">${options.text}</span>`;
+      } else if (options.icon == 'settings-outline') {
+        iconHtml = SettingsSvgText;
+        textHtml = `<span class="text">${options.text}</span>`;
+      }
+      if (options.altText) {
+        altTextHtml = `<span class="alt">${options.altText}</span>`;
+      }
+
+      el.innerHTML = `${iconHtml} ${textHtml} ${altTextHtml}`.trim();
       // Listen for click events
       const onClickHandler = this.onItemClick.bind(this, item);
       el.addEventListener('click', onClickHandler, false);
       (item as any).onClickHandler = onClickHandler;
     }
 
-    el.textContent = options.text || '';
     this.element.appendChild(el);
     this.items.push(item);
   }

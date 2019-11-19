@@ -78,8 +78,8 @@ export class Toolbar {
       { type: 'item', text: 'Process' },
       { type: 'item', text: 'Service' },
       { type: 'divider' },
-      { type: 'item', text: 'Custom', icon: '' },
-      { type: 'item', text: 'Manage All', icon: '', disabled: true }
+      { type: 'item', text: 'Custom', icon: 'code-tags' },
+      { type: 'item', text: 'Manage All', icon: 'settings-outline', disabled: true }
     ],
     onClick: this.binded.onGroupingModeMenuItemClick
   });
@@ -89,8 +89,8 @@ export class Toolbar {
       { type: 'item', text: 'Operation' },
       { type: 'item', text: 'Service + Operation' },
       { type: 'divider' },
-      { type: 'item', text: 'Custom', icon: '' },
-      { type: 'item', text: 'Manage All', icon: '', disabled: true }
+      { type: 'item', text: 'Custom', icon: 'code-tags' },
+      { type: 'item', text: 'Manage All', icon: 'settings-outline', disabled: true }
     ],
     onClick: this.binded.onSpanLabellingMenuItemClick
   });
@@ -100,8 +100,8 @@ export class Toolbar {
       { type: 'item', text: 'Operation' },
       { type: 'item', text: 'Service' },
       { type: 'divider' },
-      { type: 'item', text: 'Custom', icon: '' },
-      { type: 'item', text: 'Manage All', icon: '', disabled: true }
+      { type: 'item', text: 'Custom', icon: 'code-tags' },
+      { type: 'item', text: 'Manage All', icon: 'settings-outline', disabled: true }
     ],
     onClick: this.binded.onSpanColoringMenuItemClick
   });

@@ -43,9 +43,29 @@
   font-size: 1em;
   line-height: 2em;
   padding: 0 0.75em;
+  display: flex;
+  align-items: center;
+}
+.tippy-tooltip.toolbar-menu-theme .toolbar-menu-item svg {
+  height: 1.3em;
+  margin-right: 0.3em;
+}
+.tippy-tooltip.toolbar-menu-theme .toolbar-menu-item .text {
+  margin-right: 1em;
+}
+.tippy-tooltip.toolbar-menu-theme .toolbar-menu-item .alt {
+  flex-grow: 1;
+  text-align: right;
+  padding-left: 3em;
+  font-size: 0.75em;
+  text-transform: uppercase;
+  opacity: 0.85;
 }
 .tippy-tooltip.toolbar-menu-theme .toolbar-menu-item:hover { color: #fff; background: #2B97EF; }
+.tippy-tooltip.toolbar-menu-theme .toolbar-menu-item:hover svg { fill: #fff; }
 .tippy-tooltip.toolbar-menu-theme .toolbar-menu-item.selected { color: #fff; background: #2B97EF; }
+.tippy-tooltip.toolbar-menu-theme .toolbar-menu-item.selected svg { fill: #fff; }
 .tippy-tooltip.toolbar-menu-theme .toolbar-menu-item.selected:hover { background: #288bdb; }
 .tippy-tooltip.toolbar-menu-theme .toolbar-menu-item.disabled { cursor: default; color: #D9D9D9; }
+.tippy-tooltip.toolbar-menu-theme .toolbar-menu-item.disabled svg { fill: #D9D9D9; }
 .tippy-tooltip.toolbar-menu-theme .toolbar-menu-item.disabled:hover { background: none; }
