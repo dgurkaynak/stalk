@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
@@ -7,7 +8,7 @@ const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 module.exports = {
   target: 'electron-renderer',
-  entry: './src/index.tsx',
+  entry: './src/index.ts',
   devtool: 'source-map',
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
@@ -45,8 +46,11 @@ module.exports = {
       languages: ['typescript']
     }),
     new HtmlWebpackPlugin({
-      title: 'Stalk Studio',
       template: path.resolve(__dirname, 'src/index.html'),
+      templateParameters: {
+        title: 'Stalk Studio',
+        indexCssInline: fs.readFileSync('./src/index.css').toString()
+      },
     }),
   ],
   output: {
