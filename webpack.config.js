@@ -4,11 +4,15 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 
 module.exports = {
   target: 'electron-renderer',
-  entry: './src/index.ts',
+  entry: {
+    index: './src/index.ts'
+  },
   devtool: 'source-map',
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
@@ -45,6 +49,7 @@ module.exports = {
     new MonacoWebpackPlugin({
       languages: ['typescript']
     }),
+    new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, 'src/index.html'),
       templateParameters: {
@@ -52,6 +57,10 @@ module.exports = {
         indexCssInline: fs.readFileSync('./src/index.css').toString()
       },
     }),
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',
+      openAnalyzer: false
+    })
   ],
   output: {
     filename: '[name].[contenthash].js',
