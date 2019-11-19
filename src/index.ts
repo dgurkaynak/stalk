@@ -36,16 +36,37 @@ async function main() {
       bottomSplitContainerHeightInPercentage
     ],
     minSize: [200, 0],
-    gutterSize: 2
+    gutterSize: 2,
+    onDrag: function() {
+      app && app.throttled.handleMainSplitDrag(mainSplit.getSizes());
+    },
+    onDragEnd: function(sizes: number[]) {
+      app && app.throttled.handleMainSplitDragEnd(sizes);
+    }
   });
   const bodySplit = Split([els.bodyLeft, els.bodyRight], {
     sizes: [0, 100],
     minSize: [0, 400],
-    gutterSize: 2
+    gutterSize: 2,
+    onDrag: function() {
+      app && app.throttled.handleBodySplitDrag(mainSplit.getSizes());
+    },
+    onDragEnd: function(sizes: number[]) {
+      app && app.throttled.handleBodySplitDragEnd(sizes);
+    }
   });
   const bottomSplit = Split(
     [els.bottomLeft, els.bottomCenter, els.bottomRight],
-    { sizes: [25, 25, 50], gutterSize: 2 }
+    {
+      sizes: [25, 25, 50],
+      gutterSize: 2,
+      onDrag: function() {
+        app && app.throttled.handleBottomSplitDrag(mainSplit.getSizes());
+      },
+      onDragEnd: function(sizes: number[]) {
+        app && app.throttled.handleBottomSplitDragEnd(sizes);
+      }
+    }
   );
 
   // Lazy-load app and init it

@@ -3,6 +3,8 @@ import './toolbar.css';
 
 export interface ToolbarOptions {
   element: HTMLDivElement;
+  onLeftPaneButtonClick: (isExpanded: boolean) => void;
+  onBottomPaneButtonClick: (isExpanded: boolean) => void;
 }
 
 export type ToolbarButtonType =
@@ -47,6 +49,14 @@ export class Toolbar {
     leftPaneToggle: TippyInstance;
     bottomPaneToggle: TippyInstance;
     settings: TippyInstance;
+  };
+
+  private isLeftPanelExpanded = false;
+  private isBottomPanelExpanded = true;
+
+  private binded = {
+    onLeftPaneToggleClick: this.onLeftPaneToggleClick.bind(this),
+    onBottomPaneToggleClick: this.onBottomPaneToggleClick.bind(this)
   };
 
   constructor(private options: ToolbarOptions) {
@@ -105,9 +115,22 @@ export class Toolbar {
   async init() {
     this.initTooltips();
     this.initTracesBadgeCount();
+
+    this.updateButtonSelection(
+      'leftPaneToggle',
+      this.isLeftPanelExpanded,
+      'svg-fill'
+    );
+    this.updateButtonSelection(
+      'bottomPaneToggle',
+      this.isBottomPanelExpanded,
+      'svg-fill'
+    );
+
+    this.bindEvents();
   }
 
-  initTooltips() {
+  private initTooltips() {
     const tooltips = {
       dataSources: tippy(this.elements.btn.dataSources, {
         content: 'Data Sources'
@@ -146,7 +169,7 @@ export class Toolbar {
     this.tooltips = { ...tooltips, singleton };
   }
 
-  initTracesBadgeCount() {
+  private initTracesBadgeCount() {
     const el = this.elements.tracesBadgeCount;
     el.classList.add('toolbar-traces-badge-count');
   }
@@ -175,11 +198,70 @@ export class Toolbar {
     isSelected ? el.classList.add(className) : el.classList.remove(className);
   }
 
+  private bindEvents() {
+    const { btn } = this.elements;
+    btn.leftPaneToggle.addEventListener(
+      'click',
+      this.binded.onLeftPaneToggleClick,
+      false
+    );
+    btn.bottomPaneToggle.addEventListener(
+      'click',
+      this.binded.onBottomPaneToggleClick,
+      false
+    );
+  }
+
+  private unbindEvents() {
+    const { btn } = this.elements;
+    btn.leftPaneToggle.removeEventListener(
+      'click',
+      this.binded.onLeftPaneToggleClick,
+      false
+    );
+    btn.bottomPaneToggle.removeEventListener(
+      'click',
+      this.binded.onBottomPaneToggleClick,
+      false
+    );
+  }
+
+  private onLeftPaneToggleClick(e: MouseEvent) {
+    this.isLeftPanelExpanded = !this.isLeftPanelExpanded;
+    this.updateButtonSelection(
+      'leftPaneToggle',
+      this.isLeftPanelExpanded,
+      'svg-fill'
+    );
+    this.options.onLeftPaneButtonClick(this.isLeftPanelExpanded);
+  }
+
+  private onBottomPaneToggleClick(e: MouseEvent) {
+    this.isBottomPanelExpanded = !this.isBottomPanelExpanded;
+    this.updateButtonSelection(
+      'bottomPaneToggle',
+      this.isBottomPanelExpanded,
+      'svg-fill'
+    );
+    this.options.onBottomPaneButtonClick(this.isBottomPanelExpanded);
+  }
+
+  updateLeftPaneExpansion(isExpanded: boolean) {
+    this.isLeftPanelExpanded = isExpanded;
+    this.updateButtonSelection('leftPaneToggle', isExpanded, 'svg-fill');
+  }
+
+  updateBottomPaneExpansion(isExpanded: boolean) {
+    this.isBottomPanelExpanded = isExpanded;
+    this.updateButtonSelection('bottomPaneToggle', isExpanded, 'svg-fill');
+  }
+
   dispose() {
     for (let tippyIns of Object.values(this.tooltips)) {
       tippyIns.destroy();
     }
     this.tooltips = null;
+    this.unbindEvents();
     this.elements = null;
     this.options = null;
   }
