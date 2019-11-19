@@ -3,7 +3,7 @@ import chroma from 'chroma-js';
 const WHITE = chroma('white');
 const BLACK = chroma('black');
 
-export function getContrastColor(hex: string) {
+export function textColorFor(hex: string) {
   const color = chroma(hex);
   const contrastWithWhite = chroma.contrast(color, WHITE);
   const contrastWithBlack = chroma.contrast(color, BLACK);

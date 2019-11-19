@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { Span, SpanLog } from '../../model/interfaces';
 import vc from './view-constants';
 import * as shortid from 'shortid';
-import { getContrastColor } from '../ui/color-helper';
+import { textColorFor } from '../ui/color-helper';
 import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
 import Axis from './axis';
 import chroma from 'chroma-js';
@@ -91,7 +91,7 @@ export default class SpanView {
     const baseColor = this.sharedOptions.colorFor(span);
     this.viewPropertiesCache.barColorDefault = chroma(baseColor).alpha(0.75).css();
     this.viewPropertiesCache.barColorHover = chroma(baseColor).alpha(1.0).css();
-    const textColor = getContrastColor(this.viewPropertiesCache.barColorDefault);
+    const textColor = textColorFor(this.viewPropertiesCache.barColorDefault);
     this.viewPropertiesCache.labelColor = textColor;
     this.viewPropertiesCache.borderColor = chroma(baseColor).darken(1).alpha(1.0).css();
 
@@ -200,7 +200,7 @@ export default class SpanView {
     const baseColor = this.sharedOptions.colorFor(this.span);
     this.viewPropertiesCache.barColorDefault = chroma(baseColor).alpha(0.8).css();
     this.viewPropertiesCache.barColorHover = chroma(baseColor).alpha(1.0).css();
-    const textColor = getContrastColor(this.viewPropertiesCache.barColorDefault);
+    const textColor = textColorFor(this.viewPropertiesCache.barColorDefault);
     this.viewPropertiesCache.labelColor = textColor;
     this.viewPropertiesCache.borderColor = chroma(baseColor).darken(1).alpha(1.0).css();
 
