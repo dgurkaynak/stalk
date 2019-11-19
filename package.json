@@ -13,6 +13,7 @@
     "start": "cross-env BROWSER=none nf start"
   },
   "devDependencies": {
+    "@mdi/svg": "^4.5.95",
     "@types/chroma-js": "^1.4.3",
     "@types/d3": "^5.7.2",
     "@types/jest": "24.0.18",
@@ -34,6 +35,7 @@
     "foreman": "^3.0.1",
     "google-palette": "^1.1.0",
     "hard-source-webpack-plugin": "^0.13.1",
+    "html-webpack-inline-svg-plugin": "^1.2.4",
     "html-webpack-plugin": "^3.2.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",

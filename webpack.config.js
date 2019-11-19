@@ -5,6 +5,7 @@ const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const HtmlWebpackInlineSVGPlugin = require('html-webpack-inline-svg-plugin');
 const uglifycss = require('uglifycss');
 
 
@@ -57,6 +58,7 @@ module.exports = {
         indexCssInline: uglifycss.processString(fs.readFileSync('./src/index.css').toString(), {})
       },
     }),
+    new HtmlWebpackInlineSVGPlugin(),
     new BundleAnalyzerPlugin({
       analyzerMode: 'static',
       openAnalyzer: false
