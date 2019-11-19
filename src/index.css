@@ -3,8 +3,12 @@
  * This file will be inlided to index.html by webpack (checkout webpack.config.js).
  */
 
-body {
+html, body {
   margin: 0;
+  height: 100%;
+  width: 100%;
+  background: #e5e5e5;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   font-size: 12px;
   -webkit-font-smoothing: antialiased;
@@ -21,4 +25,45 @@ body {
 }
 input, button, textarea, :focus {
   outline: none;
+}
+
+/* Split.js styles */
+.split {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.gutter.gutter-horizontal {
+  cursor: col-resize;
+  background: linear-gradient(#d0d0d0, #d0d0d0) no-repeat center/1px 100%;
+}
+.gutter.gutter-vertical {
+  cursor: row-resize;
+  background: linear-gradient(#d0d0d0, #d0d0d0) no-repeat center/100% 1px;
+}
+
+/* Main app layout */
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+#toolbar {
+  height: 3.5em;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+}
+
+#main-split-container {
+  height: calc(100% - 3.5em);
+}
+
+#body-split-container {
+  display: flex;
+}
+
+#bottom-split-container {
+  display: flex;
 }
