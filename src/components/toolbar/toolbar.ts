@@ -1,6 +1,10 @@
 import tippy, { createSingleton, Instance as TippyInstance } from 'tippy.js';
 import { ToolbarMenu, ToolbarMenuItemOptions } from './menu';
 import { ToolbarMenuList } from './menu-list';
+import {
+  DataSourceManager,
+  DataSourceManagerEvent
+} from '../../model/datasource/manager';
 import PlusSvgText from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import './toolbar.css';
 
@@ -71,39 +75,17 @@ export class Toolbar {
     onGroupingModeMenuItemClick: this.onGroupingModeMenuItemClick.bind(this),
     onSpanLabellingMenuItemClick: this.onSpanLabellingMenuItemClick.bind(this),
     onSpanColoringMenuItemClick: this.onSpanColoringMenuItemClick.bind(this),
-    onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this)
+    onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this),
+    onDataSourceManagerUpdate: this.onDataSourceManagerUpdate.bind(this)
   };
 
+  private dsManager = DataSourceManager.getSingleton();
   private dataSourceMenuListHeaderEl = document.createElement('div');
   private dataSourcesMenuList = new ToolbarMenuList({
     headerEl: this.dataSourceMenuListHeaderEl,
-    items: [
-      {
-        text: 'Deneme 1',
-        buttons: [
-          { id: 'search', icon: 'magnify' },
-          { id: 'edit', icon: 'pencil' },
-          { id: 'delete', icon: 'delete' }
-        ]
-      },
-      {
-        text: 'Deneme Falan filan',
-        buttons: [
-          { id: 'search', icon: 'magnify' },
-          { id: 'edit', icon: 'pencil' },
-          { id: 'delete', icon: 'delete' }
-        ]
-      },
-      {
-        text: 'Yurru be',
-        buttons: [
-          { id: 'search', icon: 'magnify' },
-          { id: 'edit', icon: 'pencil' },
-          { id: 'delete', icon: 'delete' }
-        ]
-      }
-    ],
-    onButtonClick: (buttonId, index) => console.log('onButtonClick', { buttonId, index })
+    items: [],
+    onButtonClick: (buttonId, index) =>
+      console.log('onButtonClick', { buttonId, index })
   });
 
   private groupingModeMenu = new ToolbarMenu({
@@ -235,7 +217,9 @@ export class Toolbar {
     );
 
     // Prepare dataSource menu list header
-    this.dataSourceMenuListHeaderEl.classList.add('toolbar-data-sources-menu-header');
+    this.dataSourceMenuListHeaderEl.classList.add(
+      'toolbar-data-sources-menu-header'
+    );
 
     const dsHeaderText = document.createElement('span');
     dsHeaderText.textContent = 'Data Sources';
@@ -245,8 +229,25 @@ export class Toolbar {
     newDsButton.innerHTML = PlusSvgText;
     this.dataSourceMenuListHeaderEl.appendChild(newDsButton);
 
+    // Prepare datasource lists
+    this.updateDataSourceList();
+
     // Bind events
     this.bindEvents();
+  }
+
+  private updateDataSourceList() {
+    this.dataSourcesMenuList.removeAllItems();
+    this.dsManager.getAll().forEach(ds => {
+      this.dataSourcesMenuList.addItem({
+        text: ds.name,
+        buttons: [
+          { id: 'search', icon: 'magnify' },
+          { id: 'edit', icon: 'pencil' },
+          { id: 'delete', icon: 'delete' }
+        ]
+      });
+    });
   }
 
   private initTooltips() {
@@ -406,6 +407,10 @@ export class Toolbar {
       this.binded.onBottomPaneToggleClick,
       false
     );
+    this.dsManager.on(
+      DataSourceManagerEvent.UPDATED,
+      this.binded.onDataSourceManagerUpdate
+    );
   }
 
   private unbindEvents() {
@@ -420,6 +425,13 @@ export class Toolbar {
       this.binded.onBottomPaneToggleClick,
       false
     );
+    this.dsManager.removeListener(DataSourceManagerEvent.UPDATED, [
+      this.binded.onDataSourceManagerUpdate
+    ] as any);
+  }
+
+  private onDataSourceManagerUpdate() {
+    this.updateDataSourceList();
   }
 
   private onGroupingModeMenuItemClick(

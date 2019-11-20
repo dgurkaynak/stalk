@@ -86,9 +86,9 @@ export class App {
       DataSourceManager.getSingleton().init(),
       SpanGroupingManager.getSingleton().init(),
       SpanColoringManager.getSingleton().init(),
-      SpanLabellingManager.getSingleton().init(),
-      this.toolbar.init(),
+      SpanLabellingManager.getSingleton().init()
     ]);
+    await this.toolbar.init(); // Needs dsManager
   }
 
   dispose() {
