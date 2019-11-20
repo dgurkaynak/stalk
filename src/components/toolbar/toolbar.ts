@@ -286,7 +286,8 @@ export class Toolbar {
 
     const singleton = createSingleton(Object.values(tooltips), {
       delay: 1000,
-      updateDuration: 500,
+      duration: 0,
+      updateDuration: 0,
       theme: 'toolbar-tooltip'
     });
 
@@ -300,7 +301,8 @@ export class Toolbar {
         multiple: true,
         appendTo: document.body,
         placement: 'bottom',
-        updateDuration: 500,
+        duration: 0,
+        updateDuration: 0,
         theme: 'toolbar-menu-list',
         trigger: 'click',
         interactive: true
@@ -310,7 +312,8 @@ export class Toolbar {
         multiple: true,
         appendTo: document.body,
         placement: 'bottom',
-        updateDuration: 500,
+        duration: 0,
+        updateDuration: 0,
         theme: 'toolbar-menu',
         trigger: 'click',
         interactive: true
@@ -320,7 +323,8 @@ export class Toolbar {
         multiple: true,
         appendTo: document.body,
         placement: 'bottom',
-        updateDuration: 500,
+        duration: 0,
+        updateDuration: 0,
         theme: 'toolbar-menu',
         trigger: 'click',
         interactive: true
@@ -330,7 +334,8 @@ export class Toolbar {
         multiple: true,
         appendTo: document.body,
         placement: 'bottom',
-        updateDuration: 500,
+        duration: 0,
+        updateDuration: 0,
         theme: 'toolbar-menu',
         trigger: 'click',
         interactive: true
@@ -340,7 +345,8 @@ export class Toolbar {
         multiple: true,
         appendTo: document.body,
         placement: 'bottom',
-        updateDuration: 500,
+        duration: 0,
+        updateDuration: 0,
         theme: 'toolbar-menu',
         trigger: 'click',
         interactive: true
@@ -350,7 +356,8 @@ export class Toolbar {
         multiple: true,
         appendTo: document.body,
         placement: 'bottom',
-        updateDuration: 500,
+        duration: 0,
+        updateDuration: 0,
         theme: 'toolbar-menu',
         trigger: 'click',
         interactive: true
