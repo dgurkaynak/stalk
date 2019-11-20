@@ -23,7 +23,7 @@ export type ToolbarMenuItemType = 'item' | 'divider';
 export interface ToolbarMenuItem {
   options: ToolbarMenuItemOptions;
   element: HTMLDivElement;
-  onClickHandler?: (item: ToolbarMenuItem) => void;
+  onClickHandler?: (e: MouseEvent) => void;
 }
 
 export class ToolbarMenu {

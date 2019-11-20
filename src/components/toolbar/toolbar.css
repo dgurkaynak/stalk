@@ -17,3 +17,23 @@
   position: absolute;
   padding: 0 0.5em;
 }
+
+.toolbar-data-sources-menu-header {
+  display: flex;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 0.25em;
+  justify-content: space-between;
+  padding: 0.45em 0.75em 0.15em 0.75em;
+  align-items: center;
+}
+.toolbar-data-sources-menu-header span {
+ font-size: 0.75em;
+ text-transform: uppercase;
+ color: rgba(0, 0, 0, 0.5);
+}
+.toolbar-data-sources-menu-header svg {
+  cursor: pointer;
+}
+.toolbar-data-sources-menu-header svg:hover {
+  fill: #2B97EF;
+}

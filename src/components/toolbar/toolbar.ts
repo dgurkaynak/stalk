@@ -1,5 +1,7 @@
 import tippy, { createSingleton, Instance as TippyInstance } from 'tippy.js';
 import { ToolbarMenu, ToolbarMenuItemOptions } from './menu';
+import { ToolbarMenuList } from './menu-list';
+import PlusSvgText from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import './toolbar.css';
 
 export interface ToolbarOptions {
@@ -52,6 +54,7 @@ export class Toolbar {
     settings: TippyInstance;
   };
   private dropdowns: {
+    dataSources: TippyInstance;
     traces: TippyInstance;
     groupLayoutMode: TippyInstance;
     groupingMode: TippyInstance;
@@ -71,6 +74,38 @@ export class Toolbar {
     onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this)
   };
 
+  private dataSourceMenuListHeaderEl = document.createElement('div');
+  private dataSourcesMenuList = new ToolbarMenuList({
+    headerEl: this.dataSourceMenuListHeaderEl,
+    items: [
+      {
+        text: 'Deneme 1',
+        buttons: [
+          { id: 'search', icon: 'magnify' },
+          { id: 'edit', icon: 'pencil' },
+          { id: 'delete', icon: 'delete' }
+        ]
+      },
+      {
+        text: 'Deneme Falan filan',
+        buttons: [
+          { id: 'search', icon: 'magnify' },
+          { id: 'edit', icon: 'pencil' },
+          { id: 'delete', icon: 'delete' }
+        ]
+      },
+      {
+        text: 'Yurru be',
+        buttons: [
+          { id: 'search', icon: 'magnify' },
+          { id: 'edit', icon: 'pencil' },
+          { id: 'delete', icon: 'delete' }
+        ]
+      }
+    ],
+    onButtonClick: (buttonId, index) => console.log('onButtonClick', { buttonId, index })
+  });
+
   private groupingModeMenu = new ToolbarMenu({
     // width: 150,
     items: [
@@ -79,7 +114,12 @@ export class Toolbar {
       { type: 'item', text: 'Service' },
       { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags' },
-      { type: 'item', text: 'Manage All', icon: 'settings-outline', disabled: true }
+      {
+        type: 'item',
+        text: 'Manage All',
+        icon: 'settings-outline',
+        disabled: true
+      }
     ],
     onClick: this.binded.onGroupingModeMenuItemClick
   });
@@ -90,7 +130,12 @@ export class Toolbar {
       { type: 'item', text: 'Service + Operation' },
       { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags' },
-      { type: 'item', text: 'Manage All', icon: 'settings-outline', disabled: true }
+      {
+        type: 'item',
+        text: 'Manage All',
+        icon: 'settings-outline',
+        disabled: true
+      }
     ],
     onClick: this.binded.onSpanLabellingMenuItemClick
   });
@@ -101,7 +146,12 @@ export class Toolbar {
       { type: 'item', text: 'Service' },
       { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags' },
-      { type: 'item', text: 'Manage All', icon: 'settings-outline', disabled: true }
+      {
+        type: 'item',
+        text: 'Manage All',
+        icon: 'settings-outline',
+        disabled: true
+      }
     ],
     onClick: this.binded.onSpanColoringMenuItemClick
   });
@@ -184,6 +234,18 @@ export class Toolbar {
       'svg-fill'
     );
 
+    // Prepare dataSource menu list header
+    this.dataSourceMenuListHeaderEl.classList.add('toolbar-data-sources-menu-header');
+
+    const dsHeaderText = document.createElement('span');
+    dsHeaderText.textContent = 'Data Sources';
+    this.dataSourceMenuListHeaderEl.appendChild(dsHeaderText);
+
+    const newDsButton = document.createElement('div');
+    newDsButton.innerHTML = PlusSvgText;
+    this.dataSourceMenuListHeaderEl.appendChild(newDsButton);
+
+    // Bind events
     this.bindEvents();
   }
 
@@ -233,6 +295,16 @@ export class Toolbar {
 
   private initDropdowns() {
     this.dropdowns = {
+      dataSources: tippy(this.elements.btn.dataSources, {
+        content: this.dataSourcesMenuList.element,
+        multiple: true,
+        appendTo: document.body,
+        placement: 'bottom',
+        updateDuration: 500,
+        theme: 'toolbar-menu-list',
+        trigger: 'click',
+        interactive: true
+      }),
       traces: tippy(this.elements.btn.traces, {
         content: 'Traces',
         multiple: true,
