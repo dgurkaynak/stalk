@@ -1,14 +1,15 @@
-import * as _ from 'lodash';
+import find from 'lodash/find';
+import remove from 'lodash/remove';
+import isObject from 'lodash/isObject';
 import EventEmitterExtra from 'event-emitter-extra';
 import MPN65ColorAssigner from '../components/ui/color-assigner/mpn65';
 import { Span } from './interfaces';
 import db from './db';
 import TypeScriptManager from './../components/customization/typescript-manager';
 
-
 export enum SpanColoringManagerEvent {
   ADDED = 'scm_added',
-  REMOVED = 'scm_removed',
+  REMOVED = 'scm_removed'
 }
 
 export interface SpanColoringRawOptions {
@@ -21,13 +22,16 @@ export interface SpanColoringRawOptions {
 export interface SpanColoringOptions {
   key: string;
   name: string;
-  colorBy: (span: Span) => string
+  colorBy: (span: Span) => string;
 }
 
 let singletonIns: SpanColoringManager;
 
-export default class SpanColoringManager extends EventEmitterExtra {
-  private builtInOptions: SpanColoringOptions[] = [operationColoringOptions, serviceColoringOptions];
+export class SpanColoringManager extends EventEmitterExtra {
+  private builtInOptions: SpanColoringOptions[] = [
+    operationColoringOptions,
+    serviceColoringOptions
+  ];
   private customOptions: SpanColoringOptions[] = [];
 
   static getSingleton(): SpanColoringManager {
@@ -42,8 +46,8 @@ export default class SpanColoringManager extends EventEmitterExtra {
   }
 
   async add(raw: SpanColoringRawOptions, doNotPersistToDatabase = false) {
-    const allOptions = [ ...this.builtInOptions, ...this.customOptions ];
-    const keyMatch = _.find(allOptions, c => c.key === options.key);
+    const allOptions = [...this.builtInOptions, ...this.customOptions];
+    const keyMatch = find(allOptions, c => c.key === options.key);
     if (keyMatch) return false;
 
     const options: SpanColoringOptions = {
@@ -60,7 +64,7 @@ export default class SpanColoringManager extends EventEmitterExtra {
   }
 
   async remove(coloringKey: string) {
-    const removeds = _.remove(this.customOptions, c => c.key === coloringKey);
+    const removeds = remove(this.customOptions, c => c.key === coloringKey);
     if (removeds.length === 0) return false;
     await db.spanColorings.delete(coloringKey);
     this.emit(SpanColoringManagerEvent.REMOVED, removeds);
@@ -68,8 +72,8 @@ export default class SpanColoringManager extends EventEmitterExtra {
   }
 
   getOptions(coloringKey: string) {
-    const allOptions = [ ...this.builtInOptions, ...this.customOptions ];
-    return _.find(allOptions, c => c.key === coloringKey);
+    const allOptions = [...this.builtInOptions, ...this.customOptions];
+    return find(allOptions, c => c.key === coloringKey);
   }
 }
 
@@ -84,17 +88,17 @@ export const serviceColorAssigner = new MPN65ColorAssigner();
 export const serviceColoringOptions: SpanColoringOptions = {
   key: 'service',
   name: 'Service',
-  colorBy: (span) => {
+  colorBy: span => {
     let serviceName = '';
 
     // Jaeger
-    if (_.isObject(span.process) && span.process.serviceName) {
+    if (isObject(span.process) && span.process.serviceName) {
       serviceName = span.process.serviceName;
-    } else if (_.isObject(span.localEndpoint) && span.localEndpoint.serviceName) { // Zipkin
+    } else if (isObject(span.localEndpoint) && span.localEndpoint.serviceName) {
+      // Zipkin
       serviceName = span.localEndpoint.serviceName;
     }
 
     return serviceColorAssigner.colorFor(serviceName);
   }
 };
-

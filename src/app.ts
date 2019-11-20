@@ -1,6 +1,10 @@
 import Split from 'split.js';
 import { Toolbar } from './components/toolbar/toolbar';
 import throttle from 'lodash/throttle';
+import { DataSourceManager } from './model/datasource/manager';
+import { SpanGroupingManager } from './model/span-grouping/manager';
+import { SpanColoringManager } from './model/span-coloring-manager';
+import { SpanLabellingManager } from './model/span-labelling-manager';
 import 'tippy.js/dist/tippy.css';
 
 export interface AppOptions {
@@ -78,7 +82,13 @@ export class App {
   }
 
   async init() {
-    await this.toolbar.init();
+    await Promise.all([
+      DataSourceManager.getSingleton().init(),
+      SpanGroupingManager.getSingleton().init(),
+      SpanColoringManager.getSingleton().init(),
+      SpanLabellingManager.getSingleton().init(),
+      this.toolbar.init(),
+    ]);
   }
 
   dispose() {

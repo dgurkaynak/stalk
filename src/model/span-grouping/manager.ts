@@ -1,4 +1,5 @@
-import * as _ from 'lodash';
+import find from 'lodash/find';
+import remove from 'lodash/remove';
 import EventEmitterExtra from 'event-emitter-extra';
 import { SpanGroupingOptions, SpanGroupingRawOptions } from './span-grouping';
 import TraceGrouping from './trace';
@@ -7,16 +8,19 @@ import ServiceNameGrouping from './service-name';
 import db from '../db';
 import TypeScriptManager from '../../components/customization/typescript-manager';
 
-
 export enum SpanGroupingManagerEvent {
   ADDED = 'sgm_added',
-  REMOVED = 'sgm_removed',
+  REMOVED = 'sgm_removed'
 }
 
 let singletonIns: SpanGroupingManager;
 
-export default class SpanGroupingManager extends EventEmitterExtra {
-  private builtInSpanGroupings: SpanGroupingOptions[] = [ TraceGrouping, ProcessGrouping, ServiceNameGrouping ];
+export class SpanGroupingManager extends EventEmitterExtra {
+  private builtInSpanGroupings: SpanGroupingOptions[] = [
+    TraceGrouping,
+    ProcessGrouping,
+    ServiceNameGrouping
+  ];
   private customSpanGroupings: SpanGroupingOptions[] = [];
 
   static getSingleton(): SpanGroupingManager {
@@ -31,8 +35,11 @@ export default class SpanGroupingManager extends EventEmitterExtra {
   }
 
   async add(raw: SpanGroupingRawOptions, doNotPersistToDatabase = false) {
-    const allGroupingClasses = [ ...this.builtInSpanGroupings, ...this.customSpanGroupings ];
-    const keyMatch = _.find(allGroupingClasses, c => c.key === options.key);
+    const allGroupingClasses = [
+      ...this.builtInSpanGroupings,
+      ...this.customSpanGroupings
+    ];
+    const keyMatch = find(allGroupingClasses, c => c.key === options.key);
     if (keyMatch) return false;
 
     const options: SpanGroupingOptions = {
@@ -49,7 +56,10 @@ export default class SpanGroupingManager extends EventEmitterExtra {
   }
 
   async remove(groupingKey: string) {
-    const removeds = _.remove(this.customSpanGroupings, c => c.key === groupingKey);
+    const removeds = remove(
+      this.customSpanGroupings,
+      c => c.key === groupingKey
+    );
     if (removeds.length === 0) return false;
     await db.spanGroupings.delete(groupingKey);
     this.emit(SpanGroupingManagerEvent.REMOVED, removeds);
@@ -57,7 +67,10 @@ export default class SpanGroupingManager extends EventEmitterExtra {
   }
 
   getOptions(groupingKey: string) {
-    const allGroupingClasses = [ ...this.builtInSpanGroupings, ...this.customSpanGroupings ];
-    return _.find(allGroupingClasses, c => c.key === groupingKey);
+    const allGroupingClasses = [
+      ...this.builtInSpanGroupings,
+      ...this.customSpanGroupings
+    ];
+    return find(allGroupingClasses, c => c.key === groupingKey);
   }
 }
