@@ -6,7 +6,7 @@ import {
   DataSourceManagerEvent
 } from '../../model/datasource/manager';
 import { DataSourceType } from '../../model/datasource/interfaces';
-import { Stage } from '../../model/stage';
+import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
 import processGroupingOptions from '../../model/span-grouping/process';
 import traceGroupingOptions from '../../model/span-grouping/trace';
@@ -98,16 +98,24 @@ export class Toolbar {
     onDataSourceManagerUpdate: this.onDataSourceManagerUpdate.bind(this),
     onDataSourceMenuListButtonClick: this.onDataSourceMenuListButtonClick.bind(
       this
-    )
+    ),
+    onStageTraceAdded: this.onStageTraceAdded.bind(this),
+    onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
+    onTracesMenuListButtonClick: this.onTracesMenuListButtonClick.bind(this),
   };
 
   private stage = Stage.getSingleton();
   private dsManager = DataSourceManager.getSingleton();
+
   private dataSourceMenuListHeaderEl = document.createElement('div');
   private dataSourcesMenuList = new ToolbarMenuList({
     headerEl: this.dataSourceMenuListHeaderEl,
     items: [],
     onButtonClick: this.binded.onDataSourceMenuListButtonClick
+  });
+  private tracesMenuList = new ToolbarMenuList({
+    items: [],
+    onButtonClick: this.binded.onTracesMenuListButtonClick
   });
 
   private groupingModeMenu = new ToolbarMenu({
@@ -320,13 +328,13 @@ export class Toolbar {
         interactive: true
       }),
       traces: tippy(this.elements.btn.traces, {
-        content: 'Traces',
+        content: this.tracesMenuList.element,
         multiple: true,
         appendTo: document.body,
         placement: 'bottom',
         duration: 0,
         updateDuration: 0,
-        theme: 'toolbar-menu',
+        theme: 'toolbar-menu-list',
         trigger: 'click',
         interactive: true
       }),
@@ -402,6 +410,16 @@ export class Toolbar {
                 { id: 'add-to-stage', icon: 'plus' },
                 { id: 'delete', icon: 'delete' }
               ]
+      });
+    });
+  }
+
+  private updateTracesList() {
+    this.tracesMenuList.removeAllItems();
+    this.stage.getAll().forEach(trace => {
+      this.tracesMenuList.addItem({
+        text: trace.name,
+        buttons: [ { id: 'remove', icon: 'close' } ]
       });
     });
   }
@@ -516,6 +534,8 @@ export class Toolbar {
       DataSourceManagerEvent.UPDATED,
       this.binded.onDataSourceManagerUpdate
     );
+    this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
+    this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
   }
 
   private unbindEvents() {
@@ -533,6 +553,8 @@ export class Toolbar {
     this.dsManager.removeListener(DataSourceManagerEvent.UPDATED, [
       this.binded.onDataSourceManagerUpdate
     ] as any);
+    this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
+    this.stage.removeListener(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
   }
 
   private async onDataSourceMenuListButtonClick(
@@ -564,6 +586,24 @@ export class Toolbar {
 
   private onDataSourceManagerUpdate() {
     this.updateDataSourceList();
+  }
+
+  private onStageTraceAdded(trace: Trace) {
+    this.updateTracesList();
+  }
+
+  private onStageTraceRemoved(trace: Trace) {
+    this.updateTracesList();
+  }
+
+  private onTracesMenuListButtonClick(
+    item: ToolbarMenuItemOptions,
+    index: number
+  ) {
+    const trace = this.stage.getAll()[index];
+    if (!trace) return;
+    this.stage.remove(trace.id);
+    this.dropdowns.traces.hide();
   }
 
   private onGroupingModeMenuItemClick(

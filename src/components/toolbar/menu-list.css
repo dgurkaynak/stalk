@@ -33,20 +33,23 @@
 }
 /* Really-custom ones */
 .tippy-tooltip.toolbar-menu-list-theme > .tippy-content > div {
-  padding: 0 0 0.6em 0;
+  padding: 0 0 0.3em 0;
 }
 .tippy-tooltip.toolbar-menu-list-theme > .tippy-content > div > .toolbar-menu-list-item {
   font-size: 1em;
   line-height: 2em;
-  padding: 0 0.75em;
+  padding: 0.25em 0.75em 0 0.75em;
   display: flex;
   align-items: center;
 }
 .tippy-tooltip.toolbar-menu-list-theme .toolbar-menu-list-item .text {
   flex-grow: 1;
+  /* Prevent line-break and hide text overflow */
+  overflow: hidden;
+  white-space: nowrap;
 }
 .tippy-tooltip.toolbar-menu-list-theme .toolbar-menu-list-item > div {
-  padding-left: 5em;
+  padding-left: 1em;
   display: inline-flex;
 }
 .tippy-tooltip.toolbar-menu-list-theme .toolbar-menu-list-item .button {
