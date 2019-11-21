@@ -1,8 +1,8 @@
-import * as _ from 'lodash';
+import values from 'lodash/values';
+import isArray from 'lodash/isArray';
 import { Span } from '../interfaces';
 import { Trace } from '../trace';
 import { SpanGroup } from '../span-group/span-group';
-
 
 export interface SpanGroupingRawOptions {
   key: string;
@@ -14,7 +14,7 @@ export interface SpanGroupingRawOptions {
 export interface SpanGroupingOptions {
   key: string; // grouping unique key, like `trace`
   name: string; // human readable name, `Trace`
-  groupBy: (span: Span, trace: Trace) => [ string, string ]; // [ group id, human readable group name ]
+  groupBy: (span: Span, trace: Trace) => [string, string]; // [ group id, human readable group name ]
 }
 
 export class SpanGrouping {
@@ -29,12 +29,15 @@ export class SpanGrouping {
     if (this.spanIdToGroupId[span.id]) return;
 
     const result = this.options.groupBy(span, trace);
-    if (!_.isArray(result) || result.length !== 2) {
-      throw new Error('Group function must return array with 2 strings: [ groupId, groupName ]');
+    if (!isArray(result) || result.length !== 2) {
+      throw new Error(
+        'Group function must return array with 2 strings: [ groupId, groupName ]'
+      );
     }
 
-    const [ groupId, groupName ] = result;
-    if (!this.groups[groupId]) this.groups[groupId] = new SpanGroup(groupId, groupName);
+    const [groupId, groupName] = result;
+    if (!this.groups[groupId])
+      this.groups[groupId] = new SpanGroup(groupId, groupName);
     const group = this.groups[groupId];
     group.add(span);
     this.spanIdToGroupId[span.id] = groupId;
@@ -51,7 +54,7 @@ export class SpanGrouping {
   }
 
   getAllGroups() {
-    return _.values(this.groups);
+    return values(this.groups);
   }
 
   getGroupById(id: string) {

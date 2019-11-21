@@ -8,6 +8,18 @@ import {
 import { DataSourceType } from '../../model/datasource/interfaces';
 import { Stage } from '../../model/stage';
 import { Trace } from '../../model/trace';
+import processGroupingOptions from '../../model/span-grouping/process';
+import traceGroupingOptions from '../../model/span-grouping/trace';
+import serviceNameGroupingOptions from '../../model/span-grouping/service-name';
+import {
+  operationColoringOptions,
+  serviceColoringOptions
+} from '../../model/span-coloring-manager';
+import {
+  operationLabellingOptions,
+  serviceOperationLabellingOptions
+} from '../../model/span-labelling-manager';
+import { GroupLayoutType } from '../timeline/group-view';
 import PlusSvgText from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import './toolbar.css';
 
@@ -71,6 +83,10 @@ export class Toolbar {
 
   private isLeftPanelExpanded = false;
   private isBottomPanelExpanded = true;
+  private groupLayoutMode = GroupLayoutType.FILL;
+  private groupingMode = processGroupingOptions.key; // Do not forget to change default value of TimelineView
+  private spanLabellingMode = operationLabellingOptions.key; // Do not forget to change default value of TimelineView
+  private spanColoringMode = operationColoringOptions.key; // Do not forget to change default value of TimelineView
 
   private binded = {
     onLeftPaneToggleClick: this.onLeftPaneToggleClick.bind(this),
@@ -238,6 +254,9 @@ export class Toolbar {
     // Prepare datasource lists
     this.updateDataSourceList();
 
+    // Select default menu items
+    this.updateViewModeMenuSelectedItems();
+
     // Bind events
     this.bindEvents();
   }
@@ -385,6 +404,62 @@ export class Toolbar {
               ]
       });
     });
+  }
+
+  private updateViewModeMenuSelectedItems() {
+    switch (this.groupingMode) {
+      case traceGroupingOptions.key:
+        this.groupingModeMenu.selectAt(0);
+        break;
+      case processGroupingOptions.key:
+        this.groupingModeMenu.selectAt(1);
+        break;
+      case serviceNameGroupingOptions.key:
+        this.groupingModeMenu.selectAt(2);
+        break;
+      default:
+        this.groupingModeMenu.selectAt(4); // Custom
+        break;
+    }
+
+    switch (this.spanLabellingMode) {
+      case operationLabellingOptions.key:
+        this.spanLabellingMenu.selectAt(0);
+        break;
+      case serviceOperationLabellingOptions.key:
+        this.spanLabellingMenu.selectAt(1);
+        break;
+      default:
+        this.spanLabellingMenu.selectAt(3); // Custom
+        break;
+    }
+
+    switch (this.spanColoringMode) {
+      case operationColoringOptions.key:
+        this.spanColoringMenu.selectAt(0);
+        break;
+      case serviceColoringOptions.key:
+        this.spanColoringMenu.selectAt(1);
+        break;
+      default:
+        this.spanColoringMenu.selectAt(3); // Custom
+        break;
+    }
+
+    switch (this.groupLayoutMode) {
+      case GroupLayoutType.FILL:
+        this.groupLayoutModeMenu.selectAt(0);
+        break;
+      case GroupLayoutType.COMPACT:
+        this.groupLayoutModeMenu.selectAt(1);
+        break;
+      case GroupLayoutType.WATERFALL:
+        this.groupLayoutModeMenu.selectAt(2);
+        break;
+      default:
+        console.error(`Unknown group layout mode: "${this.groupLayoutMode}"`);
+        break;
+    }
   }
 
   updateTracesBadgeCount(count: number) {

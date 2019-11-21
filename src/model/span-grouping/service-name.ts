@@ -9,7 +9,6 @@ export default <SpanGroupingOptions>{
     let serviceName = 'unknown';
     if (span.process) serviceName = span.process.serviceName;
     if (span.localEndpoint) serviceName = span.localEndpoint.serviceName;
-    return [ serviceName, serviceName ];
+    return [serviceName, serviceName];
   }
 };
-
