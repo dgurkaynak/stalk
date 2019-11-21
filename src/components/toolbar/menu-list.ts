@@ -3,6 +3,7 @@ import MagnifySvgText from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import PencilSvgText from '!!raw-loader!@mdi/svg/svg/pencil.svg';
 import DeleteSvgText from '!!raw-loader!@mdi/svg/svg/delete.svg';
 import CloseSvgText from '!!raw-loader!@mdi/svg/svg/close.svg';
+import PlusSvgText from '!!raw-loader!@mdi/svg/svg/plus.svg';
 
 export interface ToolbarMenuListOptions {
   width?: number;
@@ -16,7 +17,7 @@ export interface ToolbarMenuListItemOptions {
   className?: string;
   buttons?: {
     id: string;
-    icon: 'magnify' | 'pencil' | 'delete' | 'close';
+    icon: 'magnify' | 'pencil' | 'delete' | 'close' | 'plus';
   }[];
 }
 
@@ -67,7 +68,8 @@ export class ToolbarMenuList {
         magnify: MagnifySvgText,
         pencil: PencilSvgText,
         delete: DeleteSvgText,
-        close: CloseSvgText
+        close: CloseSvgText,
+        plus: PlusSvgText
       }[button.icon];
       buttonEl.setAttribute('data-menu-list-button-id', button.id);
       buttonsContainer.appendChild(buttonEl);

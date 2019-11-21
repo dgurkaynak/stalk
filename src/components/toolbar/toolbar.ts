@@ -5,6 +5,9 @@ import {
   DataSourceManager,
   DataSourceManagerEvent
 } from '../../model/datasource/manager';
+import { DataSourceType } from '../../model/datasource/interfaces';
+import { Stage } from '../../model/stage';
+import { Trace } from '../../model/trace';
 import PlusSvgText from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import './toolbar.css';
 
@@ -76,16 +79,19 @@ export class Toolbar {
     onSpanLabellingMenuItemClick: this.onSpanLabellingMenuItemClick.bind(this),
     onSpanColoringMenuItemClick: this.onSpanColoringMenuItemClick.bind(this),
     onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this),
-    onDataSourceManagerUpdate: this.onDataSourceManagerUpdate.bind(this)
+    onDataSourceManagerUpdate: this.onDataSourceManagerUpdate.bind(this),
+    onDataSourceMenuListButtonClick: this.onDataSourceMenuListButtonClick.bind(
+      this
+    )
   };
 
+  private stage = Stage.getSingleton();
   private dsManager = DataSourceManager.getSingleton();
   private dataSourceMenuListHeaderEl = document.createElement('div');
   private dataSourcesMenuList = new ToolbarMenuList({
     headerEl: this.dataSourceMenuListHeaderEl,
     items: [],
-    onButtonClick: (buttonId, index) =>
-      console.log('onButtonClick', { buttonId, index })
+    onButtonClick: this.binded.onDataSourceMenuListButtonClick
   });
 
   private groupingModeMenu = new ToolbarMenu({
@@ -236,20 +242,6 @@ export class Toolbar {
     this.bindEvents();
   }
 
-  private updateDataSourceList() {
-    this.dataSourcesMenuList.removeAllItems();
-    this.dsManager.getAll().forEach(ds => {
-      this.dataSourcesMenuList.addItem({
-        text: ds.name,
-        buttons: [
-          { id: 'search', icon: 'magnify' },
-          { id: 'edit', icon: 'pencil' },
-          { id: 'delete', icon: 'delete' }
-        ]
-      });
-    });
-  }
-
   private initTooltips() {
     const tooltips = {
       dataSources: tippy(this.elements.btn.dataSources, {
@@ -371,6 +363,30 @@ export class Toolbar {
     el.classList.add('toolbar-traces-badge-count');
   }
 
+  //////////////////////////////////////
+  //////////// VIEW UPDATES ////////////
+  //////////////////////////////////////
+
+  private updateDataSourceList() {
+    this.dataSourcesMenuList.removeAllItems();
+    this.dsManager.getAll().forEach(ds => {
+      this.dataSourcesMenuList.addItem({
+        text: ds.name,
+        buttons:
+          ds.type == DataSourceType.JAEGER || ds.type == DataSourceType.ZIPKIN
+            ? [
+                { id: 'search', icon: 'magnify' },
+                { id: 'edit', icon: 'pencil' },
+                { id: 'delete', icon: 'delete' }
+              ]
+            : [
+                { id: 'add-to-stage', icon: 'plus' },
+                { id: 'delete', icon: 'delete' }
+              ]
+      });
+    });
+  }
+
   updateTracesBadgeCount(count: number) {
     const el = this.elements.tracesBadgeCount;
     if (count > 0) {
@@ -394,6 +410,20 @@ export class Toolbar {
     }[style];
     isSelected ? el.classList.add(className) : el.classList.remove(className);
   }
+
+  updateLeftPaneExpansion(isExpanded: boolean) {
+    this.isLeftPanelExpanded = isExpanded;
+    this.updateButtonSelection('leftPaneToggle', isExpanded, 'svg-fill');
+  }
+
+  updateBottomPaneExpansion(isExpanded: boolean) {
+    this.isBottomPanelExpanded = isExpanded;
+    this.updateButtonSelection('bottomPaneToggle', isExpanded, 'svg-fill');
+  }
+
+  ///////////////////////////////////////////////
+  ////////////////// EVENTS /////////////////////
+  ///////////////////////////////////////////////
 
   private bindEvents() {
     const { btn } = this.elements;
@@ -428,6 +458,33 @@ export class Toolbar {
     this.dsManager.removeListener(DataSourceManagerEvent.UPDATED, [
       this.binded.onDataSourceManagerUpdate
     ] as any);
+  }
+
+  private async onDataSourceMenuListButtonClick(
+    buttonId: string,
+    index: number
+  ) {
+    const ds = this.dsManager.getAll()[index];
+    if (!ds) {
+      console.error(`Data source not found at index: ${index}`);
+      return;
+    }
+
+    switch (buttonId) {
+      case 'add-to-stage': {
+        const api = this.dsManager.apiFor(ds);
+        const result = await api.search({} as any);
+        const traces = result.data.map(spans => new Trace(spans));
+        // Add all of the traces
+        traces.forEach(trace => this.stage.add(trace));
+        this.dropdowns.dataSources.hide();
+        return;
+      }
+
+      default: {
+        console.error(`Unknown data source menu list button id: "${buttonId}"`);
+      }
+    }
   }
 
   private onDataSourceManagerUpdate() {
@@ -484,16 +541,6 @@ export class Toolbar {
       'svg-fill'
     );
     this.options.onBottomPaneButtonClick(this.isBottomPanelExpanded);
-  }
-
-  updateLeftPaneExpansion(isExpanded: boolean) {
-    this.isLeftPanelExpanded = isExpanded;
-    this.updateButtonSelection('leftPaneToggle', isExpanded, 'svg-fill');
-  }
-
-  updateBottomPaneExpansion(isExpanded: boolean) {
-    this.isBottomPanelExpanded = isExpanded;
-    this.updateButtonSelection('bottomPaneToggle', isExpanded, 'svg-fill');
   }
 
   dispose() {
