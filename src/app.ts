@@ -5,6 +5,12 @@ import { DataSourceManager } from './model/datasource/manager';
 import { SpanGroupingManager } from './model/span-grouping/manager';
 import { SpanColoringManager } from './model/span-coloring-manager';
 import { SpanLabellingManager } from './model/span-labelling-manager';
+import { Trace } from './model/trace';
+import { Stage, StageEvent } from './model/stage';
+import {
+  TimelineView,
+  TimelineViewEvent
+} from './components/timeline/timeline-view';
 import 'tippy.js/dist/tippy.css';
 
 export interface AppOptions {
@@ -23,11 +29,16 @@ export class App {
     bottomCenter: HTMLDivElement;
     bottomRight: HTMLDivElement;
   };
+
+  private stage = Stage.getSingleton();
   private toolbar: Toolbar;
+  private timeline: TimelineView;
+
   private leftBodySplitSize: number;
   private bottomSplitSize: number;
 
   readonly throttled = {
+    autoResizeTimeline: throttle(this.autoResizeTimeline.bind(this), 100),
     handleMainSplitDrag: throttle(this.handleMainSplitDrag.bind(this), 100),
     handleMainSplitDragEnd: this.handleMainSplitDragEnd.bind(this),
     handleBodySplitDrag: throttle(this.handleBodySplitDrag.bind(this), 100),
@@ -38,7 +49,9 @@ export class App {
 
   private binded = {
     onLeftPaneButtonClick: this.onLeftPaneButtonClick.bind(this),
-    onBottomPaneButtonClick: this.onBottomPaneButtonClick.bind(this)
+    onBottomPaneButtonClick: this.onBottomPaneButtonClick.bind(this),
+    onStageTraceAdded: this.onStageTraceAdded.bind(this),
+    onStageTraceRemoved: this.onStageTraceRemoved.bind(this)
   };
 
   constructor(private options: AppOptions) {
@@ -79,23 +92,50 @@ export class App {
       onLeftPaneButtonClick: this.binded.onLeftPaneButtonClick,
       onBottomPaneButtonClick: this.binded.onBottomPaneButtonClick
     });
+    this.timeline = new TimelineView();
   }
 
   async init() {
+    // Init managers related with db
     await Promise.all([
       DataSourceManager.getSingleton().init(),
       SpanGroupingManager.getSingleton().init(),
       SpanColoringManager.getSingleton().init(),
       SpanLabellingManager.getSingleton().init()
     ]);
+
+    // Bind stage event
+    this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
+    this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
+
+    // Init timeline
+    this.elements.bodyRight.style.overflow = 'hidden'; // Fixes small scrolling
+    this.timeline.init(this.elements.bodyRight);
+    // TODO: Bind TimelineViewEvent.SPANS_SELECTED
+    window.addEventListener('resize', this.throttled.autoResizeTimeline, false);
+
     await this.toolbar.init(); // Needs dsManager
   }
 
-  dispose() {
-    this.toolbar.dispose();
-    this.toolbar = null;
-    this.elements = null;
-    this.options = null;
+  //////////////////////////////
+  //////// VIEW UPDATES ////////
+  //////////////////////////////
+
+  autoResizeTimeline() {
+    const { offsetWidth, offsetHeight } = this.elements.bodyRight;
+    this.timeline.resize(offsetWidth, offsetHeight);
+  }
+
+  ////////////////////////////////
+  //////////// EVENTS ////////////
+  ////////////////////////////////
+
+  onStageTraceAdded(trace: Trace) {
+    this.timeline.addTrace(trace);
+  }
+
+  onStageTraceRemoved(trace: Trace) {
+    this.timeline.removeTrace(trace);
   }
 
   private onLeftPaneButtonClick(isExpanded: boolean) {
@@ -107,6 +147,7 @@ export class App {
     } else {
       this.options.bodySplit.collapse(0);
     }
+    this.autoResizeTimeline();
   }
 
   private onBottomPaneButtonClick(isExpanded: boolean) {
@@ -118,10 +159,12 @@ export class App {
     } else {
       this.options.mainSplit.collapse(1);
     }
+    this.autoResizeTimeline();
   }
 
   private handleMainSplitDrag(sizes: number[]) {
     this.bottomSplitSize = sizes[1];
+    this.autoResizeTimeline();
   }
 
   private handleMainSplitDragEnd(sizes: number[]) {
@@ -132,10 +175,12 @@ export class App {
       this.bottomSplitSize = 25; // Reset the for when it's expanded on toolbar
       this.toolbar.updateBottomPaneExpansion(false);
     }
+    this.autoResizeTimeline();
   }
 
   private handleBodySplitDrag(sizes: number[]) {
     this.leftBodySplitSize = sizes[0];
+    this.autoResizeTimeline();
   }
 
   private handleBodySplitDragEnd(sizes: number[]) {
@@ -146,6 +191,7 @@ export class App {
       this.leftBodySplitSize = 50; // Reset the for when it's expanded on toolbar
       this.toolbar.updateLeftPaneExpansion(false);
     }
+    this.autoResizeTimeline();
   }
 
   private handleBottomSplitDrag(sizes: number[]) {
@@ -154,5 +200,20 @@ export class App {
 
   private handleBottomSplitDragEnd(sizes: number[]) {
     this.throttled.handleBottomSplitDrag.cancel();
+  }
+
+  dispose() {
+    window.removeEventListener(
+      'resize',
+      this.throttled.autoResizeTimeline,
+      false
+    );
+
+    this.toolbar.dispose();
+    this.toolbar = null;
+    this.timeline.dispose();
+    this.timeline = null;
+    this.elements = null;
+    this.options = null;
   }
 }
