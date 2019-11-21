@@ -39,11 +39,11 @@ import SelectionView from './selection-view';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-export enum TimelineViewEvent {
+export enum TimelineEvent {
   SPANS_SELECTED = 'tve_span_selected'
 }
 
-export class TimelineView extends EventEmitterExtra {
+export class Timeline extends EventEmitterExtra {
   private svg = document.createElementNS(SVG_NS, 'svg');
   private defs = document.createElementNS(SVG_NS, 'defs');
 
@@ -643,7 +643,7 @@ export class TimelineView extends EventEmitterExtra {
       );
     }
 
-    this.emit(TimelineViewEvent.SPANS_SELECTED, null);
+    this.emit(TimelineEvent.SPANS_SELECTED, null);
   }
 
   ////////////////////////////////////////

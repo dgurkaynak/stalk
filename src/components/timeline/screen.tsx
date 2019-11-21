@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import React from 'react';
 import { Icon, Layout, Empty, Badge, Tooltip, Menu, Dropdown, Divider, message } from 'antd';
 import { Stage, StageEvent } from '../../model/stage';
-import TimelineView, { TimelineViewEvent } from './timeline-view';
+import TimelineView, { TimelineEvent } from './timeline';
 import SpanView from './span-view';
 import processGroupingOptions from '../../model/span-grouping/process';
 import serviceNameGroupingOptions from '../../model/span-grouping/service-name';
@@ -94,7 +94,7 @@ export class TimelineScreen extends React.Component<TimelineScreenProps> {
       height: innerHeight - HEADER_MENU_HEIGHT - vc.bottomPaneHeight
     });
 
-    this.timelineView.on(TimelineViewEvent.SPANS_SELECTED, (spanView: SpanView | null) => {
+    this.timelineView.on(TimelineEvent.SPANS_SELECTED, (spanView: SpanView | null) => {
       this.setState({ selectedSpanView: spanView });
     });
   }

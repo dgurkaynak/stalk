@@ -8,9 +8,9 @@ import { SpanLabellingManager } from './model/span-labelling-manager';
 import { Trace } from './model/trace';
 import { Stage, StageEvent } from './model/stage';
 import {
-  TimelineView,
-  TimelineViewEvent
-} from './components/timeline/timeline-view';
+  Timeline,
+  TimelineEvent
+} from './components/timeline/timeline';
 import 'tippy.js/dist/tippy.css';
 
 export interface AppOptions {
@@ -32,7 +32,7 @@ export class App {
 
   private stage = Stage.getSingleton();
   private toolbar: Toolbar;
-  private timeline: TimelineView;
+  private timeline: Timeline;
 
   private leftBodySplitSize: number;
   private bottomSplitSize: number;
@@ -92,7 +92,7 @@ export class App {
       onLeftPaneButtonClick: this.binded.onLeftPaneButtonClick,
       onBottomPaneButtonClick: this.binded.onBottomPaneButtonClick
     });
-    this.timeline = new TimelineView();
+    this.timeline = new Timeline();
   }
 
   async init() {
