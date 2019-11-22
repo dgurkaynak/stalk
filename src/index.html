@@ -7,52 +7,17 @@
   </head>
   <body>
     <div id="app">
-      <div id="toolbar">
-        <div class="toolbar-pane">
-          <div class="toolbar-button data-sources"><img inline src="../node_modules/@mdi/svg/svg/database.svg"></div>
-          <div class="toolbar-button search"><img inline src="../node_modules/@mdi/svg/svg/magnify.svg"></div>
-          <div class="toolbar-divider"></div>
-          <div class="toolbar-button traces"><img inline src="../node_modules/@mdi/svg/svg/source-branch.svg"></div>
+      <div id="app-toolbar">
+        <div class="app-toolbar-pane">
+          <div class="app-toolbar-button data-sources"><img inline src="../node_modules/@mdi/svg/svg/database.svg"></div>
+          <div class="app-toolbar-button search"><img inline src="../node_modules/@mdi/svg/svg/magnify.svg"></div>
+          <div class="app-toolbar-divider"></div>
+          <div class="app-toolbar-button traces"><img inline src="../node_modules/@mdi/svg/svg/source-branch.svg"></div>
         </div>
-        <div class="toolbar-pane">
-          <div class="toolbar-button fix-stroke grouping-mode">
-            <!-- Custom icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24">
-              <g>
-                <rect height="6" width="18" y="4" x="2" fill="none" stroke-width="2"></rect>
-                <line stroke-dasharray="2,2" y2="14" x2="24" y1="14" x1="0" fill="none" stroke-width="2"></line>
-                <rect height="6" width="18" y="17" x="2" stroke="none"></rect>
-              </g>
-            </svg>
-          </div>
-          <div class="toolbar-button span-labelling"><img inline src="../node_modules/@mdi/svg/svg/textbox.svg"></div>
-          <div class="toolbar-button span-coloring"><img inline src="../node_modules/@mdi/svg/svg/format-color-fill.svg"></div>
-          <div class="toolbar-button group-layout-mode"><img inline src="../node_modules/@mdi/svg/svg/sort.svg"></div>
-        </div>
-        <div class="toolbar-pane">
-            <div class="toolbar-button left-pane">
-              <!-- Edited (https://editor.method.ac/) -->
-              <!-- <img inline src="../node_modules/@mdi/svg/svg/page-layout-sidebar-left.svg"> -->
-              <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24">
-                <path d="m6,2l12,0a2,2 0 0 1 2,2l0,16a2,2 0 0 1 -2,2l-12,0a2,2 0 0 1 -2,-2l0,-16a2,2 0 0 1 2,-2m0,2l0,12l6,0l0,-12l-6,0z"></path>
-              </svg>
-            </div>
-            <div class="toolbar-button bottom-pane"><img inline src="../node_modules/@mdi/svg/svg/page-layout-footer.svg"></div>
-            <div class="toolbar-divider"></div>
-            <div class="toolbar-button settings"><img inline src="../node_modules/@mdi/svg/svg/settings.svg"></div>
-        </div>
-      </div>
-      <div id="main-split-container">
-        <div id="body-split-container" class="split">
-          <div id="body-left" class="split">
-            falan
-          </div>
-          <div id="body-right" class="split"></div>
-        </div>
-        <div id="bottom-split-container" class="split">
-          <div id="bottom-left" class="split">tags</div>
-          <div id="bottom-center" class="split">processes</div>
-          <div id="bottom-right" class="split">logs</div>
+        <div class="app-toolbar-pane"></div>
+        <div class="app-toolbar-pane">
+            <div class="app-toolbar-button widgets"><img inline src="../node_modules/@mdi/svg/svg/widgets.svg"></div>
+            <div class="app-toolbar-button settings"><img inline src="../node_modules/@mdi/svg/svg/settings.svg"></div>
         </div>
       </div>
     </div>
