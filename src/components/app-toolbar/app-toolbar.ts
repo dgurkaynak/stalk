@@ -239,12 +239,14 @@ export class AppToolbar {
 
   private updateTracesList() {
     this.tracesMenuList.removeAllItems();
-    this.stage.getAll().forEach(trace => {
+    const traces = this.stage.getAll();
+    traces.forEach(trace => {
       this.tracesMenuList.addItem({
         text: trace.name,
         buttons: [{ id: 'remove', icon: 'close' }]
       });
     });
+    this.updateTracesBadgeCount(traces.length);
   }
 
   updateTracesBadgeCount(count: number) {
