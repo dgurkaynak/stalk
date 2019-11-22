@@ -1,5 +1,6 @@
 import { AppToolbar } from './components/app-toolbar/app-toolbar';
 import throttle from 'lodash/throttle';
+import isNumber from 'lodash/isNumber';
 import { DataSourceManager } from './model/datasource/manager';
 import { SpanGroupingManager } from './model/span-grouping/manager';
 import { SpanColoringManager } from './model/span-coloring-manager';
@@ -55,8 +56,7 @@ export class App {
 
     this.toolbar.mount(this.options.element);
     this.initDockPanelAndWidgets();
-    await sleep(100); // Wait until dockpanel is done,
-    // so timeline.init() can gather width & height
+    await waitUntilOffsetWidthHeightReady(this.widgets[AppWidgetType.TIMELINE].node);
     this.timeline.init(this.widgets[AppWidgetType.TIMELINE].node);
     this.toolbar.init(); // Needs dsManager
 
@@ -123,4 +123,13 @@ export class App {
     this.timeline = null;
     this.options = null;
   }
+}
+
+async function waitUntilOffsetWidthHeightReady(el: HTMLElement, retryInterval = 50) {
+  const { offsetWidth, offsetHeight } = el;
+  if (isNumber(offsetWidth) && isNumber(offsetHeight) && (offsetWidth > 0 || offsetHeight > 0)) {
+    return;
+  }
+  await sleep(retryInterval);
+  return waitUntilOffsetWidthHeightReady(el, retryInterval);
 }
