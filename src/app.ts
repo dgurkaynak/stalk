@@ -75,6 +75,21 @@ export class App {
     window.addEventListener('resize', this.binded.onWindowResize, false);
 
     await this.toolbar.init(); // Needs dsManager
+
+    // Hide initial loading
+    const loadingEl = document.getElementById(
+      'initial-loading'
+    ) as HTMLDivElement;
+    if (loadingEl) {
+      loadingEl.addEventListener(
+        'transitionend',
+        () => {
+          document.body.removeChild(loadingEl);
+        },
+        { once: true }
+      );
+      loadingEl.classList.add('hidden');
+    }
   }
 
   initDockPanel() {
