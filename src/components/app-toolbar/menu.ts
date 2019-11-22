@@ -11,6 +11,7 @@ export interface ToolbarMenuOptions {
 
 export interface ToolbarMenuItemOptions {
   type: ToolbarMenuItemType;
+  id?: string;
   text?: string;
   icon?: 'code-tags' | 'settings-outline';
   altText?: string;

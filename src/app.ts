@@ -8,6 +8,7 @@ import { SpanLabellingManager } from './model/span-labelling-manager';
 import { Trace } from './model/trace';
 import { Stage, StageEvent } from './model/stage';
 import { Timeline, TimelineEvent } from './components/timeline/timeline';
+import { TimelineWrapper } from './components/timeline-wrapper/timeline-wrapper';
 import { DockPanel } from 'phosphor-dockpanel';
 import { WidgetWrapper } from './components/ui/widget-wrapper';
 
@@ -29,7 +30,7 @@ export interface AppOptions {
 export class App {
   private stage = Stage.getSingleton();
   private toolbar = new AppToolbar({});
-  private timeline = new Timeline();
+  private timeline = new TimelineWrapper();
 
   private dockPanel = new DockPanel();
   private widgets: { [key in keyof typeof AppWidgetType]?: WidgetWrapper } = {};
@@ -54,10 +55,13 @@ export class App {
       SpanLabellingManager.getSingleton().init()
     ]);
 
-    this.toolbar.mount(this.options.element);
     this.initDockPanelAndWidgets();
-    await waitUntilOffsetWidthHeightReady(this.widgets[AppWidgetType.TIMELINE].node);
-    this.timeline.init(this.widgets[AppWidgetType.TIMELINE].node);
+    this.toolbar.mount(this.options.element);
+    this.timeline.mount(this.widgets[AppWidgetType.TIMELINE].node);
+    const d = await waitUntilOffsetWidthHeightReady(
+      this.widgets[AppWidgetType.TIMELINE].node
+    );
+    this.timeline.init({ width: d.offsetWidth, height: d.offsetHeight });
     this.toolbar.init(); // Needs dsManager
 
     // Bind events
@@ -99,11 +103,11 @@ export class App {
   }
 
   onStageTraceAdded(trace: Trace) {
-    this.timeline.addTrace(trace);
+    this.timeline.timeline.addTrace(trace);
   }
 
   onStageTraceRemoved(trace: Trace) {
-    this.timeline.removeTrace(trace);
+    this.timeline.timeline.removeTrace(trace);
   }
 
   onWindowResize() {
@@ -125,10 +129,17 @@ export class App {
   }
 }
 
-async function waitUntilOffsetWidthHeightReady(el: HTMLElement, retryInterval = 50) {
+async function waitUntilOffsetWidthHeightReady(
+  el: HTMLElement,
+  retryInterval = 50
+): Promise<{ offsetWidth: number; offsetHeight: number }> {
   const { offsetWidth, offsetHeight } = el;
-  if (isNumber(offsetWidth) && isNumber(offsetHeight) && (offsetWidth > 0 || offsetHeight > 0)) {
-    return;
+  if (
+    isNumber(offsetWidth) &&
+    isNumber(offsetHeight) &&
+    (offsetWidth > 0 || offsetHeight > 0)
+  ) {
+    return { offsetWidth, offsetHeight };
   }
   await sleep(retryInterval);
   return waitUntilOffsetWidthHeightReady(el, retryInterval);

@@ -78,7 +78,7 @@ export class AppToolbar {
 
   constructor(private options: AppToolbarOptions) {
     const { container: el, btn } = this.elements;
-    el.id = 'app-toolbar';
+    el.classList.add('app-toolbar');
 
     // Panes
     const leftPane = document.createElement('div');
@@ -157,7 +157,8 @@ export class AppToolbar {
   private initTooltips() {
     const tooltips = {
       dataSources: tippy(this.elements.btn.dataSources, {
-        content: 'Data Sources'
+        content: 'Data Sources',
+        multiple: true
       }),
       search: tippy(this.elements.btn.search, { content: 'Search Traces' }),
       traces: tippy(this.elements.btn.traces, {

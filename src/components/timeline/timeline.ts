@@ -154,19 +154,14 @@ export class Timeline extends EventEmitterExtra {
     this.spanGrouping = new SpanGrouping(processSpanGroupingOptions);
   }
 
-  init(
-    parentElement: HTMLElement,
-    options?: {
-      width?: number;
-      height?: number;
-    }
-  ) {
+  init(options: {
+    width: number;
+    height: number;
+  }) {
     let width = options && options.width;
     let height = options && options.height;
     if (!width || !height) {
-      const { offsetWidth, offsetHeight } = parentElement;
-      width = offsetWidth;
-      height = offsetHeight;
+      throw new Error('Missing timeline dimensions');
     }
     this.resize(width, height);
     this.setupPanels();
@@ -194,8 +189,14 @@ export class Timeline extends EventEmitterExtra {
     this.mouseHandler.on(MouseHandlerEvent.PAN_END, this.binded.onMousePanEnd);
     this.mouseHandler.on(MouseHandlerEvent.WHEEL, this.binded.onWheel);
     this.mouseHandler.on(MouseHandlerEvent.CLICK, this.binded.onClick);
+  }
 
+  mount(parentElement: HTMLDivElement) {
     parentElement.appendChild(this.svg);
+  }
+
+  unmount() {
+    this.svg.parentElement && this.svg.parentElement.removeChild(this.svg);
   }
 
   resize(width: number, height: number) {
@@ -390,10 +391,7 @@ export class Timeline extends EventEmitterExtra {
     spanId: string | ((spanView: SpanView) => boolean)
   ): [GroupView | undefined, SpanView | undefined] {
     if (isString(spanId)) {
-      const groupView = find(
-        this.groupViews,
-        g => !!g.getSpanViewById(spanId)
-      );
+      const groupView = find(this.groupViews, g => !!g.getSpanViewById(spanId));
       return [groupView, groupView && groupView.getSpanViewById(spanId)];
     } else if (isFunction(spanId)) {
       for (let groupView of this.groupViews) {
