@@ -8,10 +8,18 @@ import { Trace } from './model/trace';
 import { Stage, StageEvent } from './model/stage';
 import { Timeline, TimelineEvent } from './components/timeline/timeline';
 import { DockPanel } from 'phosphor-dockpanel';
-import { Widget } from 'phosphor-widget';
+import { WidgetWrapper } from './components/ui/widget-wrapper';
 
 import 'tippy.js/dist/tippy.css';
 import './app.css';
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export enum AppWidgetType {
+  TIMELINE = 'timeline',
+  LOGS = 'logs',
+  SPANS = 'spans',
+  PROCESSES = 'processes'
+}
 
 export interface AppOptions {
   element: HTMLDivElement;
@@ -20,13 +28,16 @@ export interface AppOptions {
 export class App {
   private stage = Stage.getSingleton();
   private toolbar = new AppToolbar({});
-  private dockPanel: DockPanel;
   private timeline = new Timeline();
+
+  private dockPanel = new DockPanel();
+  private widgets: { [key in keyof typeof AppWidgetType]?: WidgetWrapper } = {};
 
   private binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
-    onWindowResize: this.onWindowResize.bind(this)
+    onWindowResize: this.onWindowResize.bind(this),
+    onTimelineResize: this.onTimelineResize.bind(this)
   };
 
   constructor(private options: AppOptions) {
@@ -42,21 +53,18 @@ export class App {
       SpanLabellingManager.getSingleton().init()
     ]);
 
-    // Bind stage event
+    this.toolbar.mount(this.options.element);
+    this.initDockPanelAndWidgets();
+    await sleep(100); // Wait until dockpanel is done,
+    // so timeline.init() can gather width & height
+    this.timeline.init(this.widgets[AppWidgetType.TIMELINE].node);
+    this.toolbar.init(); // Needs dsManager
+
+    // Bind events
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
-
-    // Dom stuff
-    this.toolbar.mount(this.options.element);
-    this.initDockPanel();
-
-    // Init timeline
-    // this.elements.bodyRight.style.overflow = 'hidden'; // Fixes small scrolling
-    // this.timeline.init(this.elements.bodyRight);
     // TODO: Bind TimelineViewEvent.SPANS_SELECTED
     window.addEventListener('resize', this.binded.onWindowResize, false);
-
-    await this.toolbar.init(); // Needs dsManager
 
     // Hide initial loading
     const loadingEl = document.getElementById(
@@ -74,19 +82,20 @@ export class App {
     }
   }
 
-  initDockPanel() {
-    const r1 = createContent('Data View');
-    const r2 = createContent('Timeline View');
-    const r3 = createContent('Log View');
+  initDockPanelAndWidgets() {
+    this.dockPanel.id = 'app-dock-panel';
 
-    const panel = (this.dockPanel = new DockPanel());
-    panel.id = 'app-dock-panel';
+    this.widgets[AppWidgetType.TIMELINE] = new WidgetWrapper({
+      title: 'Timeline',
+      onResize: this.binded.onTimelineResize
+    });
 
-    panel.insertTop(r2);
-    panel.insertLeft(r1, r2);
-    panel.insertBottom(r3);
+    this.widgets[AppWidgetType.LOGS] = new WidgetWrapper({ title: 'Logs' });
 
-    panel.attach(this.options.element);
+    this.dockPanel.insertTop(this.widgets[AppWidgetType.TIMELINE]);
+    this.dockPanel.insertBottom(this.widgets[AppWidgetType.LOGS]);
+
+    this.dockPanel.attach(this.options.element);
   }
 
   onStageTraceAdded(trace: Trace) {
@@ -101,6 +110,10 @@ export class App {
     this.dockPanel.update();
   }
 
+  onTimelineResize(msg: { width: number; height: number }) {
+    this.timeline.resize(msg.width, msg.height);
+  }
+
   dispose() {
     window.removeEventListener('resize', this.binded.onWindowResize, false);
 
@@ -108,17 +121,6 @@ export class App {
     this.toolbar = null;
     this.timeline.dispose();
     this.timeline = null;
-    this.elements = null;
     this.options = null;
   }
-}
-
-function createContent(title: string) {
-  var widget = new Widget();
-  widget.addClass('content');
-
-  widget.title.text = title;
-  widget.title.closable = true;
-
-  return widget;
 }

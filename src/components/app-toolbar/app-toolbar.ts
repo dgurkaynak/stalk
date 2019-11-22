@@ -120,7 +120,7 @@ export class AppToolbar {
     rightPane.appendChild(btn.settings);
   }
 
-  async init() {
+  init() {
     this.initTooltips();
     this.initDropdowns();
     this.initTracesBadgeCount();
