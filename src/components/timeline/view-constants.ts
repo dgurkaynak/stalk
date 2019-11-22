@@ -3,12 +3,12 @@ class ViewConstants {
 
   readonly timeHeaderHeight = 20;
   readonly tickLength = 200; // in px
-  readonly tickLineColor = '#cccccc';
+  readonly tickLineColor = '#eeeeee';
   readonly tickTextOffsetY = 14;
   readonly tickTextColor = '#999999';
   readonly tickTextFontSize = 10;
 
-  readonly groupSeperatorLineColor = '#cccccc';
+  readonly groupSeperatorLineColor = '#eeeeee';
   readonly groupSeperatorLineWidth = 1;
   readonly groupLabelOffsetX = 3;
   readonly groupLabelOffsetY = 13;
