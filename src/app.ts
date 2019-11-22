@@ -18,14 +18,10 @@ export interface AppOptions {
 }
 
 export class App {
-  private elements: {
-    toolbar: HTMLDivElement;
-  };
-
   private stage = Stage.getSingleton();
-  private toolbar: AppToolbar;
+  private toolbar = new AppToolbar({});
   private dockPanel: DockPanel;
-  private timeline: Timeline;
+  private timeline = new Timeline();
 
   private binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
@@ -34,23 +30,7 @@ export class App {
   };
 
   constructor(private options: AppOptions) {
-    // Get dom references of required children components
-    const toolbar = document.getElementById('app-toolbar') as HTMLDivElement;
-
-    this.elements = {
-      toolbar
-    };
-
-    for (let key in this.elements) {
-      const el = this.elements[key];
-      if (!el) throw new Error(`Expected child element: #${key}`);
-    }
-
-    // Create child components
-    this.toolbar = new AppToolbar({
-      element: toolbar
-    });
-    this.timeline = new Timeline();
+    // Noop
   }
 
   async init() {
@@ -66,6 +46,8 @@ export class App {
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
 
+    // Dom stuff
+    this.toolbar.mount(this.options.element);
     this.initDockPanel();
 
     // Init timeline

@@ -8,12 +8,15 @@ import {
 import { DataSourceType } from '../../model/datasource/interfaces';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
-import PlusSvgText from '!!raw-loader!@mdi/svg/svg/plus.svg';
+import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
+import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
+import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
+import SvgSourceBranch from '!!raw-loader!@mdi/svg/svg/source-branch.svg';
+import SvgWidgets from '!!raw-loader!@mdi/svg/svg/widgets.svg';
+import SvgSettings from '!!raw-loader!@mdi/svg/svg/settings.svg';
 import './app-toolbar.css';
 
-export interface AppToolbarOptions {
-  element: HTMLDivElement;
-}
+export interface AppToolbarOptions {}
 
 export type AppToolbarButtonType =
   | 'dataSources'
@@ -25,15 +28,16 @@ export type AppToolbarButtonType =
 export type AppToolbarButtonState = 'selected' | 'disabled';
 
 export class AppToolbar {
-  private elements: {
+  private elements = {
+    container: document.createElement('div'),
     btn: {
-      dataSources: HTMLDivElement;
-      search: HTMLDivElement;
-      traces: HTMLDivElement;
-      widgets: HTMLDivElement;
-      settings: HTMLDivElement;
-    };
-    tracesBadgeCount: HTMLDivElement;
+      dataSources: document.createElement('div'),
+      search: document.createElement('div'),
+      traces: document.createElement('div'),
+      widgets: document.createElement('div'),
+      settings: document.createElement('div')
+    },
+    tracesBadgeCount: document.createElement('div')
   };
   private tooltips: {
     singleton: TippyInstance;
@@ -73,36 +77,47 @@ export class AppToolbar {
   });
 
   constructor(private options: AppToolbarOptions) {
-    const el = options.element;
+    const { container: el, btn } = this.elements;
+    el.id = 'app-toolbar';
 
-    // Get dom references of required children components
-    const dataSources = el.querySelector(
-      '.app-toolbar-button.data-sources'
-    ) as HTMLDivElement;
-    const search = el.querySelector('.app-toolbar-button.search') as HTMLDivElement;
-    const traces = el.querySelector('.app-toolbar-button.traces') as HTMLDivElement;
-    const widgets = el.querySelector(
-      '.app-toolbar-button.widgets'
-    ) as HTMLDivElement;
-    const settings = el.querySelector(
-      '.app-toolbar-button.settings'
-    ) as HTMLDivElement;
+    // Panes
+    const leftPane = document.createElement('div');
+    leftPane.classList.add('app-toolbar-pane');
+    el.appendChild(leftPane);
 
-    this.elements = {
-      btn: {
-        dataSources,
-        search,
-        traces,
-        widgets,
-        settings
-      },
-      tracesBadgeCount: document.createElement('div')
-    };
+    const middlePane = document.createElement('div');
+    middlePane.classList.add('app-toolbar-pane');
+    el.appendChild(middlePane);
 
-    for (let key in this.elements.btn) {
-      const el = this.elements.btn[key];
-      if (!el) throw new Error(`Expected button element: .${key}`);
-    }
+    const rightPane = document.createElement('div');
+    rightPane.classList.add('app-toolbar-pane');
+    el.appendChild(rightPane);
+
+    // Left buttons
+    btn.dataSources.classList.add('app-toolbar-button');
+    btn.dataSources.innerHTML = SvgDatabase;
+    leftPane.appendChild(btn.dataSources);
+
+    btn.search.classList.add('app-toolbar-button', 'search');
+    btn.search.innerHTML = SvgMagnify;
+    leftPane.appendChild(btn.search);
+
+    const divider = document.createElement('div');
+    divider.classList.add('app-toolbar-divider');
+    leftPane.appendChild(divider);
+
+    btn.traces.classList.add('app-toolbar-button', 'traces');
+    btn.traces.innerHTML = SvgSourceBranch;
+    leftPane.appendChild(btn.traces);
+
+    // Right buttons
+    btn.widgets.classList.add('app-toolbar-button');
+    btn.widgets.innerHTML = SvgWidgets;
+    rightPane.appendChild(btn.widgets);
+
+    btn.settings.classList.add('app-toolbar-button');
+    btn.settings.innerHTML = SvgSettings;
+    rightPane.appendChild(btn.settings);
   }
 
   async init() {
@@ -120,7 +135,7 @@ export class AppToolbar {
     this.dataSourceMenuListHeaderEl.appendChild(dsHeaderText);
 
     const newDsButton = document.createElement('div');
-    newDsButton.innerHTML = PlusSvgText;
+    newDsButton.innerHTML = SvgPlus;
     this.dataSourceMenuListHeaderEl.appendChild(newDsButton);
 
     // Prepare datasource lists
@@ -128,6 +143,15 @@ export class AppToolbar {
 
     // Bind events
     this.bindEvents();
+  }
+
+  mount(parent: HTMLElement) {
+    parent.appendChild(this.elements.container);
+  }
+
+  unmount() {
+    const el = this.elements.container;
+    el.parentElement && el.parentElement.removeChild(el);
   }
 
   private initTooltips() {
