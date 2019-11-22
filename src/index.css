@@ -27,23 +27,6 @@ input, button, textarea, :focus {
   outline: none;
 }
 
-/* Split.js styles */
-.split {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-.gutter.gutter-horizontal {
-  cursor: col-resize;
-  background: linear-gradient(#d0d0d0, #d0d0d0) no-repeat center/1px 100%;
-}
-.gutter.gutter-vertical {
-  cursor: row-resize;
-  background: linear-gradient(#d0d0d0, #d0d0d0) no-repeat center/100% 1px;
-}
-
 /* Main app layout */
 #app { width: 100%; height: 100%; }
 #app-toolbar {
