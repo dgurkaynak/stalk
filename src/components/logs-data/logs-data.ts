@@ -125,7 +125,10 @@ export class LogsData {
       this.elements.hotContainer.innerHTML = ``;
     } else {
       const logFieldKeys = this.stage.getAllLogFieldKeys();
-      const logFieldKeysSorted = map(logFieldKeys, (count, key) => [key, count]).sort((a, b) => {
+      const logFieldKeysSorted = map(logFieldKeys, (count, key) => [
+        key,
+        count
+      ]).sort((a, b) => {
         return (b[1] as number) - (a[1] as number);
       });
       const columns = [
@@ -137,7 +140,7 @@ export class LogsData {
             columnMeta: { data: `fields.${key}` }
           };
         })
-      ]
+      ];
 
       this.hot = new Handsontable(this.elements.hotContainer, {
         width: this.viewPropertiesCache.width,
@@ -148,15 +151,28 @@ export class LogsData {
         readOnly: true,
         filters: true,
         dropdownMenu: [
-          'alignment',
-          '---------',
           'filter_by_condition',
           'filter_by_value',
-          'filter_action_bar',
+          'filter_action_bar'
         ],
         licenseKey: 'non-commercial-and-evaluation',
         manualColumnResize: true,
         manualColumnMove: true,
+        manualColumnFreeze: true,
+        contextMenu: [
+          'alignment',
+          'freeze_column',
+          'unfreeze_column',
+          '---------',
+          'copy'
+        ],
+        columnSorting: {
+          sortEmptyCells: true,
+          initialConfig: {
+            column: 0,
+            sortOrder: 'asc'
+          }
+        }
       });
     }
   }
