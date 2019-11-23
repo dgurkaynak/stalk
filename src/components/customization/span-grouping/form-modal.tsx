@@ -199,7 +199,7 @@ export const SpanGroupingFormModal: any = Form.create({
       }
 
       const testedSpans: { span: Span, rv: string[] }[] = [];
-      const tracesToTest = this.stage.getAll();
+      const tracesToTest = this.stage.getAllTraces();
       for (let trace of tracesToTest) {
         for (let span of trace.spans) {
           const rv = groupByFn(span, trace);

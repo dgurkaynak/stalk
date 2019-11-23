@@ -240,7 +240,7 @@ export class AppToolbar {
 
   private updateTracesList() {
     this.tracesMenuList.removeAllItems();
-    const traces = this.stage.getAll();
+    const traces = this.stage.getAllTraces();
     traces.forEach(trace => {
       this.tracesMenuList.addItem({
         text: trace.name,
@@ -319,7 +319,7 @@ export class AppToolbar {
         const result = await api.search({} as any);
         const traces = result.data.map(spans => new Trace(spans));
         // Add all of the traces
-        traces.forEach(trace => this.stage.add(trace));
+        traces.forEach(trace => this.stage.addTrace(trace));
         this.dropdowns.dataSources.hide();
         return;
       }
@@ -346,9 +346,9 @@ export class AppToolbar {
     item: ToolbarMenuItemOptions,
     index: number
   ) {
-    const trace = this.stage.getAll()[index];
+    const trace = this.stage.getAllTraces()[index];
     if (!trace) return;
-    this.stage.remove(trace.id);
+    this.stage.removeTrace(trace.id);
     this.dropdowns.traces.hide();
   }
 

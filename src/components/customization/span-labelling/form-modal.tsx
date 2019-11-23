@@ -185,7 +185,7 @@ export const SpanLabellingFormModal: any = Form.create({
         throw err;
       }
 
-      const spansToTest = this.stage.getAll().flatMap(t => t.spans);
+      const spansToTest = this.stage.getAllTraces().flatMap(t => t.spans);
       const testedSpans: { span: Span, rv: string }[] = [];
       for (let span of spansToTest) {
         const rv = labelByFn(span);

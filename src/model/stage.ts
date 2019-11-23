@@ -16,28 +16,28 @@ export class Stage extends EventEmitterExtra {
     return _singletonIns;
   }
 
-  get(traceId: string) {
+  getTrace(traceId: string) {
     return this._traces[traceId];
   }
 
-  getAll() {
+  getAllTraces() {
     return Object.values(this._traces);
   }
 
-  add(trace: Trace) {
+  addTrace(trace: Trace) {
     if (this._traces[trace.id]) return false;
     this._traces[trace.id] = trace;
     this.emit(StageEvent.TRACE_ADDED, trace);
   }
 
-  remove(traceId: string) {
+  removeTrace(traceId: string) {
     if (!this._traces[traceId]) return false;
     const trace = this._traces[traceId];
     delete this._traces[traceId];
     this.emit(StageEvent.TRACE_REMOVED, trace);
   }
 
-  isAdded(traceId: string) {
+  isTraceAdded(traceId: string) {
     return !!this._traces[traceId];
   }
 }

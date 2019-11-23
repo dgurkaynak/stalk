@@ -172,10 +172,10 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
 
 
   onItemStageToggle(trace: Trace) {
-    if (this.stage.isAdded(trace.id)) {
-      this.stage.remove(trace.id);
+    if (this.stage.isTraceAdded(trace.id)) {
+      this.stage.removeTrace(trace.id);
     } else {
-      this.stage.add(trace);
+      this.stage.addTrace(trace);
     }
   }
 
@@ -245,7 +245,7 @@ export class SearchScreen extends React.Component<SearchScreenProps> {
           >
             <Row type="flex">
 
-              {this.stage.isAdded(item.id) ? (
+              {this.stage.isTraceAdded(item.id) ? (
                 <Tooltip title="Remove from timeline" mouseEnterDelay={1}>
                   <Col
                     className="search-result-item-remove-from-stage"
