@@ -852,8 +852,8 @@ export class Timeline extends EventEmitter {
   updateTicks() {
     if (this.traces.length == 0) {
       this.tickElements.forEach(({ text, line }) => {
-        this.tickContainer.removeChild(text);
-        this.tickContainer.removeChild(line);
+        text.parentElement && text.parentElement.removeChild(text);
+        line.parentElement && line.parentElement.removeChild(line);
       });
       return;
     }
