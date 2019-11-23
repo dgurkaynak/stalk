@@ -21,7 +21,7 @@ class ViewConstants {
   readonly spanBarSpacing = 3;
   readonly spanBarRadius = 1;
   readonly spanBarMinWidth = 1;
-  readonly spanBarViewportMargin = 3;
+  readonly spanBarViewportMargin = 5;
   get rowHeight() { return (2 * this.spanBarSpacing) + this.spanBarHeight; };
 
   readonly spanLabelFontSize = 10;

@@ -10,6 +10,7 @@
 
 .timeline-toolbar-pane { display: flex; align-items: stretch; flex-grow: 1; }
 .timeline-toolbar-pane.middle { justify-content: center; }
+.timeline-toolbar-pane.right { justify-content: flex-end; }
 
 .timeline-toolbar-button {
   display: flex;

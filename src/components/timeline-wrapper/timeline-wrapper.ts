@@ -11,6 +11,9 @@ import { GroupLayoutType } from '../timeline/group-view';
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
 import SvgFormatColorFill from '!!raw-loader!@mdi/svg/svg/format-color-fill.svg';
 import SvgSort from '!!raw-loader!@mdi/svg/svg/sort.svg';
+import SvgCursorMove from '!!raw-loader!@mdi/svg/svg/cursor-move.svg';
+import SvgSelection from '!!raw-loader!@mdi/svg/svg/selection.svg';
+import SvgTooltipEdit from '!!raw-loader!@mdi/svg/svg/tooltip-edit.svg';
 import './timeline-wrapper.css';
 
 const TOOLBAR_HEIGHT = 27; // TODO: Sorry :(
@@ -21,10 +24,13 @@ export class TimelineWrapper {
     container: document.createElement('div'),
     toolbar: document.createElement('div'),
     toolbarBtn: {
+      moveTool: document.createElement('div'),
+      selectionTool: document.createElement('div'),
       groupingMode: document.createElement('div'),
       spanLabellingMode: document.createElement('div'),
       spanColoringMode: document.createElement('div'),
-      groupLayoutMode: document.createElement('div')
+      groupLayoutMode: document.createElement('div'),
+      tooltipEditor: document.createElement('div')
     },
     timelineContainer: document.createElement('div')
   };
@@ -125,10 +131,18 @@ export class TimelineWrapper {
     toolbarEl.appendChild(middlePane);
 
     const rightPane = document.createElement('div');
-    rightPane.classList.add('timeline-toolbar-pane');
+    rightPane.classList.add('timeline-toolbar-pane', 'right');
     toolbarEl.appendChild(rightPane);
 
     // Buttons
+    btn.moveTool.classList.add('timeline-toolbar-button');
+    btn.moveTool.innerHTML = SvgCursorMove;
+    leftPane.appendChild(btn.moveTool);
+
+    btn.selectionTool.classList.add('timeline-toolbar-button');
+    btn.selectionTool.innerHTML = SvgSelection;
+    leftPane.appendChild(btn.selectionTool);
+
     btn.groupingMode.classList.add('timeline-toolbar-button', 'fix-stroke');
     btn.groupingMode.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24">
         <g>
@@ -150,6 +164,10 @@ export class TimelineWrapper {
     btn.groupLayoutMode.classList.add('timeline-toolbar-button', 'group-layout');
     btn.groupLayoutMode.innerHTML = SvgSort;
     middlePane.appendChild(btn.groupLayoutMode);
+
+    btn.tooltipEditor.classList.add('timeline-toolbar-button');
+    btn.tooltipEditor.innerHTML = SvgTooltipEdit;
+    rightPane.appendChild(btn.tooltipEditor);
   }
 
   init(options: { width: number; height: number }) {
