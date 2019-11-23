@@ -17,11 +17,11 @@ export class WidgetWrapper extends Widget {
     this.title.closable = isBoolean(options.closable) ? options.closable : true;
   }
 
-  protected onResize(msg) {
+  protected onResize(msg: any) {
     this.options.onResize && this.options.onResize(msg);
   }
 
-  protected onCloseRequest(msg) {
+  protected onCloseRequest(msg: any) {
     super.onCloseRequest(msg);
     this.options.onClose && this.options.onClose();
   }

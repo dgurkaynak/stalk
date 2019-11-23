@@ -33,7 +33,7 @@ export class App {
   private timeline = new TimelineWrapper();
 
   private dockPanel = new DockPanel();
-  private widgets: { [key in keyof typeof AppWidgetType]?: WidgetWrapper } = {};
+  private widgets: { [key: string]: WidgetWrapper } = {};
 
   private binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),

@@ -366,7 +366,7 @@ export class TimelineWrapper {
     this.dropdowns.groupLayoutMode.hide();
   }
 
-  mount(parentEl: HTMLDivElement) {
+  mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }
 
