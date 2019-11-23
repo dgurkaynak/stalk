@@ -1,15 +1,15 @@
-import './menu.css';
+import './widget-toolbar.css';
 import CodeSvgText from '!!raw-loader!@mdi/svg/svg/code-tags.svg';
 import SettingsSvgText from '!!raw-loader!@mdi/svg/svg/settings-outline.svg';
 
-export interface ToolbarMenuOptions {
+export interface WidgetToolbarMenuOptions {
   width?: number;
-  items: ToolbarMenuItemOptions[];
-  onClick: (item: ToolbarMenuItemOptions, index: number) => void;
+  items: WidgetToolbarMenuItemOptions[];
+  onClick: (item: WidgetToolbarMenuItemOptions, index: number) => void;
 }
 
-export interface ToolbarMenuItemOptions {
-  type: ToolbarMenuItemType;
+export interface WidgetToolbarMenuItemOptions {
+  type: WidgetToolbarMenuItemType;
   id?: string;
   text?: string;
   icon?: 'code-tags' | 'settings-outline';
@@ -18,20 +18,20 @@ export interface ToolbarMenuItemOptions {
   disabled?: boolean;
 }
 
-export type ToolbarMenuItemType = 'item' | 'divider';
+export type WidgetToolbarMenuItemType = 'item' | 'divider';
 
-export interface ToolbarMenuItem {
-  options: ToolbarMenuItemOptions;
+export interface WidgetToolbarMenuItem {
+  options: WidgetToolbarMenuItemOptions;
   element: HTMLDivElement;
   onClickHandler?: (e: MouseEvent) => void;
 }
 
-export class ToolbarMenu {
+export class WidgetToolbarMenu {
   readonly element = document.createElement('div');
-  private items: ToolbarMenuItem[] = [];
+  private items: WidgetToolbarMenuItem[] = [];
   private selectedItemIndex = -1;
 
-  constructor(private options: ToolbarMenuOptions) {
+  constructor(private options: WidgetToolbarMenuOptions) {
     if (options.width) {
       this.element.style.width = `${options.width}px`;
     }
@@ -45,14 +45,14 @@ export class ToolbarMenu {
     return this.items.slice();
   }
 
-  addItem(options: ToolbarMenuItemOptions) {
+  addItem(options: WidgetToolbarMenuItemOptions) {
     const el = document.createElement('div');
     const item = { element: el, options };
 
     if (options.type == 'divider') {
-      el.classList.add('toolbar-menu-divider');
+      el.classList.add('item-divider');
     } else {
-      el.classList.add('toolbar-menu-item');
+      el.classList.add('item');
       options.disabled && el.classList.add('disabled');
 
       // Decorate
@@ -130,7 +130,7 @@ export class ToolbarMenu {
     item.element.classList.remove('selected');
   }
 
-  onItemClick(item: ToolbarMenuItem) {
+  onItemClick(item: WidgetToolbarMenuItem) {
     if (item.options.disabled) return false;
     const index = this.items.indexOf(item);
     if (index == -1) return false;

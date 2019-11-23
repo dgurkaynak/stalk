@@ -1,6 +1,9 @@
 import { Timeline } from '../timeline/timeline';
 import tippy, { createSingleton, Instance as TippyInstance } from 'tippy.js';
-import { ToolbarMenu, ToolbarMenuItemOptions } from '../app-toolbar/menu';
+import {
+  WidgetToolbarMenu,
+  WidgetToolbarMenuItemOptions
+} from '../ui/widget-toolbar/widget-toolbar-menu';
 import processGroupingOptions from '../../model/span-grouping/process';
 import serviceNameGroupingOptions from '../../model/span-grouping/service-name';
 import traceGroupingOptions from '../../model/span-grouping/trace';
@@ -26,6 +29,7 @@ import SvgSort from '!!raw-loader!@mdi/svg/svg/sort.svg';
 import SvgCursorMove from '!!raw-loader!@mdi/svg/svg/cursor-move.svg';
 import SvgSelection from '!!raw-loader!@mdi/svg/svg/selection.svg';
 import SvgTooltipEdit from '!!raw-loader!@mdi/svg/svg/tooltip-edit.svg';
+import '../ui/widget-toolbar/widget-toolbar.css';
 import './timeline-wrapper.css';
 
 const TOOLBAR_HEIGHT = 27; // TODO: Sorry :(
@@ -74,7 +78,7 @@ export class TimelineWrapper {
     onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this)
   };
 
-  private groupingModeMenu = new ToolbarMenu({
+  private groupingModeMenu = new WidgetToolbarMenu({
     // width: 150,
     items: [
       { type: 'item', text: 'Trace', id: traceGroupingOptions.key },
@@ -92,7 +96,7 @@ export class TimelineWrapper {
     ],
     onClick: this.binded.onGroupingModeMenuItemClick
   });
-  private spanLabellingModeMenu = new ToolbarMenu({
+  private spanLabellingModeMenu = new WidgetToolbarMenu({
     // width: 150,
     items: [
       { type: 'item', text: 'Operation', id: operationLabellingOptions.key },
@@ -113,7 +117,7 @@ export class TimelineWrapper {
     ],
     onClick: this.binded.onSpanLabellingMenuItemClick
   });
-  private spanColoringModeMenu = new ToolbarMenu({
+  private spanColoringModeMenu = new WidgetToolbarMenu({
     // width: 150,
     items: [
       { type: 'item', text: 'Operation', id: operationColoringOptions.key },
@@ -130,7 +134,7 @@ export class TimelineWrapper {
     ],
     onClick: this.binded.onSpanColoringMenuItemClick
   });
-  private groupLayoutModeMenu = new ToolbarMenu({
+  private groupLayoutModeMenu = new WidgetToolbarMenu({
     // width: 150,
     items: [
       { type: 'item', text: 'Fill', id: GroupLayoutType.FILL },
@@ -153,31 +157,31 @@ export class TimelineWrapper {
     const toolbarEl = this.elements.toolbar;
     const btn = this.elements.toolbarBtn;
 
-    toolbarEl.classList.add('timeline-toolbar');
+    toolbarEl.classList.add('widget-toolbar', 'widget-toolbar');
 
     // Panes
     const leftPane = document.createElement('div');
-    leftPane.classList.add('timeline-toolbar-pane');
+    leftPane.classList.add('widget-toolbar-pane');
     toolbarEl.appendChild(leftPane);
 
     const middlePane = document.createElement('div');
-    middlePane.classList.add('timeline-toolbar-pane', 'middle');
+    middlePane.classList.add('widget-toolbar-pane', 'middle');
     toolbarEl.appendChild(middlePane);
 
     const rightPane = document.createElement('div');
-    rightPane.classList.add('timeline-toolbar-pane', 'right');
+    rightPane.classList.add('widget-toolbar-pane', 'right');
     toolbarEl.appendChild(rightPane);
 
     // Buttons
-    btn.moveTool.classList.add('timeline-toolbar-button');
+    btn.moveTool.classList.add('widget-toolbar-button');
     btn.moveTool.innerHTML = SvgCursorMove;
     leftPane.appendChild(btn.moveTool);
 
-    btn.selectionTool.classList.add('timeline-toolbar-button');
+    btn.selectionTool.classList.add('widget-toolbar-button');
     btn.selectionTool.innerHTML = SvgSelection;
     leftPane.appendChild(btn.selectionTool);
 
-    btn.groupingMode.classList.add('timeline-toolbar-button', 'fix-stroke');
+    btn.groupingMode.classList.add('widget-toolbar-button', 'fix-stroke');
     btn.groupingMode.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24">
         <g>
           <rect height="6" width="18" y="4" x="2" fill="none" stroke-width="2"></rect>
@@ -187,25 +191,22 @@ export class TimelineWrapper {
       </svg>`;
     middlePane.appendChild(btn.groupingMode);
 
-    btn.spanLabellingMode.classList.add('timeline-toolbar-button');
+    btn.spanLabellingMode.classList.add('widget-toolbar-button');
     btn.spanLabellingMode.innerHTML = SvgTextbox;
     middlePane.appendChild(btn.spanLabellingMode);
 
     btn.spanColoringMode.classList.add(
-      'timeline-toolbar-button',
+      'widget-toolbar-button',
       'span-coloring'
     );
     btn.spanColoringMode.innerHTML = SvgFormatColorFill;
     middlePane.appendChild(btn.spanColoringMode);
 
-    btn.groupLayoutMode.classList.add(
-      'timeline-toolbar-button',
-      'group-layout'
-    );
+    btn.groupLayoutMode.classList.add('widget-toolbar-button', 'group-layout');
     btn.groupLayoutMode.innerHTML = SvgSort;
     middlePane.appendChild(btn.groupLayoutMode);
 
-    btn.tooltipEditor.classList.add('timeline-toolbar-button');
+    btn.tooltipEditor.classList.add('widget-toolbar-button');
     btn.tooltipEditor.innerHTML = SvgTooltipEdit;
     rightPane.appendChild(btn.tooltipEditor);
   }
@@ -275,7 +276,7 @@ export class TimelineWrapper {
       delay: 1000,
       duration: 0,
       updateDuration: 0,
-      theme: 'timeline-toolbar-tooltip'
+      theme: 'widget-toolbar-tooltip'
     });
 
     this.tooltips = { ...tooltips, singleton };
@@ -291,7 +292,7 @@ export class TimelineWrapper {
         placement: 'bottom',
         duration: 0,
         updateDuration: 0,
-        theme: 'toolbar-menu',
+        theme: 'widget-toolbar-menu',
         trigger: 'click',
         interactive: true
       }),
@@ -302,7 +303,7 @@ export class TimelineWrapper {
         placement: 'bottom',
         duration: 0,
         updateDuration: 0,
-        theme: 'toolbar-menu',
+        theme: 'widget-toolbar-menu',
         trigger: 'click',
         interactive: true
       }),
@@ -313,7 +314,7 @@ export class TimelineWrapper {
         placement: 'bottom',
         duration: 0,
         updateDuration: 0,
-        theme: 'toolbar-menu',
+        theme: 'widget-toolbar-menu',
         trigger: 'click',
         interactive: true
       }),
@@ -324,7 +325,7 @@ export class TimelineWrapper {
         placement: 'bottom',
         duration: 0,
         updateDuration: 0,
-        theme: 'toolbar-menu',
+        theme: 'widget-toolbar-menu',
         trigger: 'click',
         interactive: true
       })
@@ -332,7 +333,7 @@ export class TimelineWrapper {
   }
 
   private onGroupingModeMenuItemClick(
-    item: ToolbarMenuItemOptions,
+    item: WidgetToolbarMenuItemOptions,
     index: number
   ) {
     this.dropdowns.groupingMode.hide();
@@ -361,7 +362,7 @@ export class TimelineWrapper {
   }
 
   private onSpanLabellingMenuItemClick(
-    item: ToolbarMenuItemOptions,
+    item: WidgetToolbarMenuItemOptions,
     index: number
   ) {
     this.dropdowns.spanLabellingMode.hide();
@@ -390,7 +391,7 @@ export class TimelineWrapper {
   }
 
   private onSpanColoringMenuItemClick(
-    item: ToolbarMenuItemOptions,
+    item: WidgetToolbarMenuItemOptions,
     index: number
   ) {
     this.dropdowns.spanColoringMode.hide();
@@ -419,7 +420,7 @@ export class TimelineWrapper {
   }
 
   private onGroupLayoutMenuItemClick(
-    item: ToolbarMenuItemOptions,
+    item: WidgetToolbarMenuItemOptions,
     index: number
   ) {
     this.timeline.updateGroupLayoutMode(item.id as GroupLayoutType);

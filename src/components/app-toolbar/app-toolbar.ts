@@ -1,6 +1,5 @@
 import tippy, { createSingleton, Instance as TippyInstance } from 'tippy.js';
-import { ToolbarMenuItemOptions } from './menu';
-import { ToolbarMenuList } from './menu-list';
+import { ToolbarMenuList, ToolbarMenuListOptions } from './menu-list';
 import {
   DataSourceManager,
   DataSourceManagerEvent
@@ -344,7 +343,7 @@ export class AppToolbar {
   }
 
   private onTracesMenuListButtonClick(
-    item: ToolbarMenuItemOptions,
+    item: ToolbarMenuListOptions,
     index: number
   ) {
     const trace = this.stage.getAllTraces()[index];
