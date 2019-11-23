@@ -1,7 +1,6 @@
 import { Trace } from './trace';
 import EventEmitterExtra from 'event-emitter-extra';
 import { SpanGroup } from './span-group/span-group';
-import { Span } from './interfaces';
 
 export enum StageEvent {
   TRACE_ADDED = 'trace_added',
@@ -15,6 +14,7 @@ export class Stage extends EventEmitterExtra {
   private mainSpanGroup = new SpanGroup('main', '');
   private spanTags: { [key: string]: number } = {};
   private logFields: { [key: string]: number } = {};
+  private processTags: { [key: string]: number } = {};
 
   static getSingleton() {
     if (!_singletonIns) _singletonIns = new Stage();
@@ -51,6 +51,14 @@ export class Stage extends EventEmitterExtra {
           this.logFields[field]++;
         }
       });
+
+      // Process tags
+      if (span.process) {
+        for (let tag in span.process.tags) {
+          if (!this.processTags[tag]) this.processTags[tag] = 0;
+          this.processTags[tag]++;
+        }
+      }
     });
 
     this.emit(StageEvent.TRACE_ADDED, trace);
@@ -78,6 +86,15 @@ export class Stage extends EventEmitterExtra {
           if (this.logFields[field] <= 0) delete this.logFields[field];
         }
       });
+
+      // Process tags
+      if (span.process) {
+        for (let tag in span.process.tags) {
+          if (!this.processTags[tag]) continue;
+          this.processTags[tag]--;
+          if (this.processTags[tag] <= 0) delete this.processTags[tag];
+        }
+      }
     });
 
     delete this.traces[traceId];
