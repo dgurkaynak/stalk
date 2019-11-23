@@ -1,7 +1,6 @@
 import './menu.css';
 import CodeSvgText from '!!raw-loader!@mdi/svg/svg/code-tags.svg';
 import SettingsSvgText from '!!raw-loader!@mdi/svg/svg/settings-outline.svg';
-import { text } from 'd3';
 
 export interface ToolbarMenuOptions {
   width?: number;
