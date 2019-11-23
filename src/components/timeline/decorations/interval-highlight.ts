@@ -4,12 +4,12 @@ import BaseDecoration from './base';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 interface IntervalHighlightDecorationSettings {
-  startTimestamp: number,
-  finishTimestamp: number,
-  lineColor?: string,
-  lineWidth?: number,
-  lineDashArray?: string,
-  fillColor?: string
+  startTimestamp: number;
+  finishTimestamp: number;
+  lineColor?: string;
+  lineWidth?: number;
+  lineDashArray?: string;
+  fillColor?: string;
 }
 export default class IntervalHighlightDecoration extends BaseDecoration {
   private settings: IntervalHighlightDecorationSettings = {
@@ -27,7 +27,7 @@ export default class IntervalHighlightDecoration extends BaseDecoration {
   prepare(settings: IntervalHighlightDecorationSettings) {
     this.settings = _.defaults(settings, this.settings);
 
-    [this.lineLeft, this.lineRight].forEach((line) => {
+    [this.lineLeft, this.lineRight].forEach(line => {
       line.setAttribute('x1', '0');
       line.setAttribute('x2', '0');
       line.setAttribute('y1', '0');
@@ -40,21 +40,28 @@ export default class IntervalHighlightDecoration extends BaseDecoration {
     this.rect.setAttribute('y', '0');
     this.rect.setAttribute('fill', this.settings.fillColor);
 
-    this.underlayElements = [ this.rect, this.lineLeft, this.lineRight ];
+    this.underlayElements = [this.rect, this.lineLeft, this.lineRight];
   }
 
   update() {
-    const height = Math.max(this.timelineView.contentHeight, this.timelineView.height);
+    const height = Math.max(
+      this.timelineView.contentHeight,
+      this.timelineView.height
+    );
     this.rect.setAttribute('height', height + '');
     this.lineLeft.setAttribute('y2', height + '');
     this.lineRight.setAttribute('y2', height + '');
 
-    const xStart = this.timelineView.axis.input2output(this.settings.startTimestamp);
-    const xFinish = this.timelineView.axis.input2output(this.settings.finishTimestamp);
+    const xStart = this.timelineView.axis.input2output(
+      this.settings.startTimestamp
+    );
+    const xFinish = this.timelineView.axis.input2output(
+      this.settings.finishTimestamp
+    );
 
     if (isNaN(xStart) || isNaN(xFinish)) return;
 
-    this.rect.setAttribute('width', (xFinish - xStart) + '')
+    this.rect.setAttribute('width', xFinish - xStart + '');
     this.rect.setAttribute('transform', `translate(${xStart}, 0)`);
     this.lineLeft.setAttribute('transform', `translate(${xStart}, 0)`);
     this.lineRight.setAttribute('transform', `translate(${xFinish}, 0)`);

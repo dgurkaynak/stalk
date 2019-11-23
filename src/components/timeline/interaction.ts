@@ -1,4 +1,3 @@
-
 export const TimelineInteractableElementAttribute = 'data-view-type';
 
 export enum TimelineInteractableElementType {
@@ -7,6 +6,6 @@ export enum TimelineInteractableElementType {
 }
 
 export interface TimelineInteractedElementObject {
-  type: TimelineInteractableElementType,
-  element: SVGElement
+  type: TimelineInteractableElementType;
+  element: SVGElement;
 }

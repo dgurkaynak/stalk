@@ -1,6 +1,5 @@
 import ticks from './ticks';
 
-
 export default class Axis {
   private scale: number;
   private offset: number;
@@ -33,8 +32,9 @@ export default class Axis {
     this.inputRange = inputRange;
     this.outputRange = outputRange;
 
-    this.scale = (outputRange[1] - outputRange[0]) / (inputRange[1] - inputRange[0]);
-    this.offset = outputRange[0] - (this.scale * inputRange[0]);
+    this.scale =
+      (outputRange[1] - outputRange[0]) / (inputRange[1] - inputRange[0]);
+    this.offset = outputRange[0] - this.scale * inputRange[0];
     this.minScale = this.scale;
   }
 
@@ -46,11 +46,13 @@ export default class Axis {
    */
   updateOutputRange(outputRange: [number, number]) {
     this.outputRange = outputRange;
-    this.minScale = (outputRange[1] - outputRange[0]) / (this.inputRange[1] - this.inputRange[0]);
+    this.minScale =
+      (outputRange[1] - outputRange[0]) /
+      (this.inputRange[1] - this.inputRange[0]);
 
     if (this.scale < this.minScale) {
       this.scale = this.minScale;
-      this.offset = outputRange[0] - (this.scale * this.inputRange[0]);
+      this.offset = outputRange[0] - this.scale * this.inputRange[0];
     }
 
     this.preventTranslatingOutOfRange();
@@ -68,7 +70,7 @@ export default class Axis {
     const newScale = Math.max(this.scale * factor, this.minScale);
     if (newScale === this.scale) return;
     this.scale = newScale;
-    this.offset = anchorOutputPoint * (1 - factor) + (this.offset * factor);
+    this.offset = anchorOutputPoint * (1 - factor) + this.offset * factor;
     this.preventTranslatingOutOfRange();
   }
 
@@ -99,7 +101,11 @@ export default class Axis {
     const visibleRelativeInputStart = visibleInputStart - originInput;
     const visibleInputFinish = this.output2input(this.outputRange[1]);
     const visibleRelativeFinishStart = visibleInputFinish - originInput;
-    return ticks(visibleRelativeInputStart, visibleRelativeFinishStart, count).map((inputRelative: number) => {
+    return ticks(
+      visibleRelativeInputStart,
+      visibleRelativeFinishStart,
+      count
+    ).map((inputRelative: number) => {
       const input = inputRelative + originInput; // in us probably
       return {
         inputRelative,

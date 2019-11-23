@@ -4,8 +4,20 @@ import { ToolbarMenu, ToolbarMenuItemOptions } from '../app-toolbar/menu';
 import processGroupingOptions from '../../model/span-grouping/process';
 import serviceNameGroupingOptions from '../../model/span-grouping/service-name';
 import traceGroupingOptions from '../../model/span-grouping/trace';
-import { SpanColoringManager, SpanColoringRawOptions, SpanColoringOptions, operationColoringOptions, serviceColoringOptions } from '../../model/span-coloring-manager';
-import { SpanLabellingManager, SpanLabellingRawOptions, SpanLabellingOptions, operationLabellingOptions, serviceOperationLabellingOptions } from '../../model/span-labelling-manager';
+import {
+  SpanColoringManager,
+  SpanColoringRawOptions,
+  SpanColoringOptions,
+  operationColoringOptions,
+  serviceColoringOptions
+} from '../../model/span-coloring-manager';
+import {
+  SpanLabellingManager,
+  SpanLabellingRawOptions,
+  SpanLabellingOptions,
+  operationLabellingOptions,
+  serviceOperationLabellingOptions
+} from '../../model/span-labelling-manager';
 import { SpanGroupingManager } from '../../model/span-grouping/manager';
 import { GroupLayoutType } from '../timeline/group-view';
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
@@ -52,7 +64,7 @@ export class TimelineWrapper {
     groupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineView
     spanColoringMode: operationColoringOptions.key, // Do not forget to change default value of TimelineView
     spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineView
-    groupLayoutMode: GroupLayoutType.FILL,
+    groupLayoutMode: GroupLayoutType.FILL
   };
 
   private binded = {
@@ -70,7 +82,13 @@ export class TimelineWrapper {
       { type: 'item', text: 'Service', id: serviceNameGroupingOptions.key },
       { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
-      { type: 'item', text: 'Manage All', icon: 'settings-outline', id: 'manage-all', disabled: true }
+      {
+        type: 'item',
+        text: 'Manage All',
+        icon: 'settings-outline',
+        id: 'manage-all',
+        disabled: true
+      }
     ],
     onClick: this.binded.onGroupingModeMenuItemClick
   });
@@ -78,10 +96,20 @@ export class TimelineWrapper {
     // width: 150,
     items: [
       { type: 'item', text: 'Operation', id: operationLabellingOptions.key },
-      { type: 'item', text: 'Service + Operation', id: serviceOperationLabellingOptions.key },
+      {
+        type: 'item',
+        text: 'Service + Operation',
+        id: serviceOperationLabellingOptions.key
+      },
       { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
-      { type: 'item', text: 'Manage All', icon: 'settings-outline', id: 'manage-all', disabled: true }
+      {
+        type: 'item',
+        text: 'Manage All',
+        icon: 'settings-outline',
+        id: 'manage-all',
+        disabled: true
+      }
     ],
     onClick: this.binded.onSpanLabellingMenuItemClick
   });
@@ -92,7 +120,13 @@ export class TimelineWrapper {
       { type: 'item', text: 'Service', id: serviceColoringOptions.key },
       { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
-      { type: 'item', text: 'Manage All', icon: 'settings-outline', id: 'manage-all', disabled: true }
+      {
+        type: 'item',
+        text: 'Manage All',
+        icon: 'settings-outline',
+        id: 'manage-all',
+        disabled: true
+      }
     ],
     onClick: this.binded.onSpanColoringMenuItemClick
   });
@@ -157,11 +191,17 @@ export class TimelineWrapper {
     btn.spanLabellingMode.innerHTML = SvgTextbox;
     middlePane.appendChild(btn.spanLabellingMode);
 
-    btn.spanColoringMode.classList.add('timeline-toolbar-button', 'span-coloring');
+    btn.spanColoringMode.classList.add(
+      'timeline-toolbar-button',
+      'span-coloring'
+    );
     btn.spanColoringMode.innerHTML = SvgFormatColorFill;
     middlePane.appendChild(btn.spanColoringMode);
 
-    btn.groupLayoutMode.classList.add('timeline-toolbar-button', 'group-layout');
+    btn.groupLayoutMode.classList.add(
+      'timeline-toolbar-button',
+      'group-layout'
+    );
     btn.groupLayoutMode.innerHTML = SvgSort;
     middlePane.appendChild(btn.groupLayoutMode);
 
@@ -171,41 +211,56 @@ export class TimelineWrapper {
   }
 
   init(options: { width: number; height: number }) {
-    this.timeline.init({ width: options.width, height: options.height - TOOLBAR_HEIGHT });
+    this.timeline.init({
+      width: options.width,
+      height: options.height - TOOLBAR_HEIGHT
+    });
     this.initTooltips();
     this.initDropdowns();
 
     // Select default menus
-    this.groupingModeMenu.selectAt({
-      [traceGroupingOptions.key]: 0,
-      [processGroupingOptions.key]: 1,
-      [serviceNameGroupingOptions.key]: 2,
-      custom: 4,
-    }[this.state.groupingMode]);
-    this.spanLabellingModeMenu.selectAt({
-      [operationLabellingOptions.key]: 0,
-      [serviceOperationLabellingOptions.key]: 1,
-      custom: 3,
-    }[this.state.spanLabellingMode]);
-    this.spanColoringModeMenu.selectAt({
-      [operationColoringOptions.key]: 0,
-      [serviceColoringOptions.key]: 1,
-      custom: 3,
-    }[this.state.spanColoringMode]);
-    this.groupLayoutModeMenu.selectAt({
-      [GroupLayoutType.FILL]: 0,
-      [GroupLayoutType.COMPACT]: 1,
-      [GroupLayoutType.WATERFALL]: 2
-    }[this.state.groupLayoutMode]);
+    this.groupingModeMenu.selectAt(
+      {
+        [traceGroupingOptions.key]: 0,
+        [processGroupingOptions.key]: 1,
+        [serviceNameGroupingOptions.key]: 2,
+        custom: 4
+      }[this.state.groupingMode]
+    );
+    this.spanLabellingModeMenu.selectAt(
+      {
+        [operationLabellingOptions.key]: 0,
+        [serviceOperationLabellingOptions.key]: 1,
+        custom: 3
+      }[this.state.spanLabellingMode]
+    );
+    this.spanColoringModeMenu.selectAt(
+      {
+        [operationColoringOptions.key]: 0,
+        [serviceColoringOptions.key]: 1,
+        custom: 3
+      }[this.state.spanColoringMode]
+    );
+    this.groupLayoutModeMenu.selectAt(
+      {
+        [GroupLayoutType.FILL]: 0,
+        [GroupLayoutType.COMPACT]: 1,
+        [GroupLayoutType.WATERFALL]: 2
+      }[this.state.groupLayoutMode]
+    );
   }
 
   private initTooltips() {
     const btn = this.elements.toolbarBtn;
     const tooltips = {
       groupingMode: tippy(btn.groupingMode, {
-        content: 'Span Grouping', multiple: true
+        content: 'Span Grouping',
+        multiple: true
       }),
-      spanLabellingMode: tippy(btn.spanLabellingMode, { content: 'Span Labelling', multiple: true }),
+      spanLabellingMode: tippy(btn.spanLabellingMode, {
+        content: 'Span Labelling',
+        multiple: true
+      }),
       spanColoringMode: tippy(btn.spanColoringMode, {
         content: 'Span Coloring',
         multiple: true
@@ -272,7 +327,7 @@ export class TimelineWrapper {
         theme: 'toolbar-menu',
         trigger: 'click',
         interactive: true
-      }),
+      })
     };
   }
 
@@ -292,7 +347,9 @@ export class TimelineWrapper {
       return;
     }
 
-    const spanGroupingOptions = SpanGroupingManager.getSingleton().getOptions(item.id);
+    const spanGroupingOptions = SpanGroupingManager.getSingleton().getOptions(
+      item.id
+    );
     if (!spanGroupingOptions) {
       // message.error(`Unknown span grouping: "${item.id}"`);
       return;
@@ -319,7 +376,9 @@ export class TimelineWrapper {
       return;
     }
 
-    const spanLabellingOptions = SpanLabellingManager.getSingleton().getOptions(item.id);
+    const spanLabellingOptions = SpanLabellingManager.getSingleton().getOptions(
+      item.id
+    );
     if (!spanLabellingOptions) {
       // message.error(`Unknown span labelling: "${item.id}"`);
       return;
@@ -346,7 +405,9 @@ export class TimelineWrapper {
       return;
     }
 
-    const spanColoringOptions = SpanColoringManager.getSingleton().getOptions(item.id);
+    const spanColoringOptions = SpanColoringManager.getSingleton().getOptions(
+      item.id
+    );
     if (!spanColoringOptions) {
       // message.error(`Unknown span coloring: "${item.id}"`);
       return;

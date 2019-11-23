@@ -22,7 +22,9 @@ class ViewConstants {
   readonly spanBarRadius = 1;
   readonly spanBarMinWidth = 1;
   readonly spanBarViewportMargin = 5;
-  get rowHeight() { return (2 * this.spanBarSpacing) + this.spanBarHeight; };
+  get rowHeight() {
+    return 2 * this.spanBarSpacing + this.spanBarHeight;
+  }
 
   readonly spanLabelFontSize = 10;
   readonly spanLabelOffsetLeft = 5;

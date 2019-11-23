@@ -4,9 +4,7 @@ import prettyMilliseconds from 'pretty-ms';
 import { Span } from '../../model/interfaces';
 import Axis from './axis';
 
-
 const SVG_NS = 'http://www.w3.org/2000/svg';
-
 
 export default class SpanTooltipView {
   spanView: SpanView;
@@ -21,18 +19,24 @@ export default class SpanTooltipView {
   private labelText = document.createElementNS(SVG_NS, 'text');
   private summaryText = document.createElementNS(SVG_NS, 'text');
   private viewportSize = { width: 0, height: 0 };
-  private labelBy: (span: Span) => string = (span) => span.operationName;
-  private viewPropertiesCache = { headerWidth: 0, width: 0, nearbyLogsCacheId: '' };
+  private labelBy: (span: Span) => string = span => span.operationName;
+  private viewPropertiesCache = {
+    headerWidth: 0,
+    width: 0,
+    nearbyLogsCacheId: ''
+  };
   private logContainers: SVGGElement[] = [];
   private logTimeTexts: SVGTextElement[] = [];
   private logFieldsTexts: SVGTextElement[] = [];
   private logSeperatorLines: SVGLineElement[] = [];
 
-  constructor(private deps: {
-    parentEl: SVGElement,
-    defsEl: SVGDefsElement,
-    axis: Axis
-  }) {
+  constructor(
+    private deps: {
+      parentEl: SVGElement;
+      defsEl: SVGDefsElement;
+      axis: Axis;
+    }
+  ) {
     this.clipPath.id = 'tooltip-clip-path';
     this.clipPathRect.setAttribute('x', `0`);
     this.clipPathRect.setAttribute('y', `0`);
@@ -58,7 +62,10 @@ export default class SpanTooltipView {
     this.rect.setAttribute('width', '0');
     this.rect.setAttribute('fill', vc.spanTooltipBackgroundColor);
 
-    const duration = prettyMilliseconds((span.finishTime - span.startTime) / 1000, { formatSubMilliseconds: true });
+    const duration = prettyMilliseconds(
+      (span.finishTime - span.startTime) / 1000,
+      { formatSubMilliseconds: true }
+    );
     // TODO: Also calculate self-time (exluding child durations)
     this.durationText.textContent = duration;
     this.durationText.setAttribute('x', '5');
@@ -72,7 +79,9 @@ export default class SpanTooltipView {
     this.labelText.setAttribute('x', '50');
     this.labelText.setAttribute('y', '14');
 
-    this.summaryText.textContent = `${Object.keys(span.tags).length} tag(s), ${span.logs.length} log(s)`;
+    this.summaryText.textContent = `${Object.keys(span.tags).length} tag(s), ${
+      span.logs.length
+    } log(s)`;
     this.summaryText.setAttribute('font-size', vc.spanTooltipFontSize + '');
     this.summaryText.setAttribute('font-style', 'italic');
     this.summaryText.setAttribute('x', '100');
@@ -113,8 +122,8 @@ export default class SpanTooltipView {
     const width = summaryX + summaryBB.width + 5;
 
     this.durationText.setAttribute('x', '5');
-    this.labelText.setAttribute('x', (labelX) + '');
-    this.summaryText.setAttribute('x', (summaryX) + '');
+    this.labelText.setAttribute('x', labelX + '');
+    this.summaryText.setAttribute('x', summaryX + '');
     this.rect.setAttribute('width', width + '');
 
     this.viewPropertiesCache.headerWidth = width;
@@ -137,13 +146,15 @@ export default class SpanTooltipView {
     // If logs are changed
     if (nearbyLogsCacheId != previousLogsCacheId) {
       // Unmount previous ones
-      this.logContainers.forEach(g => g.parentElement && g.parentElement.removeChild(g));
+      this.logContainers.forEach(
+        g => g.parentElement && g.parentElement.removeChild(g)
+      );
       this.logContainers = [];
       this.logTimeTexts = [];
       this.logFieldsTexts = [];
       this.logSeperatorLines = [];
 
-      nearbyLogViews.forEach((l) => {
+      nearbyLogViews.forEach(l => {
         const logContainer = document.createElementNS(SVG_NS, 'g');
         const logTimeText = document.createElementNS(SVG_NS, 'text');
         const logFieldsText = document.createElementNS(SVG_NS, 'text');
@@ -160,7 +171,10 @@ export default class SpanTooltipView {
         logSeperatorLine.setAttribute('stroke-width', '1');
         logContainer.appendChild(logSeperatorLine);
 
-        const time = prettyMilliseconds((l.log.timestamp - this.deps.axis.getInputRange()[0]) / 1000, { formatSubMilliseconds: true });
+        const time = prettyMilliseconds(
+          (l.log.timestamp - this.deps.axis.getInputRange()[0]) / 1000,
+          { formatSubMilliseconds: true }
+        );
         logTimeText.textContent = `Log @ ${time}`;
         logTimeText.setAttribute('x', '5');
         logTimeText.setAttribute('y', '14');
@@ -180,19 +194,22 @@ export default class SpanTooltipView {
         this.logFieldsTexts.push(logFieldsText);
         this.logSeperatorLines.push(logSeperatorLine);
         height += vc.spanTooltipLineHeight + 14;
-
       });
-
     } else {
       // If logs are not changed, we dont know the height, estimate it like above
-      height = vc.spanTooltipLineHeight + this.logContainers.length * (vc.spanTooltipLineHeight + 15);
+      height =
+        vc.spanTooltipLineHeight +
+        this.logContainers.length * (vc.spanTooltipLineHeight + 15);
     }
 
     // If any log exists, try to maximize tooltip width
-    const maxWidth = this.logFieldsTexts.length > 0 ? Math.max(
-      ...this.logFieldsTexts.map(t => t.getBBox().width + 5 + 5),
-      width
-    ) : width;
+    const maxWidth =
+      this.logFieldsTexts.length > 0
+        ? Math.max(
+            ...this.logFieldsTexts.map(t => t.getBBox().width + 5 + 5),
+            width
+          )
+        : width;
     const newWidth = Math.min(maxWidth, vc.spanTooltipMaxWidth);
 
     // Width is changed, perform an update to already rendered things
@@ -227,5 +244,4 @@ export default class SpanTooltipView {
     this.rect.setAttribute('height', height + '');
     this.container.setAttribute('transform', `translate(${x}, ${y})`);
   }
-
 }

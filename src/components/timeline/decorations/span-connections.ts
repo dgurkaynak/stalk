@@ -6,18 +6,18 @@ import GroupView from '../group-view';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 interface SpanConnectionsDecorationSettings {
-  spanId: string,
-  strokeWidth?: number,
-  strokeColor?: string,
-  barHeight?: number,
+  spanId: string;
+  strokeWidth?: number;
+  strokeColor?: string;
+  barHeight?: number;
 }
 
 interface SpanConnection {
-  spanView: SpanView,
-  groupView: GroupView,
-  refType: 'childOf' | 'followsFrom',
-  type: 'parent' | 'child',
-  path: SVGPathElement
+  spanView: SpanView;
+  groupView: GroupView;
+  refType: 'childOf' | 'followsFrom';
+  type: 'parent' | 'child';
+  path: SVGPathElement;
 }
 
 export default class SpanConnectionsDecoration extends BaseDecoration {
@@ -36,21 +36,29 @@ export default class SpanConnectionsDecoration extends BaseDecoration {
   prepare(settings: SpanConnectionsDecorationSettings) {
     this.settings = _.defaults(settings, this.settings);
 
-    this.parents.forEach(({ path }) => path.parentElement && path.parentElement.removeChild(path));
+    this.parents.forEach(
+      ({ path }) => path.parentElement && path.parentElement.removeChild(path)
+    );
     this.parents = [];
-    this.children.forEach(({ path }) => path.parentElement && path.parentElement.removeChild(path));
+    this.children.forEach(
+      ({ path }) => path.parentElement && path.parentElement.removeChild(path)
+    );
     this.children = [];
 
     this.groupView = null;
     this.spanView = null;
 
-    const [groupView, spanView] = this.timelineView.findSpanView(this.settings.spanId);
+    const [groupView, spanView] = this.timelineView.findSpanView(
+      this.settings.spanId
+    );
     if (!groupView || !spanView) return false; // this will force timelineview to unmount this decoration
     this.groupView = groupView;
     this.spanView = spanView;
 
-    spanView.span.references.forEach((ref) => {
-      const [refGroupView, refSpanView] = this.timelineView.findSpanView(ref.spanId);
+    spanView.span.references.forEach(ref => {
+      const [refGroupView, refSpanView] = this.timelineView.findSpanView(
+        ref.spanId
+      );
       if (!refGroupView || !refSpanView) return;
       // TODO: Indicate when span could not found
       // TODO: Handle if groupView is collapsed
@@ -60,7 +68,10 @@ export default class SpanConnectionsDecoration extends BaseDecoration {
       path.setAttribute('stroke-width', settings.strokeWidth + '');
       path.setAttribute('stroke', settings.strokeColor);
       path.setAttribute('marker-end', `url(#arrow-head)`);
-      path.setAttribute('stroke-dasharray', ref.type === 'followsFrom' ? '2' : '0');
+      path.setAttribute(
+        'stroke-dasharray',
+        ref.type === 'followsFrom' ? '2' : '0'
+      );
       this.container.appendChild(path);
 
       this.parents.push({
@@ -72,19 +83,28 @@ export default class SpanConnectionsDecoration extends BaseDecoration {
       });
     });
 
-    const childrenMatches = this.timelineView.findSpanViews((v) => {
-      const selfReferences = _.find(v.span.references, r => r.spanId === this.settings.spanId);
+    const childrenMatches = this.timelineView.findSpanViews(v => {
+      const selfReferences = _.find(
+        v.span.references,
+        r => r.spanId === this.settings.spanId
+      );
       return !!selfReferences;
     });
 
-    childrenMatches.forEach(([ refGroupView, refSpanView ]) => {
+    childrenMatches.forEach(([refGroupView, refSpanView]) => {
       const path = document.createElementNS(SVG_NS, 'path');
       path.setAttribute('fill', 'transparent');
       path.setAttribute('stroke-width', settings.strokeWidth + '');
       path.setAttribute('stroke', settings.strokeColor);
       path.setAttribute('marker-end', `url(#arrow-head)`);
-      const ref = _.find(refSpanView.span.references, r => r.spanId === this.settings.spanId);
-      path.setAttribute('stroke-dasharray', ref!.type === 'followsFrom' ? '2' : '0');
+      const ref = _.find(
+        refSpanView.span.references,
+        r => r.spanId === this.settings.spanId
+      );
+      path.setAttribute(
+        'stroke-dasharray',
+        ref!.type === 'followsFrom' ? '2' : '0'
+      );
       this.container.appendChild(path);
 
       this.children.push({
@@ -96,7 +116,7 @@ export default class SpanConnectionsDecoration extends BaseDecoration {
       });
     });
 
-    this.overlayElements = [ this.container ];
+    this.overlayElements = [this.container];
   }
 
   update() {
@@ -106,7 +126,7 @@ export default class SpanConnectionsDecoration extends BaseDecoration {
     const groupViewProps = this.groupView.getViewPropertiesCache();
     const halfBarHeight = this.settings.barHeight / 2;
 
-    [ ...this.parents, ...this.children ].forEach((ref) => {
+    [...this.parents, ...this.children].forEach(ref => {
       const refSpanViewProps = ref.spanView.getViewPropertiesCache();
       const refGroupViewProps = ref.groupView.getViewPropertiesCache();
       const path = ref.path;
@@ -118,18 +138,24 @@ export default class SpanConnectionsDecoration extends BaseDecoration {
       let toX = 0;
       let toY = 0;
 
-      switch(ref.type) {
+      switch (ref.type) {
         case 'parent': {
-            fromX = Math.min(refSpanViewProps.x + refSpanViewProps.width, spanViewProps.x);
-            fromY = refGroupViewProps.y + refSpanViewProps.y + halfBarHeight;
-            fromSpanStartX = refSpanViewProps.x;
-            toX = spanViewProps.x + arrowHeadOffsetLeft;
-            toY = groupViewProps.y + spanViewProps.y + halfBarHeight;
+          fromX = Math.min(
+            refSpanViewProps.x + refSpanViewProps.width,
+            spanViewProps.x
+          );
+          fromY = refGroupViewProps.y + refSpanViewProps.y + halfBarHeight;
+          fromSpanStartX = refSpanViewProps.x;
+          toX = spanViewProps.x + arrowHeadOffsetLeft;
+          toY = groupViewProps.y + spanViewProps.y + halfBarHeight;
           break;
         }
 
         case 'child': {
-          fromX = Math.min(spanViewProps.x + spanViewProps.width, refSpanViewProps.x);
+          fromX = Math.min(
+            spanViewProps.x + spanViewProps.width,
+            refSpanViewProps.x
+          );
           fromY = groupViewProps.y + spanViewProps.y + halfBarHeight;
           fromSpanStartX = spanViewProps.x;
           toX = refSpanViewProps.x + arrowHeadOffsetLeft;
@@ -137,10 +163,13 @@ export default class SpanConnectionsDecoration extends BaseDecoration {
           break;
         }
 
-        default: throw new Error(`Could not draw connection, reference type "${ref.type} not supported"`);
+        default:
+          throw new Error(
+            `Could not draw connection, reference type "${ref.type} not supported"`
+          );
       }
 
-      const angle = Math.atan2(toY - fromY, toX - fromX) / Math.PI * 180;
+      const angle = (Math.atan2(toY - fromY, toX - fromX) / Math.PI) * 180;
       let isVertical = false;
 
       let fromControlX = 0;
@@ -178,7 +207,6 @@ export default class SpanConnectionsDecoration extends BaseDecoration {
         // fromX = Math.max(fromSpanStartX, fromX - toControlXOffset);
         fromControlX = fromX;
         toControlX = toX - toControlXOffset;
-
       } else {
         // Just draw horizontal linear-ish line
         fromControlX = fromX + 50;
@@ -187,9 +215,10 @@ export default class SpanConnectionsDecoration extends BaseDecoration {
         toControlY = toY;
       }
 
-      path.setAttribute('d', `M ${fromX} ${fromY} C ${fromControlX} ${fromControlY}, ${toControlX}  ${toControlY}, ${toX} ${toY}`);
-
+      path.setAttribute(
+        'd',
+        `M ${fromX} ${fromY} C ${fromControlX} ${fromControlY}, ${toControlX}  ${toControlY}, ${toX} ${toY}`
+      );
     }); // forEach end
-
   }
 }

@@ -2,7 +2,6 @@ import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as languageFeatures from 'monaco-editor/esm/vs/language/typescript/languageFeatures';
 import DefaultInterfacesRawText from '!!raw-loader!../../model/interfaces.ts';
 
-
 let _singletonIns: TypeScriptManager;
 
 export default class TypeScriptManager {
@@ -26,12 +25,14 @@ export default class TypeScriptManager {
       module: monaco.languages.typescript.ModuleKind.None
     });
 
-    this.defaultInterfacesDisposable = monaco.languages.typescript.typescriptDefaults.addExtraLib(DefaultInterfacesRawText.replace(/export/g, ''));
+    this.defaultInterfacesDisposable = monaco.languages.typescript.typescriptDefaults.addExtraLib(
+      DefaultInterfacesRawText.replace(/export/g, '')
+    );
   }
 
   async compile(uri: monaco.Uri) {
     const worker = await monaco.languages.typescript.getTypeScriptWorker();
-    const client = await worker(uri)
+    const client = await worker(uri);
     const result = await client.getEmitOutput(uri.toString());
     return result.outputFiles[0].text;
   }
@@ -47,40 +48,57 @@ export default class TypeScriptManager {
   static patchMonacoTypescriptToIgnoreDiagnostics() {
     // Original code taken from:
     // https://github.com/microsoft/monaco-typescript/blob/3596f46e41922104181cda3ed981f5a25246882e/src/languageFeatures.ts#L159-L190
-    languageFeatures.DiagnostcsAdapter.prototype._doValidate = function(resource: monaco.Uri): void {
-      this._worker(resource).then((worker: any) => {
-        if (!monaco.editor.getModel(resource)) {
-          // model was disposed in the meantime
-          return null;
-        }
-        const promises: Promise<any[]>[] = [];
-        const { noSyntaxValidation, noSemanticValidation } = this._defaults.getDiagnosticsOptions();
-        if (!noSyntaxValidation) {
-          promises.push(worker.getSyntacticDiagnostics(resource.toString()));
-        }
-        if (!noSemanticValidation) {
-          promises.push(worker.getSemanticDiagnostics(resource.toString()));
-        }
-        return Promise.all(promises);
-      }).then((diagnostics: any) => {
-        if (!diagnostics || !monaco.editor.getModel(resource)) {
-          // model was disposed in the meantime
-          return;
-        }
-        const markers = diagnostics
-          .reduce((p: any, c: any) => c.concat(p), [])
-          // ====> PATCH STARTED
-          .filter((d: any) => (this._defaults.getDiagnosticsOptions().diagnosticCodesToIgnore || []).indexOf(d.code) === -1)
-          // ====> PATCH ENDED
-          .map((d: any) => this._convertDiagnostics(resource, d));
+    languageFeatures.DiagnostcsAdapter.prototype._doValidate = function(
+      resource: monaco.Uri
+    ): void {
+      this._worker(resource)
+        .then((worker: any) => {
+          if (!monaco.editor.getModel(resource)) {
+            // model was disposed in the meantime
+            return null;
+          }
+          const promises: Promise<any[]>[] = [];
+          const {
+            noSyntaxValidation,
+            noSemanticValidation
+          } = this._defaults.getDiagnosticsOptions();
+          if (!noSyntaxValidation) {
+            promises.push(worker.getSyntacticDiagnostics(resource.toString()));
+          }
+          if (!noSemanticValidation) {
+            promises.push(worker.getSemanticDiagnostics(resource.toString()));
+          }
+          return Promise.all(promises);
+        })
+        .then((diagnostics: any) => {
+          if (!diagnostics || !monaco.editor.getModel(resource)) {
+            // model was disposed in the meantime
+            return;
+          }
+          const markers = diagnostics
+            .reduce((p: any, c: any) => c.concat(p), [])
+            // ====> PATCH STARTED
+            .filter(
+              (d: any) =>
+                (
+                  this._defaults.getDiagnosticsOptions()
+                    .diagnosticCodesToIgnore || []
+                ).indexOf(d.code) === -1
+            )
+            // ====> PATCH ENDED
+            .map((d: any) => this._convertDiagnostics(resource, d));
 
-        monaco.editor.setModelMarkers(monaco.editor.getModel(resource) as any, this._selector, markers);
-      }).then(undefined, (err: any) => {
-        console.error(err);
-      });
-    }
+          monaco.editor.setModelMarkers(
+            monaco.editor.getModel(resource) as any,
+            this._selector,
+            markers
+          );
+        })
+        .then(undefined, (err: any) => {
+          console.error(err);
+        });
+    };
   }
-
 }
 
 (window as any).TypeScriptManager = TypeScriptManager;

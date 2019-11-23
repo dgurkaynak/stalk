@@ -3,11 +3,12 @@ import { Span, SpanLog } from '../../model/interfaces';
 import vc from './view-constants';
 import * as shortid from 'shortid';
 import { textColorFor } from '../ui/color-helper';
-import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
+import {
+  TimelineInteractableElementAttribute,
+  TimelineInteractableElementType
+} from './interaction';
 import Axis from './axis';
 import chroma from 'chroma-js';
-
-
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -18,9 +19,9 @@ export interface SpanViewSharedOptions {
 }
 
 export interface SpanLogViewObject {
-  id: string,
-  line: SVGLineElement,
-  log: SpanLog
+  id: string;
+  line: SVGLineElement;
+  log: SpanLog;
 }
 
 export default class SpanView {
@@ -59,7 +60,10 @@ export default class SpanView {
     this.container.appendChild(this.barRect);
 
     this.labelText.setAttribute('x', vc.spanLabelOffsetLeft + '');
-    this.labelText.setAttribute('y', (vc.spanBarHeight / 2 + vc.spanBarSpacing + vc.spanLabelOffsetTop) + '');
+    this.labelText.setAttribute(
+      'y',
+      vc.spanBarHeight / 2 + vc.spanBarSpacing + vc.spanLabelOffsetTop + ''
+    );
     this.labelText.setAttribute('font-size', vc.spanLabelFontSize + '');
     // this.labelText.setAttribute('font-weight', '600');
 
@@ -69,10 +73,7 @@ export default class SpanView {
     this.clipPath.appendChild(this.clipPathRect);
   }
 
-  mount(options: {
-    groupContainer: SVGGElement,
-    svgDefs: SVGDefsElement
-  }) {
+  mount(options: { groupContainer: SVGGElement; svgDefs: SVGDefsElement }) {
     options.groupContainer.appendChild(this.container);
     options.svgDefs.appendChild(this.clipPath);
   }
@@ -89,17 +90,27 @@ export default class SpanView {
     this.span = span;
 
     const baseColor = this.sharedOptions.colorFor(span);
-    this.viewPropertiesCache.barColorDefault = chroma(baseColor).alpha(0.75).css();
-    this.viewPropertiesCache.barColorHover = chroma(baseColor).alpha(1.0).css();
+    this.viewPropertiesCache.barColorDefault = chroma(baseColor)
+      .alpha(0.75)
+      .css();
+    this.viewPropertiesCache.barColorHover = chroma(baseColor)
+      .alpha(1.0)
+      .css();
     const textColor = textColorFor(this.viewPropertiesCache.barColorDefault);
     this.viewPropertiesCache.labelColor = textColor;
-    this.viewPropertiesCache.borderColor = chroma(baseColor).darken(1).alpha(1.0).css();
+    this.viewPropertiesCache.borderColor = chroma(baseColor)
+      .darken(1)
+      .alpha(1.0)
+      .css();
 
     this.updateColorStyle('normal');
     this.updateLabelText();
     this.hideLabel();
 
-    this.container.setAttribute(TimelineInteractableElementAttribute, TimelineInteractableElementType.SPAN_VIEW_CONTAINER);
+    this.container.setAttribute(
+      TimelineInteractableElementAttribute,
+      TimelineInteractableElementType.SPAN_VIEW_CONTAINER
+    );
     this.container.setAttribute('data-span-id', span.id);
     this.clipPath.id = `clip-path-span-${span.id}`;
     this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
@@ -108,11 +119,11 @@ export default class SpanView {
     const { x } = this.viewPropertiesCache;
     this.logViews.forEach(l => this.container.removeChild(l.line));
 
-    this.logViews = this.span.logs.map((log) => {
+    this.logViews = this.span.logs.map(log => {
       const id = shortid.generate();
       const line = document.createElementNS(SVG_NS, 'line');
       line.setAttribute('y1', '-3');
-      line.setAttribute('y2', (spanBarHeight + 3) + '');
+      line.setAttribute('y2', spanBarHeight + 3 + '');
       line.setAttribute('stroke', 'rgba(0, 0, 0, 0.5)');
       line.setAttribute('stroke-width', '1');
       // line.setAttribute('clip-path', `url(#${this.clipPath.id})`);
@@ -157,9 +168,10 @@ export default class SpanView {
   updateVerticalPosition(rowIndex: number, dontApplyTransform = false) {
     const { spanBarSpacing, rowHeight, groupPaddingTop } = vc;
     const { x } = this.viewPropertiesCache;
-    const y = groupPaddingTop + (rowIndex * rowHeight) + spanBarSpacing; // Relative y in pixels to group container
+    const y = groupPaddingTop + rowIndex * rowHeight + spanBarSpacing; // Relative y in pixels to group container
     this.viewPropertiesCache.y = y;
-    !dontApplyTransform && this.container.setAttribute('transform', `translate(${x}, ${y})`);
+    !dontApplyTransform &&
+      this.container.setAttribute('transform', `translate(${x}, ${y})`);
   }
 
   updateHorizontalPosition() {
@@ -171,13 +183,13 @@ export default class SpanView {
 
     // Snap the label text to left of the screen
     if (x < 0) {
-      this.labelText.setAttribute('x', (-x + vc.spanLabelSnappedOffsetLeft) + '');
+      this.labelText.setAttribute('x', -x + vc.spanLabelSnappedOffsetLeft + '');
     } else {
       this.labelText.setAttribute('x', vc.spanLabelOffsetLeft + '');
     }
 
     // Update logs
-    this.logViews.forEach((logView) => {
+    this.logViews.forEach(logView => {
       const logX = axis.input2output(logView.log.timestamp) - x;
       logView.line.setAttribute('x1', logX + '');
       logView.line.setAttribute('x2', logX + '');
@@ -188,21 +200,31 @@ export default class SpanView {
     const { spanBarMinWidth } = vc;
     const axis = this.sharedOptions.axis;
     const startX = axis.input2output(this.span.startTime);
-    const width = Math.max(axis.input2output(this.span.finishTime) - startX, spanBarMinWidth);
+    const width = Math.max(
+      axis.input2output(this.span.finishTime) - startX,
+      spanBarMinWidth
+    );
     this.viewPropertiesCache.width = width;
-    this.barRect.setAttribute('width',  width + '');
-    this.clipPathRect.setAttribute('width',  width + '');
+    this.barRect.setAttribute('width', width + '');
+    this.clipPathRect.setAttribute('width', width + '');
 
-    this.labelText.setAttribute('display', width < 30 ? 'none' : '')
+    this.labelText.setAttribute('display', width < 30 ? 'none' : '');
   }
 
   updateColors() {
     const baseColor = this.sharedOptions.colorFor(this.span);
-    this.viewPropertiesCache.barColorDefault = chroma(baseColor).alpha(0.8).css();
-    this.viewPropertiesCache.barColorHover = chroma(baseColor).alpha(1.0).css();
+    this.viewPropertiesCache.barColorDefault = chroma(baseColor)
+      .alpha(0.8)
+      .css();
+    this.viewPropertiesCache.barColorHover = chroma(baseColor)
+      .alpha(1.0)
+      .css();
     const textColor = textColorFor(this.viewPropertiesCache.barColorDefault);
     this.viewPropertiesCache.labelColor = textColor;
-    this.viewPropertiesCache.borderColor = chroma(baseColor).darken(1).alpha(1.0).css();
+    this.viewPropertiesCache.borderColor = chroma(baseColor)
+      .darken(1)
+      .alpha(1.0)
+      .css();
 
     this.barRect.setAttribute('fill', this.viewPropertiesCache.barColorDefault);
     // this.barRect.setAttribute('stroke', ??); // TODO: We don't know what the current style is
@@ -210,19 +232,23 @@ export default class SpanView {
   }
 
   showLabel() {
-    if (!this.labelText.parentElement) this.container.appendChild(this.labelText);
+    if (!this.labelText.parentElement)
+      this.container.appendChild(this.labelText);
   }
 
   hideLabel() {
-    if (this.labelText.parentElement) this.container.removeChild(this.labelText);
+    if (this.labelText.parentElement)
+      this.container.removeChild(this.labelText);
   }
 
   showLogs() {
-    this.logViews.forEach(({line}) => this.container.appendChild(line));
+    this.logViews.forEach(({ line }) => this.container.appendChild(line));
   }
 
   hideLogs() {
-    this.logViews.forEach(l => l.line.parentElement && l.line.parentElement.removeChild(l.line));
+    this.logViews.forEach(
+      l => l.line.parentElement && l.line.parentElement.removeChild(l.line)
+    );
   }
 
   getLogViewById(logId: string) {
@@ -235,7 +261,7 @@ export default class SpanView {
 
   // Get
   getNearbyLogViews(absoluteX: number, threshold = 10) {
-    return this.logViews.filter((l) => {
+    return this.logViews.filter(l => {
       const logX = this.sharedOptions.axis.input2output(l.log.timestamp);
       return Math.abs(absoluteX - logX) <= 10;
     });
@@ -254,7 +280,7 @@ export default class SpanView {
   static getPropsFromLogCircle(el: Element) {
     return {
       id: el.getAttribute('data-log-id'),
-      spanId: el.getAttribute('data-span-id'),
+      spanId: el.getAttribute('data-span-id')
     };
   }
 }

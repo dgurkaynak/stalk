@@ -2,7 +2,6 @@ import * as _ from 'lodash';
 import palette from 'google-palette';
 import { IColorAssigner } from './interfaces';
 
-
 interface MPN65ColorAssignerOptions {
   shuffle?: boolean;
   excludeColors?: string[];
@@ -17,7 +16,6 @@ export class MPN65ColorAssigner implements IColorAssigner {
   private colors: string[] = [];
   private keyColorIndexMap: { [key: string]: number } = {};
 
-
   constructor(options?: MPN65ColorAssignerOptions) {
     options = _.defaults({}, options || {}, {
       shuffle: false,
@@ -31,12 +29,12 @@ export class MPN65ColorAssigner implements IColorAssigner {
         'bdbdbd',
         'f43600',
         'e7298a',
-        'e43872',
+        'e43872'
       ]
     });
-    const rawColors: string[] = options.shuffle ?
-      _.shuffle(palette('mpn65', 65)) :
-      palette('mpn65', 65);
+    const rawColors: string[] = options.shuffle
+      ? _.shuffle(palette('mpn65', 65))
+      : palette('mpn65', 65);
 
     if (options.excludeColors!.length > 0) {
       _.remove(rawColors, c => options!.excludeColors!.indexOf(c) > -1);
@@ -44,7 +42,6 @@ export class MPN65ColorAssigner implements IColorAssigner {
 
     this.colors = rawColors.map((c: string) => `#${c}`);
   }
-
 
   colorFor(key: string) {
     let index = this.keyColorIndexMap[key];
@@ -56,12 +53,10 @@ export class MPN65ColorAssigner implements IColorAssigner {
     return this.colors[index];
   }
 
-
   reset() {
     this.index = 0;
     this.keyColorIndexMap = {};
   }
 }
-
 
 export default MPN65ColorAssigner;

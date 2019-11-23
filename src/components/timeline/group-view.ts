@@ -3,8 +3,10 @@ import { SpanGroup } from '../../model/span-group/span-group';
 import SpanView, { SpanViewSharedOptions } from './span-view';
 import SpanGroupNode from '../../model/span-group/span-group-node';
 import vc from './view-constants';
-import { TimelineInteractableElementAttribute, TimelineInteractableElementType } from './interaction';
-
+import {
+  TimelineInteractableElementAttribute,
+  TimelineInteractableElementType
+} from './interaction';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -14,11 +16,12 @@ export enum GroupLayoutType {
   WATERFALL = 'waterfall'
 }
 
-
 export default class GroupView {
   readonly spanGroup: SpanGroup;
-  private spanViews: { [key: string]: SpanView} = {};
-  get heightInRows() { return this.rowsAndSpanIntervals.length; } // How many rows containing
+  private spanViews: { [key: string]: SpanView } = {};
+  get heightInRows() {
+    return this.rowsAndSpanIntervals.length;
+  } // How many rows containing
   options = {
     isCollapsed: false
   };
@@ -33,13 +36,16 @@ export default class GroupView {
   private spanIdToRowIndex: { [key: string]: number } = {};
 
   private viewPropertiesCache = {
-    y: 0,
+    y: 0
   };
 
-  constructor(group: SpanGroup, options: {
-    width: number,
-    layoutType: GroupLayoutType
-  }) {
+  constructor(
+    group: SpanGroup,
+    options: {
+      width: number;
+      layoutType: GroupLayoutType;
+    }
+  ) {
     this.spanGroup = group;
     this.layoutType = options.layoutType;
 
@@ -48,7 +54,10 @@ export default class GroupView {
     this.seperatorLine.setAttribute('y1', '0');
     this.seperatorLine.setAttribute('y2', '0');
     this.seperatorLine.setAttribute('stroke', vc.groupSeperatorLineColor);
-    this.seperatorLine.setAttribute('stroke-width', vc.groupSeperatorLineWidth + '');
+    this.seperatorLine.setAttribute(
+      'stroke-width',
+      vc.groupSeperatorLineWidth + ''
+    );
 
     const prefixChar = this.options.isCollapsed ? '►' : '▼';
     this.labelText.textContent = `${prefixChar} ${this.spanGroup.name}`;
@@ -57,15 +66,18 @@ export default class GroupView {
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
     this.labelText.setAttribute('font-size', `${vc.groupLabelFontSize}px`);
-    this.labelText.setAttribute(TimelineInteractableElementAttribute, TimelineInteractableElementType.GROUP_VIEW_LABEL_TEXT);
+    this.labelText.setAttribute(
+      TimelineInteractableElementAttribute,
+      TimelineInteractableElementType.GROUP_VIEW_LABEL_TEXT
+    );
     this.labelText.setAttribute('data-group-id', this.spanGroup.id);
   }
 
   init(options: {
-    groupNamePanel: SVGGElement,
-    timelinePanel: SVGGElement,
-    svgDefs: SVGDefsElement,
-    spanViewSharedOptions: SpanViewSharedOptions
+    groupNamePanel: SVGGElement;
+    timelinePanel: SVGGElement;
+    svgDefs: SVGDefsElement;
+    spanViewSharedOptions: SpanViewSharedOptions;
   }) {
     options.timelinePanel.appendChild(this.container);
     options.groupNamePanel.appendChild(this.seperatorLine);
@@ -73,7 +85,7 @@ export default class GroupView {
     this.svgDefs = options.svgDefs;
 
     // Set-up span views
-    this.spanGroup.getAll().forEach((span) => {
+    this.spanGroup.getAll().forEach(span => {
       // TODO: Reuse spanviews
       const spanView = new SpanView(span, options.spanViewSharedOptions);
       spanView.reuse(span);
@@ -121,10 +133,16 @@ export default class GroupView {
   }
 
   updatePosition(options: { y: number }) {
-    const { groupLabelOffsetX: groupTextOffsetX, groupLabelOffsetY: groupTextOffsetY } = vc;
+    const {
+      groupLabelOffsetX: groupTextOffsetX,
+      groupLabelOffsetY: groupTextOffsetY
+    } = vc;
     this.container.setAttribute('transform', `translate(0, ${options.y})`);
     this.seperatorLine.setAttribute('transform', `translate(0, ${options.y})`);
-    this.labelText.setAttribute('transform', `translate(${groupTextOffsetX}, ${options.y + groupTextOffsetY})`);
+    this.labelText.setAttribute(
+      'transform',
+      `translate(${groupTextOffsetX}, ${options.y + groupTextOffsetY})`
+    );
     this.viewPropertiesCache.y = options.y;
   }
 
@@ -133,8 +151,14 @@ export default class GroupView {
   }
 
   updateLabelTextDecoration() {
-    this.labelText.setAttribute('text-decoration', this.options.isCollapsed ? 'underline': '');
-    this.labelText.setAttribute('font-style', this.options.isCollapsed ? 'italic': '');
+    this.labelText.setAttribute(
+      'text-decoration',
+      this.options.isCollapsed ? 'underline' : ''
+    );
+    this.labelText.setAttribute(
+      'font-style',
+      this.options.isCollapsed ? 'italic' : ''
+    );
   }
 
   bringSpanViewToTop(spanId: string) {
@@ -154,7 +178,10 @@ export default class GroupView {
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
     const { spanGroup: group, spanViews, container } = this;
-    const nodeQueue: SpanGroupNode[] = [...group.rootNodes, ...group.orphanNodes].sort((a, b) => {
+    const nodeQueue: SpanGroupNode[] = [
+      ...group.rootNodes,
+      ...group.orphanNodes
+    ].sort((a, b) => {
       const spanA = group.get(a.spanId);
       const spanB = group.get(b.spanId);
       return spanA.startTime - spanB.startTime;
@@ -187,10 +214,16 @@ export default class GroupView {
         case GroupLayoutType.COMPACT: {
           let minRowIndex = 0;
           if (node.parentOrFollows) {
-            let parentRowIndex = this.spanIdToRowIndex[node.parentOrFollows.spanId];
+            let parentRowIndex = this.spanIdToRowIndex[
+              node.parentOrFollows.spanId
+            ];
             if (_.isNumber(parentRowIndex)) minRowIndex = parentRowIndex + 1;
           }
-          availableRowIndex = this.getAvailableRow({ startTime, finishTime, minRowIndex });
+          availableRowIndex = this.getAvailableRow({
+            startTime,
+            finishTime,
+            minRowIndex
+          });
           break;
         }
         case GroupLayoutType.WATERFALL: {
@@ -199,8 +232,12 @@ export default class GroupView {
         }
       }
 
-      if (!this.rowsAndSpanIntervals[availableRowIndex]) this.rowsAndSpanIntervals[availableRowIndex] = [];
-      this.rowsAndSpanIntervals[availableRowIndex].push([startTime, finishTime]);
+      if (!this.rowsAndSpanIntervals[availableRowIndex])
+        this.rowsAndSpanIntervals[availableRowIndex] = [];
+      this.rowsAndSpanIntervals[availableRowIndex].push([
+        startTime,
+        finishTime
+      ]);
       this.spanIdToRowIndex[node.spanId] = availableRowIndex;
 
       spanView.showLabel();
@@ -224,12 +261,11 @@ export default class GroupView {
 
       i++;
     } // while loop ended
-
   }
 
   handleAxisTranslate() {
     // Traverse just visible spans
-    Object.keys(this.spanIdToRowIndex).forEach((spanId) => {
+    Object.keys(this.spanIdToRowIndex).forEach(spanId => {
       const spanView = this.spanViews[spanId];
       spanView.updateHorizontalPosition();
     });
@@ -237,7 +273,7 @@ export default class GroupView {
 
   handleAxisZoom() {
     // Traverse just visible spans
-    Object.keys(this.spanIdToRowIndex).forEach((spanId) => {
+    Object.keys(this.spanIdToRowIndex).forEach(spanId => {
       const spanView = this.spanViews[spanId];
       const rowIndex = this.spanIdToRowIndex[spanId];
       spanView.updateVerticalPosition(rowIndex, true);
@@ -248,7 +284,7 @@ export default class GroupView {
 
   handleAxisUpdate() {
     // Traverse just visible spans
-    Object.keys(this.spanIdToRowIndex).forEach((spanId) => {
+    Object.keys(this.spanIdToRowIndex).forEach(spanId => {
       const spanView = this.spanViews[spanId];
       const rowIndex = this.spanIdToRowIndex[spanId];
       spanView.updateVerticalPosition(rowIndex, true);
@@ -263,9 +299,9 @@ export default class GroupView {
    * Eger `options.finishTime` bir defa `interval[0]`den kucuk oldugunda hep kucuk olacak.
    */
   getAvailableRow(options: {
-    startTime: number,
-    finishTime: number,
-    minRowIndex?: number
+    startTime: number;
+    finishTime: number;
+    minRowIndex?: number;
   }) {
     let rowIndex = options.minRowIndex || 0;
     while (rowIndex < this.rowsAndSpanIntervals.length) {

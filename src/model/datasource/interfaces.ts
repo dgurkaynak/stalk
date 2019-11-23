@@ -5,7 +5,6 @@ export enum DataSourceType {
   ZIPKIN_JSON = 'zipkin_json'
 }
 
-
 export interface DataSource {
   id: string;
   type: DataSourceType | string;
@@ -13,5 +12,5 @@ export interface DataSource {
   baseUrl?: string;
   username?: string;
   password?: string;
-  data?: Object|Array<any>;
+  data?: Object | Array<any>;
 }

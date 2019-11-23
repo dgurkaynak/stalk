@@ -2,9 +2,17 @@ import * as _ from 'lodash';
 import * as randomColor from 'randomcolor';
 import { IColorAssigner } from './interfaces';
 
-
 interface RandomColorAssignerOptions {
-  hue?: 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'pink' | 'monochrome' | undefined;
+  hue?:
+    | 'red'
+    | 'orange'
+    | 'yellow'
+    | 'green'
+    | 'blue'
+    | 'purple'
+    | 'pink'
+    | 'monochrome'
+    | undefined;
   luminosity?: 'bright' | 'light' | 'dark' | undefined;
   count?: number;
 }
@@ -18,14 +26,12 @@ export class RandomColorAssigner implements IColorAssigner {
   private colors: string[] = [];
   private keyColorIndexMap: { [key: string]: number } = {};
 
-
   constructor(options?: RandomColorAssignerOptions) {
     options = _.defaults({}, options || {}, {
       count: 50
     });
     this.colors = randomColor(options);
   }
-
 
   colorFor(key: string) {
     let index = this.keyColorIndexMap[key];
@@ -37,12 +43,10 @@ export class RandomColorAssigner implements IColorAssigner {
     return this.colors[index];
   }
 
-
   reset() {
     this.index = 0;
     this.keyColorIndexMap = {};
   }
 }
-
 
 export default RandomColorAssigner;
