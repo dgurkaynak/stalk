@@ -23,6 +23,7 @@ import {
 } from '../../model/span-labelling-manager';
 import { SpanGroupingManager } from '../../model/span-grouping/manager';
 import { GroupLayoutType } from '../timeline/group-view';
+
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
 import SvgFormatColorFill from '!!raw-loader!@mdi/svg/svg/format-color-fill.svg';
 import SvgSort from '!!raw-loader!@mdi/svg/svg/sort.svg';

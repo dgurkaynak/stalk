@@ -11,10 +11,10 @@ import { Timeline, TimelineEvent } from './components/timeline/timeline';
 import { TimelineWrapper } from './components/timeline-wrapper/timeline-wrapper';
 import { DockPanel } from 'phosphor-dockpanel';
 import { WidgetWrapper } from './components/ui/widget-wrapper';
+import { LogsData } from './components/logs-data/logs-data';
 
 import 'tippy.js/dist/tippy.css';
 import './app.css';
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export enum AppWidgetType {
   TIMELINE = 'timeline',
@@ -31,6 +31,7 @@ export class App {
   private stage = Stage.getSingleton();
   private toolbar = new AppToolbar({});
   private timeline = new TimelineWrapper();
+  private logsData = new LogsData();
 
   private dockPanel = new DockPanel();
   private widgets: { [key: string]: WidgetWrapper } = {};
@@ -39,7 +40,8 @@ export class App {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
     onWindowResize: this.onWindowResize.bind(this),
-    onTimelineResize: this.onTimelineResize.bind(this)
+    onTimelineResize: this.onTimelineResize.bind(this),
+    onLogsDataResize: throttle(this.onLogsDataResize.bind(this), 100)
   };
 
   constructor(private options: AppOptions) {
@@ -56,13 +58,19 @@ export class App {
     ]);
 
     this.initDockPanelAndWidgets();
+    const timelineWidgetEl = this.widgets[AppWidgetType.TIMELINE].node;
+    const logsWidgetEl = this.widgets[AppWidgetType.LOGS].node;
+
     this.toolbar.mount(this.options.element);
-    this.timeline.mount(this.widgets[AppWidgetType.TIMELINE].node);
-    const d = await waitUntilOffsetWidthHeightReady(
-      this.widgets[AppWidgetType.TIMELINE].node
-    );
-    this.timeline.init({ width: d.offsetWidth, height: d.offsetHeight });
+    this.timeline.mount(timelineWidgetEl);
+    this.logsData.mount(logsWidgetEl);
+
+    const { offsetWidth: w1, offsetHeight: h1 } = timelineWidgetEl;
+    this.timeline.init({ width: w1, height: h1 });
     this.toolbar.init(); // Needs dsManager
+
+    const { offsetWidth: w2, offsetHeight: h2 } = logsWidgetEl;
+    this.logsData.init({ width: w2, height: h2 });
 
     // Bind events
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
@@ -94,7 +102,10 @@ export class App {
       onResize: this.binded.onTimelineResize
     });
 
-    this.widgets[AppWidgetType.LOGS] = new WidgetWrapper({ title: 'Logs' });
+    this.widgets[AppWidgetType.LOGS] = new WidgetWrapper({
+      title: 'Logs',
+      onResize: this.binded.onLogsDataResize
+    });
 
     this.dockPanel.insertTop(this.widgets[AppWidgetType.TIMELINE]);
     this.dockPanel.insertBottom(this.widgets[AppWidgetType.LOGS]);
@@ -118,6 +129,10 @@ export class App {
     this.timeline.resize(msg.width, msg.height);
   }
 
+  onLogsDataResize(msg: { width: number; height: number }) {
+    this.logsData.resize(msg.width, msg.height);
+  }
+
   dispose() {
     window.removeEventListener('resize', this.binded.onWindowResize, false);
 
@@ -127,20 +142,4 @@ export class App {
     this.timeline = null;
     this.options = null;
   }
-}
-
-async function waitUntilOffsetWidthHeightReady(
-  el: HTMLElement,
-  retryInterval = 50
-): Promise<{ offsetWidth: number; offsetHeight: number }> {
-  const { offsetWidth, offsetHeight } = el;
-  if (
-    isNumber(offsetWidth) &&
-    isNumber(offsetHeight) &&
-    (offsetWidth > 0 || offsetHeight > 0)
-  ) {
-    return { offsetWidth, offsetHeight };
-  }
-  await sleep(retryInterval);
-  return waitUntilOffsetWidthHeightReady(el, retryInterval);
 }
