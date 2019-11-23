@@ -1,7 +1,7 @@
 import find from 'lodash/find';
 import remove from 'lodash/remove';
 import isObject from 'lodash/isObject';
-import EventEmitterExtra from 'event-emitter-extra';
+import EventEmitter from 'events';
 import { Span } from './interfaces';
 import db from './db';
 import TypeScriptManager from './../components/customization/typescript-manager';
@@ -26,7 +26,7 @@ export interface SpanLabellingOptions {
 
 let singletonIns: SpanLabellingManager;
 
-export class SpanLabellingManager extends EventEmitterExtra {
+export class SpanLabellingManager extends EventEmitter {
   private builtInOptions: SpanLabellingOptions[] = [
     operationLabellingOptions,
     serviceOperationLabellingOptions

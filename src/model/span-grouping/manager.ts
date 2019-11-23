@@ -1,6 +1,6 @@
 import find from 'lodash/find';
 import remove from 'lodash/remove';
-import EventEmitterExtra from 'event-emitter-extra';
+import EventEmitter from 'events';
 import { SpanGroupingOptions, SpanGroupingRawOptions } from './span-grouping';
 import TraceGrouping from './trace';
 import ProcessGrouping from './process';
@@ -15,7 +15,7 @@ export enum SpanGroupingManagerEvent {
 
 let singletonIns: SpanGroupingManager;
 
-export class SpanGroupingManager extends EventEmitterExtra {
+export class SpanGroupingManager extends EventEmitter {
   private builtInSpanGroupings: SpanGroupingOptions[] = [
     TraceGrouping,
     ProcessGrouping,

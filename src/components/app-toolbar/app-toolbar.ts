@@ -290,9 +290,10 @@ export class AppToolbar {
 
   private unbindEvents() {
     const { btn } = this.elements;
-    this.dsManager.removeListener(DataSourceManagerEvent.UPDATED, [
+    this.dsManager.removeListener(
+      DataSourceManagerEvent.UPDATED,
       this.binded.onDataSourceManagerUpdate
-    ] as any);
+    );
     this.stage.removeListener(
       StageEvent.TRACE_ADDED,
       this.binded.onStageTraceAdded

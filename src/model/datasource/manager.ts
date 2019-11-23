@@ -6,7 +6,7 @@ import JaegerJsonAPI from '../api/jaeger/api-json';
 import ZipkinAPI from '../api/zipkin/api';
 import ZipkinJsonAPI from '../api/zipkin/api-json';
 import db from '../db';
-import EventEmitterExtra from 'event-emitter-extra';
+import EventEmitter from 'events';
 
 // Maybe seperate events like ADDED, DELETED, UPDATED?
 // Not sure whether if it's gonna worth it
@@ -16,7 +16,7 @@ export enum DataSourceManagerEvent {
 
 let singletonIns: DataSourceManager;
 
-export class DataSourceManager extends EventEmitterExtra {
+export class DataSourceManager extends EventEmitter {
   private datasources: DataSource[] = [];
   private apis: {
     [key: string]: JaegerAPI | JaegerJsonAPI | ZipkinAPI | ZipkinJsonAPI;

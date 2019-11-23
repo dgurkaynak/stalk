@@ -1,4 +1,4 @@
-import EventEmitterExtra from 'event-emitter-extra';
+import EventEmitter from 'events';
 import { Machine, interpret, actions } from 'xstate';
 
 const { send, cancel } = actions;
@@ -41,7 +41,7 @@ interface MouseHandlerStateContext {
   secondDown: MouseEvent | null;
 }
 
-export default class MouseHandler extends EventEmitterExtra {
+export default class MouseHandler extends EventEmitter {
   private machine = Machine<MouseHandlerStateContext, MouseHandlerStateSchema, MouseHandlerStateEvent>({
     key: 'mouseHandlerStateMachine',
     initial: 'idle',

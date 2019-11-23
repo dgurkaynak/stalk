@@ -1,5 +1,5 @@
 import { Trace } from './trace';
-import EventEmitterExtra from 'event-emitter-extra';
+import EventEmitter from 'events';
 import { SpanGroup } from './span-group/span-group';
 
 export enum StageEvent {
@@ -9,7 +9,7 @@ export enum StageEvent {
 
 let _singletonIns: Stage;
 
-export class Stage extends EventEmitterExtra {
+export class Stage extends EventEmitter {
   private traces: { [key: string]: Trace } = {};
   private mainSpanGroup = new SpanGroup('main', '');
   private spanTags: { [key: string]: number } = {};

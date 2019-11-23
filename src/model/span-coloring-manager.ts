@@ -1,7 +1,7 @@
 import find from 'lodash/find';
 import remove from 'lodash/remove';
 import isObject from 'lodash/isObject';
-import EventEmitterExtra from 'event-emitter-extra';
+import EventEmitter from 'events';
 import MPN65ColorAssigner from '../components/ui/color-assigner/mpn65';
 import { Span } from './interfaces';
 import db from './db';
@@ -27,7 +27,7 @@ export interface SpanColoringOptions {
 
 let singletonIns: SpanColoringManager;
 
-export class SpanColoringManager extends EventEmitterExtra {
+export class SpanColoringManager extends EventEmitter {
   private builtInOptions: SpanColoringOptions[] = [
     operationColoringOptions,
     serviceColoringOptions

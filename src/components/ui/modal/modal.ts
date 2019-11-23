@@ -1,5 +1,5 @@
 import * as shortid from 'shortid';
-import EventEmitterExtra from 'event-emitter-extra';
+import EventEmitter from 'events';
 
 export interface ModalOptions {
   content: HTMLElement;
@@ -19,7 +19,7 @@ export enum ModalEvent {
   CLOSE = 'close'
 }
 
-export class Modal extends EventEmitterExtra {
+export class Modal extends EventEmitter {
   readonly id = shortid.generate();
   readonly container = document.createElement('div');
   private contentContainer = document.createElement('div');

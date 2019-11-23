@@ -9,7 +9,7 @@ import differenceBy from 'lodash/differenceBy';
 import GroupView, { GroupLayoutType } from './group-view';
 import Axis from './axis';
 import vc from './view-constants';
-import EventEmitterExtra from 'event-emitter-extra';
+import EventEmitter from 'events';
 import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
 import SpanView, { SpanViewSharedOptions } from './span-view';
 import { Trace } from '../../model/trace';
@@ -43,7 +43,7 @@ export enum TimelineEvent {
   SPANS_SELECTED = 'tve_span_selected'
 }
 
-export class Timeline extends EventEmitterExtra {
+export class Timeline extends EventEmitter {
   private svg = document.createElementNS(SVG_NS, 'svg');
   private defs = document.createElementNS(SVG_NS, 'defs');
 
@@ -154,10 +154,7 @@ export class Timeline extends EventEmitterExtra {
     this.spanGrouping = new SpanGrouping(processSpanGroupingOptions);
   }
 
-  init(options: {
-    width: number;
-    height: number;
-  }) {
+  init(options: { width: number; height: number }) {
     let width = options && options.width;
     let height = options && options.height;
     if (!width || !height) {
@@ -297,24 +294,30 @@ export class Timeline extends EventEmitterExtra {
   }
 
   dispose() {
-    this.mouseHandler.removeListener(MouseHandlerEvent.IDLE_MOVE, [
+    this.mouseHandler.removeListener(
+      MouseHandlerEvent.IDLE_MOVE,
       this.binded.onMouseIdleMove
-    ] as any);
-    this.mouseHandler.removeListener(MouseHandlerEvent.IDLE_LEAVE, [
+    );
+    this.mouseHandler.removeListener(
+      MouseHandlerEvent.IDLE_LEAVE,
       this.binded.onMouseIdleLeave
-    ] as any);
-    this.mouseHandler.removeListener(MouseHandlerEvent.PAN_START, [
+    );
+    this.mouseHandler.removeListener(
+      MouseHandlerEvent.PAN_START,
       this.binded.onMousePanStart
-    ] as any);
-    this.mouseHandler.removeListener(MouseHandlerEvent.PAN_MOVE, [
+    );
+    this.mouseHandler.removeListener(
+      MouseHandlerEvent.PAN_MOVE,
       this.binded.onMousePanMove
-    ] as any);
-    this.mouseHandler.removeListener(MouseHandlerEvent.WHEEL, [
+    );
+    this.mouseHandler.removeListener(
+      MouseHandlerEvent.WHEEL,
       this.binded.onWheel
-    ] as any);
-    this.mouseHandler.removeListener(MouseHandlerEvent.CLICK, [
+    );
+    this.mouseHandler.removeListener(
+      MouseHandlerEvent.CLICK,
       this.binded.onClick
-    ] as any);
+    );
 
     this.mouseHandler.dispose();
 
