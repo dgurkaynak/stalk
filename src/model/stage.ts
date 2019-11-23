@@ -104,6 +104,16 @@ export class Stage extends EventEmitter {
   isTraceAdded(traceId: string) {
     return !!this.traces[traceId];
   }
+
+  getAllLogs() {
+    return this.mainSpanGroup.getAll().flatMap(span => {
+      return span.logs.map(log => ({ ...log, span }));
+    });
+  }
+
+  getAllLogFieldKeys() {
+    return this.logFields;
+  }
 }
 
 export default Stage;

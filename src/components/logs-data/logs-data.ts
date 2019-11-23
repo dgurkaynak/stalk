@@ -5,6 +5,8 @@ import {
   WidgetToolbarMenuItemOptions
 } from '../ui/widget-toolbar/widget-toolbar-menu';
 import { Stage, StageEvent } from '../../model/stage';
+import { Trace } from '../../model/trace';
+import map from 'lodash/map';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import 'handsontable/dist/handsontable.css';
@@ -28,6 +30,15 @@ export class LogsData {
   private tooltips: {
     singleton: TippyInstance;
     search: TippyInstance;
+  };
+  private viewPropertiesCache = {
+    width: 0,
+    height: 0
+  };
+
+  private binded = {
+    onTraceAdded: this.onTraceAdded.bind(this),
+    onTraceRemoved: this.onTraceRemoved.bind(this)
   };
 
   constructor() {
@@ -64,31 +75,18 @@ export class LogsData {
   }
 
   init(options: { width: number; height: number }) {
+    this.viewPropertiesCache = {
+      width: options.width,
+      height: options.height
+    };
     this.initTooltips();
 
-    // asd
-    this.hot = new Handsontable(this.elements.hotContainer, {
-      width: options.width,
-      height: options.height - TOOLBAR_HEIGHT,
-      data: [
-        ['', 'Ford', 'Tesla', 'Toyota', 'Honda'],
-        ['2017', 10, 11, 12, 13],
-        ['2018', 20, 11, 14, 13],
-        ['2019', 30, 15, 12, 13],
-        ['2017', 10, 11, 12, 13],
-        ['2018', 20, 11, 14, 13],
-        ['2019', 30, 15, 12, 13],
-        ['2017', 10, 11, 12, 13],
-        ['2018', 20, 11, 14, 13],
-        ['2019', 30, 15, 12, 13],
-        ['2017', 10, 11, 12, 13]
-      ],
-      readOnly: true,
-      colHeaders: true,
-      filters: true,
-      dropdownMenu: true,
-      licenseKey: 'non-commercial-and-evaluation'
-    });
+    // Bind events
+    this.stage.on(StageEvent.TRACE_ADDED, this.binded.onTraceAdded);
+    this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onTraceRemoved);
+
+    // Initially render hot
+    this.updateHot();
   }
 
   private initTooltips() {
@@ -110,6 +108,59 @@ export class LogsData {
     this.tooltips = { ...tooltips, singleton };
   }
 
+  private onTraceAdded(trace: Trace) {
+    this.updateHot();
+  }
+
+  private onTraceRemoved(trace: Trace) {
+    this.updateHot();
+  }
+
+  private updateHot() {
+    this.hot && this.hot.destroy();
+    this.hot = null;
+    const logs = this.stage.getAllLogs();
+
+    if (logs.length == 0) {
+      this.elements.hotContainer.innerHTML = ``;
+    } else {
+      const logFieldKeys = this.stage.getAllLogFieldKeys();
+      const logFieldKeysSorted = map(logFieldKeys, (count, key) => [key, count]).sort((a, b) => {
+        return (b[1] as number) - (a[1] as number);
+      });
+      const columns = [
+        { header: 'Timestamp', columnMeta: { data: 'timestamp' } },
+        { header: 'Span', columnMeta: { data: 'span.operationName' } },
+        ...logFieldKeysSorted.map(([key]) => {
+          return {
+            header: key as string,
+            columnMeta: { data: `fields.${key}` }
+          };
+        })
+      ]
+
+      this.hot = new Handsontable(this.elements.hotContainer, {
+        width: this.viewPropertiesCache.width,
+        height: this.viewPropertiesCache.height - TOOLBAR_HEIGHT,
+        data: logs,
+        colHeaders: columns.map(c => c.header),
+        columns: columns.map(c => c.columnMeta),
+        readOnly: true,
+        filters: true,
+        dropdownMenu: [
+          'alignment',
+          '---------',
+          'filter_by_condition',
+          'filter_by_value',
+          'filter_action_bar',
+        ],
+        licenseKey: 'non-commercial-and-evaluation',
+        manualColumnResize: true,
+        manualColumnMove: true,
+      });
+    }
+  }
+
   mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }
@@ -120,6 +171,7 @@ export class LogsData {
   }
 
   resize(width: number, height: number) {
+    this.viewPropertiesCache = { width, height };
     if (!this.hot) return;
     this.hot.updateSettings({
       width: width,
@@ -130,5 +182,10 @@ export class LogsData {
 
   dispose() {
     // TODO:
+    this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onTraceAdded);
+    this.stage.removeListener(
+      StageEvent.TRACE_ADDED,
+      this.binded.onTraceRemoved
+    );
   }
 }
