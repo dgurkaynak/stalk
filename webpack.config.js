@@ -49,6 +49,9 @@ module.exports = {
   plugins: [
     new HardSourceWebpackPlugin(),
     new MonacoWebpackPlugin({
+      // typescriptServices.js causes a warning in webpack
+      // Module not found: Error: Can't resolve '@microsoft/typescript-etw'
+      // https://github.com/microsoft/monaco-editor/issues/1623
       languages: ['typescript']
     }),
     new CleanWebpackPlugin(),
@@ -69,5 +72,10 @@ module.exports = {
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'build'),
+  },
+  stats: {
+    warningsFilter: [
+      'node_modules/phosphor',
+    ]
   },
 };
