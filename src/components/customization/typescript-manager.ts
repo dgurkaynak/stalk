@@ -65,7 +65,7 @@ export default class TypeScriptManager {
       }).then((diagnostics: any) => {
         if (!diagnostics || !monaco.editor.getModel(resource)) {
           // model was disposed in the meantime
-          return null;
+          return;
         }
         const markers = diagnostics
           .reduce((p: any, c: any) => c.concat(p), [])
