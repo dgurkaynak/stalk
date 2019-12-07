@@ -7,8 +7,10 @@ import {
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
 import map from 'lodash/map';
+import prettyMilliseconds from 'pretty-ms';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
+import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
 import 'handsontable/dist/handsontable.css';
 import '../ui/widget-toolbar/widget-toolbar.css';
 import './logs-data.css';
@@ -23,13 +25,15 @@ export class LogsData {
     container: document.createElement('div'),
     toolbar: document.createElement('div'),
     toolbarBtn: {
-      search: document.createElement('div')
+      search: document.createElement('div'),
+      columns: document.createElement('div')
     },
     hotContainer: document.createElement('div')
   };
   private tooltips: {
     singleton: TippyInstance;
     search: TippyInstance;
+    columns: TippyInstance;
   };
   private viewPropertiesCache = {
     width: 0,
@@ -72,6 +76,10 @@ export class LogsData {
     btn.search.classList.add('widget-toolbar-button');
     btn.search.innerHTML = SvgMagnify;
     leftPane.appendChild(btn.search);
+
+    btn.columns.classList.add('widget-toolbar-button');
+    btn.columns.innerHTML = SvgViewColumn;
+    rightPane.appendChild(btn.columns);
   }
 
   init(options: { width: number; height: number }) {
@@ -94,6 +102,10 @@ export class LogsData {
     const tooltips = {
       search: tippy(btn.search, {
         content: 'Seach',
+        multiple: true
+      }),
+      columns: tippy(btn.columns, {
+        content: 'Customize Columns',
         multiple: true
       })
     };
@@ -124,22 +136,58 @@ export class LogsData {
     if (logs.length == 0) {
       this.elements.hotContainer.innerHTML = ``;
     } else {
+      const totalLogCount = this.stage.getAllLogs().length;
       const logFieldKeys = this.stage.getAllLogFieldKeys();
       const logFieldKeysSorted = map(logFieldKeys, (count, key) => [
         key,
-        count
+        count / totalLogCount
       ]).sort((a, b) => {
         return (b[1] as number) - (a[1] as number);
       });
+      const displayedLogFieldKeys: string[] = [];
+      const otherLogFieldKeys: string[] = [];
+      logFieldKeysSorted.forEach(([key, ratio]) => {
+        if (ratio > 0.9) {
+          displayedLogFieldKeys.push(key as string);
+        } else {
+          otherLogFieldKeys.push(key as string);
+        }
+      });
       const columns = [
-        { header: 'Timestamp', columnMeta: { data: 'timestamp' } },
-        { header: 'Span', columnMeta: { data: 'span.operationName' } },
-        ...logFieldKeysSorted.map(([key]) => {
+        {
+          header: 'Timestamp',
+          columnMeta: {
+            data: 'timestamp',
+            // className: 'htRight',
+            renderer: this.prepareHotTimestampRenderer()
+          }
+        },
+        {
+          header: 'Span',
+          columnMeta: {
+            data: 'span.operationName'
+          }
+        },
+        ...displayedLogFieldKeys.map(key => {
           return {
-            header: key as string,
+            header: key,
             columnMeta: { data: `fields.${key}` }
           };
-        })
+        }),
+        {
+          header: 'Other Fields',
+          columnMeta: {
+            data: function(row: any) {
+              const otherFields: [string, any][] = [];
+              otherLogFieldKeys.forEach(key => {
+                if (!row.fields.hasOwnProperty(key)) return;
+                otherFields.push([key, row.fields[key]]);
+              });
+              return otherFields;
+            },
+            renderer: this.prepareHotOtherFieldsRenderer()
+          } as any
+        }
       ];
 
       this.hot = new Handsontable(this.elements.hotContainer, {
@@ -149,20 +197,21 @@ export class LogsData {
         colHeaders: columns.map(c => c.header),
         columns: columns.map(c => c.columnMeta),
         readOnly: true,
-        filters: true,
-        dropdownMenu: [
-          'filter_by_condition',
-          'filter_by_value',
-          'filter_action_bar'
-        ],
+        // filters: true,
+        // dropdownMenu: [
+        //   'filter_by_condition',
+        //   'filter_by_value',
+        //   'filter_action_bar'
+        // ],
         licenseKey: 'non-commercial-and-evaluation',
         manualColumnResize: true,
         manualColumnMove: true,
-        manualColumnFreeze: true,
+        // manualColumnFreeze: true,
+        // disableVisualSelection: true,
         contextMenu: [
           'alignment',
-          'freeze_column',
-          'unfreeze_column',
+          // 'freeze_column',
+          // 'unfreeze_column',
           '---------',
           'copy'
         ],
@@ -172,9 +221,72 @@ export class LogsData {
             column: 0,
             sortOrder: 'asc'
           }
-        }
+        },
+        currentRowClassName: 'logs-currentRow',
+        stretchH: 'last'
       });
     }
+  }
+
+  private prepareHotTimestampRenderer() {
+    const stageStartTimestamp = this.stage.startTimestamp;
+    return function(
+      instance: Handsontable,
+      td: HTMLTableDataCellElement,
+      row: number,
+      col: number,
+      prop: string,
+      value: number,
+      cellProperties: Handsontable.CellProperties
+    ) {
+      const time = prettyMilliseconds((value - stageStartTimestamp) / 1000, {
+        formatSubMilliseconds: true
+      });
+      Handsontable.renderers.TextRenderer.call(
+        this,
+        instance,
+        td,
+        row,
+        col,
+        prop,
+        time,
+        cellProperties
+      );
+      return td;
+    };
+  }
+
+  private prepareHotOtherFieldsRenderer() {
+    return function(
+      instance: Handsontable,
+      td: HTMLTableDataCellElement,
+      row: number,
+      col: number,
+      prop: string,
+      value: [string, any][],
+      cellProperties: Handsontable.CellProperties
+    ) {
+      // Handsontable adds `htDimmed` class when the cell is not editable
+      td.classList.add('htDimmed', 'logs-other-field');
+
+      // When re-using cell, empty it
+      td.innerHTML = '';
+
+      // Add custom elements
+      value.forEach(([key, value_]) => {
+        const keyEl = document.createElement('span');
+        keyEl.classList.add('logs-other-field-key');
+        keyEl.textContent = `${key}:`;
+        td.appendChild(keyEl);
+
+        const valueEl = document.createElement('span');
+        valueEl.classList.add('logs-other-field-value');
+        valueEl.textContent = value_;
+        td.appendChild(valueEl);
+      });
+
+      return td;
+    };
   }
 
   mount(parentEl: HTMLElement) {

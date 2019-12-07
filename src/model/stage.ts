@@ -114,6 +114,14 @@ export class Stage extends EventEmitter {
   getAllLogFieldKeys() {
     return this.logFields;
   }
+
+  get startTimestamp() {
+    return this.mainSpanGroup.startTimestamp;
+  }
+
+  get finishTimestamp() {
+    return this.mainSpanGroup.finishTimestamp;
+  }
 }
 
 export default Stage;
