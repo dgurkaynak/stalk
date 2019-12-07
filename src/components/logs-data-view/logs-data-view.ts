@@ -13,11 +13,11 @@ import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
 import 'handsontable/dist/handsontable.css';
 import '../ui/widget-toolbar/widget-toolbar.css';
-import './logs-data.css';
+import './logs-data-view.css';
 
 const TOOLBAR_HEIGHT = 27; // TODO: Sorry :(
 
-export class LogsData {
+export class LogsDataView {
   private stage = Stage.getSingleton();
   private hot: Handsontable;
 

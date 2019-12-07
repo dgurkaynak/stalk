@@ -11,7 +11,7 @@ import { Timeline, TimelineEvent } from './components/timeline/timeline';
 import { TimelineWrapper } from './components/timeline-wrapper/timeline-wrapper';
 import { DockPanel } from 'phosphor-dockpanel';
 import { WidgetWrapper } from './components/ui/widget-wrapper';
-import { LogsData } from './components/logs-data/logs-data';
+import { LogsDataView } from './components/logs-data-view/logs-data-view';
 
 import 'tippy.js/dist/tippy.css';
 import './app.css';
@@ -31,7 +31,7 @@ export class App {
   private stage = Stage.getSingleton();
   private toolbar = new AppToolbar({});
   private timeline = new TimelineWrapper();
-  private logsData = new LogsData();
+  private logsData = new LogsDataView();
 
   private dockPanel = new DockPanel();
   private widgets: { [key: string]: WidgetWrapper } = {};
@@ -98,12 +98,12 @@ export class App {
     this.dockPanel.id = 'app-dock-panel';
 
     this.widgets[AppWidgetType.TIMELINE] = new WidgetWrapper({
-      title: 'Timeline',
+      title: 'Timeline View',
       onResize: this.binded.onTimelineResize
     });
 
     this.widgets[AppWidgetType.LOGS] = new WidgetWrapper({
-      title: 'Logs',
+      title: 'Logs Data View',
       onResize: this.binded.onLogsDataResize
     });
 
