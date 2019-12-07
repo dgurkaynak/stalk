@@ -158,15 +158,12 @@ export class LogsDataView {
           header: 'Timestamp',
           columnMeta: {
             data: 'timestamp',
-            // className: 'htRight',
             renderer: this.prepareHotTimestampRenderer()
           }
         },
         {
           header: 'Span',
-          columnMeta: {
-            data: 'span.operationName'
-          }
+          columnMeta: { data: 'span.operationName' }
         },
         ...displayedLogFieldKeys.map(key => {
           return {
@@ -222,7 +219,7 @@ export class LogsDataView {
             sortOrder: 'asc'
           }
         },
-        currentRowClassName: 'logs-currentRow',
+        currentRowClassName: 'logs-data-view-currentRow',
         stretchH: 'last'
       });
     }
@@ -267,7 +264,7 @@ export class LogsDataView {
       cellProperties: Handsontable.CellProperties
     ) {
       // Handsontable adds `htDimmed` class when the cell is not editable
-      td.classList.add('htDimmed', 'logs-other-field');
+      td.classList.add('htDimmed', 'logs-data-view-other-field');
 
       // When re-using cell, empty it
       td.innerHTML = '';
@@ -275,12 +272,12 @@ export class LogsDataView {
       // Add custom elements
       value.forEach(([key, value_]) => {
         const keyEl = document.createElement('span');
-        keyEl.classList.add('logs-other-field-key');
+        keyEl.classList.add('logs-data-view-other-field-key');
         keyEl.textContent = `${key}:`;
         td.appendChild(keyEl);
 
         const valueEl = document.createElement('span');
-        valueEl.classList.add('logs-other-field-value');
+        valueEl.classList.add('logs-data-view-other-field-value');
         valueEl.textContent = value_;
         td.appendChild(valueEl);
       });
