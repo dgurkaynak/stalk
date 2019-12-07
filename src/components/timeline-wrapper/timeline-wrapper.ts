@@ -69,7 +69,7 @@ export class TimelineWrapper {
     groupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineView
     spanColoringMode: operationColoringOptions.key, // Do not forget to change default value of TimelineView
     spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineView
-    groupLayoutMode: GroupLayoutType.FILL
+    groupLayoutMode: GroupLayoutType.COMPACT // Do not forget to change default value of TimelineView
   };
 
   private binded = {

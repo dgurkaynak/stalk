@@ -86,11 +86,11 @@ export class Timeline extends EventEmitter {
   private spanGrouping: SpanGrouping;
   private groupViews: GroupView[] = [];
 
-  private groupLayoutMode = GroupLayoutType.FILL;
+  private groupLayoutMode = GroupLayoutType.COMPACT; // Do not forget to change related config in timeline-wrapper
   private readonly spanViewSharedOptions: SpanViewSharedOptions = {
     axis: this.axis,
-    colorFor: operationColoringOptions.colorBy,
-    labelFor: operationLabellingOptions.labelBy
+    colorFor: operationColoringOptions.colorBy, // Do not forget to change related config in timeline-wrapper
+    labelFor: operationLabellingOptions.labelBy // Do not forget to change related config in timeline-wrapper
   };
 
   private hoveredElements: TimelineInteractedElementObject[] = [];
@@ -151,7 +151,7 @@ export class Timeline extends EventEmitter {
     this.defs.appendChild(arrowMarker);
 
     // Set-up grouping
-    this.spanGrouping = new SpanGrouping(processSpanGroupingOptions);
+    this.spanGrouping = new SpanGrouping(processSpanGroupingOptions); // Do not forget to change related config in timeline-wrapper
   }
 
   init(options: { width: number; height: number }) {
