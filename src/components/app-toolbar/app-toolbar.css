@@ -103,6 +103,33 @@
   top: 4px;
 }
 
+/* Traces menu list empty indicator */
+.toolbar-traces-menu-empty {
+  width: 250px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.toolbar-traces-menu-empty .heading {
+  font-weight: 600;
+}
+
+.toolbar-traces-menu-empty .description {
+  font-size: 0.8em;
+  margin: 0.5em 1.7em;
+  text-align: center;
+}
+
+.toolbar-traces-menu-empty .description svg {
+  width: 1.2em;
+  height: 1.2em;
+  position: relative;
+  top: 2px;
+}
+
 /* Custom tippy.js tooltip template */
 .tippy-tooltip.toolbar-tooltip-theme {
   font-size: 1em;

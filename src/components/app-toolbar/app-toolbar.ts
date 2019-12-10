@@ -37,6 +37,7 @@ export class AppToolbar {
       settings: document.createElement('div')
     },
     tracesBadgeCount: document.createElement('div'),
+    tracesMenuListEmpty: document.createElement('div'),
     dataSourceMenuList: {
       header: document.createElement('div'),
       empty: document.createElement('div')
@@ -75,6 +76,7 @@ export class AppToolbar {
     onButtonClick: this.binded.onDataSourceMenuListButtonClick
   });
   private tracesMenuList = new ToolbarMenuList({
+    emptyEl: this.elements.tracesMenuListEmpty,
     items: [],
     onButtonClick: this.binded.onTracesMenuListButtonClick
   });
@@ -145,10 +147,16 @@ export class AppToolbar {
     this.elements.dataSourceMenuList.empty.classList.add(
       'toolbar-data-sources-menu-empty'
     );
-    this.elements.dataSourceMenuList.empty.innerHTML = (
-      `<span class="heading">No Data Sources</span>
-      <span class="description">Click ${SvgPlus} button on the top right to add a data source.</span>`
+    this.elements.dataSourceMenuList.empty.innerHTML = `<span class="heading">No Data Sources</span>
+      <span class="description">Click ${SvgPlus} button on the top right to add a data source.</span>`;
+
+    // Prepare traces menu list empty
+    this.elements.tracesMenuListEmpty.classList.add(
+      'toolbar-traces-menu-empty'
     );
+    this.elements.tracesMenuListEmpty.innerHTML = `<span class="heading">No Traces in the Stage</span>
+      <span class="description">You can search and add traces by clicking ${SvgMagnify} button on the left,
+      or you can drag & drop Jaeger or Zipkin traces in JSON format.</span>`;
 
     // Prepare datasource lists
     this.updateDataSourceList();
