@@ -36,7 +36,11 @@ export class AppToolbar {
       widgets: document.createElement('div'),
       settings: document.createElement('div')
     },
-    tracesBadgeCount: document.createElement('div')
+    tracesBadgeCount: document.createElement('div'),
+    dataSourceMenuList: {
+      header: document.createElement('div'),
+      empty: document.createElement('div')
+    }
   };
   private tooltips: {
     singleton: TippyInstance;
@@ -64,9 +68,9 @@ export class AppToolbar {
   private stage = Stage.getSingleton();
   private dsManager = DataSourceManager.getSingleton();
 
-  private dataSourceMenuListHeaderEl = document.createElement('div');
   private dataSourcesMenuList = new ToolbarMenuList({
-    headerEl: this.dataSourceMenuListHeaderEl,
+    headerEl: this.elements.dataSourceMenuList.header,
+    emptyEl: this.elements.dataSourceMenuList.empty,
     items: [],
     onButtonClick: this.binded.onDataSourceMenuListButtonClick
   });
@@ -125,17 +129,26 @@ export class AppToolbar {
     this.initTracesBadgeCount();
 
     // Prepare dataSource menu list header
-    this.dataSourceMenuListHeaderEl.classList.add(
+    this.elements.dataSourceMenuList.header.classList.add(
       'toolbar-data-sources-menu-header'
     );
 
     const dsHeaderText = document.createElement('span');
     dsHeaderText.textContent = 'Data Sources';
-    this.dataSourceMenuListHeaderEl.appendChild(dsHeaderText);
+    this.elements.dataSourceMenuList.header.appendChild(dsHeaderText);
 
     const newDsButton = document.createElement('div');
     newDsButton.innerHTML = SvgPlus;
-    this.dataSourceMenuListHeaderEl.appendChild(newDsButton);
+    this.elements.dataSourceMenuList.header.appendChild(newDsButton);
+
+    // Prepare dataSource menu list empty
+    this.elements.dataSourceMenuList.empty.classList.add(
+      'toolbar-data-sources-menu-empty'
+    );
+    this.elements.dataSourceMenuList.empty.innerHTML = (
+      `<span class="heading">No Data Sources</span>
+      <span class="description">Click ${SvgPlus} button on the top right to add a data source.</span>`
+    );
 
     // Prepare datasource lists
     this.updateDataSourceList();

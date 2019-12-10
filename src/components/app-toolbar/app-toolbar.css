@@ -76,6 +76,33 @@
   fill: #2B97EF;
 }
 
+/* Data sources menu empty */
+.toolbar-data-sources-menu-empty {
+  width: 250px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.toolbar-data-sources-menu-empty .heading {
+  font-weight: 600;
+}
+
+.toolbar-data-sources-menu-empty .description {
+  font-size: 0.8em;
+  margin: 0 3em;
+  text-align: center;
+}
+
+.toolbar-data-sources-menu-empty .description svg {
+  width: 1.2em;
+  height: 1.5em;
+  position: relative;
+  top: 4px;
+}
+
 /* Custom tippy.js tooltip template */
 .tippy-tooltip.toolbar-tooltip-theme {
   font-size: 1em;
