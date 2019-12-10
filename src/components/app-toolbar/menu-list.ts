@@ -10,6 +10,7 @@ export interface ToolbarMenuListOptions {
   items: ToolbarMenuListItemOptions[];
   onButtonClick: (buttonId: string, index: number) => void;
   headerEl?: HTMLDivElement;
+  emptyEl?: HTMLDivElement;
 }
 
 export interface ToolbarMenuListItemOptions {
@@ -37,6 +38,7 @@ export class ToolbarMenuList {
     }
 
     options.headerEl && this.element.appendChild(options.headerEl);
+    options.emptyEl && this.element.appendChild(options.emptyEl);
 
     options.items.forEach(options => {
       this.addItem(options);
@@ -48,6 +50,10 @@ export class ToolbarMenuList {
   }
 
   addItem(options: ToolbarMenuListItemOptions) {
+    if (this.options.emptyEl && this.options.emptyEl.parentElement) {
+      this.options.emptyEl.parentElement.removeChild(this.options.emptyEl);
+    }
+
     const el = document.createElement('div');
     const item = { element: el, options };
 
@@ -95,6 +101,10 @@ export class ToolbarMenuList {
           false
         );
       }
+    }
+
+    if (this.items.length == 0 && this.options.emptyEl) {
+      this.element.appendChild(this.options.emptyEl);
     }
   }
 
