@@ -1,5 +1,7 @@
 import { AppToolbar } from './components/app-toolbar/app-toolbar';
 import throttle from 'lodash/throttle';
+import isArray from 'lodash/isArray';
+import isObject from 'lodash/isObject';
 import { DataSourceManager } from './model/datasource/manager';
 import { SpanGroupingManager } from './model/span-grouping/manager';
 import { SpanColoringManager } from './model/span-coloring-manager';
@@ -10,8 +12,13 @@ import { TimelineWrapper } from './components/timeline-wrapper/timeline-wrapper'
 import { DockPanel } from 'phosphor-dockpanel';
 import { WidgetWrapper } from './components/ui/widget-wrapper';
 import { LogsDataView } from './components/logs-data-view/logs-data-view';
+import Noty from 'noty';
+import { isJaegerJSON, convertFromJaegerTrace } from './model/api/jaeger/span';
+import { isZipkinJSON, convertFromZipkinTrace } from './model/api/zipkin/span';
 
 import 'tippy.js/dist/tippy.css';
+import 'noty/lib/noty.css';
+import 'noty/lib/themes/bootstrap-v4.css';
 import './app.css';
 
 export enum AppWidgetType {
@@ -156,17 +163,86 @@ export class App {
     this.options.element.appendChild(this.dropZoneEl);
   }
 
-  onDrop(e: DragEvent) {
+  async onDrop(e: DragEvent) {
     e.preventDefault();
     this.dropZoneEl.style.display = 'none';
+    const errorMessages = [] as string[];
 
     for (let i = 0; i < e.dataTransfer.items.length; i++) {
       // If dropped items aren't files, reject them
       const item = e.dataTransfer.items[i];
-      if (item.kind === 'file') {
-        const file = item.getAsFile();
-        console.log('... file[' + i + '].name = ' + file.name);
+
+      if (item.kind != 'file') {
+        errorMessages.push('Only files can be dropped');
+        continue;
       }
+
+      const file = item.getAsFile();
+      if (file.type != 'application/json') {
+        errorMessages.push(`${file.name}: Not a JSON file`);
+        continue;
+      }
+
+      let fileContent = '';
+      try {
+        fileContent = await readFile(file);
+      } catch (err) {
+        errorMessages.push(
+          `${file.name}: Could not read its content -- ${err.message}`
+        );
+        continue;
+      }
+
+      let parsedJson: any;
+      try {
+        parsedJson = JSON.parse(fileContent);
+      } catch (err) {
+        errorMessages.push(`${file.name}: Invalid JSON`);
+        continue;
+      }
+
+      const isJaeger = isJaegerJSON(parsedJson);
+      const isZipkin = isZipkinJSON(parsedJson);
+
+      if (!isJaeger && !isZipkin) {
+        errorMessages.push(`${file.name}: Unrecognized Jaeger/Zipkin JSON`);
+        continue;
+      }
+
+      if (isJaeger) {
+        parsedJson.data.forEach((rawTrace: any) => {
+          const spans = convertFromJaegerTrace(rawTrace);
+          const trace = new Trace(spans);
+          this.stage.addTrace(trace);
+        });
+      }
+
+      if (isZipkin) {
+        if (isArray(parsedJson[0])) {
+          parsedJson.forEach((rawTrace: any) => {
+            const spans = convertFromZipkinTrace(rawTrace);
+            const trace = new Trace(spans);
+            this.stage.addTrace(trace);
+          });
+        } else if (isObject(parsedJson[0])) {
+          const spans = convertFromZipkinTrace(parsedJson);
+          const trace = new Trace(spans);
+          this.stage.addTrace(trace);
+        } else {
+          errorMessages.push(`${file.name}: Unrecognized Zipkin format`);
+          continue;
+        }
+      }
+    }
+
+    if (errorMessages.length > 0) {
+      const text = `Following errors occured while importing:
+        <ul>${errorMessages.map(m => `<li>${m}</li>`).join('')}</ul>`;
+      new Noty({
+        text,
+        type: 'error',
+        theme: 'bootstrap-v4'
+      }).show();
     }
   }
 
@@ -199,4 +275,13 @@ export class App {
     this.timeline = null;
     this.options = null;
   }
+}
+
+async function readFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader();
+    fileReader.onerror = reject;
+    fileReader.onload = () => resolve(fileReader.result as string);
+    fileReader.readAsText(file);
+  });
 }

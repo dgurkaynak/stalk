@@ -37,6 +37,7 @@
     "lodash": "^4.17.15",
     "monaco-editor": "^0.18.1",
     "monaco-editor-webpack-plugin": "^1.7.0",
+    "noty": "^3.2.0-beta",
     "parse-duration": "^0.1.1",
     "phosphor-dockpanel": "^0.9.7",
     "phosphor-widget": "^1.0.0-rc.1",
