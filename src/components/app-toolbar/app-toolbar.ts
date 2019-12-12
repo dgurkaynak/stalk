@@ -100,6 +100,10 @@ export class AppToolbar {
     el.appendChild(rightPane);
 
     // Left buttons
+    const divider = document.createElement('div');
+    divider.classList.add('app-toolbar-divider');
+    leftPane.appendChild(divider);
+
     btn.dataSources.classList.add('app-toolbar-button');
     btn.dataSources.innerHTML = SvgDatabase;
     leftPane.appendChild(btn.dataSources);
@@ -107,10 +111,6 @@ export class AppToolbar {
     btn.search.classList.add('app-toolbar-button', 'search');
     btn.search.innerHTML = SvgMagnify;
     leftPane.appendChild(btn.search);
-
-    const divider = document.createElement('div');
-    divider.classList.add('app-toolbar-divider');
-    leftPane.appendChild(divider);
 
     btn.traces.classList.add('app-toolbar-button', 'traces');
     btn.traces.innerHTML = SvgSourceBranch;

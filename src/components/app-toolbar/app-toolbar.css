@@ -4,6 +4,8 @@
   display: flex;
   justify-content: space-between;
   align-items: stretch;
+  -webkit-app-region: drag;
+  padding-left: 75px;
 }
 
 .app-toolbar-pane { display: flex; align-items: stretch; }
@@ -38,6 +40,7 @@
   align-content: center;
   padding: 0 0.75em;
   cursor: pointer;
+  -webkit-app-region: no-drag;
 }
 .app-toolbar-button svg { height: 1.75em; fill: rgba(255, 255, 255, 0.75); }
 .app-toolbar-button.fix-stroke svg { stroke: rgba(255, 255, 255, 0.75); }
