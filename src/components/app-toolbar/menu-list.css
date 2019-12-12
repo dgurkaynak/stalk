@@ -1,4 +1,7 @@
 /* Custom tippy.js tooltip template */
+.tippy-tooltip.app-toolbar-menu-list-theme > .tippy-content {
+  padding: 0;
+}
 .tippy-tooltip.app-toolbar-menu-list-theme > .tippy-content > div {
   padding: 0 0 0.3em 0;
 }
