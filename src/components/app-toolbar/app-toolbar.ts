@@ -83,6 +83,7 @@ export class AppToolbar {
 
   constructor(private options: AppToolbarOptions) {
     const { container: el, btn } = this.elements;
+    el.id = 'app-toolbar';
     el.classList.add('app-toolbar');
 
     // Panes

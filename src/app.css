@@ -1,12 +1,7 @@
 /* Main layout */
 #app { width: 100%; height: 100%; }
-.app-toolbar {
+#app-toolbar {
   height: 3.5em;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
-  display: flex;
-  justify-content: space-between;
-  align-items: stretch;
 }
 #app-dock-panel {
   position: absolute;
@@ -15,6 +10,37 @@
   bottom: 0;
   left: 0;
   padding: 0.5em;
+}
+
+/* Drop zone */
+#drop-zone {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+#drop-zone .border {
+  position: absolute;
+  border: 5px dashed #ccc;
+  top: 25px;
+  right: 25px;
+  bottom: 25px;
+  left: 25px;
+}
+
+#drop-zone .overlay-text {
+  position: relative; /* This forces to render OVER .border element, because border is absolute positioned */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5em;
+  color: #333;
 }
 
 /* Dock panel related stuff */

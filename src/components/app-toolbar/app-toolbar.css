@@ -1,3 +1,11 @@
+#app-toolbar {
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+}
+
 .app-toolbar-pane { display: flex; align-items: stretch; }
 .app-toolbar-divider {
   display: inline-block;
