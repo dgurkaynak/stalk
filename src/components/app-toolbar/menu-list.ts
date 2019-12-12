@@ -57,7 +57,7 @@ export class ToolbarMenuList {
     const el = document.createElement('div');
     const item = { element: el, options };
 
-    el.classList.add('toolbar-menu-list-item');
+    el.classList.add('app-toolbar-menu-list-item');
 
     const textEl = document.createElement('span');
     textEl.classList.add('text');

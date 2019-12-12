@@ -1,5 +1,5 @@
 #app-toolbar {
-  background: #fff;
+  background: #001529;
   box-shadow: 0 1px 4px rgba(0,21,41,.08);
   display: flex;
   justify-content: space-between;
@@ -11,6 +11,7 @@
   display: inline-block;
   width: 5px;
   background: linear-gradient(#E9E9E9, #E9E9E9) no-repeat center/1px 100%;
+  opacity: 0.25;
 }
 
 /* Traces badge count */
@@ -38,25 +39,12 @@
   padding: 0 0.75em;
   cursor: pointer;
 }
-.app-toolbar-button svg { height: 1.75em; fill: #595959; }
-.app-toolbar-button.fix-stroke svg { stroke: #595959; }
+.app-toolbar-button svg { height: 1.75em; fill: rgba(255, 255, 255, 0.75); }
+.app-toolbar-button.fix-stroke svg { stroke: rgba(255, 255, 255, 0.75); }
 
-.app-toolbar-button:hover { background: #F9F9F9; }
-.app-toolbar-button:hover svg { fill: #000; }
-.app-toolbar-button.fix-stroke:hover svg { stroke: #000; }
-
-.app-toolbar-button.selected { background: #2B97EF; }
-.app-toolbar-button.selected:hover { background: #288bdb; }
-.app-toolbar-button.selected svg { fill: #fff; }
-.app-toolbar-button.fix-stroke.selected svg { stroke: #fff; }
-
-.app-toolbar-button.selected-fill svg { fill: #2B97EF; }
-.app-toolbar-button.fix-stroke.selected-fill svg { stroke: #2B97EF; }
-
-.app-toolbar-button.disabled { cursor: default; }
-.app-toolbar-button.disabled:hover { background: none; }
-.app-toolbar-button.disabled svg { fill: #D9D9D9; }
-.app-toolbar-button.fix-stroke.disabled svg { stroke: #D9D9D9; }
+/* .app-toolbar-button:hover { background: #F9F9F9; } */
+.app-toolbar-button:hover svg { fill: #fff; }
+.app-toolbar-button.fix-stroke:hover svg { stroke: #fff; }
 
 /* App toolbar button fine-tuning */
 .app-toolbar-button.search svg { height: 1.9em; position: relative; top: 1px; }
@@ -66,7 +54,7 @@
 /* Data sources menu header */
 .toolbar-data-sources-menu-header {
   display: flex;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.75);
   margin-bottom: 0.25em;
   justify-content: space-between;
   padding: 0.45em 0.75em 0.15em 0.75em;
@@ -75,13 +63,14 @@
 .toolbar-data-sources-menu-header span {
  font-size: 0.75em;
  text-transform: uppercase;
- color: rgba(0, 0, 0, 0.5);
+ color: #fff;
 }
 .toolbar-data-sources-menu-header svg {
   cursor: pointer;
+  fill: rgba(255, 255, 255, 0.75);
 }
 .toolbar-data-sources-menu-header svg:hover {
-  fill: #2B97EF;
+  fill: #fff;
 }
 
 /* Data sources menu empty */
@@ -109,6 +98,7 @@
   height: 1.5em;
   position: relative;
   top: 4px;
+  fill: #fff;
 }
 
 /* Traces menu list empty indicator */
@@ -136,6 +126,7 @@
   height: 1.2em;
   position: relative;
   top: 2px;
+  fill: #fff;
 }
 
 /* Custom tippy.js tooltip template */

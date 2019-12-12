@@ -212,7 +212,7 @@ export class AppToolbar {
         placement: 'bottom',
         duration: 0,
         updateDuration: 0,
-        theme: 'toolbar-menu-list',
+        theme: 'app-toolbar-menu-list',
         trigger: 'click',
         interactive: true
       }),
@@ -223,7 +223,7 @@ export class AppToolbar {
         placement: 'bottom',
         duration: 0,
         updateDuration: 0,
-        theme: 'toolbar-menu-list',
+        theme: 'app-toolbar-menu-list',
         trigger: 'click',
         interactive: true
       })
