@@ -6,7 +6,7 @@ import TraceGrouping from './trace';
 import ProcessGrouping from './process';
 import ServiceNameGrouping from './service-name';
 import db from '../db';
-import TypeScriptManager from '../../components/customization/typescript-manager';
+import { TypeScriptManager } from '../../components/customization/typescript-manager';
 
 export enum SpanGroupingManagerEvent {
   ADDED = 'sgm_added',

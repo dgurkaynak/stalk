@@ -15,6 +15,7 @@ import { LogsDataView } from './components/logs-data-view/logs-data-view';
 import Noty from 'noty';
 import { isJaegerJSON, convertFromJaegerTrace } from './model/api/jaeger/span';
 import { isZipkinJSON, convertFromZipkinTrace } from './model/api/zipkin/span';
+import { TypeScriptManager } from './components/customization/typescript-manager';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -62,7 +63,8 @@ export class App {
       DataSourceManager.getSingleton().init(),
       SpanGroupingManager.getSingleton().init(),
       SpanColoringManager.getSingleton().init(),
-      SpanLabellingManager.getSingleton().init()
+      SpanLabellingManager.getSingleton().init(),
+      TypeScriptManager.getSingleton().init()
     ]);
 
     this.initDockPanelAndWidgets();

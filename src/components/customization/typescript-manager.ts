@@ -4,7 +4,7 @@ import DefaultInterfacesRawText from '!!raw-loader!../../model/interfaces.ts';
 
 let _singletonIns: TypeScriptManager;
 
-export default class TypeScriptManager {
+export class TypeScriptManager {
   private defaultInterfacesDisposable?: monaco.IDisposable;
 
   static getSingleton() {
@@ -100,5 +100,3 @@ export default class TypeScriptManager {
     };
   }
 }
-
-(window as any).TypeScriptManager = TypeScriptManager;

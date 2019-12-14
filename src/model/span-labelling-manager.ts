@@ -4,7 +4,7 @@ import isObject from 'lodash/isObject';
 import EventEmitter from 'events';
 import { Span } from './interfaces';
 import db from './db';
-import TypeScriptManager from './../components/customization/typescript-manager';
+import { TypeScriptManager } from './../components/customization/typescript-manager';
 
 export enum SpanLabellingManagerEvent {
   ADDED = 'slm_added',
