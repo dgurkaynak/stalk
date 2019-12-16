@@ -36,7 +36,7 @@ import SvgTooltipEdit from '!!raw-loader!@mdi/svg/svg/tooltip-edit.svg';
 import '../ui/widget-toolbar/widget-toolbar.css';
 import './timeline-wrapper.css';
 
-const TOOLBAR_HEIGHT = 27; // TODO: Sorry :(
+const TOOLBAR_HEIGHT = 30; // TODO: Sorry :(
 
 export class TimelineWrapper {
   readonly timeline = new Timeline();
