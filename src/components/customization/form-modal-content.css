@@ -1,0 +1,76 @@
+.customization-form-modal-content {
+  padding: 10px;
+  width: 600px;
+}
+
+.customization-form-modal-content .monaco-container {
+  height: 200px;
+}
+
+.customization-form-modal-content .buttons {
+  display: flex;
+}
+
+.customization-form-modal-content .buttons .left {
+  flex-grow: 1;
+}
+
+.customization-form-modal-content .test-result {
+  padding: 15px 15px 15px 64px;
+  color: rgba(0,0,0,0.65);
+  line-height: 1.5;
+  border-radius: 4px;
+  margin: 10px 0;
+  position: relative;
+}
+
+.customization-form-modal-content .test-result svg {
+  position: absolute;
+  top: 13px;
+  left: 18px;
+  width: 2.5em;
+  height: 2.5em;
+}
+
+.customization-form-modal-content .test-result .title {
+  margin-bottom: 4px;
+  color: rgba(0,0,0,0.85);
+  font-size: 1.3em;
+}
+
+.customization-form-modal-content .test-result .body {
+  line-height: 1.25em;
+}
+
+.customization-form-modal-content .test-result pre {
+  display: inline-block;
+  background: #fff;
+  padding: 1px 3px;
+  margin: 0;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+}
+
+.customization-form-modal-content .test-result.success {
+  background-color: #f6ffed;
+  border: 1px solid #b7eb8f;
+}
+.customization-form-modal-content .test-result.success svg {
+  fill: #52c41a;
+}
+
+.customization-form-modal-content .test-result.warning {
+  background-color: #fffbe6;
+  border: 1px solid #ffe58f;
+}
+.customization-form-modal-content .test-result.warning svg {
+  fill: #faad14;
+}
+
+.customization-form-modal-content .test-result.error {
+  background-color: #fff1f0;
+  border: 1px solid #ffa39e;
+}
+.customization-form-modal-content .test-result.error svg {
+  fill: #f5222d;
+}

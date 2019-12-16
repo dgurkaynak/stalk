@@ -23,6 +23,9 @@ import {
 } from '../../model/span-labelling-manager';
 import { SpanGroupingManager } from '../../model/span-grouping/manager';
 import { GroupLayoutType } from '../timeline/group-view';
+import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
+import { ModalManager } from '../ui/modal/modal-manager';
+import { SpanColoringFormModalContent } from '../customization/span-coloring-form-modal-content';
 
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
 import SvgFormatColorFill from '!!raw-loader!@mdi/svg/svg/format-color-fill.svg';
@@ -65,9 +68,12 @@ export class TimelineWrapper {
     groupLayoutMode: TippyInstance;
   };
 
+  private spanColoringMode = operationColoringOptions.key; // Do not forget to change default value of TimelineView
+  private customSpanColoringFormModalContent: SpanColoringFormModalContent;
+  private customSpanColoringRawOptions: SpanColoringRawOptions;
+
   private state = {
     groupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineView
-    spanColoringMode: operationColoringOptions.key, // Do not forget to change default value of TimelineView
     spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineView
     groupLayoutMode: GroupLayoutType.COMPACT // Do not forget to change default value of TimelineView
   };
@@ -76,6 +82,9 @@ export class TimelineWrapper {
     onGroupingModeMenuItemClick: this.onGroupingModeMenuItemClick.bind(this),
     onSpanLabellingMenuItemClick: this.onSpanLabellingMenuItemClick.bind(this),
     onSpanColoringMenuItemClick: this.onSpanColoringMenuItemClick.bind(this),
+    onCustomSpanColoringModalClose: this.onCustomSpanColoringModalClose.bind(
+      this
+    ),
     onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this)
   };
 
@@ -241,7 +250,7 @@ export class TimelineWrapper {
         [operationColoringOptions.key]: 0,
         [serviceColoringOptions.key]: 1,
         custom: 3
-      }[this.state.spanColoringMode]
+      }[this.spanColoringMode]
     );
     this.groupLayoutModeMenu.selectAt(
       {
@@ -403,7 +412,17 @@ export class TimelineWrapper {
     }
 
     if (item.id === 'custom') {
-      // TODO
+      this.customSpanColoringFormModalContent = new SpanColoringFormModalContent(
+        {
+          rawOptions: this.customSpanColoringRawOptions
+        }
+      );
+      const modal = new Modal({
+        content: this.customSpanColoringFormModalContent.getElement(),
+        onClose: this.binded.onCustomSpanColoringModalClose
+      });
+      ModalManager.getSingleton().show(modal);
+      this.customSpanColoringFormModalContent.init(); // must be called after modal is rendered
       return;
     }
 
@@ -411,13 +430,48 @@ export class TimelineWrapper {
       item.id
     );
     if (!spanColoringOptions) {
+      // TODO:
       // message.error(`Unknown span coloring: "${item.id}"`);
       return;
     }
 
     this.timeline.updateSpanColoring(spanColoringOptions);
-    this.state.spanColoringMode = item.id;
+    this.spanColoringMode = item.id;
     this.spanColoringModeMenu.selectAt(index);
+  }
+
+  private onCustomSpanColoringModalClose(
+    triggerType: ModalCloseTriggerType,
+    data: any
+  ) {
+    if (this.customSpanColoringFormModalContent) {
+      this.customSpanColoringFormModalContent.dispose();
+      this.customSpanColoringFormModalContent = null;
+    }
+
+    if (
+      triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL ||
+      data.action != 'save'
+    ) {
+      return;
+    }
+
+    this.customSpanColoringRawOptions = {
+      key: 'custom',
+      name: 'Custom',
+      rawCode: data.tsCode,
+      compiledCode: data.compiledJSCode
+    };
+    this.spanColoringMode = 'custom';
+    const index = this.spanColoringModeMenu.findIndex(
+      item => item.id == 'custom'
+    );
+    this.spanColoringModeMenu.selectAt(index);
+    this.timeline.updateSpanColoring({
+      key: 'custom',
+      name: 'Custom',
+      colorBy: data.colorBy
+    });
   }
 
   private onGroupLayoutMenuItemClick(

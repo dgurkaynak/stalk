@@ -1,6 +1,7 @@
 import './widget-toolbar.css';
 import CodeSvgText from '!!raw-loader!@mdi/svg/svg/code-tags.svg';
 import SettingsSvgText from '!!raw-loader!@mdi/svg/svg/settings-outline.svg';
+import findIndex from 'lodash/findIndex';
 
 export interface WidgetToolbarMenuOptions {
   width?: number;
@@ -135,5 +136,9 @@ export class WidgetToolbarMenu {
     const index = this.items.indexOf(item);
     if (index == -1) return false;
     this.options.onClick(item.options, index);
+  }
+
+  findIndex(predicate: (itemOptions: WidgetToolbarMenuItemOptions) => boolean) {
+    return findIndex(this.items, item => predicate(item.options));
   }
 }
