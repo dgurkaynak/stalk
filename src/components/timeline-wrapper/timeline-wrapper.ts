@@ -1,4 +1,4 @@
-import { Timeline } from '../timeline/timeline';
+import { Timeline, TimelineTool } from '../timeline/timeline';
 import tippy, { createSingleton, Instance as TippyInstance } from 'tippy.js';
 import {
   WidgetToolbarMenu,
@@ -87,12 +87,16 @@ export class TimelineWrapper {
       this
     ),
     onSpanLabellingMenuItemClick: this.onSpanLabellingMenuItemClick.bind(this),
-    onCustomSpanLabellingModalClose: this.onCustomSpanLabellingModalClose.bind(this),
+    onCustomSpanLabellingModalClose: this.onCustomSpanLabellingModalClose.bind(
+      this
+    ),
     onSpanColoringMenuItemClick: this.onSpanColoringMenuItemClick.bind(this),
     onCustomSpanColoringModalClose: this.onCustomSpanColoringModalClose.bind(
       this
     ),
-    onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this)
+    onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this),
+    onMoveToolClick: this.onMoveToolClick.bind(this),
+    onSelectionToolClick: this.onSelectionToolClick.bind(this)
   };
 
   private spanGroupingModeMenu = new WidgetToolbarMenu({
@@ -236,6 +240,15 @@ export class TimelineWrapper {
     this.initTooltips();
     this.initDropdowns();
 
+    this.updateSelectedTool();
+    const btn = this.elements.toolbarBtn;
+    btn.moveTool.addEventListener('click', this.binded.onMoveToolClick, false);
+    btn.selectionTool.addEventListener(
+      'click',
+      this.binded.onSelectionToolClick,
+      false
+    );
+
     // Select default menus
     this.spanGroupingModeMenu.selectAt(
       {
@@ -372,6 +385,16 @@ export class TimelineWrapper {
         interactive: true
       })
     };
+  }
+
+  private onMoveToolClick() {
+    this.timeline.updateTool(TimelineTool.MOVE);
+    this.updateSelectedTool();
+  }
+
+  private onSelectionToolClick() {
+    this.timeline.updateTool(TimelineTool.SELECTION);
+    this.updateSelectedTool();
   }
 
   private onSpanGroupingModeMenuItemClick(
@@ -603,6 +626,17 @@ export class TimelineWrapper {
     this.dropdowns.groupLayoutMode.hide();
   }
 
+  private updateSelectedTool() {
+    const btn = this.elements.toolbarBtn;
+    const toolButtons = {
+      [TimelineTool.MOVE]: btn.moveTool,
+      [TimelineTool.SELECTION]: btn.selectionTool
+    };
+    Object.values(toolButtons).forEach(el => el.classList.remove('selected'));
+    const selectedTool = toolButtons[this.timeline.tool];
+    selectedTool && selectedTool.classList.add('selected');
+  }
+
   mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }
@@ -633,6 +667,17 @@ export class TimelineWrapper {
       tippy.destroy();
     }
     this.dropdowns = null;
+
+    btn.moveTool.removeEventListener(
+      'click',
+      this.binded.onMoveToolClick,
+      false
+    );
+    btn.selectionTool.removeEventListener(
+      'click',
+      this.binded.onSelectionToolClick,
+      false
+    );
 
     // TODO
   }

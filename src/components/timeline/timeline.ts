@@ -43,6 +43,11 @@ export enum TimelineEvent {
   SPANS_SELECTED = 'tve_span_selected'
 }
 
+export enum TimelineTool {
+  MOVE = 'move',
+  SELECTION = 'selection'
+}
+
 export class Timeline extends EventEmitter {
   private svg = document.createElementNS(SVG_NS, 'svg');
   private defs = document.createElementNS(SVG_NS, 'defs');
@@ -106,7 +111,8 @@ export class Timeline extends EventEmitter {
     parentEl: this.svg,
     axis: this.axis
   });
-  private isDrawingSelection = false;
+
+  private _tool = TimelineTool.MOVE;
 
   private binded = {
     onMouseIdleMove: this.onMouseIdleMove.bind(this),
@@ -359,6 +365,14 @@ export class Timeline extends EventEmitter {
       const spanViews = g.getAllSpanViews();
       spanViews.forEach(s => s.updateLabelText());
     });
+  }
+
+  get tool() {
+    return this._tool;
+  }
+
+  updateTool(tool: TimelineTool) {
+    this._tool = tool;
   }
 
   addTrace(trace: Trace) {
@@ -747,9 +761,7 @@ export class Timeline extends EventEmitter {
 
     if (this.traces.length === 0) return;
 
-    // If alt key is press, start to draw selection
-    if (e.altKey) {
-      this.isDrawingSelection = true;
+    if (this._tool == TimelineTool.SELECTION) {
       this.selectionView.start(e.offsetX, e.offsetY);
       this.selectionView.update(e.offsetX, e.offsetY);
       this.selectionView.mount();
@@ -759,7 +771,7 @@ export class Timeline extends EventEmitter {
   onMousePanMove(e: MouseEvent) {
     if (this.traces.length === 0) return;
 
-    if (this.isDrawingSelection) {
+    if (this._tool == TimelineTool.SELECTION) {
       this.selectionView.update(e.offsetX, e.offsetY);
     } else {
       // Translate
@@ -771,20 +783,16 @@ export class Timeline extends EventEmitter {
   onMousePanEnd(e: MouseEvent) {
     if (this.traces.length === 0) return;
 
-    const wasDrawingSelection = this.isDrawingSelection;
     const isMouseLeaveBeforeUp = e.type == 'mouseleave';
-    this.isDrawingSelection = false;
     this.selectionView.unmount();
 
-    if (wasDrawingSelection && !isMouseLeaveBeforeUp) {
+    if (this._tool == TimelineTool.SELECTION && !isMouseLeaveBeforeUp) {
       // TODO: e.offsetX, e.offsetY are way wrong, fix it in MouseHandler;
       const rect = this.selectionView.stop();
       const matches = this.findSpanViewsByRect(rect);
       const spanIds = matches.map(([g, s]) => s.span.id);
       this.selectSpans(spanIds);
     }
-
-    // TODO: Handle if cmd/ctrol is pressed, it should expand the selection
   }
 
   onWheel(e: WheelEvent) {
