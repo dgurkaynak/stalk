@@ -22,10 +22,12 @@ import {
   serviceOperationLabellingOptions
 } from '../../model/span-labelling-manager';
 import { SpanGroupingManager } from '../../model/span-grouping/manager';
+import { SpanGroupingRawOptions } from '../../model/span-grouping/span-grouping';
 import { GroupLayoutType } from '../timeline/group-view';
 import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
 import { ModalManager } from '../ui/modal/modal-manager';
 import { SpanColoringFormModalContent } from '../customization/span-coloring-form-modal-content';
+import { SpanGroupingFormModalContent } from '../customization/span-grouping-form-modal-content';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
@@ -66,14 +68,22 @@ export class TimelineWrapper {
   private customSpanColoringFormModalContent: SpanColoringFormModalContent;
   private customSpanColoringRawOptions: SpanColoringRawOptions;
 
+  private spanGroupingMode = processGroupingOptions.key; // Do not forget to change default value of TimelineView
+  private customSpanGroupingFormModalContent: SpanGroupingFormModalContent;
+  private customSpanGroupingRawOptions: SpanGroupingRawOptions;
+
   private state = {
-    groupingMode: processGroupingOptions.key, // Do not forget to change default value of TimelineView
     spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineView
     groupLayoutMode: GroupLayoutType.COMPACT // Do not forget to change default value of TimelineView
   };
 
   private binded = {
-    onGroupingModeMenuItemClick: this.onGroupingModeMenuItemClick.bind(this),
+    onSpanGroupingModeMenuItemClick: this.onSpanGroupingModeMenuItemClick.bind(
+      this
+    ),
+    onCustomSpanGroupingModalClose: this.onCustomSpanGroupingModalClose.bind(
+      this
+    ),
     onSpanLabellingMenuItemClick: this.onSpanLabellingMenuItemClick.bind(this),
     onSpanColoringMenuItemClick: this.onSpanColoringMenuItemClick.bind(this),
     onCustomSpanColoringModalClose: this.onCustomSpanColoringModalClose.bind(
@@ -82,7 +92,7 @@ export class TimelineWrapper {
     onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this)
   };
 
-  private groupingModeMenu = new WidgetToolbarMenu({
+  private spanGroupingModeMenu = new WidgetToolbarMenu({
     // width: 150,
     items: [
       { type: 'item', text: 'Trace', id: traceGroupingOptions.key },
@@ -98,7 +108,7 @@ export class TimelineWrapper {
         disabled: true
       }
     ],
-    onClick: this.binded.onGroupingModeMenuItemClick
+    onClick: this.binded.onSpanGroupingModeMenuItemClick
   });
   private spanLabellingModeMenu = new WidgetToolbarMenu({
     // width: 150,
@@ -224,13 +234,13 @@ export class TimelineWrapper {
     this.initDropdowns();
 
     // Select default menus
-    this.groupingModeMenu.selectAt(
+    this.spanGroupingModeMenu.selectAt(
       {
         [traceGroupingOptions.key]: 0,
         [processGroupingOptions.key]: 1,
         [serviceNameGroupingOptions.key]: 2,
         custom: 4
-      }[this.state.groupingMode]
+      }[this.spanGroupingMode]
     );
     this.spanLabellingModeMenu.selectAt(
       {
@@ -315,7 +325,7 @@ export class TimelineWrapper {
     const btn = this.elements.toolbarBtn;
     this.dropdowns = {
       groupingMode: tippy(btn.groupingMode, {
-        content: this.groupingModeMenu.element,
+        content: this.spanGroupingModeMenu.element,
         multiple: true,
         appendTo: document.body,
         placement: 'bottom',
@@ -361,7 +371,7 @@ export class TimelineWrapper {
     };
   }
 
-  private onGroupingModeMenuItemClick(
+  private onSpanGroupingModeMenuItemClick(
     item: WidgetToolbarMenuItemOptions,
     index: number
   ) {
@@ -373,7 +383,17 @@ export class TimelineWrapper {
     }
 
     if (item.id === 'custom') {
-      // TODO
+      this.customSpanGroupingFormModalContent = new SpanGroupingFormModalContent(
+        {
+          rawOptions: this.customSpanGroupingRawOptions
+        }
+      );
+      const modal = new Modal({
+        content: this.customSpanGroupingFormModalContent.getElement(),
+        onClose: this.binded.onCustomSpanGroupingModalClose
+      });
+      ModalManager.getSingleton().show(modal);
+      this.customSpanGroupingFormModalContent.init(); // must be called after modal is rendered
       return;
     }
 
@@ -386,8 +406,42 @@ export class TimelineWrapper {
     }
 
     this.timeline.updateSpanGrouping(spanGroupingOptions);
-    this.state.groupingMode = item.id;
-    this.groupingModeMenu.selectAt(index);
+    this.spanGroupingMode = item.id;
+    this.spanGroupingModeMenu.selectAt(index);
+  }
+
+  private onCustomSpanGroupingModalClose(
+    triggerType: ModalCloseTriggerType,
+    data: any
+  ) {
+    if (this.customSpanGroupingFormModalContent) {
+      this.customSpanGroupingFormModalContent.dispose();
+      this.customSpanGroupingFormModalContent = null;
+    }
+
+    if (
+      triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL ||
+      data.action != 'save'
+    ) {
+      return;
+    }
+
+    this.customSpanGroupingRawOptions = {
+      key: 'custom',
+      name: 'Custom',
+      rawCode: data.tsCode,
+      compiledCode: data.compiledJSCode
+    };
+    this.spanGroupingMode = 'custom';
+    const index = this.spanGroupingModeMenu.findIndex(
+      item => item.id == 'custom'
+    );
+    this.spanGroupingModeMenu.selectAt(index);
+    this.timeline.updateSpanGrouping({
+      key: 'custom',
+      name: 'Custom',
+      groupBy: data.groupBy
+    });
   }
 
   private onSpanLabellingMenuItemClick(
