@@ -7,6 +7,7 @@ import {
 import { DataSourceType } from '../../model/datasource/interfaces';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
+import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
@@ -42,14 +43,6 @@ export class AppToolbar {
       header: document.createElement('div'),
       empty: document.createElement('div')
     }
-  };
-  private tooltips: {
-    singleton: TippyInstance;
-    dataSources: TippyInstance;
-    search: TippyInstance;
-    traces: TippyInstance;
-    widgets: TippyInstance;
-    settings: TippyInstance;
   };
   private dropdowns: {
     dataSources: TippyInstance;
@@ -176,31 +169,32 @@ export class AppToolbar {
   }
 
   private initTooltips() {
-    const tooltips = {
-      dataSources: tippy(this.elements.btn.dataSources, {
-        content: 'Data Sources',
-        multiple: true
-      }),
-      search: tippy(this.elements.btn.search, { content: 'Search Traces' }),
-      traces: tippy(this.elements.btn.traces, {
-        content: 'Traces in the Stage',
-        multiple: true
-      }),
-      widgets: tippy(this.elements.btn.widgets, {
-        content: 'Widgets',
-        multiple: true
-      }),
-      settings: tippy(this.elements.btn.settings, { content: 'Settings' })
-    };
-
-    const singleton = createSingleton(Object.values(tooltips), {
-      delay: 1000,
-      duration: 0,
-      updateDuration: 0,
-      theme: 'tooltip'
-    });
-
-    this.tooltips = { ...tooltips, singleton };
+    const tooltipManager = TooltipManager.getSingleton();
+    tooltipManager.addToSingleton([
+      [
+        this.elements.btn.dataSources,
+        {
+          content: 'Data Sources',
+          multiple: true
+        }
+      ],
+      [this.elements.btn.search, { content: 'Search Traces' }],
+      [
+        this.elements.btn.traces,
+        {
+          content: 'Traces in the Stage',
+          multiple: true
+        }
+      ],
+      [
+        this.elements.btn.widgets,
+        {
+          content: 'Widgets',
+          multiple: true
+        }
+      ],
+      [this.elements.btn.settings, { content: 'Settings' }]
+    ]);
   }
 
   private initDropdowns() {
@@ -375,14 +369,17 @@ export class AppToolbar {
   }
 
   dispose() {
-    const tippies = [].concat(
-      Object.values(this.tooltips),
-      Object.values(this.dropdowns)
-    );
-    for (let tippyIns of tippies) {
-      tippyIns.destroy();
+    const tooltipManager = TooltipManager.getSingleton();
+    tooltipManager.removeFromSingleton([
+      this.elements.btn.dataSources,
+      this.elements.btn.search,
+      this.elements.btn.traces,
+      this.elements.btn.widgets,
+      this.elements.btn.settings
+    ]);
+    for (let tippy of Object.values(this.dropdowns)) {
+      tippy.destroy();
     }
-    this.tooltips = null;
     this.dropdowns = null;
     this.unbindEvents();
     this.elements = null;

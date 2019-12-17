@@ -26,6 +26,7 @@ import { GroupLayoutType } from '../timeline/group-view';
 import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
 import { ModalManager } from '../ui/modal/modal-manager';
 import { SpanColoringFormModalContent } from '../customization/span-coloring-form-modal-content';
+import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
 import SvgFormatColorFill from '!!raw-loader!@mdi/svg/svg/format-color-fill.svg';
@@ -53,13 +54,6 @@ export class TimelineWrapper {
       tooltipEditor: document.createElement('div')
     },
     timelineContainer: document.createElement('div')
-  };
-  private tooltips: {
-    singleton: TippyInstance;
-    groupingMode: TippyInstance;
-    spanLabellingMode: TippyInstance;
-    spanColoringMode: TippyInstance;
-    groupLayoutMode: TippyInstance;
   };
   private dropdowns: {
     groupingMode: TippyInstance;
@@ -262,34 +256,59 @@ export class TimelineWrapper {
   }
 
   private initTooltips() {
+    const tooltipManager = TooltipManager.getSingleton();
     const btn = this.elements.toolbarBtn;
-    const tooltips = {
-      groupingMode: tippy(btn.groupingMode, {
-        content: 'Span Grouping',
-        multiple: true
-      }),
-      spanLabellingMode: tippy(btn.spanLabellingMode, {
-        content: 'Span Labelling',
-        multiple: true
-      }),
-      spanColoringMode: tippy(btn.spanColoringMode, {
-        content: 'Span Coloring',
-        multiple: true
-      }),
-      groupLayoutMode: tippy(btn.groupLayoutMode, {
-        content: 'Draw Layout',
-        multiple: true
-      })
-    };
-
-    const singleton = createSingleton(Object.values(tooltips), {
-      delay: 1000,
-      duration: 0,
-      updateDuration: 0,
-      theme: 'tooltip'
-    });
-
-    this.tooltips = { ...tooltips, singleton };
+    tooltipManager.addToSingleton([
+      [
+        btn.moveTool,
+        {
+          content: 'Move Tool',
+          multiple: true
+        }
+      ],
+      [
+        btn.selectionTool,
+        {
+          content: 'Selection/Ruler Tool',
+          multiple: true
+        }
+      ],
+      [
+        btn.groupingMode,
+        {
+          content: 'Span Grouping',
+          multiple: true
+        }
+      ],
+      [
+        btn.spanLabellingMode,
+        {
+          content: 'Span Labelling',
+          multiple: true
+        }
+      ],
+      [
+        btn.spanColoringMode,
+        {
+          content: 'Span Coloring',
+          multiple: true
+        }
+      ],
+      [
+        btn.groupLayoutMode,
+        {
+          content: 'Draw Layout',
+          multiple: true
+        }
+      ],
+      [
+        btn.tooltipEditor,
+        {
+          content: 'Customize Span Tooltip',
+          multiple: true
+        }
+      ]
+    ]);
   }
 
   private initDropdowns() {
@@ -497,6 +516,23 @@ export class TimelineWrapper {
   }
 
   dispose() {
-    // TODO:
+    const tooltipManager = TooltipManager.getSingleton();
+    const btn = this.elements.toolbarBtn;
+    tooltipManager.removeFromSingleton([
+      btn.moveTool,
+      btn.selectionTool,
+      btn.groupingMode,
+      btn.spanLabellingMode,
+      btn.spanColoringMode,
+      btn.groupLayoutMode,
+      btn.tooltipEditor
+    ]);
+
+    for (let tippy of Object.values(this.dropdowns)) {
+      tippy.destroy();
+    }
+    this.dropdowns = null;
+
+    // TODO
   }
 }

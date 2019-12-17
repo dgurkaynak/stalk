@@ -8,6 +8,7 @@ import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
 import map from 'lodash/map';
 import prettyMilliseconds from 'pretty-ms';
+import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
@@ -29,11 +30,6 @@ export class LogsDataView {
       columns: document.createElement('div')
     },
     hotContainer: document.createElement('div')
-  };
-  private tooltips: {
-    singleton: TippyInstance;
-    search: TippyInstance;
-    columns: TippyInstance;
   };
   private viewPropertiesCache = {
     width: 0,
@@ -98,26 +94,24 @@ export class LogsDataView {
   }
 
   private initTooltips() {
+    const tooltipManager = TooltipManager.getSingleton();
     const btn = this.elements.toolbarBtn;
-    const tooltips = {
-      search: tippy(btn.search, {
-        content: 'Seach',
-        multiple: true
-      }),
-      columns: tippy(btn.columns, {
-        content: 'Customize Columns',
-        multiple: true
-      })
-    };
-
-    const singleton = createSingleton(Object.values(tooltips), {
-      delay: 1000,
-      duration: 0,
-      updateDuration: 0,
-      theme: 'tooltip'
-    });
-
-    this.tooltips = { ...tooltips, singleton };
+    tooltipManager.addToSingleton([
+      [
+        btn.search,
+        {
+          content: 'Search',
+          multiple: true
+        }
+      ],
+      [
+        btn.columns,
+        {
+          content: 'Customize Columns',
+          multiple: true
+        }
+      ]
+    ]);
   }
 
   private onTraceAdded(trace: Trace) {
@@ -312,5 +306,9 @@ export class LogsDataView {
       StageEvent.TRACE_ADDED,
       this.binded.onTraceRemoved
     );
+
+    const tooltipManager = TooltipManager.getSingleton();
+    const btn = this.elements.toolbarBtn;
+    tooltipManager.removeFromSingleton([btn.search, btn.columns]);
   }
 }
