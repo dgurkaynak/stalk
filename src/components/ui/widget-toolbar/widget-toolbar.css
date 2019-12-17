@@ -47,10 +47,6 @@
 }
 
 /* Custom tippy.js tooltip template */
-.tippy-tooltip.widget-toolbar-tooltip-theme {
-  font-size: 1em;
-}
-/* Custom tippy.js tooltip template */
 .tippy-tooltip.widget-toolbar-menu-theme {
   color: #26323d;
   box-shadow: 0 0 20px 4px rgba(154, 161, 177, 0.15),

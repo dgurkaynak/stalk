@@ -114,7 +114,7 @@ export class LogsDataView {
       delay: 1000,
       duration: 0,
       updateDuration: 0,
-      theme: 'widget-toolbar-tooltip'
+      theme: 'tooltip'
     });
 
     this.tooltips = { ...tooltips, singleton };

@@ -197,7 +197,7 @@ export class AppToolbar {
       delay: 1000,
       duration: 0,
       updateDuration: 0,
-      theme: 'toolbar-tooltip'
+      theme: 'tooltip'
     });
 
     this.tooltips = { ...tooltips, singleton };

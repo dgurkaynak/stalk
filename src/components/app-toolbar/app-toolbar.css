@@ -131,8 +131,3 @@
   top: 2px;
   fill: #fff;
 }
-
-/* Custom tippy.js tooltip template */
-.tippy-tooltip.toolbar-tooltip-theme {
-  font-size: 1em;
-}
