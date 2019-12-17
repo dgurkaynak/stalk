@@ -28,6 +28,7 @@ import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
 import { ModalManager } from '../ui/modal/modal-manager';
 import { SpanColoringFormModalContent } from '../customization/span-coloring-form-modal-content';
 import { SpanGroupingFormModalContent } from '../customization/span-grouping-form-modal-content';
+import { SpanLabellingFormModalContent } from '../customization/span-labelling-form-modal-content';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
@@ -72,10 +73,11 @@ export class TimelineWrapper {
   private customSpanGroupingFormModalContent: SpanGroupingFormModalContent;
   private customSpanGroupingRawOptions: SpanGroupingRawOptions;
 
-  private state = {
-    spanLabellingMode: operationLabellingOptions.key, // Do not forget to change default value of TimelineView
-    groupLayoutMode: GroupLayoutType.COMPACT // Do not forget to change default value of TimelineView
-  };
+  private spanLabellingMode = operationLabellingOptions.key; // Do not forget to change default value of TimelineView
+  private customSpanLabellingFormModalContent: SpanLabellingFormModalContent;
+  private customSpanLabellingRawOptions: SpanLabellingRawOptions;
+
+  private groupLayoutMode = GroupLayoutType.COMPACT; // Do not forget to change default value of TimelineView
 
   private binded = {
     onSpanGroupingModeMenuItemClick: this.onSpanGroupingModeMenuItemClick.bind(
@@ -85,6 +87,7 @@ export class TimelineWrapper {
       this
     ),
     onSpanLabellingMenuItemClick: this.onSpanLabellingMenuItemClick.bind(this),
+    onCustomSpanLabellingModalClose: this.onCustomSpanLabellingModalClose.bind(this),
     onSpanColoringMenuItemClick: this.onSpanColoringMenuItemClick.bind(this),
     onCustomSpanColoringModalClose: this.onCustomSpanColoringModalClose.bind(
       this
@@ -247,7 +250,7 @@ export class TimelineWrapper {
         [operationLabellingOptions.key]: 0,
         [serviceOperationLabellingOptions.key]: 1,
         custom: 3
-      }[this.state.spanLabellingMode]
+      }[this.spanLabellingMode]
     );
     this.spanColoringModeMenu.selectAt(
       {
@@ -261,7 +264,7 @@ export class TimelineWrapper {
         [GroupLayoutType.FILL]: 0,
         [GroupLayoutType.COMPACT]: 1,
         [GroupLayoutType.WATERFALL]: 2
-      }[this.state.groupLayoutMode]
+      }[this.groupLayoutMode]
     );
   }
 
@@ -456,7 +459,17 @@ export class TimelineWrapper {
     }
 
     if (item.id === 'custom') {
-      // TODO
+      this.customSpanLabellingFormModalContent = new SpanLabellingFormModalContent(
+        {
+          rawOptions: this.customSpanLabellingRawOptions
+        }
+      );
+      const modal = new Modal({
+        content: this.customSpanLabellingFormModalContent.getElement(),
+        onClose: this.binded.onCustomSpanLabellingModalClose
+      });
+      ModalManager.getSingleton().show(modal);
+      this.customSpanLabellingFormModalContent.init(); // must be called after modal is rendered
       return;
     }
 
@@ -469,8 +482,42 @@ export class TimelineWrapper {
     }
 
     this.timeline.updateSpanLabelling(spanLabellingOptions);
-    this.state.spanLabellingMode = item.id;
+    this.spanLabellingMode = item.id;
     this.spanLabellingModeMenu.selectAt(index);
+  }
+
+  private onCustomSpanLabellingModalClose(
+    triggerType: ModalCloseTriggerType,
+    data: any
+  ) {
+    if (this.customSpanLabellingFormModalContent) {
+      this.customSpanLabellingFormModalContent.dispose();
+      this.customSpanLabellingFormModalContent = null;
+    }
+
+    if (
+      triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL ||
+      data.action != 'save'
+    ) {
+      return;
+    }
+
+    this.customSpanLabellingRawOptions = {
+      key: 'custom',
+      name: 'Custom',
+      rawCode: data.tsCode,
+      compiledCode: data.compiledJSCode
+    };
+    this.spanLabellingMode = 'custom';
+    const index = this.spanLabellingModeMenu.findIndex(
+      item => item.id == 'custom'
+    );
+    this.spanLabellingModeMenu.selectAt(index);
+    this.timeline.updateSpanLabelling({
+      key: 'custom',
+      name: 'Custom',
+      labelBy: data.labelBy
+    });
   }
 
   private onSpanColoringMenuItemClick(
