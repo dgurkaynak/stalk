@@ -15,8 +15,6 @@ export interface WidgetToolbarSelectItemOptions {
   id?: string;
   text?: string;
   icon?: 'code-tags' | 'settings-outline';
-  altText?: string;
-  className?: string;
   disabled?: boolean;
 }
 
@@ -67,9 +65,6 @@ export class WidgetToolbarSelect {
       } else if (options.icon == 'settings-outline') {
         iconHtml = SettingsSvgText;
         textHtml = `<span class="text">${options.text}</span>`;
-      }
-      if (options.altText) {
-        altTextHtml = `<span class="alt">${options.altText}</span>`;
       }
 
       el.innerHTML = `${iconHtml} ${textHtml} ${altTextHtml}`.trim();
