@@ -1,9 +1,9 @@
 import Handsontable from 'handsontable';
 import tippy, { createSingleton, Instance as TippyInstance } from 'tippy.js';
 import {
-  WidgetToolbarMenu,
-  WidgetToolbarMenuItemOptions
-} from '../ui/widget-toolbar/widget-toolbar-menu';
+  WidgetToolbarSelect,
+  WidgetToolbarSelectItemOptions
+} from '../ui/widget-toolbar/widget-toolbar-select';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
 import map from 'lodash/map';

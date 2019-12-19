@@ -1,15 +1,16 @@
 import './widget-toolbar.css';
+import './widget-toolbar-select.css';
 import CodeSvgText from '!!raw-loader!@mdi/svg/svg/code-tags.svg';
 import SettingsSvgText from '!!raw-loader!@mdi/svg/svg/settings-outline.svg';
 import findIndex from 'lodash/findIndex';
 
-export interface WidgetToolbarMenuOptions {
+export interface WidgetToolbarSelectOptions {
   width?: number;
-  items: WidgetToolbarMenuItemOptions[];
-  onClick: (item: WidgetToolbarMenuItemOptions, index: number) => void;
+  items: WidgetToolbarSelectItemOptions[];
+  onClick: (item: WidgetToolbarSelectItemOptions, index: number) => void;
 }
 
-export interface WidgetToolbarMenuItemOptions {
+export interface WidgetToolbarSelectItemOptions {
   type: WidgetToolbarMenuItemType;
   id?: string;
   text?: string;
@@ -21,18 +22,18 @@ export interface WidgetToolbarMenuItemOptions {
 
 export type WidgetToolbarMenuItemType = 'item' | 'divider';
 
-export interface WidgetToolbarMenuItem {
-  options: WidgetToolbarMenuItemOptions;
+export interface WidgetToolbarSelectItem {
+  options: WidgetToolbarSelectItemOptions;
   element: HTMLDivElement;
   onClickHandler?: (e: MouseEvent) => void;
 }
 
-export class WidgetToolbarMenu {
+export class WidgetToolbarSelect {
   readonly element = document.createElement('div');
-  private items: WidgetToolbarMenuItem[] = [];
+  private items: WidgetToolbarSelectItem[] = [];
   private selectedItemIndex = -1;
 
-  constructor(private options: WidgetToolbarMenuOptions) {
+  constructor(private options: WidgetToolbarSelectOptions) {
     if (options.width) {
       this.element.style.width = `${options.width}px`;
     }
@@ -46,7 +47,7 @@ export class WidgetToolbarMenu {
     return this.items.slice();
   }
 
-  addItem(options: WidgetToolbarMenuItemOptions) {
+  addItem(options: WidgetToolbarSelectItemOptions) {
     const el = document.createElement('div');
     const item = { element: el, options };
 
@@ -131,14 +132,14 @@ export class WidgetToolbarMenu {
     item.element.classList.remove('selected');
   }
 
-  onItemClick(item: WidgetToolbarMenuItem) {
+  onItemClick(item: WidgetToolbarSelectItem) {
     if (item.options.disabled) return false;
     const index = this.items.indexOf(item);
     if (index == -1) return false;
     this.options.onClick(item.options, index);
   }
 
-  findIndex(predicate: (itemOptions: WidgetToolbarMenuItemOptions) => boolean) {
+  findIndex(predicate: (itemOptions: WidgetToolbarSelectItemOptions) => boolean) {
     return findIndex(this.items, item => predicate(item.options));
   }
 }

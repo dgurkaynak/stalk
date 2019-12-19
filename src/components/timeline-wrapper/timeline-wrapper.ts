@@ -1,23 +1,21 @@
 import { Timeline, TimelineTool } from '../timeline/timeline';
-import tippy, { createSingleton, Instance as TippyInstance } from 'tippy.js';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
-  WidgetToolbarMenu,
-  WidgetToolbarMenuItemOptions
-} from '../ui/widget-toolbar/widget-toolbar-menu';
+  WidgetToolbarSelect,
+  WidgetToolbarSelectItemOptions
+} from '../ui/widget-toolbar/widget-toolbar-select';
 import processGroupingOptions from '../../model/span-grouping/process';
 import serviceNameGroupingOptions from '../../model/span-grouping/service-name';
 import traceGroupingOptions from '../../model/span-grouping/trace';
 import {
   SpanColoringManager,
   SpanColoringRawOptions,
-  SpanColoringOptions,
   operationColoringOptions,
   serviceColoringOptions
 } from '../../model/span-coloring-manager';
 import {
   SpanLabellingManager,
   SpanLabellingRawOptions,
-  SpanLabellingOptions,
   operationLabellingOptions,
   serviceOperationLabellingOptions
 } from '../../model/span-labelling-manager';
@@ -99,7 +97,7 @@ export class TimelineWrapper {
     onSelectionToolClick: this.onSelectionToolClick.bind(this)
   };
 
-  private spanGroupingModeMenu = new WidgetToolbarMenu({
+  private spanGroupingModeMenu = new WidgetToolbarSelect({
     // width: 150,
     items: [
       { type: 'item', text: 'Trace', id: traceGroupingOptions.key },
@@ -117,7 +115,7 @@ export class TimelineWrapper {
     ],
     onClick: this.binded.onSpanGroupingModeMenuItemClick
   });
-  private spanLabellingModeMenu = new WidgetToolbarMenu({
+  private spanLabellingModeMenu = new WidgetToolbarSelect({
     // width: 150,
     items: [
       { type: 'item', text: 'Operation', id: operationLabellingOptions.key },
@@ -138,7 +136,7 @@ export class TimelineWrapper {
     ],
     onClick: this.binded.onSpanLabellingMenuItemClick
   });
-  private spanColoringModeMenu = new WidgetToolbarMenu({
+  private spanColoringModeMenu = new WidgetToolbarSelect({
     // width: 150,
     items: [
       { type: 'item', text: 'Operation', id: operationColoringOptions.key },
@@ -155,7 +153,7 @@ export class TimelineWrapper {
     ],
     onClick: this.binded.onSpanColoringMenuItemClick
   });
-  private groupLayoutModeMenu = new WidgetToolbarMenu({
+  private groupLayoutModeMenu = new WidgetToolbarSelect({
     // width: 150,
     items: [
       { type: 'item', text: 'Fill', id: GroupLayoutType.FILL },
@@ -347,7 +345,7 @@ export class TimelineWrapper {
         placement: 'bottom',
         duration: 0,
         updateDuration: 0,
-        theme: 'widget-toolbar-menu',
+        theme: 'widget-toolbar-select',
         trigger: 'click',
         interactive: true
       }),
@@ -358,7 +356,7 @@ export class TimelineWrapper {
         placement: 'bottom',
         duration: 0,
         updateDuration: 0,
-        theme: 'widget-toolbar-menu',
+        theme: 'widget-toolbar-select',
         trigger: 'click',
         interactive: true
       }),
@@ -369,7 +367,7 @@ export class TimelineWrapper {
         placement: 'bottom',
         duration: 0,
         updateDuration: 0,
-        theme: 'widget-toolbar-menu',
+        theme: 'widget-toolbar-select',
         trigger: 'click',
         interactive: true
       }),
@@ -380,7 +378,7 @@ export class TimelineWrapper {
         placement: 'bottom',
         duration: 0,
         updateDuration: 0,
-        theme: 'widget-toolbar-menu',
+        theme: 'widget-toolbar-select',
         trigger: 'click',
         interactive: true
       })
@@ -398,7 +396,7 @@ export class TimelineWrapper {
   }
 
   private onSpanGroupingModeMenuItemClick(
-    item: WidgetToolbarMenuItemOptions,
+    item: WidgetToolbarSelectItemOptions,
     index: number
   ) {
     this.dropdowns.groupingMode.hide();
@@ -471,7 +469,7 @@ export class TimelineWrapper {
   }
 
   private onSpanLabellingMenuItemClick(
-    item: WidgetToolbarMenuItemOptions,
+    item: WidgetToolbarSelectItemOptions,
     index: number
   ) {
     this.dropdowns.spanLabellingMode.hide();
@@ -544,7 +542,7 @@ export class TimelineWrapper {
   }
 
   private onSpanColoringMenuItemClick(
-    item: WidgetToolbarMenuItemOptions,
+    item: WidgetToolbarSelectItemOptions,
     index: number
   ) {
     this.dropdowns.spanColoringMode.hide();
@@ -618,7 +616,7 @@ export class TimelineWrapper {
   }
 
   private onGroupLayoutMenuItemClick(
-    item: WidgetToolbarMenuItemOptions,
+    item: WidgetToolbarSelectItemOptions,
     index: number
   ) {
     this.timeline.updateGroupLayoutMode(item.id as GroupLayoutType);
