@@ -1,6 +1,7 @@
 import { Trace } from './trace';
 import EventEmitter from 'events';
 import { SpanGroup } from './span-group/span-group';
+import flatMap from 'lodash/flatMap';
 
 export enum StageEvent {
   TRACE_ADDED = 'trace_added',
@@ -106,7 +107,7 @@ export class Stage extends EventEmitter {
   }
 
   getAllLogs() {
-    return this.mainSpanGroup.getAll().flatMap(span => {
+    return flatMap(this.mainSpanGroup.getAll(), span => {
       return span.logs.map(log => ({ ...log, span }));
     });
   }
