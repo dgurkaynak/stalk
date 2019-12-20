@@ -632,6 +632,11 @@ export class TimelineWrapper {
       false
     );
 
+    this.spanGroupingModeMenu.dispose();
+    this.groupLayoutModeMenu.dispose();
+    this.spanColoringModeMenu.dispose();
+    this.spanLabellingModeMenu.dispose();
+
     // TODO
   }
 }

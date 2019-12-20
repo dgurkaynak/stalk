@@ -130,4 +130,10 @@ export class WidgetToolbarSelect {
   ) {
     return find(this.items, item => predicate(item.options));
   }
+
+  dispose() {
+    this.removeAllItems();
+    this.items = [];
+    this.selectedItemId = null;
+  }
 }
