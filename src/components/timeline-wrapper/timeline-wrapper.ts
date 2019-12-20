@@ -35,7 +35,6 @@ import SvgSort from '!!raw-loader!@mdi/svg/svg/sort.svg';
 import SvgCursorMove from '!!raw-loader!@mdi/svg/svg/cursor-move.svg';
 import SvgSelection from '!!raw-loader!@mdi/svg/svg/selection.svg';
 import SvgTooltipEdit from '!!raw-loader!@mdi/svg/svg/tooltip-edit.svg';
-import '../ui/widget-toolbar/widget-toolbar.css';
 import './timeline-wrapper.css';
 
 const TOOLBAR_HEIGHT = 30; // TODO: Sorry :(
@@ -103,7 +102,7 @@ export class TimelineWrapper {
       { type: 'item', text: 'Trace', id: traceGroupingOptions.key },
       { type: 'item', text: 'Process', id: processGroupingOptions.key },
       { type: 'item', text: 'Service', id: serviceNameGroupingOptions.key },
-      { type: 'divider' },
+      { type: 'divider', text: '', id: 'div1' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
       {
         type: 'item',
@@ -113,7 +112,7 @@ export class TimelineWrapper {
         disabled: true
       }
     ],
-    onClick: this.binded.onSpanGroupingModeMenuItemClick
+    onSelect: this.binded.onSpanGroupingModeMenuItemClick
   });
   private spanLabellingModeMenu = new WidgetToolbarSelect({
     // width: 150,
@@ -124,7 +123,7 @@ export class TimelineWrapper {
         text: 'Service + Operation',
         id: serviceOperationLabellingOptions.key
       },
-      { type: 'divider' },
+      { type: 'divider', text: '', id: 'div1' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
       {
         type: 'item',
@@ -134,14 +133,14 @@ export class TimelineWrapper {
         disabled: true
       }
     ],
-    onClick: this.binded.onSpanLabellingMenuItemClick
+    onSelect: this.binded.onSpanLabellingMenuItemClick
   });
   private spanColoringModeMenu = new WidgetToolbarSelect({
     // width: 150,
     items: [
       { type: 'item', text: 'Operation', id: operationColoringOptions.key },
       { type: 'item', text: 'Service', id: serviceColoringOptions.key },
-      { type: 'divider' },
+      { type: 'divider', text: '', id: 'div1' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
       {
         type: 'item',
@@ -151,7 +150,7 @@ export class TimelineWrapper {
         disabled: true
       }
     ],
-    onClick: this.binded.onSpanColoringMenuItemClick
+    onSelect: this.binded.onSpanColoringMenuItemClick
   });
   private groupLayoutModeMenu = new WidgetToolbarSelect({
     // width: 150,
@@ -160,7 +159,7 @@ export class TimelineWrapper {
       { type: 'item', text: 'Compact', id: GroupLayoutType.COMPACT },
       { type: 'item', text: 'Waterfall', id: GroupLayoutType.WATERFALL }
     ],
-    onClick: this.binded.onGroupLayoutMenuItemClick
+    onSelect: this.binded.onGroupLayoutMenuItemClick
   });
 
   constructor() {
@@ -248,35 +247,10 @@ export class TimelineWrapper {
     );
 
     // Select default menus
-    this.spanGroupingModeMenu.selectAt(
-      {
-        [traceGroupingOptions.key]: 0,
-        [processGroupingOptions.key]: 1,
-        [serviceNameGroupingOptions.key]: 2,
-        custom: 4
-      }[this.spanGroupingMode]
-    );
-    this.spanLabellingModeMenu.selectAt(
-      {
-        [operationLabellingOptions.key]: 0,
-        [serviceOperationLabellingOptions.key]: 1,
-        custom: 3
-      }[this.spanLabellingMode]
-    );
-    this.spanColoringModeMenu.selectAt(
-      {
-        [operationColoringOptions.key]: 0,
-        [serviceColoringOptions.key]: 1,
-        custom: 3
-      }[this.spanColoringMode]
-    );
-    this.groupLayoutModeMenu.selectAt(
-      {
-        [GroupLayoutType.FILL]: 0,
-        [GroupLayoutType.COMPACT]: 1,
-        [GroupLayoutType.WATERFALL]: 2
-      }[this.groupLayoutMode]
-    );
+    this.spanGroupingModeMenu.select(this.spanGroupingMode);
+    this.spanLabellingModeMenu.select(this.spanLabellingMode);
+    this.spanColoringModeMenu.select(this.spanColoringMode);
+    this.groupLayoutModeMenu.select(this.groupLayoutMode);
   }
 
   private initTooltips() {
@@ -396,8 +370,7 @@ export class TimelineWrapper {
   }
 
   private onSpanGroupingModeMenuItemClick(
-    item: WidgetToolbarSelectItemOptions,
-    index: number
+    item: WidgetToolbarSelectItemOptions
   ) {
     this.dropdowns.groupingMode.hide();
 
@@ -431,7 +404,7 @@ export class TimelineWrapper {
 
     this.timeline.updateSpanGrouping(spanGroupingOptions);
     this.spanGroupingMode = item.id;
-    this.spanGroupingModeMenu.selectAt(index);
+    this.spanGroupingModeMenu.select(item.id);
   }
 
   private onCustomSpanGroupingModalClose(
@@ -457,10 +430,7 @@ export class TimelineWrapper {
       compiledCode: data.compiledJSCode
     };
     this.spanGroupingMode = 'custom';
-    const index = this.spanGroupingModeMenu.findIndex(
-      item => item.id == 'custom'
-    );
-    this.spanGroupingModeMenu.selectAt(index);
+    this.spanGroupingModeMenu.select('custom');
     this.timeline.updateSpanGrouping({
       key: 'custom',
       name: 'Custom',
@@ -468,10 +438,7 @@ export class TimelineWrapper {
     });
   }
 
-  private onSpanLabellingMenuItemClick(
-    item: WidgetToolbarSelectItemOptions,
-    index: number
-  ) {
+  private onSpanLabellingMenuItemClick(item: WidgetToolbarSelectItemOptions) {
     this.dropdowns.spanLabellingMode.hide();
 
     if (item.id === 'manage-all') {
@@ -504,7 +471,7 @@ export class TimelineWrapper {
 
     this.timeline.updateSpanLabelling(spanLabellingOptions);
     this.spanLabellingMode = item.id;
-    this.spanLabellingModeMenu.selectAt(index);
+    this.spanLabellingModeMenu.select(item.id);
   }
 
   private onCustomSpanLabellingModalClose(
@@ -530,10 +497,7 @@ export class TimelineWrapper {
       compiledCode: data.compiledJSCode
     };
     this.spanLabellingMode = 'custom';
-    const index = this.spanLabellingModeMenu.findIndex(
-      item => item.id == 'custom'
-    );
-    this.spanLabellingModeMenu.selectAt(index);
+    this.spanLabellingModeMenu.select('custom');
     this.timeline.updateSpanLabelling({
       key: 'custom',
       name: 'Custom',
@@ -541,10 +505,7 @@ export class TimelineWrapper {
     });
   }
 
-  private onSpanColoringMenuItemClick(
-    item: WidgetToolbarSelectItemOptions,
-    index: number
-  ) {
+  private onSpanColoringMenuItemClick(item: WidgetToolbarSelectItemOptions) {
     this.dropdowns.spanColoringMode.hide();
 
     if (item.id === 'manage-all') {
@@ -578,7 +539,7 @@ export class TimelineWrapper {
 
     this.timeline.updateSpanColoring(spanColoringOptions);
     this.spanColoringMode = item.id;
-    this.spanColoringModeMenu.selectAt(index);
+    this.spanColoringModeMenu.select(item.id);
   }
 
   private onCustomSpanColoringModalClose(
@@ -604,10 +565,7 @@ export class TimelineWrapper {
       compiledCode: data.compiledJSCode
     };
     this.spanColoringMode = 'custom';
-    const index = this.spanColoringModeMenu.findIndex(
-      item => item.id == 'custom'
-    );
-    this.spanColoringModeMenu.selectAt(index);
+    this.spanColoringModeMenu.select('custom');
     this.timeline.updateSpanColoring({
       key: 'custom',
       name: 'Custom',
@@ -615,12 +573,9 @@ export class TimelineWrapper {
     });
   }
 
-  private onGroupLayoutMenuItemClick(
-    item: WidgetToolbarSelectItemOptions,
-    index: number
-  ) {
+  private onGroupLayoutMenuItemClick(item: WidgetToolbarSelectItemOptions) {
     this.timeline.updateGroupLayoutMode(item.id as GroupLayoutType);
-    this.groupLayoutModeMenu.selectAt(index);
+    this.groupLayoutModeMenu.select(item.id);
     this.dropdowns.groupLayoutMode.hide();
   }
 

@@ -1,26 +1,26 @@
+import find from 'lodash/find';
+import findIndex from 'lodash/findIndex';
+
 import './widget-toolbar.css';
 import './widget-toolbar-select.css';
 import CodeSvgText from '!!raw-loader!@mdi/svg/svg/code-tags.svg';
 import SettingsSvgText from '!!raw-loader!@mdi/svg/svg/settings-outline.svg';
-import findIndex from 'lodash/findIndex';
 
 export interface WidgetToolbarSelectOptions {
   width?: number;
   items: WidgetToolbarSelectItemOptions[];
-  onClick: (item: WidgetToolbarSelectItemOptions, index: number) => void;
+  onSelect: (item: WidgetToolbarSelectItemOptions) => void;
 }
 
 export interface WidgetToolbarSelectItemOptions {
-  type: WidgetToolbarMenuItemType;
-  id?: string;
-  text?: string;
+  type: 'item' | 'divider';
+  id: string;
+  text: string;
   icon?: 'code-tags' | 'settings-outline';
   disabled?: boolean;
 }
 
-export type WidgetToolbarMenuItemType = 'item' | 'divider';
-
-export interface WidgetToolbarSelectItem {
+interface WidgetToolbarSelectItem {
   options: WidgetToolbarSelectItemOptions;
   element: HTMLDivElement;
   onClickHandler?: (e: MouseEvent) => void;
@@ -29,7 +29,7 @@ export interface WidgetToolbarSelectItem {
 export class WidgetToolbarSelect {
   readonly element = document.createElement('div');
   private items: WidgetToolbarSelectItem[] = [];
-  private selectedItemIndex = -1;
+  private selectedItemId: string = null;
 
   constructor(private options: WidgetToolbarSelectOptions) {
     if (options.width) {
@@ -39,10 +39,6 @@ export class WidgetToolbarSelect {
     options.items.forEach(options => {
       this.addItem(options);
     });
-  }
-
-  getItems() {
-    return this.items.slice();
   }
 
   addItem(options: WidgetToolbarSelectItemOptions) {
@@ -78,63 +74,60 @@ export class WidgetToolbarSelect {
     this.items.push(item);
   }
 
-  removeItemAt(index: number) {
-    if (index >= this.items.length) return false;
-    const currentSelectedItem = this.items[this.selectedItemIndex];
-    const [removedItem] = this.items.splice(index, 1);
-    if (removedItem) {
-      this.element.removeChild(removedItem.element);
-      if (removedItem.onClickHandler) {
-        removedItem.element.removeEventListener(
-          'click',
-          removedItem.onClickHandler as any,
-          false
-        );
-      }
+  removeItem(id: string) {
+    const itemIndex = this.findItemIndex(item => item.id == id);
+    if (itemIndex == -1) return false;
+    const [removedItem] = this.items.splice(itemIndex, 1);
+    this.element.removeChild(removedItem.element);
+    if (removedItem.onClickHandler) {
+      removedItem.element.removeEventListener(
+        'click',
+        removedItem.onClickHandler as any,
+        false
+      );
     }
 
-    if (currentSelectedItem) {
-      this.selectedItemIndex = this.items.indexOf(currentSelectedItem);
-      if (this.selectedItemIndex == -1) {
-        // TODO: Currently selected item is removed, maybe do something?
-      }
+    if (removedItem.options.id == this.selectedItemId) {
+      this.selectedItemId = null;
     }
   }
 
   removeAllItems() {
-    if (this.items.length == 0) return;
-    let item = this.items[0];
-    while (item) {
-      this.removeItemAt(0);
-      item = this.items[0];
-    }
+    const items = this.items.slice();
+    items.forEach(item => this.removeItem(item.options.id));
   }
 
-  selectAt(index: number, unselectOthers = true) {
-    if (this.selectedItemIndex == index) return true;
-    const item = this.items[index];
+  select(id: string) {
+    if (this.selectedItemId == id) return true;
+    const item = this.findItem(item => item.id == id);
     if (!item) return false;
-    if (unselectOthers) {
-      this.unselectAt(this.selectedItemIndex);
-    }
-    this.selectedItemIndex = index;
+    if (this.selectedItemId) this.unselect(this.selectedItemId);
+    this.selectedItemId = item.options.id;
     item.element.classList.add('selected');
   }
 
-  unselectAt(index: number) {
-    const item = this.items[index];
+  unselect(id: string) {
+    const item = this.findItem(item => item.id == id);
     if (!item) return false;
     item.element.classList.remove('selected');
   }
 
-  onItemClick(item: WidgetToolbarSelectItem) {
+  private onItemClick(item: WidgetToolbarSelectItem) {
     if (item.options.disabled) return false;
     const index = this.items.indexOf(item);
     if (index == -1) return false;
-    this.options.onClick(item.options, index);
+    this.options.onSelect(item.options);
   }
 
-  findIndex(predicate: (itemOptions: WidgetToolbarSelectItemOptions) => boolean) {
+  private findItemIndex(
+    predicate: (itemOptions: WidgetToolbarSelectItemOptions) => boolean
+  ) {
     return findIndex(this.items, item => predicate(item.options));
+  }
+
+  private findItem(
+    predicate: (itemOptions: WidgetToolbarSelectItemOptions) => boolean
+  ) {
+    return find(this.items, item => predicate(item.options));
   }
 }
