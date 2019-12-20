@@ -80,6 +80,10 @@ export class WidgetToolbarMultiSelect {
     this.render();
   }
 
+  getSelectedItems() {
+    return this.options.items.filter(i => i.selected);
+  }
+
   render() {
     this.elements.itemsContainer.innerHTML = '';
 

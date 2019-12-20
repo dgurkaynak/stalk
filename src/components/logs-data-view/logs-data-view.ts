@@ -1,9 +1,9 @@
 import Handsontable from 'handsontable';
-import tippy, { createSingleton, Instance as TippyInstance } from 'tippy.js';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
-  WidgetToolbarSelect,
-  WidgetToolbarSelectItemOptions
-} from '../ui/widget-toolbar/widget-toolbar-select';
+  WidgetToolbarMultiSelect,
+  WidgetToolbarMultiSelectItemOptions
+} from '../ui/widget-toolbar/widget-toolbar-multi-select';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
 import map from 'lodash/map';
@@ -38,8 +38,23 @@ export class LogsDataView {
 
   private binded = {
     onTraceAdded: this.onTraceAdded.bind(this),
-    onTraceRemoved: this.onTraceRemoved.bind(this)
+    onTraceRemoved: this.onTraceRemoved.bind(this),
+    onColumnsMultiSelectSelect: this.onColumnsMultiSelectSelect.bind(this),
+    onColumnsMultiSelectUnselect: this.onColumnsMultiSelectUnselect.bind(this)
   };
+
+  private dropdowns: {
+    columnsSelection: TippyInstance;
+  };
+  private columnsMultiSelect = new WidgetToolbarMultiSelect({
+    // width: 200,
+    maxHeight: 100,
+    showSearch: true,
+    onSelect: this.binded.onColumnsMultiSelectSelect,
+    onUnselect: this.binded.onColumnsMultiSelectUnselect,
+    items: [],
+    emptyMessage: 'No Logs'
+  });
 
   constructor() {
     const { container, toolbar, hotContainer } = this.elements;
@@ -84,6 +99,7 @@ export class LogsDataView {
       height: options.height
     };
     this.initTooltips();
+    this.initDropdowns();
 
     // Bind events
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onTraceAdded);
@@ -114,12 +130,89 @@ export class LogsDataView {
     ]);
   }
 
+  private initDropdowns() {
+    this.dropdowns = {
+      columnsSelection: tippy(this.elements.toolbarBtn.columns, {
+        content: this.columnsMultiSelect.element,
+        multiple: true,
+        appendTo: document.body,
+        placement: 'bottom',
+        duration: 0,
+        updateDuration: 0,
+        theme: 'widget-toolbar-multi-select',
+        trigger: 'click',
+        interactive: true
+      })
+    };
+  }
+
   private onTraceAdded(trace: Trace) {
+    this.updateColumnsMultiSelectItems();
     this.updateHot();
   }
 
   private onTraceRemoved(trace: Trace) {
+    this.updateColumnsMultiSelectItems();
     this.updateHot();
+  }
+
+  private updateColumnsMultiSelectItems() {
+    if (this.stage.getAllTraces().length == 0) {
+      this.columnsMultiSelect.updateItems([]);
+      return;
+    }
+
+    const spanColumns: WidgetToolbarMultiSelectItemOptions[] = [
+      {
+        id: 'span.operationName',
+        text: 'span.operationName',
+        category: 'Span',
+        selected: true
+      },
+      { id: 'span.id', text: 'span.id', category: 'Span' },
+      { id: 'span.traceId', text: 'span.traceId', category: 'Span' }
+    ];
+    const logFields = this.determineInitialLogFieldColumns();
+    const logColumns: WidgetToolbarMultiSelectItemOptions[] = [].concat(
+      logFields.display.map(f => ({
+        id: `fields.${f}`,
+        text: `fields.${f}`,
+        category: 'Log Field',
+        selected: true
+      })),
+      logFields.hidden.map(f => ({
+        id: `fields.${f}`,
+        text: `fields.${f}`,
+        category: 'Log Field'
+      }))
+    );
+    const allColumnds = [].concat(spanColumns, logColumns);
+    this.columnsMultiSelect.updateItems(allColumnds);
+  }
+
+  private determineInitialLogFieldColumns() {
+    const totalLogCount = this.stage.getAllLogs().length;
+    const logFieldKeys = this.stage.getAllLogFieldKeys();
+    const logFieldKeysSorted = map(logFieldKeys, (count, key) => [
+      key,
+      count / totalLogCount // usage ratio
+    ]).sort((a, b) => {
+      return (b[1] as number) - (a[1] as number);
+    });
+    const displayedLogFieldKeys: string[] = [];
+    const otherLogFieldKeys: string[] = [];
+    logFieldKeysSorted.forEach(([key, ratio]) => {
+      if (ratio > 0.9) {
+        displayedLogFieldKeys.push(key as string);
+      } else {
+        otherLogFieldKeys.push(key as string);
+      }
+    });
+    return {
+      display: displayedLogFieldKeys,
+      hidden: otherLogFieldKeys,
+      all: [].concat(displayedLogFieldKeys, otherLogFieldKeys)
+    };
   }
 
   private updateHot() {
@@ -129,94 +222,79 @@ export class LogsDataView {
 
     if (logs.length == 0) {
       this.elements.hotContainer.innerHTML = ``;
-    } else {
-      const totalLogCount = this.stage.getAllLogs().length;
-      const logFieldKeys = this.stage.getAllLogFieldKeys();
-      const logFieldKeysSorted = map(logFieldKeys, (count, key) => [
-        key,
-        count / totalLogCount
-      ]).sort((a, b) => {
-        return (b[1] as number) - (a[1] as number);
-      });
-      const displayedLogFieldKeys: string[] = [];
-      const otherLogFieldKeys: string[] = [];
-      logFieldKeysSorted.forEach(([key, ratio]) => {
-        if (ratio > 0.9) {
-          displayedLogFieldKeys.push(key as string);
-        } else {
-          otherLogFieldKeys.push(key as string);
-        }
-      });
-      const columns = [
-        {
-          header: 'Timestamp',
-          columnMeta: {
-            data: 'timestamp',
-            renderer: this.prepareHotTimestampRenderer()
-          }
-        },
-        {
-          header: 'Span',
-          columnMeta: { data: 'span.operationName' }
-        },
-        ...displayedLogFieldKeys.map(key => {
-          return {
-            header: key,
-            columnMeta: { data: `fields.${key}` }
-          };
-        }),
-        {
-          header: 'Other Fields',
-          columnMeta: {
-            data: function(row: any) {
-              const otherFields: [string, any][] = [];
-              otherLogFieldKeys.forEach(key => {
-                if (!row.fields.hasOwnProperty(key)) return;
-                otherFields.push([key, row.fields[key]]);
-              });
-              return otherFields;
-            },
-            renderer: this.prepareHotOtherFieldsRenderer()
-          } as any
-        }
-      ];
-
-      this.hot = new Handsontable(this.elements.hotContainer, {
-        width: this.viewPropertiesCache.width,
-        height: this.viewPropertiesCache.height - TOOLBAR_HEIGHT,
-        data: logs,
-        colHeaders: columns.map(c => c.header),
-        columns: columns.map(c => c.columnMeta),
-        readOnly: true,
-        // filters: true,
-        // dropdownMenu: [
-        //   'filter_by_condition',
-        //   'filter_by_value',
-        //   'filter_action_bar'
-        // ],
-        licenseKey: 'non-commercial-and-evaluation',
-        manualColumnResize: true,
-        manualColumnMove: true,
-        // manualColumnFreeze: true,
-        // disableVisualSelection: true,
-        contextMenu: [
-          'alignment',
-          // 'freeze_column',
-          // 'unfreeze_column',
-          '---------',
-          'copy'
-        ],
-        columnSorting: {
-          sortEmptyCells: true,
-          initialConfig: {
-            column: 0,
-            sortOrder: 'asc'
-          }
-        },
-        currentRowClassName: 'logs-data-view-currentRow',
-        stretchH: 'last'
-      });
+      return;
     }
+
+    const allLogFields = this.determineInitialLogFieldColumns().all;
+    const displayColumnItems = this.columnsMultiSelect.getSelectedItems();
+    const displayedColumnIds = displayColumnItems.map(i => i.id);
+
+    const columns = [
+      {
+        header: 'Timestamp',
+        columnMeta: {
+          data: 'timestamp',
+          renderer: this.prepareHotTimestampRenderer()
+        }
+      },
+      ...displayColumnItems.map(item => {
+        return {
+          header: item.text,
+          columnMeta: { data: item.id }
+        };
+      }),
+      {
+        header: 'Other Fields',
+        columnMeta: {
+          data: function(row: any) {
+            const otherFields: [string, any][] = [];
+            allLogFields.forEach(key => {
+              if (!row.fields.hasOwnProperty(key)) return;
+              if (displayedColumnIds.indexOf(`fields.${key}`) > -1) return; // Already has a seperate column
+              otherFields.push([key, row.fields[key]]);
+            });
+            return otherFields;
+          },
+          renderer: this.prepareHotOtherFieldsRenderer()
+        } as any
+      }
+    ];
+
+    this.hot = new Handsontable(this.elements.hotContainer, {
+      width: this.viewPropertiesCache.width,
+      height: this.viewPropertiesCache.height - TOOLBAR_HEIGHT,
+      data: logs,
+      colHeaders: columns.map(c => c.header),
+      columns: columns.map(c => c.columnMeta),
+      readOnly: true,
+      // filters: true,
+      // dropdownMenu: [
+      //   'filter_by_condition',
+      //   'filter_by_value',
+      //   'filter_action_bar'
+      // ],
+      licenseKey: 'non-commercial-and-evaluation',
+      manualColumnResize: true,
+      manualColumnMove: true,
+      // manualColumnFreeze: true,
+      // disableVisualSelection: true,
+      contextMenu: [
+        'alignment',
+        // 'freeze_column',
+        // 'unfreeze_column',
+        '---------',
+        'copy'
+      ],
+      columnSorting: {
+        sortEmptyCells: true,
+        initialConfig: {
+          column: 0,
+          sortOrder: 'asc'
+        }
+      },
+      currentRowClassName: 'logs-data-view-currentRow',
+      stretchH: 'last'
+    });
   }
 
   private prepareHotTimestampRenderer() {
@@ -280,6 +358,20 @@ export class LogsDataView {
     };
   }
 
+  private onColumnsMultiSelectSelect(
+    item: WidgetToolbarMultiSelectItemOptions
+  ) {
+    this.columnsMultiSelect.select(item.id);
+    this.updateHot();
+  }
+
+  private onColumnsMultiSelectUnselect(
+    item: WidgetToolbarMultiSelectItemOptions
+  ) {
+    this.columnsMultiSelect.unselect(item.id);
+    this.updateHot();
+  }
+
   mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }
@@ -300,7 +392,9 @@ export class LogsDataView {
   }
 
   dispose() {
-    // TODO:
+    this.hot && this.hot.destroy();
+    this.hot = null;
+
     this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onTraceAdded);
     this.stage.removeListener(
       StageEvent.TRACE_ADDED,
@@ -310,5 +404,10 @@ export class LogsDataView {
     const tooltipManager = TooltipManager.getSingleton();
     const btn = this.elements.toolbarBtn;
     tooltipManager.removeFromSingleton([btn.search, btn.columns]);
+
+    for (let tippy of Object.values(this.dropdowns)) {
+      tippy.destroy();
+    }
+    this.dropdowns = null;
   }
 }
