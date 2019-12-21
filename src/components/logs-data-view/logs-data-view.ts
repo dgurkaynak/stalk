@@ -47,7 +47,7 @@ export class LogsDataView {
     columnsSelection: TippyInstance;
   };
   private columnsMultiSelect = new WidgetToolbarMultiSelect({
-    // width: 200,
+    width: 200,
     maxItemContainerHeight: 125,
     showSearch: true,
     onSelect: this.binded.onColumnsMultiSelectSelect,
