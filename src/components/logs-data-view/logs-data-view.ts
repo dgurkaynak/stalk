@@ -40,7 +40,10 @@ export class LogsDataView {
     onTraceAdded: this.onTraceAdded.bind(this),
     onTraceRemoved: this.onTraceRemoved.bind(this),
     onColumnsMultiSelectSelect: this.onColumnsMultiSelectSelect.bind(this),
-    onColumnsMultiSelectUnselect: this.onColumnsMultiSelectUnselect.bind(this)
+    onColumnsMultiSelectUnselect: this.onColumnsMultiSelectUnselect.bind(this),
+    onColumnsMultiSelectSearchInput: this.onColumnsMultiSelectSearchInput.bind(
+      this
+    )
   };
 
   private dropdowns: {
@@ -52,6 +55,7 @@ export class LogsDataView {
     showSearch: true,
     onSelect: this.binded.onColumnsMultiSelectSelect,
     onUnselect: this.binded.onColumnsMultiSelectUnselect,
+    onSearchInput: this.binded.onColumnsMultiSelectSearchInput,
     items: [],
     emptyMessage: 'No Logs'
   });
@@ -370,6 +374,14 @@ export class LogsDataView {
   ) {
     this.columnsMultiSelect.unselect(item.id);
     this.updateHot();
+  }
+
+  private onColumnsMultiSelectSearchInput() {
+    // Probably height of the multi-select is changed,
+    // if tippy is forced to render top position, this breaks the
+    // arrow positioning. This is a workaround for updating its
+    // position again
+    this.dropdowns.columnsSelection.popperInstance.update();
   }
 
   mount(parentEl: HTMLElement) {

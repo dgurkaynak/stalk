@@ -12,6 +12,7 @@ export interface WidgetToolbarMultiSelectOptions {
   showSearch?: boolean;
   onSelect: (item: WidgetToolbarMultiSelectItemOptions) => void;
   onUnselect: (item: WidgetToolbarMultiSelectItemOptions) => void;
+  onSearchInput?: (input: string) => void;
   emptyMessage: string;
 }
 
@@ -172,6 +173,8 @@ export class WidgetToolbarMultiSelect {
 
   private onSearchInput(e: Event) {
     this.render();
+    this.options.onSearchInput &&
+      this.options.onSearchInput(this.elements.searchInput.value);
   }
 
   private onItemContainerClick(e: MouseEvent) {
