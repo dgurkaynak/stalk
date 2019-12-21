@@ -244,7 +244,7 @@ export class LogsDataView {
         };
       }),
       {
-        header: 'Other Fields',
+        header: 'Log Fields',
         columnMeta: {
           data: function(row: any) {
             const otherFields: [string, any][] = [];
