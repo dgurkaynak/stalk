@@ -22,7 +22,7 @@ export class TooltipManager {
       duration: 0,
       updateDuration: 0,
       theme: 'tooltip',
-      placement: 'bottom'
+      placement: 'top'
     });
   }
 
