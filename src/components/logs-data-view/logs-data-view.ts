@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
   WidgetToolbarMultiSelect,
-  WidgetToolbarMultiSelectItemOptions
+  WidgetToolbarMultiSelectItem
 } from '../ui/widget-toolbar/widget-toolbar-multi-select';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
@@ -166,7 +166,7 @@ export class LogsDataView {
       return;
     }
 
-    const spanColumns: WidgetToolbarMultiSelectItemOptions[] = [
+    const spanColumns: WidgetToolbarMultiSelectItem[] = [
       {
         id: 'span.operationName',
         text: 'span.operationName',
@@ -177,7 +177,7 @@ export class LogsDataView {
       { id: 'span.traceId', text: 'span.traceId', category: 'Span' }
     ];
     const logFields = this.determineInitialLogFieldColumns();
-    const logColumns: WidgetToolbarMultiSelectItemOptions[] = [].concat(
+    const logColumns: WidgetToolbarMultiSelectItem[] = [].concat(
       logFields.display.map(f => ({
         id: `fields.${f}`,
         text: `fields.${f}`,
@@ -363,14 +363,14 @@ export class LogsDataView {
   }
 
   private onColumnsMultiSelectSelect(
-    item: WidgetToolbarMultiSelectItemOptions
+    item: WidgetToolbarMultiSelectItem
   ) {
     this.columnsMultiSelect.select(item.id);
     this.updateHot();
   }
 
   private onColumnsMultiSelectUnselect(
-    item: WidgetToolbarMultiSelectItemOptions
+    item: WidgetToolbarMultiSelectItem
   ) {
     this.columnsMultiSelect.unselect(item.id);
     this.updateHot();

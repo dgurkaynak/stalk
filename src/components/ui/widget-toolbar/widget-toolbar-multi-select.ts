@@ -8,15 +8,15 @@ import './widget-toolbar-multi-select.css';
 export interface WidgetToolbarMultiSelectOptions {
   width?: number;
   maxItemContainerHeight?: number;
-  items: WidgetToolbarMultiSelectItemOptions[];
+  items: WidgetToolbarMultiSelectItem[];
   showSearch?: boolean;
-  onSelect: (item: WidgetToolbarMultiSelectItemOptions) => void;
-  onUnselect: (item: WidgetToolbarMultiSelectItemOptions) => void;
+  onSelect: (item: WidgetToolbarMultiSelectItem) => void;
+  onUnselect: (item: WidgetToolbarMultiSelectItem) => void;
   onSearchInput?: (input: string) => void;
   emptyMessage: string;
 }
 
-export interface WidgetToolbarMultiSelectItemOptions {
+export interface WidgetToolbarMultiSelectItem {
   id: string;
   text: string;
   category?: string;
@@ -32,8 +32,8 @@ export class WidgetToolbarMultiSelect {
   };
 
   private fuse: Fuse<
-    WidgetToolbarMultiSelectItemOptions,
-    Fuse.FuseOptions<WidgetToolbarMultiSelectItemOptions>
+    WidgetToolbarMultiSelectItem,
+    Fuse.FuseOptions<WidgetToolbarMultiSelectItem>
   >;
 
   private binded = {
@@ -74,7 +74,7 @@ export class WidgetToolbarMultiSelect {
     return this.elements.container;
   }
 
-  updateItems(newItems: WidgetToolbarMultiSelectItemOptions[]) {
+  updateItems(newItems: WidgetToolbarMultiSelectItem[]) {
     this.options.items = newItems;
     this.fuse = new Fuse(newItems, { keys: ['id', 'text'] });
     this.elements.searchInput.value = '';
