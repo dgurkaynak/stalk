@@ -48,7 +48,7 @@ export class LogsDataView {
   };
   private columnsMultiSelect = new WidgetToolbarMultiSelect({
     // width: 200,
-    maxHeight: 100,
+    maxItemContainerHeight: 125,
     showSearch: true,
     onSelect: this.binded.onColumnsMultiSelectSelect,
     onUnselect: this.binded.onColumnsMultiSelectUnselect,

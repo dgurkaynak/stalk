@@ -7,7 +7,7 @@ import './widget-toolbar-multi-select.css';
 
 export interface WidgetToolbarMultiSelectOptions {
   width?: number;
-  maxHeight?: number;
+  maxItemContainerHeight?: number;
   items: WidgetToolbarMultiSelectItemOptions[];
   showSearch?: boolean;
   onSelect: (item: WidgetToolbarMultiSelectItemOptions) => void;
@@ -51,9 +51,9 @@ export class WidgetToolbarMultiSelect {
     els.searchInput.addEventListener('input', this.binded.onSearchInput, false);
     options.showSearch && els.container.appendChild(els.searchInput);
 
-    if (options.maxHeight) {
+    if (options.maxItemContainerHeight) {
       els.itemsContainer.style.overflowY = 'auto';
-      els.itemsContainer.style.maxHeight = `${options.maxHeight}px`;
+      els.itemsContainer.style.maxHeight = `${options.maxItemContainerHeight}px`;
     }
     els.itemsContainer.classList.add('widget-toolbar-multi-select-items');
     els.container.appendChild(els.itemsContainer);
