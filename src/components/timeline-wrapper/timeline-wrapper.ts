@@ -2,7 +2,7 @@ import { Timeline, TimelineTool } from '../timeline/timeline';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
   WidgetToolbarSelect,
-  WidgetToolbarSelectItemOptions
+  WidgetToolbarSelectItem
 } from '../ui/widget-toolbar/widget-toolbar-select';
 import processGroupingOptions from '../../model/span-grouping/process';
 import serviceNameGroupingOptions from '../../model/span-grouping/service-name';
@@ -102,7 +102,7 @@ export class TimelineWrapper {
       { type: 'item', text: 'Trace', id: traceGroupingOptions.key },
       { type: 'item', text: 'Process', id: processGroupingOptions.key },
       { type: 'item', text: 'Service', id: serviceNameGroupingOptions.key },
-      { type: 'divider', text: '', id: 'div1' },
+      { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
       {
         type: 'item',
@@ -123,7 +123,7 @@ export class TimelineWrapper {
         text: 'Service + Operation',
         id: serviceOperationLabellingOptions.key
       },
-      { type: 'divider', text: '', id: 'div1' },
+      { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
       {
         type: 'item',
@@ -140,7 +140,7 @@ export class TimelineWrapper {
     items: [
       { type: 'item', text: 'Operation', id: operationColoringOptions.key },
       { type: 'item', text: 'Service', id: serviceColoringOptions.key },
-      { type: 'divider', text: '', id: 'div1' },
+      { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
       {
         type: 'item',
@@ -369,9 +369,8 @@ export class TimelineWrapper {
     this.updateSelectedTool();
   }
 
-  private onSpanGroupingModeMenuItemClick(
-    item: WidgetToolbarSelectItemOptions
-  ) {
+  private onSpanGroupingModeMenuItemClick(item: WidgetToolbarSelectItem) {
+    if (item.type == 'divider') return;
     this.dropdowns.groupingMode.hide();
 
     if (item.id === 'manage-all') {
@@ -438,7 +437,8 @@ export class TimelineWrapper {
     });
   }
 
-  private onSpanLabellingMenuItemClick(item: WidgetToolbarSelectItemOptions) {
+  private onSpanLabellingMenuItemClick(item: WidgetToolbarSelectItem) {
+    if (item.type == 'divider') return;
     this.dropdowns.spanLabellingMode.hide();
 
     if (item.id === 'manage-all') {
@@ -505,7 +505,8 @@ export class TimelineWrapper {
     });
   }
 
-  private onSpanColoringMenuItemClick(item: WidgetToolbarSelectItemOptions) {
+  private onSpanColoringMenuItemClick(item: WidgetToolbarSelectItem) {
+    if (item.type == 'divider') return;
     this.dropdowns.spanColoringMode.hide();
 
     if (item.id === 'manage-all') {
@@ -573,7 +574,8 @@ export class TimelineWrapper {
     });
   }
 
-  private onGroupLayoutMenuItemClick(item: WidgetToolbarSelectItemOptions) {
+  private onGroupLayoutMenuItemClick(item: WidgetToolbarSelectItem) {
+    if (item.type == 'divider') return;
     this.timeline.updateGroupLayoutMode(item.id as GroupLayoutType);
     this.groupLayoutModeMenu.select(item.id);
     this.dropdowns.groupLayoutMode.hide();
