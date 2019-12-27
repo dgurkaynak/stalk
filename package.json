@@ -8,7 +8,7 @@
     "build": "webpack --mode production",
     "format": "prettier --write \"src/**/*.ts\"",
     "package": "./scripts/package.sh",
-    "start:electron": "node scripts/electron-wait-react.js",
+    "start:electron": "node scripts/electron-wait-webpack-dev-server.js",
     "start:dev-server": "webpack-dev-server --port 9000",
     "start": "cross-env BROWSER=none nf start"
   },
