@@ -16,6 +16,7 @@ export class Stage extends EventEmitter {
   private spanTags: { [key: string]: number } = {};
   private logFields: { [key: string]: number } = {};
   private processTags: { [key: string]: number } = {};
+  private spanSelfTimes: { [key: string]: number } = {};
 
   static getSingleton() {
     if (!_singletonIns) _singletonIns = new Stage();
@@ -60,6 +61,15 @@ export class Stage extends EventEmitter {
           this.processTags[tag]++;
         }
       }
+
+      // Span self time
+      const node = this.mainSpanGroup.nodeOf(span);
+      const childrenTime = node.children.filter(node => !!node.parent).reduce((acc, node) => {
+        const span = this.mainSpanGroup.get(node.spanId);
+        return acc + (span.finishTime - span.startTime);
+      }, 0);
+      const selfTime = (span.finishTime - span.startTime) - childrenTime;
+      this.spanSelfTimes[span.id] = selfTime;
     });
 
     this.emit(StageEvent.TRACE_ADDED, trace);
@@ -96,6 +106,9 @@ export class Stage extends EventEmitter {
           if (this.processTags[tag] <= 0) delete this.processTags[tag];
         }
       }
+
+      // Span self time
+      delete this.spanSelfTimes[span.id];
     });
 
     delete this.traces[traceId];
@@ -122,6 +135,10 @@ export class Stage extends EventEmitter {
 
   get finishTimestamp() {
     return this.mainSpanGroup.finishTimestamp;
+  }
+
+  getSpanSelfTime(spanId: string) {
+    return this.spanSelfTimes[spanId];
   }
 }
 
