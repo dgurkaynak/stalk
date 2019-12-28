@@ -1,0 +1,59 @@
+/* Custom tippy.js tooltip template */
+.tippy-tooltip.span-tooltip-theme {
+  background-color: rgba(0, 0, 0, 0.75);
+  border-radius: 2px;
+}
+.tippy-tooltip.span-tooltip-theme > .tippy-content {
+  padding: 0;
+  font-size: 0.7em;
+}
+
+.span-tooltip-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.span-tooltip-section:first-child {
+  border-top: 0;
+}
+
+.span-tooltip-header {
+  display: flex;
+  padding: 0.2em 0.5em;
+  word-break: break-all;
+}
+
+.span-tooltip-header .left {
+  flex-grow: 1;
+}
+
+.span-tooltip-header .right {
+  white-space: nowrap;
+  margin-left: 2em;
+}
+
+.span-tooltip-time {
+  color: #55d239;
+}
+
+.span-tooltip-operation-name {
+  margin-left: 1em;
+  font-weight: 600;
+}
+
+.span-tooltip-tag-icon svg,
+.span-tooltip-log-icon svg {
+  position: relative;
+  height: 1em;
+  width: 1em;
+  fill: #fff;
+  top: 2px;
+}
+
+.span-tooltip-tag-count,
+.span-tooltip-log-count {
+  margin-right: 0.25em;
+}
+
+.span-tooltip-log-count {
+  margin-left: 0.6em;
+}

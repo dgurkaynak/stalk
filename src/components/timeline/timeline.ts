@@ -36,6 +36,8 @@ import SpanConnectionsDecoration from './decorations/span-connections';
 import prettyMilliseconds from 'pretty-ms';
 import SpanTooltipView from './span-tooltip-view';
 import SelectionView from './selection-view';
+import { SpanTooltipContent } from '../span-tooltip/span-tooltip-content';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -113,6 +115,15 @@ export class Timeline extends EventEmitter {
   });
 
   private _tool = TimelineTool.MOVE;
+
+  private spanTooltipTippy: TippyInstance;
+  private spanTooltipContent = new SpanTooltipContent({
+    axis: this.axis
+  });
+  private spanTooltipStuffCache = {
+    svgBBTop: 0,
+    idleMouseClientX: 0
+  };
 
   private binded = {
     onMouseIdleMove: this.onMouseIdleMove.bind(this),
@@ -192,6 +203,34 @@ export class Timeline extends EventEmitter {
     this.mouseHandler.on(MouseHandlerEvent.PAN_END, this.binded.onMousePanEnd);
     this.mouseHandler.on(MouseHandlerEvent.WHEEL, this.binded.onWheel);
     this.mouseHandler.on(MouseHandlerEvent.CLICK, this.binded.onClick);
+
+    this.spanTooltipTippy = tippy(document.body, {
+      lazy: false,
+      duration: 0,
+      updateDuration: 0,
+      trigger: 'custom',
+      arrow: true,
+      content: this.spanTooltipContent.element,
+      placement: 'top',
+      theme: 'span-tooltip',
+      onCreate(instance) {
+        instance.popperInstance.reference = {
+          clientWidth: 0,
+          clientHeight: 0,
+          getBoundingClientRect() {
+            return {
+              width: 0,
+              height: 0,
+              top: 0,
+              bottom: 0,
+              left: 0,
+              right: 0
+            };
+          }
+        };
+      }
+    });
+    // this.spanTooltipTippy.hide = () => {};
   }
 
   mount(parentElement: HTMLDivElement) {
@@ -228,6 +267,9 @@ export class Timeline extends EventEmitter {
 
     this.groupViews.forEach(v => v.updateSeperatorLineWidths(width));
     this.keepPanelTraslateYInScreen();
+
+    const svgRect = this.svg.getBoundingClientRect();
+    this.spanTooltipStuffCache.svgBBTop = svgRect.top;
   }
 
   updateAllDecorations(forceReprepare = false) {
@@ -670,6 +712,14 @@ export class Timeline extends EventEmitter {
 
     // We want to update immdieadely span tooltip
     this.spanTooltip.update(e.offsetX, e.offsetY);
+    this.spanTooltipContent.updateMousePos(e.offsetX, e.offsetY);
+
+    // When we're hacking tippy.js to show it custom coordinates.
+    // We're overriding it's element reference when a span is mouse-entered (line 769)
+    // When user is mouse-moving on span, we want to follow mouse coordinate
+    // That's why we update coordinate cache and popper instance
+    this.spanTooltipStuffCache.idleMouseClientX = e.clientX;
+    this.spanTooltipTippy.popperInstance.update();
 
     // TODO: Maybe debounce below?
     const matches = this.getInteractedElementsFromMouseEvent(e);
@@ -694,6 +744,7 @@ export class Timeline extends EventEmitter {
           const { id: spanId } = SpanView.getPropsFromContainer(element);
           if (!spanId) return;
           this.spanTooltip.unmount();
+          this.spanTooltipTippy.hide();
           if (this.selectedSpanIds.indexOf(spanId) > -1) return;
           const spanView = this.findSpanView(spanId)[1];
           if (!spanView) return;
@@ -710,12 +761,39 @@ export class Timeline extends EventEmitter {
         case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
           const { id: spanId } = SpanView.getPropsFromContainer(element);
           if (!spanId) return;
-          const spanView = this.findSpanView(spanId)[1];
+          const [groupView, spanView] = this.findSpanView(spanId);
 
           if (spanView) {
             // Show span tooltip, even if it's selected!
             this.spanTooltip.reuse(spanView);
-            this.spanTooltip.mount();
+            // this.spanTooltip.mount();
+
+            this.spanTooltipContent.updateSpan(spanView);
+            // HACK ALERT: To show tippy.js at custom coordinates
+            Object.assign(this.spanTooltipTippy.popperInstance.reference, {
+              clientWidth: 0,
+              clientHeight: 0,
+              getBoundingClientRect: () => {
+                const spanViewProp = spanView.getViewPropertiesCache();
+                const groupViewProp = groupView.getViewPropertiesCache();
+                const top =
+                  this.spanTooltipStuffCache.svgBBTop +
+                  spanViewProp.y +
+                  groupViewProp.y +
+                  vc.timeHeaderHeight +
+                  this.panelTranslateY;
+                return {
+                  width: 0,
+                  height: vc.spanBarHeight,
+                  top: top,
+                  bottom: top + vc.spanBarHeight,
+                  left: this.spanTooltipStuffCache.idleMouseClientX,
+                  right: this.spanTooltipStuffCache.idleMouseClientX
+                };
+              }
+            });
+            this.spanTooltipTippy.popperInstance.update();
+            this.spanTooltipTippy.show();
           }
 
           // If it's already selected, early terminate
@@ -753,10 +831,12 @@ export class Timeline extends EventEmitter {
   onMouseIdleLeave(e: MouseEvent) {
     this.decorations.hoveredSpanConnections.unmount();
     this.spanTooltip.unmount();
+    this.spanTooltipTippy.hide();
   }
 
   onMousePanStart(e: MouseEvent) {
     this.spanTooltip.unmount();
+    this.spanTooltipTippy.hide();
     this.selectionView.unmount();
 
     if (this.traces.length === 0) return;
@@ -798,11 +878,13 @@ export class Timeline extends EventEmitter {
   onWheel(e: WheelEvent) {
     if (this.traces.length === 0) return;
     this.spanTooltip.unmount();
+    this.spanTooltipTippy.popperInstance.update();
     this.zoom(1 - 0.01 * e.deltaY, e.offsetX);
   }
 
   onClick(e: MouseEvent) {
     this.spanTooltip.unmount();
+    this.spanTooltipTippy.hide();
 
     if (!e) return; // Sometimes event can be garbage-collected
     const matches = this.getInteractedElementsFromMouseEvent(e);
