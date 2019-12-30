@@ -34,7 +34,6 @@ import {
 import LogHighlightDecoration from './decorations/log-highlight';
 import SpanConnectionsDecoration from './decorations/span-connections';
 import prettyMilliseconds from 'pretty-ms';
-import SpanTooltipView from './span-tooltip-view';
 import SelectionView from './selection-view';
 import { SpanTooltipContent } from '../span-tooltip/span-tooltip-content';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
@@ -102,12 +101,6 @@ export class Timeline extends EventEmitter {
 
   private hoveredElements: TimelineInteractedElementObject[] = [];
   private selectedSpanIds: string[] = [];
-
-  private spanTooltip = new SpanTooltipView({
-    parentEl: this.svg,
-    defsEl: this.defs,
-    axis: this.axis
-  });
 
   private selectionView = new SelectionView({
     parentEl: this.svg,
@@ -180,8 +173,6 @@ export class Timeline extends EventEmitter {
     this.resize(width, height);
     this.setupPanels();
     this.mouseHandler.init();
-
-    this.spanTooltip.updateSpanLabelling(operationLabellingOptions.labelBy);
 
     // Bind events
     this.mouseHandler.on(
@@ -263,7 +254,6 @@ export class Timeline extends EventEmitter {
     this.groupViews.forEach(g => g.handleAxisUpdate());
     this.updateAllDecorations();
     this.updateTicks();
-    this.spanTooltip.updateViewportSize(width, height);
 
     this.groupViews.forEach(v => v.updateSeperatorLineWidths(width));
     this.keepPanelTraslateYInScreen();
@@ -315,8 +305,6 @@ export class Timeline extends EventEmitter {
     this.bodyContainer.appendChild(this.timelinePanel);
     this.bodyContainer.appendChild(this.decorationOverlayPanel);
     this.svg.appendChild(this.bodyContainer);
-
-    this.spanTooltip.mount();
   }
 
   // Array order is from deepest element to root
@@ -402,7 +390,6 @@ export class Timeline extends EventEmitter {
 
   updateSpanLabelling(options: SpanLabellingOptions) {
     this.spanViewSharedOptions.labelFor = options.labelBy;
-    this.spanTooltip.updateSpanLabelling(options.labelBy);
     this.groupViews.forEach(g => {
       const spanViews = g.getAllSpanViews();
       spanViews.forEach(s => s.updateLabelText());
@@ -711,7 +698,6 @@ export class Timeline extends EventEmitter {
     if (this.traces.length === 0) return;
 
     // We want to update immdieadely span tooltip
-    this.spanTooltip.update(e.offsetX, e.offsetY);
     this.spanTooltipContent.updateMousePos(e.offsetX, e.offsetY);
 
     // When we're hacking tippy.js to show it custom coordinates.
@@ -743,7 +729,6 @@ export class Timeline extends EventEmitter {
         case TimelineInteractableElementType.SPAN_VIEW_CONTAINER: {
           const { id: spanId } = SpanView.getPropsFromContainer(element);
           if (!spanId) return;
-          this.spanTooltip.unmount();
           this.spanTooltipTippy.hide();
           if (this.selectedSpanIds.indexOf(spanId) > -1) return;
           const spanView = this.findSpanView(spanId)[1];
@@ -765,9 +750,6 @@ export class Timeline extends EventEmitter {
 
           if (spanView) {
             // Show span tooltip, even if it's selected!
-            this.spanTooltip.reuse(spanView);
-            // this.spanTooltip.mount();
-
             this.spanTooltipContent.updateSpan(spanView);
             // HACK ALERT: To show tippy.js at custom coordinates
             Object.assign(this.spanTooltipTippy.popperInstance.reference, {
@@ -830,12 +812,10 @@ export class Timeline extends EventEmitter {
 
   onMouseIdleLeave(e: MouseEvent) {
     this.decorations.hoveredSpanConnections.unmount();
-    this.spanTooltip.unmount();
     this.spanTooltipTippy.hide();
   }
 
   onMousePanStart(e: MouseEvent) {
-    this.spanTooltip.unmount();
     this.spanTooltipTippy.hide();
     this.selectionView.unmount();
 
@@ -877,13 +857,11 @@ export class Timeline extends EventEmitter {
 
   onWheel(e: WheelEvent) {
     if (this.traces.length === 0) return;
-    this.spanTooltip.unmount();
     this.spanTooltipTippy.popperInstance.update();
     this.zoom(1 - 0.01 * e.deltaY, e.offsetX);
   }
 
   onClick(e: MouseEvent) {
-    this.spanTooltip.unmount();
     this.spanTooltipTippy.hide();
 
     if (!e) return; // Sometimes event can be garbage-collected
