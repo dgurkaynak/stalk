@@ -8,12 +8,12 @@
   font-size: 0.7em;
 }
 
-.span-tooltip-section {
+.span-tooltip-border-top {
   border-top: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-.span-tooltip-section:first-child {
-  border-top: 0;
+.span-service-name-container {
+  padding: 0.2em 0.5em;
 }
 
 .span-tooltip-header {
@@ -56,4 +56,34 @@
 
 .span-tooltip-log-count {
   margin-left: 0.6em;
+}
+
+.span-tooltip-tags .section-header,
+.span-tooltip-process-tags .section-header {
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8em;
+  font-weight: 800;
+  margin-bottom: 0.25em;
+}
+
+.span-tooltip-tags,
+.span-tooltip-process-tags {
+  padding: 0.2em 0.5em;
+  word-break: break-all;
+}
+
+.span-tooltip-tag {
+  display: flex;
+}
+.span-tooltip-tag.margin-left {
+  margin-left: 1em;
+}
+
+.span-tooltip-tag .tag-path {
+  flex-grow: 1;
+}
+
+.span-tooltip-tag .tag-value {
+  margin-left: 1em;
 }
