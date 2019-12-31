@@ -261,10 +261,14 @@ export default class SpanView {
 
   // Get
   getNearbyLogViews(absoluteX: number, threshold = 10) {
-    return this.logViews.filter(l => {
-      const logX = this.sharedOptions.axis.input2output(l.log.timestamp);
-      return Math.abs(absoluteX - logX) <= 10;
+    const logViews: { logView: SpanLogViewObject; distance: number }[] = [];
+    this.logViews.forEach(logView => {
+      const logX = this.sharedOptions.axis.input2output(logView.log.timestamp);
+      const distance = Math.abs(absoluteX - logX);
+      if (distance > 10) return;
+      logViews.push({ logView, distance });
     });
+    return logViews;
   }
 
   getViewPropertiesCache() {

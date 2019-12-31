@@ -13,9 +13,10 @@ export interface SpanTooltipContentOptions {
   axis: Axis;
   spanView?: SpanView;
   showServiceName?: boolean;
-  showLogs?: boolean;
+  showNearbyLogs?: boolean;
   spanTagsToShow?: string[];
   processTagsToShow?: string[];
+  logFieldsToShow?: string[];
 }
 
 export class SpanTooltipContent {
@@ -33,14 +34,16 @@ export class SpanTooltipContent {
     logs: document.createElement('div')
   };
   private stage = Stage.getSingleton();
+  private nearbyLogsCacheId = '';
 
   constructor(options: SpanTooltipContentOptions) {
     this.options = Object.assign(
       {
-        showLogs: true,
+        showNearbyLogs: true,
         showServiceName: false,
         spanTagsToShow: [],
-        processTagsToShow: []
+        processTagsToShow: [],
+        logFieldsToShow: []
       },
       options
     );
@@ -85,7 +88,7 @@ export class SpanTooltipContent {
     els.processTags.style.display = 'none';
     els.container.appendChild(els.processTags);
 
-    els.logs.classList.add('span-tooltip-logs', 'span-tooltip-border-top');
+    // els.logs.classList.add('span-tooltip-logs');
     els.logs.style.display = 'none';
     els.container.appendChild(els.logs);
   }
@@ -192,14 +195,48 @@ export class SpanTooltipContent {
   }
 
   updateMousePos(mouseX: number, mouseY: number) {
-    if (!this.options.spanView) return;
-    const previousLogsCacheId = ''; // this.viewPropertiesCache.nearbyLogsCacheId;
-    const nearbyLogViews = this.options.spanView.getNearbyLogViews(mouseX);
-    const nearbyLogsCacheId = nearbyLogViews.map(l => l.id).join('');
-
-    // If logs are changed
-    if (nearbyLogsCacheId != previousLogsCacheId) {
-      // TODO
+    const els = this.elements;
+    if (!this.options.showNearbyLogs || !this.options.spanView) {
+      els.logs.style.display = 'none';
+      return;
     }
+
+    const previousLogsCacheId = this.nearbyLogsCacheId;
+    const nearbyLogs = this.options.spanView.getNearbyLogViews(mouseX);
+    this.nearbyLogsCacheId = nearbyLogs.map(l => l.logView.id).join('');
+
+    // If logs are not changed, early terminate
+    if (this.nearbyLogsCacheId == previousLogsCacheId) {
+      return;
+    }
+
+    els.logs.innerHTML = '';
+
+    nearbyLogs.forEach(log => {
+      const time = prettyMilliseconds(
+        (log.logView.log.timestamp - this.options.axis.getInputRange()[0]) /
+          1000,
+        { formatSubMilliseconds: true }
+      );
+
+      const logContainer = document.createElement('div');
+      logContainer.classList.add('span-tooltip-log', 'span-tooltip-border-top');
+      let html = `<div class="section-header">Log @ ${time}</div>`;
+
+      // const logFields = this.options.logFieldsToShow;
+      const logFields = Object.keys(log.logView.log.fields);
+      logFields.forEach(key => {
+        const value = log.logView.log.fields[key];
+        if (!value) return;
+        html +=
+          `<span class="log-field-key">${key}:</span>` +
+          `<span class="log-field-value">${value}</span>`;
+      });
+
+      logContainer.innerHTML = html;
+      els.logs.appendChild(logContainer);
+    });
+
+    els.logs.style.display = nearbyLogs.length == 0 ? 'none' : 'block';
   }
 }

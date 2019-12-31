@@ -59,16 +59,18 @@
 }
 
 .span-tooltip-tags .section-header,
-.span-tooltip-process-tags .section-header {
+.span-tooltip-process-tags .section-header,
+.span-tooltip-log .section-header {
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 0.8em;
+  font-size: 0.9em;
   font-weight: 800;
   margin-bottom: 0.25em;
 }
 
 .span-tooltip-tags,
-.span-tooltip-process-tags {
+.span-tooltip-process-tags,
+.span-tooltip-log {
   padding: 0.2em 0.5em;
   word-break: break-all;
 }
@@ -86,4 +88,21 @@
 
 .span-tooltip-tag .tag-value {
   margin-left: 1em;
+}
+
+.span-tooltip-log {
+  max-height: 5em;
+  padding-bottom: 0.5em;
+  overflow: hidden;
+}
+
+.span-tooltip-log .log-field-key {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 0.15em 0.3em;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.span-tooltip-log .log-field-value {
+  margin: 0 0.4em 0 0.2em;
 }
