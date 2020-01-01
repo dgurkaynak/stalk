@@ -2,6 +2,7 @@ import { Trace } from './trace';
 import EventEmitter from 'events';
 import { SpanGroup } from './span-group/span-group';
 import flatMap from 'lodash/flatMap';
+import { union } from '../utils/interval-helper';
 
 export enum StageEvent {
   TRACE_ADDED = 'trace_added',
@@ -61,14 +62,20 @@ export class Stage extends EventEmitter {
           this.processTags[tag]++;
         }
       }
+    });
 
-      // Span self time
+    // Span self time
+    // We cant do this within previous loop, we need to wait until
+    // all the spans are added to group, so tree relations are complete
+    trace.spans.forEach(span => {
       const node = this.mainSpanGroup.nodeOf(span);
-      const childrenTime = node.children.filter(node => !!node.parent).reduce((acc, node) => {
-        const span = this.mainSpanGroup.get(node.spanId);
-        return acc + (span.finishTime - span.startTime);
+      const childrenSpans = node.children
+        .filter(node => !!node.parent)
+        .map(n => this.mainSpanGroup.get(n.spanId));
+      const childrenTime = union(childrenSpans).reduce((acc, interval) => {
+        return acc + (interval.finishTime - interval.startTime);
       }, 0);
-      const selfTime = (span.finishTime - span.startTime) - childrenTime;
+      const selfTime = span.finishTime - span.startTime - childrenTime;
       this.spanSelfTimes[span.id] = selfTime;
     });
 
