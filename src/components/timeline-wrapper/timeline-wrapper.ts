@@ -4,6 +4,10 @@ import {
   WidgetToolbarSelect,
   WidgetToolbarSelectItem
 } from '../ui/widget-toolbar/widget-toolbar-select';
+import {
+  WidgetToolbarMultiSelect,
+  WidgetToolbarMultiSelectItem
+} from '../ui/widget-toolbar/widget-toolbar-multi-select';
 import processGroupingOptions from '../../model/span-grouping/process';
 import serviceNameGroupingOptions from '../../model/span-grouping/service-name';
 import traceGroupingOptions from '../../model/span-grouping/trace';
@@ -28,6 +32,8 @@ import { SpanColoringFormModalContent } from '../customization/span-coloring-for
 import { SpanGroupingFormModalContent } from '../customization/span-grouping-form-modal-content';
 import { SpanLabellingFormModalContent } from '../customization/span-labelling-form-modal-content';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
+import { Trace } from '../../model/trace';
+import { Stage } from '../../model/stage';
 
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
 import SvgFormatColorFill from '!!raw-loader!@mdi/svg/svg/format-color-fill.svg';
@@ -41,6 +47,7 @@ const TOOLBAR_HEIGHT = 30; // TODO: Sorry :(
 
 export class TimelineWrapper {
   readonly timeline = new Timeline();
+  private stage = Stage.getSingleton();
   private elements = {
     container: document.createElement('div'),
     toolbar: document.createElement('div'),
@@ -51,7 +58,7 @@ export class TimelineWrapper {
       spanLabellingMode: document.createElement('div'),
       spanColoringMode: document.createElement('div'),
       groupLayoutMode: document.createElement('div'),
-      tooltipEditor: document.createElement('div')
+      spanTooltipCustomization: document.createElement('div')
     },
     timelineContainer: document.createElement('div')
   };
@@ -60,6 +67,7 @@ export class TimelineWrapper {
     spanLabellingMode: TippyInstance;
     spanColoringMode: TippyInstance;
     groupLayoutMode: TippyInstance;
+    spanTooltipCustomization: TippyInstance;
   };
 
   private spanColoringMode = operationColoringOptions.key; // Do not forget to change default value of TimelineView
@@ -93,7 +101,16 @@ export class TimelineWrapper {
     ),
     onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this),
     onMoveToolClick: this.onMoveToolClick.bind(this),
-    onSelectionToolClick: this.onSelectionToolClick.bind(this)
+    onSelectionToolClick: this.onSelectionToolClick.bind(this),
+    onSpanTooltipCustomizationMultiSelectSelect: this.onSpanTooltipCustomizationMultiSelectSelect.bind(
+      this
+    ),
+    onSpanTooltipCustomizationMultiSelectUnselect: this.onSpanTooltipCustomizationMultiSelectUnselect.bind(
+      this
+    ),
+    onSpanTooltipCustomizationMultiSelectSearchInput: this.onSpanTooltipCustomizationMultiSelectSearchInput.bind(
+      this
+    )
   };
 
   private spanGroupingModeMenu = new WidgetToolbarSelect({
@@ -162,6 +179,17 @@ export class TimelineWrapper {
     onSelect: this.binded.onGroupLayoutMenuItemClick
   });
 
+  private spanTooltipCustomizationMultiSelect = new WidgetToolbarMultiSelect({
+    width: 200,
+    maxItemContainerHeight: 125,
+    showSearch: true,
+    onSelect: this.binded.onSpanTooltipCustomizationMultiSelectSelect,
+    onUnselect: this.binded.onSpanTooltipCustomizationMultiSelectUnselect,
+    onSearchInput: this.binded.onSpanTooltipCustomizationMultiSelectSearchInput,
+    items: [],
+    emptyMessage: 'No Fields'
+  });
+
   constructor() {
     const { container, toolbar, timelineContainer } = this.elements;
     container.classList.add('timeline-wrapper');
@@ -224,9 +252,9 @@ export class TimelineWrapper {
     btn.groupLayoutMode.innerHTML = SvgSort;
     middlePane.appendChild(btn.groupLayoutMode);
 
-    btn.tooltipEditor.classList.add('widget-toolbar-button');
-    btn.tooltipEditor.innerHTML = SvgTooltipEdit;
-    rightPane.appendChild(btn.tooltipEditor);
+    btn.spanTooltipCustomization.classList.add('widget-toolbar-button');
+    btn.spanTooltipCustomization.innerHTML = SvgTooltipEdit;
+    rightPane.appendChild(btn.spanTooltipCustomization);
   }
 
   init(options: { width: number; height: number }) {
@@ -300,7 +328,7 @@ export class TimelineWrapper {
         }
       ],
       [
-        btn.tooltipEditor,
+        btn.spanTooltipCustomization,
         {
           content: 'Customize Span Tooltip',
           multiple: true
@@ -353,6 +381,17 @@ export class TimelineWrapper {
         duration: 0,
         updateDuration: 0,
         theme: 'widget-toolbar-select',
+        trigger: 'click',
+        interactive: true
+      }),
+      spanTooltipCustomization: tippy(btn.spanTooltipCustomization, {
+        content: this.spanTooltipCustomizationMultiSelect.element,
+        multiple: true,
+        appendTo: document.body,
+        placement: 'bottom',
+        duration: 0,
+        updateDuration: 0,
+        theme: 'widget-toolbar-multi-select',
         trigger: 'click',
         interactive: true
       })
@@ -581,6 +620,74 @@ export class TimelineWrapper {
     this.dropdowns.groupLayoutMode.hide();
   }
 
+  private onSpanTooltipCustomizationMultiSelectSelect(
+    item: WidgetToolbarMultiSelectItem
+  ) {
+    this.spanTooltipCustomizationMultiSelect.select(item.id);
+
+    const spanTooltipContent = this.timeline.getSpanTooltipContent();
+    const options = spanTooltipContent.getOptions();
+    if (item.id == 'serviceName') {
+      spanTooltipContent.setShowServiceName(true);
+    } else if (item.id == 'nearbyLogs') {
+      spanTooltipContent.setShowNearbyLogs(true);
+    } else if (item.id.indexOf('tag.') == 0) {
+      const tag = item.id.replace('tag.', '');
+      const newTags = options.spanTagsToShow.slice();
+      if (newTags.indexOf(tag) == -1) {
+        newTags.push(tag);
+        spanTooltipContent.setSpanTagsToShow(newTags);
+      }
+    } else if (item.id.indexOf('process.tag.') == 0) {
+      const tag = item.id.replace('process.tag.', '');
+      const newTags = options.processTagsToShow.slice();
+      if (newTags.indexOf(tag) == -1) {
+        newTags.push(tag);
+        spanTooltipContent.setProcessTagsToShow(newTags);
+      }
+    } else {
+      console.warn(`Unknown span tooltip field: "${item.id}"`);
+    }
+  }
+
+  private onSpanTooltipCustomizationMultiSelectUnselect(
+    item: WidgetToolbarMultiSelectItem
+  ) {
+    this.spanTooltipCustomizationMultiSelect.unselect(item.id);
+
+    const spanTooltipContent = this.timeline.getSpanTooltipContent();
+    const options = spanTooltipContent.getOptions();
+    if (item.id == 'serviceName') {
+      spanTooltipContent.setShowServiceName(false);
+    } else if (item.id == 'nearbyLogs') {
+      spanTooltipContent.setShowNearbyLogs(false);
+    } else if (item.id.indexOf('tag.') == 0) {
+      const tag = item.id.replace('tag.', '');
+      const newTags = options.spanTagsToShow.slice();
+      if (newTags.indexOf(tag) > -1) {
+        newTags.splice(newTags.indexOf(tag), 1);
+        spanTooltipContent.setSpanTagsToShow(newTags);
+      }
+    } else if (item.id.indexOf('process.tag.') == 0) {
+      const tag = item.id.replace('process.tag.', '');
+      const newTags = options.processTagsToShow.slice();
+      if (newTags.indexOf(tag) > -1) {
+        newTags.splice(newTags.indexOf(tag), 1);
+        spanTooltipContent.setProcessTagsToShow(newTags);
+      }
+    } else {
+      console.warn(`Unknown span tooltip field: "${item.id}"`);
+    }
+  }
+
+  private onSpanTooltipCustomizationMultiSelectSearchInput() {
+    // Probably height of the multi-select is changed,
+    // if tippy is forced to render top position, this breaks the
+    // arrow positioning. This is a workaround for updating its
+    // position again
+    this.dropdowns.spanTooltipCustomization.popperInstance.update();
+  }
+
   private updateSelectedTool() {
     const btn = this.elements.toolbarBtn;
     const toolButtons = {
@@ -590,6 +697,50 @@ export class TimelineWrapper {
     Object.values(toolButtons).forEach(el => el.classList.remove('selected'));
     const selectedTool = toolButtons[this.timeline.tool];
     selectedTool && selectedTool.classList.add('selected');
+  }
+
+  private updateSpanTooltipCustomizationMultiSelect() {
+    const tooltipOptions = this.timeline.getSpanTooltipContent().getOptions();
+    const items: WidgetToolbarMultiSelectItem[] = [
+      {
+        id: 'serviceName',
+        text: 'Service Name',
+        selected: tooltipOptions.showServiceName
+      },
+      {
+        id: 'nearbyLogs',
+        text: 'Nearby Logs',
+        selected: tooltipOptions.showNearbyLogs
+      }
+    ];
+
+    Object.keys(this.stage.getAllSpanTags()).forEach(tag => {
+      items.push({
+        id: `tag.${tag}`,
+        text: `tag.${tag}`,
+        category: 'Span Tags'
+      });
+    });
+
+    Object.keys(this.stage.getAllProcessTags()).forEach(tag => {
+      items.push({
+        id: `process.tag.${tag}`,
+        text: `process.tag.${tag}`,
+        category: 'Process Tags'
+      });
+    });
+
+    this.spanTooltipCustomizationMultiSelect.updateItems(items);
+  }
+
+  addTrace(trace: Trace) {
+    this.timeline.addTrace(trace);
+    this.updateSpanTooltipCustomizationMultiSelect();
+  }
+
+  removeTrace(trace: Trace) {
+    this.timeline.removeTrace(trace);
+    this.updateSpanTooltipCustomizationMultiSelect();
   }
 
   mount(parentEl: HTMLElement) {
@@ -615,7 +766,7 @@ export class TimelineWrapper {
       btn.spanLabellingMode,
       btn.spanColoringMode,
       btn.groupLayoutMode,
-      btn.tooltipEditor
+      btn.spanTooltipCustomization
     ]);
 
     for (let tippy of Object.values(this.dropdowns)) {

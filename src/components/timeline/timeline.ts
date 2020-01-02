@@ -307,6 +307,10 @@ export class Timeline extends EventEmitter {
     this.svg.appendChild(this.bodyContainer);
   }
 
+  getSpanTooltipContent() {
+    return this.spanTooltipContent;
+  }
+
   // Array order is from deepest element to root
   getInteractedElementsFromMouseEvent(
     e: MouseEvent

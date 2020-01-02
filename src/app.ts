@@ -136,11 +136,11 @@ export class App {
   }
 
   onStageTraceAdded(trace: Trace) {
-    this.timeline.timeline.addTrace(trace);
+    this.timeline.addTrace(trace);
   }
 
   onStageTraceRemoved(trace: Trace) {
-    this.timeline.timeline.removeTrace(trace);
+    this.timeline.removeTrace(trace);
   }
 
   onWindowResize() {

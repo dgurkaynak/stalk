@@ -1,4 +1,5 @@
 import isNumber from 'lodash/isNumber';
+import cloneDeep from 'lodash/cloneDeep';
 import SpanView from '../timeline/span-view';
 import prettyMilliseconds from 'pretty-ms';
 import Axis from '../timeline/axis';
@@ -16,7 +17,7 @@ export interface SpanTooltipContentOptions {
   showNearbyLogs?: boolean;
   spanTagsToShow?: string[];
   processTagsToShow?: string[];
-  logFieldsToShow?: string[];
+  // logFieldsToShow?: string[];
 }
 
 export class SpanTooltipContent {
@@ -43,7 +44,7 @@ export class SpanTooltipContent {
         showServiceName: false,
         spanTagsToShow: [],
         processTagsToShow: [],
-        logFieldsToShow: []
+        // logFieldsToShow: []
       },
       options
     );
@@ -95,6 +96,30 @@ export class SpanTooltipContent {
 
   get element() {
     return this.elements.container;
+  }
+
+  getOptions() {
+    return cloneDeep(this.options);
+  }
+
+  setShowServiceName(value: boolean) {
+    this.options.showServiceName = value;
+    this.updateSpan(this.options.spanView);
+  }
+
+  setShowNearbyLogs(value: boolean) {
+    this.options.showNearbyLogs = value;
+    this.updateSpan(this.options.spanView);
+  }
+
+  setSpanTagsToShow(tags: string[]) {
+    this.options.spanTagsToShow = tags;
+    this.setupTags();
+  }
+
+  setProcessTagsToShow(tags: string[]) {
+    this.options.processTagsToShow = tags;
+    this.setupProcessTags();
   }
 
   updateSpan(spanView: SpanView) {
@@ -151,8 +176,8 @@ export class SpanTooltipContent {
     const els = this.elements;
     els.tags.innerHTML = '<div class="section-header">Tags</div>';
 
-    // const tagKeysSorted = this.options.showTags.sort();
-    const tagKeysSorted = Object.keys(span.tags).sort();
+    const tagKeysSorted = this.options.spanTagsToShow.sort();
+    // const tagKeysSorted = Object.keys(span.tags).sort();
     let displayedTagCount = 0;
     tagKeysSorted.forEach(tagKey => {
       const value = span.tags[tagKey];
@@ -175,10 +200,10 @@ export class SpanTooltipContent {
     els.processTags.innerHTML =
       '<div class="section-header">Process Tags</div>';
 
-    // const tagKeysSorted = this.options.processTagsToShow.sort();
-    const tagKeysSorted = Object.keys(
-      span.process ? span.process.tags || {} : {}
-    ).sort();
+    const tagKeysSorted = this.options.processTagsToShow.sort();
+    // const tagKeysSorted = Object.keys(
+    //   span.process ? span.process.tags || {} : {}
+    // ).sort();
     let displayedTagCount = 0;
     tagKeysSorted.forEach(tagKey => {
       const value = span.process.tags[tagKey];

@@ -136,6 +136,14 @@ export class Stage extends EventEmitter {
     return this.logFields;
   }
 
+  getAllSpanTags() {
+    return this.spanTags;
+  }
+
+  getAllProcessTags() {
+    return this.processTags;
+  }
+
   get startTimestamp() {
     return this.mainSpanGroup.startTimestamp;
   }
