@@ -9,6 +9,7 @@ import { serviceNameOf } from '../../model/span-grouping/service-name';
 import './span-tooltip.css';
 import CommentSvgText from '!!raw-loader!@mdi/svg/svg/comment-outline.svg';
 import TagSvgText from '!!raw-loader!@mdi/svg/svg/tag-outline.svg';
+import AlertSvgText from '!!raw-loader!@mdi/svg/svg/alert.svg';
 
 export interface SpanTooltipContentOptions {
   axis: Axis;
@@ -144,7 +145,9 @@ export class SpanTooltipContent {
     }
 
     els.headerTime.textContent = durationText;
-    els.headerOperationName.textContent = span.operationName;
+    els.headerOperationName.innerHTML =
+      (span.tags.hasOwnProperty('error') ? `<span class="span-tooltip-error-icon">${AlertSvgText}</span>` : '') +
+      span.operationName;
 
     // Handle tags & logs count
     els.headerRight.innerHTML =
