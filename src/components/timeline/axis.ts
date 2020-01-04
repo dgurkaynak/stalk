@@ -79,6 +79,20 @@ export default class Axis {
     this.preventTranslatingOutOfRange();
   }
 
+  /**
+   * Without changing the original input and output ranges (which are actual
+   * domain boundaries), updates zoom and translation so that input range perfectly
+   * fits to output range. This is used for focusing selected spans according to viewport.
+   */
+  focus(inputRange: [number, number], outputRange: [number, number]) {
+    this.scale = Math.max(
+      (outputRange[1] - outputRange[0]) / (inputRange[1] - inputRange[0]),
+      this.minScale
+    );
+    this.offset = outputRange[0] - this.scale * inputRange[0];
+    this.preventTranslatingOutOfRange();
+  }
+
   private preventTranslatingOutOfRange() {
     const minInput = this.inputRange[0];
     const minOutput = this.input2output(minInput);

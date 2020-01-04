@@ -110,7 +110,8 @@ export class TimelineWrapper {
     ),
     onSpanTooltipCustomizationMultiSelectSearchInput: this.onSpanTooltipCustomizationMultiSelectSearchInput.bind(
       this
-    )
+    ),
+    onKeyDown: this.onKeyDown.bind(this)
   };
 
   private spanGroupingModeMenu = new WidgetToolbarSelect({
@@ -193,6 +194,7 @@ export class TimelineWrapper {
   constructor() {
     const { container, toolbar, timelineContainer } = this.elements;
     container.classList.add('timeline-wrapper');
+    container.setAttribute('tabindex', '-1');
     container.appendChild(toolbar);
     container.appendChild(timelineContainer);
     this.prepareToolbar();
@@ -279,6 +281,13 @@ export class TimelineWrapper {
     this.spanLabellingModeMenu.select(this.spanLabellingMode);
     this.spanColoringModeMenu.select(this.spanColoringMode);
     this.groupLayoutModeMenu.select(this.groupLayoutMode);
+
+    // Bind events
+    this.elements.container.addEventListener(
+      'keydown',
+      this.binded.onKeyDown,
+      false
+    );
   }
 
   private initTooltips() {
@@ -396,6 +405,18 @@ export class TimelineWrapper {
         interactive: true
       })
     };
+  }
+
+  private onKeyDown(e: KeyboardEvent) {
+    // If user is typing on any kind of input element which is
+    // child of this component, we don't want to trigger shortcuts
+    if (e.target != this.elements.container) return;
+
+    switch (e.key) {
+      case 'f':
+        this.timeline.focusSpans(this.timeline.getSelectedSpanIds());
+        break;
+    }
   }
 
   private onMoveToolClick() {
@@ -773,6 +794,12 @@ export class TimelineWrapper {
       tippy.destroy();
     }
     this.dropdowns = null;
+
+    this.elements.container.removeEventListener(
+      'keydown',
+      this.binded.onKeyDown,
+      false
+    );
 
     btn.moveTool.removeEventListener(
       'click',

@@ -694,6 +694,68 @@ export class Timeline extends EventEmitter {
     this.emit(TimelineEvent.SPANS_SELECTED, null);
   }
 
+  getSelectedSpanIds() {
+    return this.selectedSpanIds.slice();
+  }
+
+  focusSpans(spanIds: string[]) {
+    if (!spanIds || spanIds.length == 0) return;
+    if (this.traces.length == 0) return;
+
+    spanIds = uniq(spanIds);
+
+    let minStartTime = Infinity;
+    let maxFinishTime = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+
+    spanIds.forEach(spanId => {
+      const [groupView, spanView] = this.findSpanView(spanId);
+      if (!groupView || !spanView) return;
+      const span = spanView.span;
+
+      minStartTime = Math.min(minStartTime, span.startTime);
+      maxFinishTime = Math.max(maxFinishTime, span.finishTime);
+
+      const yTop =
+        groupView.getViewPropertiesCache().y +
+        spanView.getViewPropertiesCache().y;
+      const yBottom = yTop + vc.rowHeight;
+      minY = Math.min(minY, yTop);
+      maxY = Math.max(maxY, yBottom);
+    });
+
+    if (
+      !isFinite(minStartTime) ||
+      !isFinite(maxFinishTime) ||
+      !isFinite(minY) ||
+      !isFinite(maxY)
+    ) {
+      return;
+    }
+
+    this.axis.focus(
+      [minStartTime, maxFinishTime],
+      [this._width / 4, (this._width * 3) / 4]
+    );
+    // Copied from .zoom() method
+    this.groupViews.forEach(g => g.handleAxisZoom());
+    this.updateAllDecorations();
+    this.updateTicks();
+
+    // Handle translate y
+    const bodyHeight = this._height - vc.timeHeaderHeight; // viewport height
+    // if content is already smaller than viewport, noop
+    if (this._contentHeight > bodyHeight) {
+      const newTranslateY = -((minY + maxY) / 2) + bodyHeight / 2;
+      const panelTranslateY = Math.min(
+        Math.max(newTranslateY, bodyHeight - this._contentHeight),
+        0
+      );
+      this.setPanelTranslateY(panelTranslateY);
+    }
+  }
+
   ////////////////////////////////////////
   //////////// EVENT-HANDLING ////////////
   ////////////////////////////////////////
