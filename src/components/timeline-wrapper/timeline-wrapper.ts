@@ -84,6 +84,8 @@ export class TimelineWrapper {
 
   private groupLayoutMode = GroupLayoutType.COMPACT; // Do not forget to change default value of TimelineView
 
+  private timelineToolBeforeTemporarySwitchToSelectionTool: TimelineTool;
+
   private binded = {
     onSpanGroupingModeMenuItemClick: this.onSpanGroupingModeMenuItemClick.bind(
       this
@@ -111,7 +113,8 @@ export class TimelineWrapper {
     onSpanTooltipCustomizationMultiSelectSearchInput: this.onSpanTooltipCustomizationMultiSelectSearchInput.bind(
       this
     ),
-    onKeyDown: this.onKeyDown.bind(this)
+    onKeyDown: this.onKeyDown.bind(this),
+    onKeyUp: this.onKeyUp.bind(this)
   };
 
   private spanGroupingModeMenu = new WidgetToolbarSelect({
@@ -288,6 +291,11 @@ export class TimelineWrapper {
       this.binded.onKeyDown,
       false
     );
+    this.elements.container.addEventListener(
+      'keyup',
+      this.binded.onKeyUp,
+      false
+    );
   }
 
   private initTooltips() {
@@ -415,6 +423,31 @@ export class TimelineWrapper {
     switch (e.key) {
       case 'f':
         this.timeline.focusSpans(this.timeline.getSelectedSpanIds());
+        break;
+
+      case 'Alt':
+        if (this.timeline.tool == TimelineTool.SELECTION) break;
+        this.timelineToolBeforeTemporarySwitchToSelectionTool = this.timeline.tool;
+        this.timeline.updateTool(TimelineTool.SELECTION);
+        this.updateSelectedTool();
+        break;
+    }
+  }
+
+  private onKeyUp(e: KeyboardEvent) {
+    // If user is typing on any kind of input element which is
+    // child of this component, we don't want to trigger shortcuts
+    if (e.target != this.elements.container) return;
+
+    switch (e.key) {
+      case 'Alt':
+        if (this.timelineToolBeforeTemporarySwitchToSelectionTool) {
+          this.timeline.updateTool(
+            this.timelineToolBeforeTemporarySwitchToSelectionTool
+          );
+          this.timelineToolBeforeTemporarySwitchToSelectionTool = null;
+          this.updateSelectedTool();
+        }
         break;
     }
   }
@@ -798,6 +831,11 @@ export class TimelineWrapper {
     this.elements.container.removeEventListener(
       'keydown',
       this.binded.onKeyDown,
+      false
+    );
+    this.elements.container.removeEventListener(
+      'keyup',
+      this.binded.onKeyUp,
       false
     );
 
