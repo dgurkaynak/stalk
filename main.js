@@ -1,9 +1,10 @@
 // https://github.com/nayunhwan/Electron-CRA-TypeScript
 
 // Modules to control application life and create native browser window
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const url = require('url');
 const path = require('path');
+const fs = require('fs');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -43,6 +44,40 @@ function createWindow() {
   });
 }
 
+// Handle open-file events for following cases:
+// - A file is dropped on app dock icon
+// - A file is right clicked > Open With > stalk-studio
+// Please note that, this only works when app is packaged as an `.app` file
+// We just support JSON files, configured for the mac (see: package.json > electron-builder options)
+// TODO: Do this for windows and linux
+let isAppInitalized = false;
+let openFilePathBuffer = [];
+app.on('open-file', async (event, filePath) => {
+  event.preventDefault();
+
+  if (isAppInitalized) {
+    if (mainWindow) {
+      mainWindow.webContents.send('open-file', await readFileContent(filePath));
+    }
+  } else {
+    openFilePathBuffer.push(filePath);
+  }
+});
+ipcMain.once('app-initalized', async (event) => {
+  isAppInitalized = true;
+  event.reply('app-initalized-response', {
+    openFiles: await Promise.all(openFilePathBuffer.map(filePath => readFileContent(filePath)))
+  });
+});
+function readFileContent(filePath) {
+  return new Promise((resolve) => {
+    fs.readFile(filePath, { encoding: 'utf8'}, (err, data) => {
+      if (err) return resolve({ name: path.basename(filePath), error: `Could not read file: ${err.message}` });
+      resolve({ name: path.basename(filePath), content: data });
+    });
+  });
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -50,11 +85,7 @@ app.on('ready', createWindow);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function() {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
 app.on('activate', function() {

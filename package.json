@@ -23,6 +23,7 @@
     "start": "cross-env BROWSER=none nf start"
   },
   "devDependencies": {
+    "@electron/typescript-definitions": "^8.6.5",
     "@mdi/svg": "^4.5.95",
     "@types/chroma-js": "^1.4.3",
     "@types/events": "^3.0.0",
