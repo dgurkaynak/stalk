@@ -33,6 +33,7 @@ export default class SpanView {
   private labelText = document.createElementNS(SVG_NS, 'text');
   private clipPath = document.createElementNS(SVG_NS, 'clipPath');
   private clipPathRect = document.createElementNS(SVG_NS, 'rect');
+  private errorTriangle = document.createElementNS(SVG_NS, 'polygon');
   private logViews: SpanLogViewObject[] = [];
 
   private viewPropertiesCache = {
@@ -58,6 +59,8 @@ export default class SpanView {
     this.barRect.setAttribute('ry', vc.spanBarRadius + '');
     this.barRect.setAttribute('height', vc.spanBarHeight + '');
     this.container.appendChild(this.barRect);
+
+    this.errorTriangle.setAttribute('fill', vc.spanErrorTriangleColor);
 
     this.labelText.setAttribute('x', vc.spanLabelOffsetLeft + '');
     this.labelText.setAttribute(
@@ -106,6 +109,12 @@ export default class SpanView {
     this.updateColorStyle('normal');
     this.updateLabelText();
     this.hideLabel();
+
+    if (span.tags.hasOwnProperty('error')) {
+      this.container.appendChild(this.errorTriangle);
+    } else if (this.errorTriangle.parentElement) {
+      this.errorTriangle.parentElement.removeChild(this.errorTriangle);
+    }
 
     this.container.setAttribute(
       TimelineInteractableElementAttribute,
@@ -207,6 +216,12 @@ export default class SpanView {
     this.viewPropertiesCache.width = width;
     this.barRect.setAttribute('width', width + '');
     this.clipPathRect.setAttribute('width', width + '');
+    this.errorTriangle.setAttribute(
+      'points',
+      `${width - vc.spanErrorTriangleSize},0 ${width},0 ${width},${
+        vc.spanErrorTriangleSize
+      }`
+    );
 
     this.labelText.setAttribute('display', width < 30 ? 'none' : '');
   }

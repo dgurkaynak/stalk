@@ -31,11 +31,8 @@ class ViewConstants {
   readonly spanLabelSnappedOffsetLeft = 5;
   readonly spanLabelOffsetTop = 1;
 
-  readonly spanTooltipLineHeight = 20;
-  readonly spanTooltipMaxWidth = 400;
-  readonly spanTooltipBackgroundColor = '#ffffff';
-  readonly spanTooltipFontSize = 10;
-  readonly spanTooltipDurationTextColor = '#009900';
+  readonly spanErrorTriangleSize = 10;
+  readonly spanErrorTriangleColor = '#ff0000';
 
   readonly selectionBorderColor = '#3E7CD6';
   readonly selectionBorderWidth = 1;
