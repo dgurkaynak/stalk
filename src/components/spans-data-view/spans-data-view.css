@@ -1,0 +1,40 @@
+.spans-data-view .handsontable th {
+  background-color: #fff;
+  font-weight: bold;
+  border-top: none !important;
+}
+
+.spans-data-view .handsontable th.ht__highlight {
+  background-color: #F9F9FB;
+}
+
+.spans-data-view-currentRow {
+  background-color: #F9F9FB !important;
+}
+
+.spans-data-view-header {
+  background-color: #fff;
+  font-weight: bold;
+}
+
+.spans-data-view-other-field {
+  /* Force single line */
+  /* white-space: nowrap !important; */
+}
+
+.spans-data-view-other-field-key {
+  background: #D0E2F2;
+  color: #7988B1;
+  padding: 1px 3px;
+  margin: 0 3px 0 10px;
+  font-weight: 500;
+  border-radius: 2px;
+}
+
+.spans-data-view-other-field-key:first-child {
+  margin-left: 0;
+}
+
+.spans-data-view-other-field-value {
+
+}

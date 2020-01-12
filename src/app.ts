@@ -12,6 +12,7 @@ import { TimelineWrapper } from './components/timeline-wrapper/timeline-wrapper'
 import { DockPanel } from 'phosphor-dockpanel';
 import { WidgetWrapper } from './components/ui/widget-wrapper';
 import { LogsDataView } from './components/logs-data-view/logs-data-view';
+import { SpansDataView } from './components/spans-data-view/spans-data-view';
 import Noty from 'noty';
 import { isJaegerJSON, convertFromJaegerTrace } from './model/api/jaeger/span';
 import { isZipkinJSON, convertFromZipkinTrace } from './model/api/zipkin/span';
@@ -38,6 +39,7 @@ export class App {
   private toolbar = new AppToolbar({});
   private timeline = new TimelineWrapper();
   private logsData = new LogsDataView();
+  private spansData = new SpansDataView();
 
   private dockPanel = new DockPanel();
   private widgets: { [key: string]: WidgetWrapper } = {};
@@ -49,6 +51,7 @@ export class App {
     onWindowResize: this.onWindowResize.bind(this),
     onTimelineResize: this.onTimelineResize.bind(this),
     onLogsDataResize: throttle(this.onLogsDataResize.bind(this), 100),
+    onSpansDataResize: throttle(this.onSpansDataResize.bind(this), 100),
     onDrop: this.onDrop.bind(this),
     onDragOver: this.onDragOver.bind(this),
     onDragLeave: this.onDragLeave.bind(this)
@@ -71,10 +74,12 @@ export class App {
     this.initDockPanelAndWidgets();
     const timelineWidgetEl = this.widgets[AppWidgetType.TIMELINE_VIEW].node;
     const logsWidgetEl = this.widgets[AppWidgetType.LOGS_DATA_VIEW].node;
+    const spansWidgetEl = this.widgets[AppWidgetType.SPANS_DATA_VIEW].node;
 
     this.toolbar.mount(this.options.element);
     this.timeline.mount(timelineWidgetEl);
     this.logsData.mount(logsWidgetEl);
+    this.spansData.mount(spansWidgetEl);
 
     const { offsetWidth: w1, offsetHeight: h1 } = timelineWidgetEl;
     this.timeline.init({ width: w1, height: h1 });
@@ -82,6 +87,9 @@ export class App {
 
     const { offsetWidth: w2, offsetHeight: h2 } = logsWidgetEl;
     this.logsData.init({ width: w2, height: h2 });
+
+    const { offsetWidth: w3, offsetHeight: h3 } = spansWidgetEl;
+    this.spansData.init({ width: w3, height: h3 });
 
     this.initDropZone();
 
@@ -139,8 +147,17 @@ export class App {
       onResize: this.binded.onLogsDataResize
     });
 
+    this.widgets[AppWidgetType.SPANS_DATA_VIEW] = new WidgetWrapper({
+      title: 'Spans Data View',
+      onResize: this.binded.onSpansDataResize
+    });
+
     this.dockPanel.insertTop(this.widgets[AppWidgetType.TIMELINE_VIEW]);
     this.dockPanel.insertBottom(this.widgets[AppWidgetType.LOGS_DATA_VIEW]);
+    this.dockPanel.insertLeft(
+      this.widgets[AppWidgetType.SPANS_DATA_VIEW],
+      this.widgets[AppWidgetType.LOGS_DATA_VIEW]
+    );
 
     this.dockPanel.attach(this.options.element);
   }
@@ -163,6 +180,10 @@ export class App {
 
   onLogsDataResize(msg: { width: number; height: number }) {
     this.logsData.resize(msg.width, msg.height);
+  }
+
+  onSpansDataResize(msg: { width: number; height: number }) {
+    this.spansData.resize(msg.width, msg.height);
   }
 
   initDropZone() {
