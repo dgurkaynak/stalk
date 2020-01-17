@@ -44,55 +44,113 @@
 }
 
 /* Dock panel related stuff */
-.p-DockTabPanel {
-  padding-right: 2px;
-  padding-bottom: 2px;
+.p-Widget {
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
 }
 
-.p-DockTabPanel > .p-StackedPanel {
-  background: white;
+.p-Widget.p-mod-hidden {
+  display: none !important;
 }
 
 .p-DockPanel-overlay {
   background: rgba(255, 255, 255, 0.6);
   border: 1px dashed black;
+  transition-property: top, left, right, bottom;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
 }
 
-.p-DockPanel-overlay.p-mod-root-top,
-.p-DockPanel-overlay.p-mod-root-left,
-.p-DockPanel-overlay.p-mod-root-right,
-.p-DockPanel-overlay.p-mod-root-bottom,
-.p-DockPanel-overlay.p-mod-root-center {
-  border-width: 2px;
+.p-DockPanel {
+  z-index: 0;
+}
+
+.p-DockPanel-widget {
+  z-index: 0;
+  background: #fff;
+}
+
+.p-DockPanel-tabBar {
+  z-index: 1;
+}
+
+.p-DockPanel-handle {
+  z-index: 2;
+}
+
+.p-DockPanel-handle.p-mod-hidden {
+  display: none !important;
+}
+
+.p-DockPanel-handle:after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  content: '';
+}
+
+.p-DockPanel-handle[data-orientation='horizontal'] {
+  cursor: ew-resize;
+}
+
+.p-DockPanel-handle[data-orientation='vertical'] {
+  cursor: ns-resize;
+}
+
+.p-DockPanel-handle[data-orientation='horizontal']:after {
+  left: 50%;
+  min-width: 8px;
+  transform: translateX(-50%);
+}
+
+.p-DockPanel-handle[data-orientation='vertical']:after {
+  top: 50%;
+  min-height: 8px;
+  transform: translateY(-50%);
+}
+
+.p-DockPanel-overlay {
+  z-index: 3;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.p-DockPanel-overlay.p-mod-hidden {
+  display: none !important;
 }
 
 .p-TabBar {
-  min-height: 2em;
-  max-height: 2em;
-}
-
-.p-TabBar-header {
-  display: none;
-}
-
-.p-TabBar-footer {
-  flex: 0 0 1px;
+  min-height: 24px;
+  max-height: 24px;
 }
 
 .p-TabBar-content {
   min-width: 0;
+  min-height: 0;
   align-items: flex-end;
 }
 
 .p-TabBar-tab {
-  flex: 0 1 125px;
-  min-height: 2em;
-  max-height: 2em;
-  min-width: 3em;
-  margin-left: -1px;
   padding: 0px 10px;
   background: #E5E5E5;
-  align-items: center;
+  flex: 0 1 125px;
+  min-height: 20px;
+  max-height: 20px;
+  min-width: 35px;
+  margin-left: -1px;
+  line-height: 20px;
+}
+
+.p-TabBar-tab.p-mod-current {
+  background: white;
+}
+
+.p-TabBar-tab:hover:not(.p-mod-current) {
+  background: #F0F0F0;
 }
 
 .p-TabBar-tab:first-child {
@@ -100,17 +158,15 @@
 }
 
 .p-TabBar-tab.p-mod-current {
-  background: white;
+  min-height: 23px;
+  max-height: 23px;
   transform: translateY(1px);
 }
 
-.p-TabBar-tab:hover:not(.p-mod-current) {
-  background: #F0F0F0;
-}
-
 .p-TabBar-tabIcon,
-.p-TabBar-tabText,
+.p-TabBar-tabLabel,
 .p-TabBar-tabCloseIcon {
+  display: inline-block;
   text-transform: uppercase;
   font-size: 0.85em;
 }
@@ -133,4 +189,77 @@
   border: none;
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
   transform: translateX(-40%) translateY(-58%);
+}
+
+.p-TabBar {
+  display: flex;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.p-TabBar[data-orientation='horizontal'] {
+  flex-direction: row;
+}
+
+
+.p-TabBar[data-orientation='vertical'] {
+  flex-direction: column;
+}
+
+.p-TabBar-content {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex: 1 1 auto;
+  list-style-type: none;
+}
+
+.p-TabBar[data-orientation='horizontal'] > .p-TabBar-content {
+  flex-direction: row;
+}
+
+.p-TabBar[data-orientation='vertical'] > .p-TabBar-content {
+  flex-direction: column;
+}
+
+.p-TabBar-tab {
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.p-TabBar-tabIcon,
+.p-TabBar-tabCloseIcon {
+  flex: 0 0 auto;
+}
+
+.p-TabBar-tabLabel {
+  flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.p-TabBar-tab.p-mod-hidden {
+  display: none !important;
+}
+
+.p-TabBar.p-mod-dragging .p-TabBar-tab {
+  position: relative;
+}
+
+.p-TabBar.p-mod-dragging[data-orientation='horizontal'] .p-TabBar-tab {
+  left: 0;
+  transition: left 150ms ease;
+}
+
+.p-TabBar.p-mod-dragging[data-orientation='vertical'] .p-TabBar-tab {
+  top: 0;
+  transition: top 150ms ease;
+}
+
+.p-TabBar.p-mod-dragging .p-TabBar-tab.p-mod-dragging {
+  transition: none;
 }

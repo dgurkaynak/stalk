@@ -25,6 +25,7 @@
   "devDependencies": {
     "@electron/typescript-definitions": "^8.6.5",
     "@mdi/svg": "^4.5.95",
+    "@phosphor/widgets": "^1.9.3",
     "@types/chroma-js": "^1.4.3",
     "@types/events": "^3.0.0",
     "@types/lodash": "^4.14.133",
@@ -51,8 +52,6 @@
     "monaco-editor-webpack-plugin": "^1.7.0",
     "noty": "^3.2.0-beta",
     "parse-duration": "^0.1.1",
-    "phosphor-dockpanel": "^0.9.7",
-    "phosphor-widget": "^1.0.0-rc.1",
     "prettier": "1.19.1",
     "pretty-ms": "^5.0.0",
     "randomcolor": "^0.5.4",

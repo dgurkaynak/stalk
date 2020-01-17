@@ -1,4 +1,4 @@
-import { Widget } from 'phosphor-widget';
+import { Widget } from '@phosphor/widgets';
 import isBoolean from 'lodash/isBoolean';
 
 export interface WidgetWrapperOptions {
@@ -13,7 +13,7 @@ export class WidgetWrapper extends Widget {
   constructor(private options: WidgetWrapperOptions) {
     super();
 
-    this.title.text = options.title;
+    this.title.label = options.title;
     this.title.closable = isBoolean(options.closable) ? options.closable : true;
   }
 
@@ -24,12 +24,5 @@ export class WidgetWrapper extends Widget {
   protected onCloseRequest(msg: any) {
     super.onCloseRequest(msg);
     this.options.onClose && this.options.onClose();
-  }
-
-  empty() {
-    let child = this.node.firstChild;
-    while (child) {
-      this.node.removeChild(child);
-    }
   }
 }

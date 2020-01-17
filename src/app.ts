@@ -9,7 +9,7 @@ import { SpanLabellingManager } from './model/span-labelling-manager';
 import { Trace } from './model/trace';
 import { Stage, StageEvent } from './model/stage';
 import { TimelineWrapper } from './components/timeline-wrapper/timeline-wrapper';
-import { DockPanel } from 'phosphor-dockpanel';
+import { DockPanel } from '@phosphor/widgets';
 import { WidgetWrapper } from './components/ui/widget-wrapper';
 import { LogsDataView } from './components/logs-data-view/logs-data-view';
 import { SpansDataView } from './components/spans-data-view/spans-data-view';
@@ -152,14 +152,17 @@ export class App {
       onResize: this.binded.onSpansDataResize
     });
 
-    this.dockPanel.insertTop(this.widgets[AppWidgetType.TIMELINE_VIEW]);
-    this.dockPanel.insertBottom(this.widgets[AppWidgetType.LOGS_DATA_VIEW]);
-    this.dockPanel.insertLeft(
-      this.widgets[AppWidgetType.SPANS_DATA_VIEW],
-      this.widgets[AppWidgetType.LOGS_DATA_VIEW]
-    );
+    this.dockPanel.addWidget(this.widgets[AppWidgetType.TIMELINE_VIEW]);
+    this.dockPanel.addWidget(this.widgets[AppWidgetType.LOGS_DATA_VIEW], {
+      mode: 'split-bottom',
+      ref: this.widgets[AppWidgetType.TIMELINE_VIEW]
+    });
+    this.dockPanel.addWidget(this.widgets[AppWidgetType.SPANS_DATA_VIEW], {
+      mode: 'split-left',
+      ref: this.widgets[AppWidgetType.LOGS_DATA_VIEW]
+    });
 
-    this.dockPanel.attach(this.options.element);
+    DockPanel.attach(this.dockPanel, this.options.element);
   }
 
   onStageTraceAdded(trace: Trace) {
