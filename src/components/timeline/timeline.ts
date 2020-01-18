@@ -46,7 +46,7 @@ export enum TimelineEvent {
 
 export enum TimelineTool {
   MOVE = 'move',
-  SELECTION = 'selection'
+  RULER = 'ruler'
 }
 
 export class Timeline extends EventEmitter {
@@ -887,7 +887,7 @@ export class Timeline extends EventEmitter {
 
     if (this.traces.length === 0) return;
 
-    if (this._tool == TimelineTool.SELECTION) {
+    if (this._tool == TimelineTool.RULER) {
       this.selectionView.start(e.offsetX, e.offsetY);
       this.selectionView.update(e.offsetX, e.offsetY);
       this.selectionView.mount();
@@ -897,7 +897,7 @@ export class Timeline extends EventEmitter {
   onMousePanMove(e: MouseEvent) {
     if (this.traces.length === 0) return;
 
-    if (this._tool == TimelineTool.SELECTION) {
+    if (this._tool == TimelineTool.RULER) {
       this.selectionView.update(e.offsetX, e.offsetY);
     } else {
       // Translate
@@ -912,12 +912,9 @@ export class Timeline extends EventEmitter {
     const isMouseLeaveBeforeUp = e.type == 'mouseleave';
     this.selectionView.unmount();
 
-    if (this._tool == TimelineTool.SELECTION && !isMouseLeaveBeforeUp) {
+    if (this._tool == TimelineTool.RULER && !isMouseLeaveBeforeUp) {
       // TODO: e.offsetX, e.offsetY are way wrong, fix it in MouseHandler;
       const rect = this.selectionView.stop();
-      const matches = this.findSpanViewsByRect(rect);
-      const spanIds = matches.map(([g, s]) => s.span.id);
-      this.selectSpans(spanIds);
     }
   }
 

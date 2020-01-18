@@ -39,7 +39,7 @@ import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
 import SvgFormatColorFill from '!!raw-loader!@mdi/svg/svg/format-color-fill.svg';
 import SvgSort from '!!raw-loader!@mdi/svg/svg/sort.svg';
 import SvgCursorMove from '!!raw-loader!@mdi/svg/svg/cursor-move.svg';
-import SvgSelection from '!!raw-loader!@mdi/svg/svg/selection.svg';
+import SvgRuler from '!!raw-loader!@mdi/svg/svg/ruler-square.svg';
 import SvgTooltipEdit from '!!raw-loader!@mdi/svg/svg/tooltip-edit.svg';
 import './timeline-wrapper.css';
 
@@ -53,7 +53,7 @@ export class TimelineWrapper {
     toolbar: document.createElement('div'),
     toolbarBtn: {
       moveTool: document.createElement('div'),
-      selectionTool: document.createElement('div'),
+      rulerTool: document.createElement('div'),
       groupingMode: document.createElement('div'),
       spanLabellingMode: document.createElement('div'),
       spanColoringMode: document.createElement('div'),
@@ -84,7 +84,7 @@ export class TimelineWrapper {
 
   private groupLayoutMode = GroupLayoutType.COMPACT; // Do not forget to change default value of TimelineView
 
-  private timelineToolBeforeTemporarySwitchToSelectionTool: TimelineTool;
+  private timelineToolBeforeTemporarySwitchToRulerTool: TimelineTool;
 
   private binded = {
     onSpanGroupingModeMenuItemClick: this.onSpanGroupingModeMenuItemClick.bind(
@@ -103,7 +103,7 @@ export class TimelineWrapper {
     ),
     onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this),
     onMoveToolClick: this.onMoveToolClick.bind(this),
-    onSelectionToolClick: this.onSelectionToolClick.bind(this),
+    onRulerToolClick: this.onRulerToolClick.bind(this),
     onSpanTooltipCustomizationMultiSelectSelect: this.onSpanTooltipCustomizationMultiSelectSelect.bind(
       this
     ),
@@ -228,9 +228,9 @@ export class TimelineWrapper {
     btn.moveTool.innerHTML = SvgCursorMove;
     leftPane.appendChild(btn.moveTool);
 
-    btn.selectionTool.classList.add('widget-toolbar-button');
-    btn.selectionTool.innerHTML = SvgSelection;
-    leftPane.appendChild(btn.selectionTool);
+    btn.rulerTool.classList.add('widget-toolbar-button');
+    btn.rulerTool.innerHTML = SvgRuler;
+    leftPane.appendChild(btn.rulerTool);
 
     btn.groupingMode.classList.add('widget-toolbar-button', 'fix-stroke');
     btn.groupingMode.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 24 24">
@@ -273,9 +273,9 @@ export class TimelineWrapper {
     this.updateSelectedTool();
     const btn = this.elements.toolbarBtn;
     btn.moveTool.addEventListener('click', this.binded.onMoveToolClick, false);
-    btn.selectionTool.addEventListener(
+    btn.rulerTool.addEventListener(
       'click',
-      this.binded.onSelectionToolClick,
+      this.binded.onRulerToolClick,
       false
     );
 
@@ -310,9 +310,9 @@ export class TimelineWrapper {
         }
       ],
       [
-        btn.selectionTool,
+        btn.rulerTool,
         {
-          content: 'Selection/Ruler Tool',
+          content: 'Ruler Tool',
           multiple: true
         }
       ],
@@ -426,9 +426,9 @@ export class TimelineWrapper {
         break;
 
       case 'Alt':
-        if (this.timeline.tool == TimelineTool.SELECTION) break;
-        this.timelineToolBeforeTemporarySwitchToSelectionTool = this.timeline.tool;
-        this.timeline.updateTool(TimelineTool.SELECTION);
+        if (this.timeline.tool == TimelineTool.RULER) break;
+        this.timelineToolBeforeTemporarySwitchToRulerTool = this.timeline.tool;
+        this.timeline.updateTool(TimelineTool.RULER);
         this.updateSelectedTool();
         break;
     }
@@ -441,11 +441,11 @@ export class TimelineWrapper {
 
     switch (e.key) {
       case 'Alt':
-        if (this.timelineToolBeforeTemporarySwitchToSelectionTool) {
+        if (this.timelineToolBeforeTemporarySwitchToRulerTool) {
           this.timeline.updateTool(
-            this.timelineToolBeforeTemporarySwitchToSelectionTool
+            this.timelineToolBeforeTemporarySwitchToRulerTool
           );
-          this.timelineToolBeforeTemporarySwitchToSelectionTool = null;
+          this.timelineToolBeforeTemporarySwitchToRulerTool = null;
           this.updateSelectedTool();
         }
         break;
@@ -457,8 +457,8 @@ export class TimelineWrapper {
     this.updateSelectedTool();
   }
 
-  private onSelectionToolClick() {
-    this.timeline.updateTool(TimelineTool.SELECTION);
+  private onRulerToolClick() {
+    this.timeline.updateTool(TimelineTool.RULER);
     this.updateSelectedTool();
   }
 
@@ -746,7 +746,7 @@ export class TimelineWrapper {
     const btn = this.elements.toolbarBtn;
     const toolButtons = {
       [TimelineTool.MOVE]: btn.moveTool,
-      [TimelineTool.SELECTION]: btn.selectionTool
+      [TimelineTool.RULER]: btn.rulerTool
     };
     Object.values(toolButtons).forEach(el => el.classList.remove('selected'));
     const selectedTool = toolButtons[this.timeline.tool];
@@ -815,7 +815,7 @@ export class TimelineWrapper {
     const btn = this.elements.toolbarBtn;
     tooltipManager.removeFromSingleton([
       btn.moveTool,
-      btn.selectionTool,
+      btn.rulerTool,
       btn.groupingMode,
       btn.spanLabellingMode,
       btn.spanColoringMode,
@@ -844,9 +844,9 @@ export class TimelineWrapper {
       this.binded.onMoveToolClick,
       false
     );
-    btn.selectionTool.removeEventListener(
+    btn.rulerTool.removeEventListener(
       'click',
-      this.binded.onSelectionToolClick,
+      this.binded.onRulerToolClick,
       false
     );
 
