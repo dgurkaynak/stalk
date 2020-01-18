@@ -965,15 +965,8 @@ export class Timeline extends EventEmitter {
       return; // Early terminate so that selection does not lost
     }
 
-    if (e.ctrlKey || e.metaKey) {
-      // If ctrl or cmd key is pressed and clicked on a span,
-      // add to selection, if not clicked on span, noop
-      clickedSpanId &&
-        this.selectSpans([...this.selectedSpanIds, clickedSpanId]);
-    } else {
-      // Select clicked span, or nothing (deselectes all of them)
-      this.selectSpans(clickedSpanId ? [clickedSpanId] : []);
-    }
+    // Select clicked span, or nothing (deselectes all of them)
+    this.selectSpans(clickedSpanId ? [clickedSpanId] : []);
   }
 
   ///////////////////////////////////////
