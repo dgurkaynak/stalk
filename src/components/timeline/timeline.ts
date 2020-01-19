@@ -41,7 +41,7 @@ import tippy, { Instance as TippyInstance } from 'tippy.js';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export enum TimelineEvent {
-  SPANS_SELECTED = 'tve_span_selected'
+  SPAN_SELECTED = 'tve_span_selected'
 }
 
 export enum TimelineTool {
@@ -67,7 +67,7 @@ export class Timeline extends EventEmitter {
   readonly decorationOverlayPanel = document.createElementNS(SVG_NS, 'g');
   readonly decorations = {
     logHighlight: new LogHighlightDecoration(this),
-    selectedSpansConnections: [] as SpanConnectionsDecoration[],
+    selectedSpansConnections: new SpanConnectionsDecoration(this),
     hoveredSpanConnections: new SpanConnectionsDecoration(this)
   };
 
@@ -100,7 +100,7 @@ export class Timeline extends EventEmitter {
   };
 
   private hoveredElements: TimelineInteractedElementObject[] = [];
-  private selectedSpanIds: string[] = [];
+  private selectedSpanId: string;
 
   private selectionView = new SelectionView({
     parentEl: this.svg,
@@ -637,65 +637,40 @@ export class Timeline extends EventEmitter {
     this.updateTicks();
   }
 
-  selectSpans(spanIds: string[]) {
-    spanIds = uniq(spanIds);
-
+  selectSpan(spanId: string) {
     // If a span is already selected, update its style
-    const previousSelectedSpanIds = this.selectedSpanIds;
-    if (previousSelectedSpanIds.length > 0) {
-      previousSelectedSpanIds.forEach(spanId => {
-        const previousSelectedSpanView = this.findSpanView(spanId)[1];
-        if (previousSelectedSpanView) {
-          previousSelectedSpanView.updateColorStyle('normal');
-          previousSelectedSpanView.hideLogs();
-        }
-      });
+    if (this.selectedSpanId) {
+      const previousSelectedSpanView = this.findSpanView(this.selectedSpanId)[1];
+      if (previousSelectedSpanView) {
+        previousSelectedSpanView.updateColorStyle('normal');
+        previousSelectedSpanView.hideLogs();
+      }
     }
 
     // Unmount all the selected spans connections
-    this.decorations.selectedSpansConnections.forEach(sc => sc.unmount());
+    this.decorations.selectedSpansConnections.unmount();
     this.decorations.hoveredSpanConnections.unmount();
 
-    this.selectedSpanIds = spanIds;
-    spanIds.forEach((spanId, i) => {
-      // If new span exists
-      const [groupView, spanView] = spanId
-        ? this.findSpanView(spanId)
-        : [null, null];
-      if (spanId && spanView && groupView) {
-        spanView.updateColorStyle('selected');
-        spanView.showLogs();
-        groupView.bringSpanViewToTop(spanId);
+    this.selectedSpanId = spanId;
+    // If new span exists
+    const [groupView, spanView] = spanId
+      ? this.findSpanView(spanId)
+      : [null, null];
+    if (spanId && spanView && groupView) {
+      spanView.updateColorStyle('selected');
+      spanView.showLogs();
+      groupView.bringSpanViewToTop(spanId);
 
-        // If there is no decorator in the pool, create a new one
-        if (!this.decorations.selectedSpansConnections[i]) {
-          this.decorations.selectedSpansConnections[
-            i
-          ] = new SpanConnectionsDecoration(this);
-        }
-
-        const sc = this.decorations.selectedSpansConnections[i];
-        sc.prepare({ spanId: spanId });
-        sc.update();
-        sc.mount();
-      }
-    });
-
-    // If there are remaining span connections, release them
-    // You may disable this to re-use them all the time, however
-    // if user selected all the spans, it may cause performance degradation.
-    if (this.decorations.selectedSpansConnections.length > spanIds.length) {
-      this.decorations.selectedSpansConnections = this.decorations.selectedSpansConnections.slice(
-        0,
-        spanIds.length
-      );
+      this.decorations.selectedSpansConnections.prepare({ spanId: spanId });
+      this.decorations.selectedSpansConnections.update();
+      this.decorations.selectedSpansConnections.mount();
     }
 
-    this.emit(TimelineEvent.SPANS_SELECTED, null);
+    this.emit(TimelineEvent.SPAN_SELECTED, null);
   }
 
-  getSelectedSpanIds() {
-    return this.selectedSpanIds.slice();
+  getSelectedSpanId() {
+    return this.selectedSpanId;
   }
 
   focusSpans(spanIds: string[]) {
@@ -796,7 +771,7 @@ export class Timeline extends EventEmitter {
           const { id: spanId } = SpanView.getPropsFromContainer(element);
           if (!spanId) return;
           this.spanTooltipTippy.hide();
-          if (this.selectedSpanIds.indexOf(spanId) > -1) return;
+          if (this.selectedSpanId == spanId) return;
           const spanView = this.findSpanView(spanId)[1];
           if (!spanView) return;
           spanView.updateColorStyle('normal');
@@ -847,7 +822,7 @@ export class Timeline extends EventEmitter {
           // If it's already selected, early terminate
           // Because we don't want to update span style or show span connection
           // It's already showing by selection logic
-          if (this.selectedSpanIds.indexOf(spanId) > -1) return;
+          if (this.selectedSpanId == spanId) return;
           if (!spanView) return;
           spanView.updateColorStyle('hover');
           spanView.showLogs();
@@ -966,7 +941,7 @@ export class Timeline extends EventEmitter {
     }
 
     // Select clicked span, or nothing (deselectes all of them)
-    this.selectSpans(clickedSpanId ? [clickedSpanId] : []);
+    this.selectSpan(clickedSpanId);
   }
 
   ///////////////////////////////////////

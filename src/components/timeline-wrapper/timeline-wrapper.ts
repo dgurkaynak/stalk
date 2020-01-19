@@ -422,7 +422,7 @@ export class TimelineWrapper {
 
     switch (e.key) {
       case 'f':
-        this.timeline.focusSpans(this.timeline.getSelectedSpanIds());
+        this.timeline.focusSpans([this.timeline.getSelectedSpanId()]);
         break;
 
       case 'Alt':
