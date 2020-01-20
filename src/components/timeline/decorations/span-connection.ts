@@ -74,8 +74,8 @@ export class SpanConnectionDecoration extends BaseDecoration {
     const groupView2Props = this.groupView2.getViewPropertiesCache();
     const halfBarHeight = this.settings.barHeight / 2;
     const arrowHeadOffsetLeft = -3;
-
-    // TODO: Handle that groups can be collapsed
+    const shouldHide = this.groupView1.options.isCollapsed &&
+      this.groupView2.options.isCollapsed; // Do not show if both groups are collapsed
 
     let fromX = Math.min(
       spanView1Props.x + spanView1Props.width,
@@ -138,6 +138,7 @@ export class SpanConnectionDecoration extends BaseDecoration {
       toControlY = toY;
     }
 
+    this.path.setAttribute('opacity', shouldHide ? '0' : '1');
     this.path.setAttribute(
       'd',
       `M ${fromX} ${fromY} C ${fromControlX} ${fromControlY}, ${toControlX}  ${toControlY}, ${toX} ${toY}`

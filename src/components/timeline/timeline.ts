@@ -1024,7 +1024,6 @@ export class Timeline extends EventEmitter {
       if (!parentRef) return;
 
       const [refGroupView, refSpanView] = that.findSpanView(parentRef.spanId);
-      // TODO: Indicate when span could not found
       if (!refGroupView || !refSpanView) return;
 
       const decoration = new SpanConnectionDecoration(that);
