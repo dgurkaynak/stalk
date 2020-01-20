@@ -177,7 +177,7 @@ export class SpansDataView {
       { id: 'traceId', text: 'Trace Id' },
       { id: 'startTime', text: 'Start Time', selected: true },
       { id: 'finishTime', text: 'Finish Time' },
-      { id: 'duration', text: 'Duration', selected: true },
+      { id: 'totalTime', text: 'Total Time', selected: true },
       { id: 'selfTime', text: 'Self Time', selected: true },
       { id: 'serviceName', text: 'Service Name', selected: true },
       { id: 'tags', text: 'Tags', selected: true },
@@ -242,9 +242,9 @@ export class SpansDataView {
       });
     }
 
-    if (displayedColumnIds.indexOf('duration') > -1) {
+    if (displayedColumnIds.indexOf('totalTime') > -1) {
       columns.push({
-        header: 'Duration',
+        header: 'Total Time',
         columnMeta: {
           data: function(row: any) {
             return row.finishTime - row.startTime;

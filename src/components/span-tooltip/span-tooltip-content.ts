@@ -128,23 +128,23 @@ export class SpanTooltipContent {
     const span = spanView.span;
     const els = this.elements;
 
-    const duration = span.finishTime - span.startTime;
+    const totalTime = span.finishTime - span.startTime;
     const selfTime = this.stage.getSpanSelfTime(span.id);
-    let durationText = prettyMilliseconds(
+    let timeText = prettyMilliseconds(
       (span.finishTime - span.startTime) / 1000,
       { formatSubMilliseconds: true }
     );
 
     // TODO: This is not working correctly (I guess)
     // Analyze it after fixing self-time
-    if (isNumber(selfTime) && selfTime != duration) {
+    if (isNumber(selfTime) && selfTime != totalTime) {
       const selfTimePretty = prettyMilliseconds(selfTime / 1000, {
         formatSubMilliseconds: true
       });
-      durationText = `${durationText} (self ${selfTimePretty})`;
+      timeText = `${timeText} (self ${selfTimePretty})`;
     }
 
-    els.headerTime.textContent = durationText;
+    els.headerTime.textContent = timeText;
     els.headerOperationName.innerHTML =
       (span.tags.hasOwnProperty('error') ? `<span class="span-tooltip-error-icon">${AlertSvgText}</span>` : '') +
       span.operationName;
