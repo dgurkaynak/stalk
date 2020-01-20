@@ -1,7 +1,7 @@
 import isNumber from 'lodash/isNumber';
 import cloneDeep from 'lodash/cloneDeep';
 import SpanView from '../timeline/span-view';
-import prettyMilliseconds from 'pretty-ms';
+import { formatMicroseconds } from '../../utils/format-microseconds';
 import Axis from '../timeline/axis';
 import Stage from '../../model/stage';
 import { serviceNameOf } from '../../model/span-grouping/service-name';
@@ -130,17 +130,12 @@ export class SpanTooltipContent {
 
     const totalTime = span.finishTime - span.startTime;
     const selfTime = this.stage.getSpanSelfTime(span.id);
-    let timeText = prettyMilliseconds(
-      (span.finishTime - span.startTime) / 1000,
-      { formatSubMilliseconds: true }
-    );
+    let timeText = formatMicroseconds(span.finishTime - span.startTime);
 
     // TODO: This is not working correctly (I guess)
     // Analyze it after fixing self-time
     if (isNumber(selfTime) && selfTime != totalTime) {
-      const selfTimePretty = prettyMilliseconds(selfTime / 1000, {
-        formatSubMilliseconds: true
-      });
+      const selfTimePretty = formatMicroseconds(selfTime);
       timeText = `${timeText} (self ${selfTimePretty})`;
     }
 
@@ -241,11 +236,7 @@ export class SpanTooltipContent {
     els.logs.innerHTML = '';
 
     nearbyLogs.forEach(log => {
-      const time = prettyMilliseconds(
-        (log.logView.log.timestamp - this.options.axis.getInputRange()[0]) /
-          1000,
-        { formatSubMilliseconds: true }
-      );
+      const time = formatMicroseconds(log.logView.log.timestamp - this.options.axis.getInputRange()[0]);
 
       const logContainer = document.createElement('div');
       logContainer.classList.add('span-tooltip-log', 'span-tooltip-border-top');

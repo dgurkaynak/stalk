@@ -7,7 +7,7 @@ import {
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
 import map from 'lodash/map';
-import prettyMilliseconds from 'pretty-ms';
+import { formatMicroseconds } from '../../utils/format-microseconds';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
@@ -312,9 +312,7 @@ export class LogsDataView {
       value: number,
       cellProperties: Handsontable.CellProperties
     ) {
-      const time = prettyMilliseconds((value - stageStartTimestamp) / 1000, {
-        formatSubMilliseconds: true
-      });
+      const time = formatMicroseconds(value - stageStartTimestamp);
       Handsontable.renderers.TextRenderer.call(
         this,
         instance,

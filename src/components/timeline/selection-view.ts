@@ -1,5 +1,5 @@
 import vc from './view-constants';
-import prettyMilliseconds from 'pretty-ms';
+import { formatMicroseconds } from '../../utils/format-microseconds';
 import Axis from './axis';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -70,10 +70,7 @@ export default class SelectionView {
     this.rect.setAttribute('y', y + '');
     this.rect.setAttribute('width', width + '');
     this.rect.setAttribute('height', height + '');
-    this.durationText.textContent = prettyMilliseconds(
-      (finishTime - startTime) / 1000,
-      { formatSubMilliseconds: false }
-    );
+    this.durationText.textContent = formatMicroseconds(finishTime - startTime);
     this.durationText.setAttribute('x', x + width / 2 + '');
     this.durationText.setAttribute('y', y + height + 14 + '');
   }

@@ -6,8 +6,7 @@ import {
 } from '../ui/widget-toolbar/widget-toolbar-multi-select';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
-import map from 'lodash/map';
-import prettyMilliseconds from 'pretty-ms';
+import { formatMicroseconds } from '../../utils/format-microseconds';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 import { serviceNameOf } from '../../model/span-grouping/service-name';
 
@@ -420,9 +419,7 @@ export class SpansDataView {
       value: number,
       cellProperties: Handsontable.CellProperties
     ) {
-      const time = prettyMilliseconds((value - stageStartTimestamp) / 1000, {
-        formatSubMilliseconds: true
-      });
+      const time = formatMicroseconds(value - stageStartTimestamp);
       Handsontable.renderers.TextRenderer.call(
         this,
         instance,
@@ -447,9 +444,7 @@ export class SpansDataView {
       value: number,
       cellProperties: Handsontable.CellProperties
     ) {
-      const time = prettyMilliseconds(value / 1000, {
-        formatSubMilliseconds: true
-      });
+      const time = formatMicroseconds(value);
       Handsontable.renderers.TextRenderer.call(
         this,
         instance,

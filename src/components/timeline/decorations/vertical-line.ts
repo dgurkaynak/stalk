@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import BaseDecoration from './base';
-import prettyMilliseconds from 'pretty-ms';
+import { formatMicroseconds } from '../../../utils/format-microseconds';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -74,12 +74,7 @@ export default class VerticalLineDecoration extends BaseDecoration {
     const relativeTimeFromStart =
       (this.settings.timestamp - this.timelineView.axis.getInputRange()[0]) /
       1000;
-    this.text.textContent = prettyMilliseconds(relativeTimeFromStart, {
-      secondsDecimalDigits: 3,
-      millisecondsDecimalDigits: 1,
-      keepDecimalsOnWholeSeconds: true,
-      unitCount: 1
-    } as any);
+    this.text.textContent = formatMicroseconds(relativeTimeFromStart);
 
     const x = this.timelineView.axis.input2output(this.settings.timestamp);
 

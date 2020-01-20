@@ -53,7 +53,6 @@
     "noty": "^3.2.0-beta",
     "parse-duration": "^0.1.1",
     "prettier": "1.19.1",
-    "pretty-ms": "^5.0.0",
     "randomcolor": "^0.5.4",
     "raw-loader": "^3.1.0",
     "shortid": "^2.2.15",
