@@ -31,12 +31,14 @@ import {
   SpanLabellingOptions,
   operationLabellingOptions
 } from '../../model/span-labelling-manager';
+import BaseDecoration from './decorations/base';
 import LogHighlightDecoration from './decorations/log-highlight';
-import SpanConnectionsDecoration from './decorations/span-connections';
+import { SpanConnectionDecoration } from './decorations/span-connection';
 import prettyMilliseconds from 'pretty-ms';
 import SelectionView from './selection-view';
 import { SpanTooltipContent } from '../span-tooltip/span-tooltip-content';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
+import { Span } from '../../model/interfaces';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -67,8 +69,8 @@ export class Timeline extends EventEmitter {
   readonly decorationOverlayPanel = document.createElementNS(SVG_NS, 'g');
   readonly decorations = {
     logHighlight: new LogHighlightDecoration(this),
-    selectedSpansConnections: new SpanConnectionsDecoration(this),
-    hoveredSpanConnections: new SpanConnectionsDecoration(this)
+    selectedSpansConnections: [] as SpanConnectionDecoration[],
+    hoveredSpanConnections: [] as SpanConnectionDecoration[]
   };
 
   private _width = 0; // svg width
@@ -263,18 +265,20 @@ export class Timeline extends EventEmitter {
   }
 
   updateAllDecorations(forceReprepare = false) {
-    forEach(this.decorations, decoration => {
+    for (const decoration of Object.values(this.decorations)) {
       const decorations = isArray(decoration) ? decoration : [decoration];
 
       if (forceReprepare) {
-        decorations.forEach(d => {
-          const rv = d.prepare({} as any);
+        for (const d of decorations) {
+          const rv = d.prepare({} as any) as any;
           if (rv === false) d.unmount();
-        });
+        }
       }
 
-      decorations.forEach(d => d.update());
-    });
+      for (const d of decorations) {
+        d.update();
+      }
+    }
   }
 
   setupPanels() {
@@ -640,7 +644,9 @@ export class Timeline extends EventEmitter {
   selectSpan(spanId: string) {
     // If a span is already selected, update its style
     if (this.selectedSpanId) {
-      const previousSelectedSpanView = this.findSpanView(this.selectedSpanId)[1];
+      const previousSelectedSpanView = this.findSpanView(
+        this.selectedSpanId
+      )[1];
       if (previousSelectedSpanView) {
         previousSelectedSpanView.updateColorStyle('normal');
         previousSelectedSpanView.hideLogs();
@@ -648,8 +654,8 @@ export class Timeline extends EventEmitter {
     }
 
     // Unmount all the selected spans connections
-    this.decorations.selectedSpansConnections.unmount();
-    this.decorations.hoveredSpanConnections.unmount();
+    this.decorations.selectedSpansConnections.forEach(c => c.unmount());
+    this.decorations.hoveredSpanConnections.forEach(c => c.unmount());
 
     this.selectedSpanId = spanId;
     // If new span exists
@@ -660,10 +666,7 @@ export class Timeline extends EventEmitter {
       spanView.updateColorStyle('selected');
       spanView.showLogs();
       groupView.bringSpanViewToTop(spanId);
-
-      this.decorations.selectedSpansConnections.prepare({ spanId: spanId });
-      this.decorations.selectedSpansConnections.update();
-      this.decorations.selectedSpansConnections.mount();
+      this.showSelectedSpanConnections(this.selectedSpanId);
     }
 
     this.emit(TimelineEvent.SPAN_SELECTED, null);
@@ -776,7 +779,7 @@ export class Timeline extends EventEmitter {
           if (!spanView) return;
           spanView.updateColorStyle('normal');
           spanView.hideLogs();
-          this.decorations.hoveredSpanConnections.unmount();
+          this.decorations.hoveredSpanConnections.forEach(d => d.unmount());
           return;
         }
       }
@@ -826,10 +829,7 @@ export class Timeline extends EventEmitter {
           if (!spanView) return;
           spanView.updateColorStyle('hover');
           spanView.showLogs();
-
-          this.decorations.hoveredSpanConnections.prepare({ spanId: spanId });
-          this.decorations.hoveredSpanConnections.update();
-          this.decorations.hoveredSpanConnections.mount();
+          this.showHoveredSpanConnections(spanId);
 
           return;
         }
@@ -852,7 +852,7 @@ export class Timeline extends EventEmitter {
   }
 
   onMouseIdleLeave(e: MouseEvent) {
-    this.decorations.hoveredSpanConnections.unmount();
+    this.decorations.hoveredSpanConnections.forEach(d => d.unmount());
     this.spanTooltipTippy.hide();
   }
 
@@ -1000,5 +1000,118 @@ export class Timeline extends EventEmitter {
         text.parentElement && text.parentElement.removeChild(text);
       }
     }
+  }
+
+  private showSelectedSpanConnections(spanId: string) {
+    const [groupView, spanView] = this.findSpanView(spanId);
+    if (!groupView || !spanView) return;
+    const span = spanView.span;
+    const that = this;
+    const strokeColor = 'rgba(0, 0, 0, 0.5)';
+
+    // Clean-up
+    this.decorations.selectedSpansConnections.forEach(d => d.unmount());
+    this.decorations.selectedSpansConnections = [];
+
+    // Parent connection(s) recursive
+    handleParentConnection(span);
+
+    function handleParentConnection(span: Span) {
+      // CAUTION: We're assuming the first `childOf` or `followsFrom` reference as the parent.
+      const parentRef = find(span.references, ref => {
+        return ref.type == 'childOf' || ref.type == 'followsFrom';
+      });
+      if (!parentRef) return;
+
+      const [refGroupView, refSpanView] = that.findSpanView(parentRef.spanId);
+      // TODO: Indicate when span could not found
+      if (!refGroupView || !refSpanView) return;
+
+      const decoration = new SpanConnectionDecoration(that);
+      decoration.prepare({
+        spanId1: refSpanView.span.id,
+        spanId2: span.id,
+        strokeColor,
+        strokeDasharray: parentRef.type == 'followsFrom' ? '2' : '0'
+      });
+      decoration.update();
+      decoration.mount();
+
+      that.decorations.selectedSpansConnections.push(decoration);
+      handleParentConnection(refSpanView.span);
+    }
+
+    // Children connections
+    const childrenMatches = this.findSpanViews(v => {
+      const selfReferences = find(v.span.references, r => r.spanId === span.id);
+      return !!selfReferences;
+    });
+
+    childrenMatches.forEach(([refGroupView, refSpanView]) => {
+      const ref = find(refSpanView.span.references, r => r.spanId === span.id);
+      const decoration = new SpanConnectionDecoration(this);
+      decoration.prepare({
+        spanId1: span.id,
+        spanId2: refSpanView.span.id,
+        strokeColor,
+        strokeDasharray: ref.type == 'followsFrom' ? '2' : '0'
+      });
+      decoration.update();
+      decoration.mount();
+
+      this.decorations.selectedSpansConnections.push(decoration);
+    });
+  }
+
+  // Sorry for duplication, or not sorry
+  private showHoveredSpanConnections(spanId: string) {
+    const [groupView, spanView] = this.findSpanView(spanId);
+    if (!groupView || !spanView) return;
+    const span = spanView.span;
+    const strokeColor = 'rgba(0, 0, 0, 0.5)';
+
+    // Clean-up
+    this.decorations.hoveredSpanConnections.forEach(d => d.unmount());
+    this.decorations.hoveredSpanConnections = [];
+
+    // Parent connection(s)
+    span.references.forEach(ref => {
+      const [refGroupView, refSpanView] = this.findSpanView(ref.spanId);
+      if (!refGroupView || !refSpanView) return;
+      // TODO: Indicate when span could not found
+
+      const decoration = new SpanConnectionDecoration(this);
+      decoration.prepare({
+        spanId1: refSpanView.span.id,
+        spanId2: span.id,
+        strokeColor,
+        strokeDasharray: ref.type == 'followsFrom' ? '2' : '0'
+      });
+      decoration.update();
+      decoration.mount();
+
+      this.decorations.hoveredSpanConnections.push(decoration);
+    });
+
+    // Children connections
+    const childrenMatches = this.findSpanViews(v => {
+      const selfReferences = find(v.span.references, r => r.spanId === span.id);
+      return !!selfReferences;
+    });
+
+    childrenMatches.forEach(([refGroupView, refSpanView]) => {
+      const ref = find(refSpanView.span.references, r => r.spanId === span.id);
+      const decoration = new SpanConnectionDecoration(this);
+      decoration.prepare({
+        spanId1: span.id,
+        spanId2: refSpanView.span.id,
+        strokeDasharray: ref.type == 'followsFrom' ? '2' : '0',
+        strokeColor
+      });
+      decoration.update();
+      decoration.mount();
+
+      this.decorations.hoveredSpanConnections.push(decoration);
+    });
   }
 }
