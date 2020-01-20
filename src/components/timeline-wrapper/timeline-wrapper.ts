@@ -125,13 +125,13 @@ export class TimelineWrapper {
       { type: 'item', text: 'Service', id: serviceNameGroupingOptions.key },
       { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
-      {
-        type: 'item',
-        text: 'Manage All',
-        icon: 'settings-outline',
-        id: 'manage-all',
-        disabled: true
-      }
+      // {
+      //   type: 'item',
+      //   text: 'Manage All',
+      //   icon: 'settings-outline',
+      //   id: 'manage-all',
+      //   disabled: true
+      // }
     ],
     onSelect: this.binded.onSpanGroupingModeMenuItemClick
   });
@@ -146,13 +146,13 @@ export class TimelineWrapper {
       },
       { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
-      {
-        type: 'item',
-        text: 'Manage All',
-        icon: 'settings-outline',
-        id: 'manage-all',
-        disabled: true
-      }
+      // {
+      //   type: 'item',
+      //   text: 'Manage All',
+      //   icon: 'settings-outline',
+      //   id: 'manage-all',
+      //   disabled: true
+      // }
     ],
     onSelect: this.binded.onSpanLabellingMenuItemClick
   });
@@ -163,13 +163,13 @@ export class TimelineWrapper {
       { type: 'item', text: 'Service', id: serviceColoringOptions.key },
       { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
-      {
-        type: 'item',
-        text: 'Manage All',
-        icon: 'settings-outline',
-        id: 'manage-all',
-        disabled: true
-      }
+      // {
+      //   type: 'item',
+      //   text: 'Manage All',
+      //   icon: 'settings-outline',
+      //   id: 'manage-all',
+      //   disabled: true
+      // }
     ],
     onSelect: this.binded.onSpanColoringMenuItemClick
   });
