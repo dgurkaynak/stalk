@@ -21,6 +21,7 @@ function createWindow() {
       nodeIntegration: true
     }
   });
+  mainWindow.maximize();
 
   // and load the index.html of the app.
   const startUrl =
