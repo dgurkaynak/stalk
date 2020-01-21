@@ -19,6 +19,7 @@ import { isZipkinJSON, convertFromZipkinTrace } from './model/api/zipkin/span';
 import { TypeScriptManager } from './components/customization/typescript-manager';
 import { ipcRenderer } from 'electron';
 import { SpanSummaryView } from './components/span-summary/span-summary';
+import { SpanTagsView } from './components/span-tags/span-tags';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -30,6 +31,7 @@ export enum AppWidgetType {
   LOGS_DATA_VIEW = 'logs-data-view',
   SPANS_DATA_VIEW = 'spans-data-view',
   SPAN_SUMMARY = 'span-summary',
+  SPAN_TAGS = 'span-tags',
 }
 
 export interface AppOptions {
@@ -43,6 +45,7 @@ export class App {
   private logsData = new LogsDataView();
   private spansData = new SpansDataView();
   private spanSummary = new SpanSummaryView();
+  private spanTags = new SpanTagsView();
 
   private dockPanel = new DockPanel();
   private widgets: { [key: string]: WidgetWrapper } = {};
@@ -56,6 +59,7 @@ export class App {
     onLogsDataResize: throttle(this.onLogsDataResize.bind(this), 100),
     onSpansDataResize: throttle(this.onSpansDataResize.bind(this), 100),
     onSpanSummaryResize: throttle(this.onSpanSummaryResize.bind(this), 100),
+    onSpanTagsResize: throttle(this.onSpanTagsResize.bind(this), 100),
     onDrop: this.onDrop.bind(this),
     onDragOver: this.onDragOver.bind(this),
     onDragLeave: this.onDragLeave.bind(this)
@@ -98,6 +102,10 @@ export class App {
     const spanSummaryWidgetEl = this.widgets[AppWidgetType.SPAN_SUMMARY].node;
     this.spanSummary.mount(spanSummaryWidgetEl);
     this.spanSummary.init({ timeline: this.timeline.timeline });
+
+    const spanTagsWidgetEl = this.widgets[AppWidgetType.SPAN_TAGS].node;
+    this.spanTags.mount(spanTagsWidgetEl);
+    this.spanTags.init({ timeline: this.timeline.timeline });
 
     this.initDropZone();
 
@@ -165,6 +173,11 @@ export class App {
       onResize: this.binded.onSpanSummaryResize
     });
 
+    this.widgets[AppWidgetType.SPAN_TAGS] = new WidgetWrapper({
+      title: 'Span Tags',
+      onResize: this.binded.onSpanTagsResize
+    });
+
     this.dockPanel.addWidget(this.widgets[AppWidgetType.TIMELINE_VIEW]);
     this.dockPanel.addWidget(this.widgets[AppWidgetType.SPANS_DATA_VIEW], {
       mode: 'tab-after',
@@ -177,6 +190,10 @@ export class App {
     this.dockPanel.addWidget(this.widgets[AppWidgetType.SPAN_SUMMARY], {
       mode: 'split-bottom',
       ref: this.widgets[AppWidgetType.TIMELINE_VIEW]
+    });
+    this.dockPanel.addWidget(this.widgets[AppWidgetType.SPAN_TAGS], {
+      mode: 'split-right',
+      ref: this.widgets[AppWidgetType.SPAN_SUMMARY]
     });
 
     DockPanel.attach(this.dockPanel, this.options.element);
@@ -208,6 +225,10 @@ export class App {
 
   onSpanSummaryResize(msg: { width: number; height: number }) {
     this.spanSummary.resize(msg.width, msg.height);
+  }
+
+  onSpanTagsResize(msg: { width: number; height: number }) {
+    this.spanTags.resize(msg.width, msg.height);
   }
 
   initDropZone() {

@@ -52,6 +52,7 @@
 
 .span-summary-content .key-value-row .value {
   user-select: text;
+  text-align: right;
 }
 
 .span-summary-content .key-value-row .bold {
