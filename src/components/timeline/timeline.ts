@@ -424,8 +424,15 @@ export class Timeline extends EventEmitter {
   removeTrace(trace: Trace) {
     const removeds = remove(this.traces, t => t.id === trace.id);
     if (removeds.length === 0) return false;
-    trace.spans.forEach(s => this.spanGrouping.removeSpan(s));
+    let isSelectedSpanRemoved = false;
+    trace.spans.forEach(s => {
+      this.spanGrouping.removeSpan(s);
+      if (this.selectedSpanId && (s.id == this.selectedSpanId)) {
+        isSelectedSpanRemoved = true;
+      }
+    });
     this.layout();
+    if (isSelectedSpanRemoved) this.selectSpan(null);
     return true;
   }
 
