@@ -178,22 +178,32 @@ export class App {
       onResize: this.binded.onSpanTagsResize
     });
 
-    this.dockPanel.addWidget(this.widgets[AppWidgetType.TIMELINE_VIEW]);
-    this.dockPanel.addWidget(this.widgets[AppWidgetType.SPANS_DATA_VIEW], {
-      mode: 'tab-after',
-      ref: this.widgets[AppWidgetType.TIMELINE_VIEW]
-    });
-    this.dockPanel.addWidget(this.widgets[AppWidgetType.LOGS_DATA_VIEW], {
-      mode: 'tab-after',
-      ref: this.widgets[AppWidgetType.SPANS_DATA_VIEW]
-    });
-    this.dockPanel.addWidget(this.widgets[AppWidgetType.SPAN_SUMMARY], {
-      mode: 'split-bottom',
-      ref: this.widgets[AppWidgetType.TIMELINE_VIEW]
-    });
-    this.dockPanel.addWidget(this.widgets[AppWidgetType.SPAN_TAGS], {
-      mode: 'split-right',
-      ref: this.widgets[AppWidgetType.SPAN_SUMMARY]
+    this.dockPanel.restoreLayout({
+      main: {
+        children: [
+          {
+            type: 'tab-area',
+            currentIndex: 0,
+            widgets: [
+              this.widgets[AppWidgetType.TIMELINE_VIEW],
+              this.widgets[AppWidgetType.SPANS_DATA_VIEW],
+              this.widgets[AppWidgetType.LOGS_DATA_VIEW]
+            ]
+          },
+          {
+            type: 'split-area',
+            orientation: 'horizontal',
+            sizes: [0.5, 0.5],
+            children: [
+              { type: 'tab-area', currentIndex: 0, widgets: [ this.widgets[AppWidgetType.SPAN_SUMMARY] ] },
+              { type: 'tab-area', currentIndex: 0, widgets: [ this.widgets[AppWidgetType.SPAN_TAGS] ] }
+            ]
+          }
+        ],
+        orientation: 'vertical',
+        sizes: [0.70, 0.30],
+        type: 'split-area'
+      }
     });
 
     DockPanel.attach(this.dockPanel, this.options.element);
