@@ -7,7 +7,7 @@ export interface FormatMicrosecondsScale {
 
 export interface FormatMicrosecondsOptions {
   scales?: FormatMicrosecondsScale[];
-  minimumIntegerDigits?: number;
+  minimumInteger?: number; // TODO: Our default min integer is 1, if integer part is below 1, scale down
   maximumFractionDigits?: number;
 };
 

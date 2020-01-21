@@ -1,0 +1,59 @@
+.span-summary {
+  min-height: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.span-summary .no-span-selected {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.span-summary .no-span-selected svg {
+  width: 2.5em;
+  height: 2.5em;
+  fill: #ccc;
+}
+
+.span-summary .no-span-selected span {
+  color: #ccc;
+  margin-top: 0.5em;
+  font-weight: 600;
+}
+
+.span-summary-content {
+  margin: 1em;
+}
+
+.span-summary-content .operation-name {
+  font-size: 1.5em;
+  font-weight: 600;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.3em;
+  margin-bottom: 0.3em;
+  user-select: text;
+}
+
+.span-summary-content .key-value-row {
+  display: flex;
+  line-height: 1.7em;
+}
+
+.span-summary-content .key-value-row:nth-child(odd) {
+  background: #f6f6f6;
+}
+
+.span-summary-content .key-value-row .key {
+  flex-grow: 1;
+}
+
+.span-summary-content .key-value-row .value {
+  user-select: text;
+}
+
+.span-summary-content .key-value-row .bold {
+  font-weight: 600;
+}

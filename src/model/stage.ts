@@ -126,6 +126,10 @@ export class Stage extends EventEmitter {
     return !!this.traces[traceId];
   }
 
+  getMainSpanGroup() {
+    return this.mainSpanGroup;
+  }
+
   getAllSpans() {
     return this.mainSpanGroup.getAll();
   }

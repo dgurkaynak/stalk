@@ -669,7 +669,7 @@ export class Timeline extends EventEmitter {
       this.showSelectedSpanConnections(this.selectedSpanId);
     }
 
-    this.emit(TimelineEvent.SPAN_SELECTED, null);
+    this.emit(TimelineEvent.SPAN_SELECTED);
   }
 
   getSelectedSpanId() {
