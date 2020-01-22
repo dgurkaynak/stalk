@@ -159,11 +159,13 @@ export class SpanTagsView {
     const mainSpanGroup = this.stage.getMainSpanGroup();
     const span = mainSpanGroup.get(spanId); // TODO: If span does not exists?
     this.selectedSpanId = spanId;
-    this.tagItems = Object.keys(span.tags).map(key => ({
-      key,
-      value: span.tags[key]
-    }));
-    // TODO: Sort tagItems by their `key`
+    this.tagItems = Object.keys(span.tags)
+      .sort((a, b) => {
+        if (a < b) return -1;
+        if (a > b) return 1;
+        return 0;
+      })
+      .map(key => ({ key, value: span.tags[key] }));
     this.fuse = new Fuse(this.tagItems, { keys: ['key', 'value'] });
     this.render();
   }
