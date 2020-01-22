@@ -31,7 +31,6 @@ import {
   SpanLabellingOptions,
   operationLabellingOptions
 } from '../../model/span-labelling-manager';
-import LogHighlightDecoration from './decorations/log-highlight';
 import { SpanConnectionDecoration } from './decorations/span-connection';
 import IntervalHighlightDecoration from './decorations/interval-highlight';
 import prettyMilliseconds from 'pretty-ms';
@@ -39,6 +38,7 @@ import SelectionView from './selection-view';
 import { SpanTooltipContent } from '../span-tooltip/span-tooltip-content';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { Span } from '../../model/interfaces';
+import VerticalLineDecoration from './decorations/vertical-line';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -68,7 +68,7 @@ export class Timeline extends EventEmitter {
   readonly decorationUnderlayPanel = document.createElementNS(SVG_NS, 'g');
   readonly decorationOverlayPanel = document.createElementNS(SVG_NS, 'g');
   readonly decorations = {
-    logHighlight: new LogHighlightDecoration(this),
+    logVerticalLine: new VerticalLineDecoration(this),
     selectedSpanIntervalHighlight: new IntervalHighlightDecoration(this),
     selectedSpanConnections: [] as SpanConnectionDecoration[],
     hoveredSpanConnections: [] as SpanConnectionDecoration[]
@@ -752,6 +752,22 @@ export class Timeline extends EventEmitter {
       );
       this.setPanelTranslateY(panelTranslateY);
     }
+  }
+
+  showLogVerticalLine(timestamp: number) {
+    this.decorations.logVerticalLine.prepare({
+      timestamp,
+      lineColor: 'rgba(0, 0, 0, 0.75)',
+      lineWidth: 1,
+      position: 'overlay',
+      displayTime: false
+    });
+    this.decorations.logVerticalLine.update();
+    this.decorations.logVerticalLine.mount();
+  }
+
+  hideLogVerticalLine() {
+    this.decorations.logVerticalLine.unmount();
   }
 
   ////////////////////////////////////////

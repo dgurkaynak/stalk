@@ -90,6 +90,11 @@ export class SpanLogItemView {
   }
 
   private render() {
+    this.elements.container.setAttribute(
+      'data-log-timestamp',
+      `${this.options.log.timestamp}`
+    );
+
     if (this.options.isExpanded) {
       this.renderExpanded();
     } else {

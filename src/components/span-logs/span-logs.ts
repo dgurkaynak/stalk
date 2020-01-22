@@ -1,5 +1,6 @@
 import Fuse from 'fuse.js';
 import { Stage } from '../../model/stage';
+import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import { Timeline, TimelineEvent } from '../timeline/timeline';
 import { SpanLogItemView } from './span-log-item';
@@ -38,7 +39,10 @@ export class SpanLogsView {
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
     onExpandAllClick: this.onExpandAllClick.bind(this),
-    onCollapseAllClick: this.onCollapseAllClick.bind(this)
+    onCollapseAllClick: this.onCollapseAllClick.bind(this),
+    onMouseMove: this.onMouseMove.bind(this),
+    onMouseLeave: this.onMouseLeave.bind(this),
+    onScroll: this.onScroll.bind(this)
   };
 
   constructor() {
@@ -109,6 +113,21 @@ export class SpanLogsView {
     this.elements.toolbarBtn.collapseAll.addEventListener(
       'click',
       this.binded.onCollapseAllClick,
+      false
+    );
+    this.elements.contentContainer.addEventListener(
+      'scroll',
+      this.binded.onScroll,
+      false
+    );
+    this.elements.contentContainer.addEventListener(
+      'mousemove',
+      this.binded.onMouseMove,
+      false
+    );
+    this.elements.contentContainer.addEventListener(
+      'mouseleave',
+      this.binded.onMouseLeave,
       false
     );
 
@@ -223,6 +242,23 @@ export class SpanLogsView {
     this.logItemViews.forEach(v => v.collapse());
   }
 
+  private onScroll(e: MouseEvent) {
+    this.timeline.hideLogVerticalLine();
+  }
+
+  private onMouseMove(e: MouseEvent) {
+    const logItemEl = (e.target as HTMLElement).closest('[data-log-timestamp]');
+    if (!logItemEl) return this.timeline.hideLogVerticalLine();
+    const timestampStr = logItemEl.getAttribute('data-log-timestamp');
+    const timestamp = Number(timestampStr);
+    if (isNaN(timestamp)) return this.timeline.hideLogVerticalLine();
+    this.timeline.showLogVerticalLine(timestamp);
+  }
+
+  private onMouseLeave(e: MouseEvent) {
+    this.timeline.hideLogVerticalLine();
+  }
+
   mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }
@@ -254,6 +290,21 @@ export class SpanLogsView {
     this.elements.toolbarBtn.collapseAll.removeEventListener(
       'click',
       this.binded.onCollapseAllClick,
+      false
+    );
+    this.elements.contentContainer.removeEventListener(
+      'mousemove',
+      this.binded.onMouseMove,
+      false
+    );
+    this.elements.contentContainer.removeEventListener(
+      'mouseleave',
+      this.binded.onMouseLeave,
+      false
+    );
+    this.elements.contentContainer.removeEventListener(
+      'scroll',
+      this.binded.onScroll,
       false
     );
   }
