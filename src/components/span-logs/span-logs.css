@@ -1,31 +1,31 @@
-.span-tags {
+.span-logs {
   height: 100%;
 }
 
-.span-tags .widget-toolbar {
+.span-logs .widget-toolbar {
   height: 27px;
 }
 
-.span-tags .content-container {
+.span-logs .content-container {
   height: calc(100% - 27px);
   overflow-y: auto;
   box-sizing: border-box;
   padding: 1em;
 }
 
-.span-tags .search-container {
+.span-logs .search-container {
   display: flex;
   align-items: center;
 }
 
-.span-tags .search-container svg {
+.span-logs .search-container svg {
   width: 1.3em;
   height: 1.3em;
   position: relative;
   margin-left: 0.4em;
 }
 
-.span-tags .search-container input {
+.span-logs .search-container input {
   height: 27px;
   border: 0;
   padding: 0;
@@ -33,7 +33,7 @@
   padding-left: 0.2em;
 }
 
-.span-tags .content-message {
+.span-logs .content-message {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -41,42 +41,41 @@
   align-items: center;
 }
 
-.span-tags .content-message svg {
+.span-logs .content-message svg {
   width: 2.5em;
   height: 2.5em;
   fill: #ccc;
 }
 
-.span-tags .content-message span {
+.span-logs .content-message span {
   color: #ccc;
   margin-top: 0.5em;
   font-weight: 600;
 }
 
-.span-tags .content-container .key-value-row {
+.span-logs .content-container .key-value-row {
   display: flex;
   line-height: 1.7em;
 }
 
-.span-tags .content-container .key-value-row:nth-child(even) {
+.span-logs .content-container .key-value-row:nth-child(even) {
   background: #f6f6f6;
 }
 
-.span-tags .content-container .key-value-row .key {
+.span-logs .content-container .key-value-row .key {
   flex-grow: 1;
   user-select: text;
 }
 
-.span-tags .content-container .key-value-row .value {
+.span-logs .content-container .key-value-row .value {
   user-select: text;
   text-align: right;
-  word-break: break-all;
 }
 
-.span-tags .content-container .key-value-row .bold {
+.span-logs .content-container .key-value-row .bold {
   font-weight: 600;
 }
 
-.span-tags .content-container .key-value-row.error {
+.span-logs .content-container .key-value-row.error {
   color: #f00;
 }

@@ -2,27 +2,23 @@ import Fuse from 'fuse.js';
 import { Stage } from '../../model/stage';
 import debounce from 'lodash/debounce';
 import { Timeline, TimelineEvent } from '../timeline/timeline';
+import { SpanLogItemView } from './span-log-item';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgCursorDefaultClick from '!!raw-loader!@mdi/svg/svg/cursor-default-click-outline.svg';
 import SvgEmoticonSad from '!!raw-loader!@mdi/svg/svg/emoticon-sad-outline.svg';
 import '../ui/widget-toolbar/widget-toolbar.css';
-import './span-tags.css';
+import './span-logs.css';
 
-interface SpanTagItem {
-  key: string;
-  value: string;
-}
-
-export class SpanTagsView {
+export class SpanLogsView {
   private stage = Stage.getSingleton();
   private timeline: Timeline;
   private selectedSpanId: string;
-  private tagItems: SpanTagItem[] = [];
-  private fuse: Fuse<SpanTagItem, Fuse.FuseOptions<SpanTagItem>> = new Fuse(
-    [],
-    { keys: ['key', 'value'] }
-  );
+  private logItemViews: SpanLogItemView[] = [];
+  private fuse: Fuse<
+    SpanLogItemView,
+    Fuse.FuseOptions<SpanLogItemView>
+  > = new Fuse([], { keys: ['fields.key', 'fields.value'] });
 
   private elements = {
     container: document.createElement('div'),
@@ -38,7 +34,7 @@ export class SpanTagsView {
 
   constructor() {
     const { container, toolbar, contentContainer } = this.elements;
-    container.classList.add('span-tags');
+    container.classList.add('span-logs');
 
     this.prepareToolbar();
     container.appendChild(toolbar);
@@ -111,32 +107,26 @@ export class SpanTagsView {
         return;
       }
 
-      this.renderTagItems(results as any);
+      this.renderLogItems(results as any);
       return;
     }
 
     // Not searching, display all
-    if (this.tagItems.length == 0) {
+    if (this.logItemViews.length == 0) {
       this.elements.contentContainer.innerHTML = `<div class="content-message">
         ${SvgEmoticonSad}
-        <span>No Tags</span>
+        <span>No Logs</span>
       </div>`;
       return;
     }
 
-    this.renderTagItems(this.tagItems);
+    this.renderLogItems(this.logItemViews);
   }
 
-  private renderTagItems(tagItems: SpanTagItem[]) {
-    this.elements.contentContainer.innerHTML = tagItems
-      .map(({ key, value }) => {
-        const errorClass = key == 'error' ? 'error' : '';
-        return `<div class="key-value-row ${errorClass}">
-        <div class="key">${key}:</div>
-        <div class="value bold">${value}</div>
-      </div>`;
-      })
-      .join('');
+  private renderLogItems(logItemViews: SpanLogItemView[]) {
+    this.logItemViews.forEach(v => v.unmount());
+    this.elements.contentContainer.innerHTML = ``;
+    logItemViews.forEach(v => v.mount(this.elements.contentContainer));
   }
 
   private onSearchInput(e: InputEvent) {
@@ -150,8 +140,12 @@ export class SpanTagsView {
 
     if (!spanId) {
       this.selectedSpanId = null;
-      this.tagItems = [];
-      this.fuse = new Fuse([], { keys: ['key', 'value'] });
+      this.logItemViews.forEach(v => {
+        v.unmount();
+        v.dispose();
+      });
+      this.logItemViews = [];
+      this.fuse = new Fuse([], { keys: ['fields.key', 'fields.value'] });
       this.render();
       return;
     }
@@ -159,12 +153,14 @@ export class SpanTagsView {
     const mainSpanGroup = this.stage.getMainSpanGroup();
     const span = mainSpanGroup.get(spanId); // TODO: If span does not exists?
     this.selectedSpanId = spanId;
-    this.tagItems = Object.keys(span.tags).map(key => ({
-      key,
-      value: span.tags[key]
-    }));
-    // TODO: Sort tagItems by their `key`
-    this.fuse = new Fuse(this.tagItems, { keys: ['key', 'value'] });
+    this.logItemViews = span.logs.map(log => {
+      const logItemView = new SpanLogItemView();
+      logItemView.init({ log });
+      return logItemView;
+    });
+    this.fuse = new Fuse(this.logItemViews, {
+      keys: ['fields.key', 'fields.value']
+    });
     this.render();
   }
 

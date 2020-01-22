@@ -20,6 +20,7 @@ import { TypeScriptManager } from './components/customization/typescript-manager
 import { ipcRenderer } from 'electron';
 import { SpanSummaryView } from './components/span-summary/span-summary';
 import { SpanTagsView } from './components/span-tags/span-tags';
+import { SpanLogsView } from './components/span-logs/span-logs';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -32,6 +33,7 @@ export enum AppWidgetType {
   SPANS_DATA_VIEW = 'spans-data-view',
   SPAN_SUMMARY = 'span-summary',
   SPAN_TAGS = 'span-tags',
+  SPAN_LOGS = 'span-logs',
 }
 
 export interface AppOptions {
@@ -46,6 +48,7 @@ export class App {
   private spansData = new SpansDataView();
   private spanSummary = new SpanSummaryView();
   private spanTags = new SpanTagsView();
+  private spanLogs = new SpanLogsView();
 
   private dockPanel = new DockPanel();
   private widgets: { [key: string]: WidgetWrapper } = {};
@@ -60,6 +63,7 @@ export class App {
     onSpansDataResize: throttle(this.onSpansDataResize.bind(this), 100),
     onSpanSummaryResize: throttle(this.onSpanSummaryResize.bind(this), 100),
     onSpanTagsResize: throttle(this.onSpanTagsResize.bind(this), 100),
+    onSpanLogsResize: throttle(this.onSpanLogsResize.bind(this), 100),
     onDrop: this.onDrop.bind(this),
     onDragOver: this.onDragOver.bind(this),
     onDragLeave: this.onDragLeave.bind(this)
@@ -106,6 +110,10 @@ export class App {
     const spanTagsWidgetEl = this.widgets[AppWidgetType.SPAN_TAGS].node;
     this.spanTags.mount(spanTagsWidgetEl);
     this.spanTags.init({ timeline: this.timeline.timeline });
+
+    const spanLogsWidgetEl = this.widgets[AppWidgetType.SPAN_LOGS].node;
+    this.spanLogs.mount(spanLogsWidgetEl);
+    this.spanLogs.init({ timeline: this.timeline.timeline });
 
     this.initDropZone();
 
@@ -178,6 +186,11 @@ export class App {
       onResize: this.binded.onSpanTagsResize
     });
 
+    this.widgets[AppWidgetType.SPAN_LOGS] = new WidgetWrapper({
+      title: 'Span Logs',
+      onResize: this.binded.onSpanLogsResize
+    });
+
     this.dockPanel.restoreLayout({
       main: {
         children: [
@@ -193,10 +206,11 @@ export class App {
           {
             type: 'split-area',
             orientation: 'horizontal',
-            sizes: [0.5, 0.5],
+            sizes: [0.33, 0.33, 0.33],
             children: [
               { type: 'tab-area', currentIndex: 0, widgets: [ this.widgets[AppWidgetType.SPAN_SUMMARY] ] },
-              { type: 'tab-area', currentIndex: 0, widgets: [ this.widgets[AppWidgetType.SPAN_TAGS] ] }
+              { type: 'tab-area', currentIndex: 0, widgets: [ this.widgets[AppWidgetType.SPAN_TAGS] ] },
+              { type: 'tab-area', currentIndex: 0, widgets: [ this.widgets[AppWidgetType.SPAN_LOGS] ] }
             ]
           }
         ],
@@ -239,6 +253,10 @@ export class App {
 
   onSpanTagsResize(msg: { width: number; height: number }) {
     this.spanTags.resize(msg.width, msg.height);
+  }
+
+  onSpanLogsResize(msg: { width: number; height: number }) {
+    this.spanLogs.resize(msg.width, msg.height);
   }
 
   initDropZone() {

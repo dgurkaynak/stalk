@@ -1,0 +1,77 @@
+.span-log-item {
+  margin-bottom: 0.5em;
+}
+
+.span-log-item-header {
+  cursor: pointer;
+}
+
+.span-log-item-header .arrow-right {
+  font-size: 0.8em;
+}
+
+.span-log-item-header .arrow-down {
+  font-size: 0.9em;
+}
+
+.span-log-item-header .title {
+  font-weight: 600;
+  font-style: italic;
+  user-select: text;
+}
+
+.span-log-item-header svg {
+  width: 1.1em;
+  height: 1.1em;
+  position: relative;
+  left: 0.05em;
+  top: 0.15em;
+  fill: red;
+}
+
+.span-log-item .curly {
+  color: #aaa;
+  font-style: italic;
+}
+
+.span-log-item-header .inline-fields {
+
+}
+
+.span-log-item-header .key {
+  background: #f3faff;
+  color: #7988B1;
+  padding: 1px 2px;
+  font-weight: 500;
+  border-radius: 2px;
+  user-select: text;
+}
+
+.span-log-item-header .value {
+  user-select: text;
+}
+
+.span-log-item-body {
+
+}
+
+.span-log-item-body .body-row {
+  margin-left: 1.5em;
+}
+
+.span-log-item-body .body-row:first-child {
+  margin-top: 0.2em;
+}
+
+.span-log-item-body .key {
+  background: #f3faff;
+  color: #7988B1;
+  padding: 1px 2px;
+  font-weight: 500;
+  border-radius: 2px;
+  user-select: text;
+}
+
+.span-log-item-body .value {
+  user-select: text;
+}
