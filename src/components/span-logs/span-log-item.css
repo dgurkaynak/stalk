@@ -4,6 +4,8 @@
 
 .span-log-item-header {
   cursor: pointer;
+  max-height: 5em;
+  overflow: hidden;
 }
 
 .span-log-item-header .arrow-right {
@@ -49,6 +51,7 @@
 
 .span-log-item-header .value {
   user-select: text;
+  word-break: break-all;
 }
 
 .span-log-item-body {
@@ -74,4 +77,5 @@
 
 .span-log-item-body .value {
   user-select: text;
+  word-break: break-all;
 }
