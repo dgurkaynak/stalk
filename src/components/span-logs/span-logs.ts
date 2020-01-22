@@ -3,10 +3,13 @@ import { Stage } from '../../model/stage';
 import debounce from 'lodash/debounce';
 import { Timeline, TimelineEvent } from '../timeline/timeline';
 import { SpanLogItemView } from './span-log-item';
+import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgCursorDefaultClick from '!!raw-loader!@mdi/svg/svg/cursor-default-click-outline.svg';
 import SvgEmoticonSad from '!!raw-loader!@mdi/svg/svg/emoticon-sad-outline.svg';
+import SvgExpandAll from '!!raw-loader!@mdi/svg/svg/expand-all.svg';
+import SvgCollapseAll from '!!raw-loader!@mdi/svg/svg/collapse-all.svg';
 import '../ui/widget-toolbar/widget-toolbar.css';
 import './span-logs.css';
 
@@ -23,13 +26,19 @@ export class SpanLogsView {
   private elements = {
     container: document.createElement('div'),
     toolbar: document.createElement('div'),
+    toolbarBtn: {
+      expandAll: document.createElement('div'),
+      collapseAll: document.createElement('div')
+    },
     searchInput: document.createElement('input'),
     contentContainer: document.createElement('div')
   };
 
   private binded = {
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
-    onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this)
+    onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
+    onExpandAllClick: this.onExpandAllClick.bind(this),
+    onCollapseAllClick: this.onCollapseAllClick.bind(this)
   };
 
   constructor() {
@@ -45,6 +54,7 @@ export class SpanLogsView {
 
   private prepareToolbar() {
     const toolbarEl = this.elements.toolbar;
+    const btn = this.elements.toolbarBtn;
     const searchInput = this.elements.searchInput;
 
     toolbarEl.classList.add('widget-toolbar', 'widget-toolbar');
@@ -66,10 +76,20 @@ export class SpanLogsView {
     searchInput.type = 'search';
     searchInput.placeholder = 'Search...';
     searchContainer.appendChild(searchInput);
+
+    // Right buttons
+    btn.expandAll.classList.add('widget-toolbar-button');
+    btn.expandAll.innerHTML = SvgExpandAll;
+    rightPane.appendChild(btn.expandAll);
+
+    btn.collapseAll.classList.add('widget-toolbar-button');
+    btn.collapseAll.innerHTML = SvgCollapseAll;
+    rightPane.appendChild(btn.collapseAll);
   }
 
   init(options: { timeline: Timeline }) {
     this.timeline = options.timeline;
+    this.initTooltips();
 
     // Bind events
     this.elements.searchInput.addEventListener(
@@ -81,9 +101,40 @@ export class SpanLogsView {
       TimelineEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
     );
+    this.elements.toolbarBtn.expandAll.addEventListener(
+      'click',
+      this.binded.onExpandAllClick,
+      false
+    );
+    this.elements.toolbarBtn.collapseAll.addEventListener(
+      'click',
+      this.binded.onCollapseAllClick,
+      false
+    );
 
     // Initial render
     this.render();
+  }
+
+  private initTooltips() {
+    const tooltipManager = TooltipManager.getSingleton();
+    const btn = this.elements.toolbarBtn;
+    tooltipManager.addToSingleton([
+      [
+        btn.expandAll,
+        {
+          content: 'Expand All',
+          multiple: true
+        }
+      ],
+      [
+        btn.collapseAll,
+        {
+          content: 'Collapse All',
+          multiple: true
+        }
+      ]
+    ]);
   }
 
   private render() {
@@ -164,6 +215,14 @@ export class SpanLogsView {
     this.render();
   }
 
+  private onExpandAllClick() {
+    this.logItemViews.forEach(v => v.expand());
+  }
+
+  private onCollapseAllClick() {
+    this.logItemViews.forEach(v => v.collapse());
+  }
+
   mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }
@@ -186,6 +245,16 @@ export class SpanLogsView {
     this.timeline.removeListener(
       TimelineEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
+    );
+    this.elements.toolbarBtn.expandAll.removeEventListener(
+      'click',
+      this.binded.onExpandAllClick,
+      false
+    );
+    this.elements.toolbarBtn.collapseAll.removeEventListener(
+      'click',
+      this.binded.onCollapseAllClick,
+      false
     );
   }
 }
