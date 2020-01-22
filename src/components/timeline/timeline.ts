@@ -31,9 +31,9 @@ import {
   SpanLabellingOptions,
   operationLabellingOptions
 } from '../../model/span-labelling-manager';
-import BaseDecoration from './decorations/base';
 import LogHighlightDecoration from './decorations/log-highlight';
 import { SpanConnectionDecoration } from './decorations/span-connection';
+import IntervalHighlightDecoration from './decorations/interval-highlight';
 import prettyMilliseconds from 'pretty-ms';
 import SelectionView from './selection-view';
 import { SpanTooltipContent } from '../span-tooltip/span-tooltip-content';
@@ -69,7 +69,8 @@ export class Timeline extends EventEmitter {
   readonly decorationOverlayPanel = document.createElementNS(SVG_NS, 'g');
   readonly decorations = {
     logHighlight: new LogHighlightDecoration(this),
-    selectedSpansConnections: [] as SpanConnectionDecoration[],
+    selectedSpanIntervalHighlight: new IntervalHighlightDecoration(this),
+    selectedSpanConnections: [] as SpanConnectionDecoration[],
     hoveredSpanConnections: [] as SpanConnectionDecoration[]
   };
 
@@ -427,7 +428,7 @@ export class Timeline extends EventEmitter {
     let isSelectedSpanRemoved = false;
     trace.spans.forEach(s => {
       this.spanGrouping.removeSpan(s);
-      if (this.selectedSpanId && (s.id == this.selectedSpanId)) {
+      if (this.selectedSpanId && s.id == this.selectedSpanId) {
         isSelectedSpanRemoved = true;
       }
     });
@@ -661,7 +662,8 @@ export class Timeline extends EventEmitter {
     }
 
     // Unmount all the selected spans connections
-    this.decorations.selectedSpansConnections.forEach(c => c.unmount());
+    this.decorations.selectedSpanIntervalHighlight.unmount();
+    this.decorations.selectedSpanConnections.forEach(c => c.unmount());
     this.decorations.hoveredSpanConnections.forEach(c => c.unmount());
 
     this.selectedSpanId = spanId;
@@ -674,6 +676,17 @@ export class Timeline extends EventEmitter {
       spanView.showLogs();
       groupView.bringSpanViewToTop(spanId);
       this.showSelectedSpanConnections(this.selectedSpanId);
+
+      this.decorations.selectedSpanIntervalHighlight.prepare({
+        startTimestamp: spanView.span.startTime,
+        finishTimestamp: spanView.span.finishTime,
+        lineColor: 'rgba(62, 124, 214, 0.25)',
+        lineWidth: 1,
+        lineDashArray: '2',
+        fillColor: 'rgba(58, 122, 217, 0.05)'
+      });
+      this.decorations.selectedSpanIntervalHighlight.update();
+      this.decorations.selectedSpanIntervalHighlight.mount();
     }
 
     this.emit(TimelineEvent.SPAN_SELECTED);
@@ -1017,8 +1030,8 @@ export class Timeline extends EventEmitter {
     const strokeColor = 'rgba(0, 0, 0, 0.5)';
 
     // Clean-up
-    this.decorations.selectedSpansConnections.forEach(d => d.unmount());
-    this.decorations.selectedSpansConnections = [];
+    this.decorations.selectedSpanConnections.forEach(d => d.unmount());
+    this.decorations.selectedSpanConnections = [];
 
     // Parent connection(s) recursive
     handleParentConnection(span);
@@ -1043,7 +1056,7 @@ export class Timeline extends EventEmitter {
       decoration.update();
       decoration.mount();
 
-      that.decorations.selectedSpansConnections.push(decoration);
+      that.decorations.selectedSpanConnections.push(decoration);
       handleParentConnection(refSpanView.span);
     }
 
@@ -1065,7 +1078,7 @@ export class Timeline extends EventEmitter {
       decoration.update();
       decoration.mount();
 
-      this.decorations.selectedSpansConnections.push(decoration);
+      this.decorations.selectedSpanConnections.push(decoration);
     });
   }
 
