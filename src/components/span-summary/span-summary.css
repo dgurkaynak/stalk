@@ -35,6 +35,7 @@
   padding-bottom: 0.3em;
   margin-bottom: 0.3em;
   user-select: text;
+  word-break: break-all;
 }
 
 .span-summary-content .key-value-row {
