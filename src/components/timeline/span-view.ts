@@ -164,7 +164,7 @@ export default class SpanView {
       strokeWidth = 0;
       strokeColor = 'transparent';
     } else if (style === 'selected') {
-      strokeWidth = 2.00001; // Chrome does not render borders when it's exactly 2px ?!?!
+      strokeWidth = 3;
       strokeColor = this.viewPropertiesCache.borderColor;
     }
 
