@@ -33,7 +33,7 @@ import {
 } from '../../model/span-labelling-manager';
 import { SpanConnectionDecoration } from './decorations/span-connection';
 import IntervalHighlightDecoration from './decorations/interval-highlight';
-import prettyMilliseconds from 'pretty-ms';
+import { formatMicroseconds } from '../../utils/format-microseconds';
 import SelectionView from './selection-view';
 import { SpanTooltipContent } from '../span-tooltip/span-tooltip-content';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
@@ -1014,12 +1014,7 @@ export class Timeline extends EventEmitter {
       line.setAttribute('stroke-width', '1');
       this.tickContainer.appendChild(line);
 
-      text.textContent = prettyMilliseconds(tick.inputRelative / 1000, {
-        secondsDecimalDigits: 3,
-        millisecondsDecimalDigits: 1,
-        keepDecimalsOnWholeSeconds: true,
-        unitCount: 1
-      } as any).replace('~', '');
+      text.textContent = formatMicroseconds(tick.inputRelative);
       text.setAttribute('x', tick.output - 4 + '');
       text.setAttribute('y', vc.tickTextOffsetY + '');
       text.setAttribute('fill', vc.tickTextColor);
