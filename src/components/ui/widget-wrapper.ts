@@ -6,6 +6,7 @@ export interface WidgetWrapperOptions {
   closable?: boolean;
   onResize?: (msg: { width: number; height: number }) => void;
   onClose?: () => void;
+  onAfterShow?: () => void;
 }
 
 // A tiny wrapper around phosphor-widget
@@ -24,5 +25,10 @@ export class WidgetWrapper extends Widget {
   protected onCloseRequest(msg: any) {
     super.onCloseRequest(msg);
     this.options.onClose && this.options.onClose();
+  }
+
+  protected onAfterShow(msg: any) {
+    super.onAfterShow(msg);
+    this.options.onAfterShow && this.options.onAfterShow();
   }
 }
