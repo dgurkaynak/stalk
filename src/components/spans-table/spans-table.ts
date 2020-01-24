@@ -211,17 +211,7 @@ export class SpansTableView {
         this.columnDefinitions.totalTime,
         this.columnDefinitions.selfTime,
         this.columnDefinitions.operationName,
-        this.columnDefinitions.serviceName,
-        {
-          // The title and field must be same with normal generated
-          // column struct, see: `onColumnsMultiSelectSelect()` method
-          title: getColumnIdByTag('error'),
-          field: getColumnFieldSelectorByTag('error'),
-          formatter: cell => {
-            const spanRow = cell.getRow().getData();
-            return spanRow.span.tags.error || '';
-          }
-        }
+        this.columnDefinitions.serviceName
       ],
       initialSort: [
         { column: this.columnDefinitions.startTime.field, dir: 'asc' }
@@ -264,11 +254,35 @@ export class SpansTableView {
   }
 
   private onTraceAdded(trace: Trace) {
-    this.updateColumnsMultiSelectItems();
-
-    trace.spans.forEach(span => this.spanRows.push(this.span2RowData(span)));
+    let includesErrorTag = false;
+    trace.spans.forEach(span => {
+      if (span.tags.error) includesErrorTag = true;
+      this.spanRows.push(this.span2RowData(span));
+    });
     this.updateFuse();
 
+    // If any span includes `error` tag, add error column if not already added!
+    if (includesErrorTag) {
+      const currentColumns = this.table.getColumnDefinitions();
+      const isAdded = !!find(
+        currentColumns,
+        col => col.field == getColumnFieldSelectorByTag('error')
+      );
+      if (!isAdded) {
+        this.table.addColumn({
+          // The title and field must be same with normal generated
+          // column struct, see: `onColumnsMultiSelectSelect()` method
+          title: getColumnIdByTag('error'),
+          field: getColumnFieldSelectorByTag('error'),
+          formatter: cell => {
+            const spanRow = cell.getRow().getData();
+            return spanRow.span.tags.error || '';
+          }
+        });
+      }
+    }
+
+    this.updateColumnsMultiSelectItems();
     this.updateTableData();
   }
 
