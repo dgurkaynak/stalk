@@ -41,6 +41,7 @@ export class SpansTableView {
     [],
     { keys: [] }
   );
+  private selectedSpanId: string;
 
   private elements = {
     container: document.createElement('div'),
@@ -68,7 +69,8 @@ export class SpansTableView {
     formatDuration: this.formatDuration.bind(this),
     formatTags: this.formatTags.bind(this),
     formatProcessTags: this.formatProcessTags.bind(this),
-    onSearchInput: debounce(this.onSearchInput.bind(this), 100)
+    onSearchInput: debounce(this.onSearchInput.bind(this), 100),
+    onRowClick: this.onRowClick.bind(this)
   };
 
   private columnDefinitions = {
@@ -216,10 +218,7 @@ export class SpansTableView {
       initialSort: [
         { column: this.columnDefinitions.startTime.field, dir: 'asc' }
       ],
-      rowClick: function(e: any, row: any) {
-        //trigger an alert message when the row is clicked
-        console.log('Row ' + row.getData().span.id + ' Clicked!!!!');
-      }
+      rowClick: this.binded.onRowClick
     });
   }
 
@@ -446,6 +445,7 @@ export class SpansTableView {
       span.process ? span.process.tags || {} : {}
     ).map(key => ({ key, value: span.process.tags[key] }));
     return {
+      id: span.id,
       span,
       totalTime,
       selfTime,
@@ -535,11 +535,22 @@ export class SpansTableView {
       // Simple (case insensitive, contains like) search
       const results = this.simpleSearch(searchQuery);
 
-      this.table.replaceData(results);
+      this.table
+        .replaceData(results)
+        .then(() => this.updateRowSelectionGracefully());
       return;
     }
 
-    this.table.replaceData(this.spanRows);
+    this.table
+      .replaceData(this.spanRows)
+      .then(() => this.updateRowSelectionGracefully());
+  }
+
+  private updateRowSelectionGracefully() {
+    if (!this.selectedSpanId) return;
+    const row = this.table.getRow(this.selectedSpanId);
+    if (!row) return;
+    row.select();
   }
 
   private simpleSearch(keyword: string) {
@@ -584,6 +595,11 @@ export class SpansTableView {
 
   private onSearchInput(e: InputEvent) {
     this.updateTableData();
+  }
+
+  private onRowClick(e: any, row: Tabulator.RowComponent) {
+    const spanRow = row.getData() as SpanRowData;
+    this.selectedSpanId = spanRow.span.id;
   }
 
   mount(parentEl: HTMLElement) {
