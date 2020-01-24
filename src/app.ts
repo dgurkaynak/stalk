@@ -21,6 +21,7 @@ import { ipcRenderer } from 'electron';
 import { SpanSummaryView } from './components/span-summary/span-summary';
 import { SpanTagsView } from './components/span-tags/span-tags';
 import { SpanLogsView } from './components/span-logs/span-logs';
+import { SpansTableView } from './components/spans-table/spans-table';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -34,6 +35,7 @@ export enum AppWidgetType {
   SPAN_SUMMARY = 'span-summary',
   SPAN_TAGS = 'span-tags',
   SPAN_LOGS = 'span-logs',
+  SPANS_TABLE = 'spans-table',
 }
 
 export interface AppOptions {
@@ -49,6 +51,7 @@ export class App {
   private spanSummary = new SpanSummaryView();
   private spanTags = new SpanTagsView();
   private spanLogs = new SpanLogsView();
+  private spansTable = new SpansTableView();
 
   private dockPanel = new DockPanel();
   private widgets: { [key: string]: WidgetWrapper } = {};
@@ -64,6 +67,8 @@ export class App {
     onSpanSummaryResize: throttle(this.onSpanSummaryResize.bind(this), 100),
     onSpanTagsResize: throttle(this.onSpanTagsResize.bind(this), 100),
     onSpanLogsResize: throttle(this.onSpanLogsResize.bind(this), 100),
+    onSpansTableResize: throttle(this.onSpansTableResize.bind(this), 100),
+    onSpansTableShow: this.onSpansTableShow.bind(this),
     onDrop: this.onDrop.bind(this),
     onDragOver: this.onDragOver.bind(this),
     onDragLeave: this.onDragLeave.bind(this)
@@ -114,6 +119,11 @@ export class App {
     const spanLogsWidgetEl = this.widgets[AppWidgetType.SPAN_LOGS].node;
     this.spanLogs.mount(spanLogsWidgetEl);
     this.spanLogs.init({ timeline: this.timeline.timeline });
+
+    const spansTableWidgetEl = this.widgets[AppWidgetType.SPANS_TABLE].node;
+    this.spansTable.mount(spansTableWidgetEl);
+    const { offsetWidth: w4, offsetHeight: h4 } = spansTableWidgetEl;
+    this.spansTable.init({ width: w4, height: h4 });
 
     this.initDropZone();
 
@@ -176,6 +186,12 @@ export class App {
       onResize: this.binded.onSpansDataResize
     });
 
+    this.widgets[AppWidgetType.SPANS_TABLE] = new WidgetWrapper({
+      title: 'Spans Table View',
+      onResize: this.binded.onSpansTableResize,
+      onAfterShow: this.binded.onSpansTableShow
+    });
+
     this.widgets[AppWidgetType.SPAN_SUMMARY] = new WidgetWrapper({
       title: 'Span Summary',
       onResize: this.binded.onSpanSummaryResize
@@ -200,7 +216,8 @@ export class App {
             widgets: [
               this.widgets[AppWidgetType.TIMELINE_VIEW],
               this.widgets[AppWidgetType.SPANS_DATA_VIEW],
-              this.widgets[AppWidgetType.LOGS_DATA_VIEW]
+              this.widgets[AppWidgetType.LOGS_DATA_VIEW],
+              this.widgets[AppWidgetType.SPANS_TABLE],
             ]
           },
           {
@@ -257,6 +274,14 @@ export class App {
 
   onSpanLogsResize(msg: { width: number; height: number }) {
     this.spanLogs.resize(msg.width, msg.height);
+  }
+
+  onSpansTableResize(msg: { width: number; height: number }) {
+    this.spansTable.resize(msg.width, msg.height);
+  }
+
+  onSpansTableShow() {
+    this.spansTable.redrawTable();
   }
 
   initDropZone() {

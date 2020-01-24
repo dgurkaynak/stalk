@@ -180,8 +180,4 @@ export class SpanLogItemView {
       false
     );
   }
-
-  get element() {
-    return this.elements.container;
-  }
 }
