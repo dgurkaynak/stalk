@@ -507,7 +507,10 @@ export class App {
   }
 
   private showSpanInTimelineView(spanId: string) {
-    console.log('showSpanInTimelineView', spanId);
+    if (!spanId) return;
+    this.timeline.timeline.selectSpan(spanId, true);
+    this.timeline.timeline.focusSpans([spanId]);
+    this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE_VIEW]);
   }
 
   dispose() {

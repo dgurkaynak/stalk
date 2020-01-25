@@ -654,7 +654,7 @@ export class Timeline extends EventEmitter {
     this.updateTicks();
   }
 
-  selectSpan(spanId: string) {
+  selectSpan(spanId: string, silent = false) {
     // If a span is already selected, update its style
     if (this.selectedSpanId) {
       const previousSelectedSpanView = this.findSpanView(
@@ -694,7 +694,9 @@ export class Timeline extends EventEmitter {
       this.decorations.selectedSpanIntervalHighlight.mount();
     }
 
-    this.emit(TimelineEvent.SPAN_SELECTED, this.selectedSpanId);
+    if (!silent) {
+      this.emit(TimelineEvent.SPAN_SELECTED, this.selectedSpanId);
+    }
   }
 
   getSelectedSpanId() {

@@ -17,6 +17,10 @@ import debounce from 'lodash/debounce';
 import { clipboard } from 'electron';
 import cloneDeep from 'lodash/cloneDeep';
 import EventEmitter from 'events';
+import {
+  ContextMenuManager,
+  ContextMenuEvent
+} from '../ui/context-menu/context-menu-manager';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
@@ -39,6 +43,7 @@ export enum SpansTableViewEvent {
 
 export class SpansTableView extends EventEmitter {
   private stage = Stage.getSingleton();
+  private contextMenuManager = ContextMenuManager.getSingleton();
   private table: Tabulator;
   private spanRows: SpanRowData[] = [];
   private selectedSpanId: string;
@@ -71,6 +76,7 @@ export class SpansTableView extends EventEmitter {
     formatProcessTags: this.formatProcessTags.bind(this),
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
     onRowClick: this.onRowClick.bind(this),
+    onRowContext: this.onRowContext.bind(this),
     onKeyDown: this.onKeyDown.bind(this)
   };
 
@@ -226,6 +232,7 @@ export class SpansTableView extends EventEmitter {
         { column: this.columnDefinitions.startTime.field, dir: 'asc' }
       ],
       rowClick: this.binded.onRowClick,
+      rowContext: this.binded.onRowContext,
       keybindings: false
     });
   }
@@ -606,6 +613,44 @@ export class SpansTableView extends EventEmitter {
       this.selectSpan(spanRow.span.id);
       this.emit(SpansTableViewEvent.SPAN_SELECTED, spanRow.span.id);
     }
+  }
+
+  private onRowContext(e: MouseEvent, row: Tabulator.RowComponent) {
+    const spanRow = row.getData() as SpanRowData;
+
+    this.contextMenuManager.show({
+      x: e.clientX,
+      y: e.clientY,
+      menuItems: [
+        {
+          selectItem: {
+            type: 'item',
+            text: 'Show in Timeline View',
+            id: 'showInTimelineView'
+          },
+          emitEvent: {
+            event: ContextMenuEvent.SHOW_SPAN_IN_TIMELINE_VIEW,
+            data: spanRow.span.id
+          }
+        },
+        {
+          selectItem: {
+            type: 'item',
+            text: 'Copy Span To Clipboard',
+            id: 'copyToClipboard',
+            altText: '⌘C'
+          },
+          onSelected: () => this.copySpanToClipboard(spanRow.span.id)
+        }
+      ]
+    });
+  }
+
+  private copySpanToClipboard(spanId: string) {
+    if (!spanId) return;
+    const spanRow = find(this.spanRows, row => row.span.id == spanId);
+    if (!spanRow) return;
+    clipboard.writeText(JSON.stringify(spanRow.span, null, 4));
   }
 
   getSelectedSpanId() {
