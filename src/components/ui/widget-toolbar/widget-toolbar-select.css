@@ -53,6 +53,14 @@
 .tippy-tooltip.widget-toolbar-select-theme .item .text {
   margin-right: 1em;
 }
+.tippy-tooltip.widget-toolbar-select-theme .item .alt {
+  flex-grow: 1;
+  text-align: right;
+  padding-left: 3em;
+  font-size: 0.75em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
 .tippy-tooltip.widget-toolbar-select-theme .item:hover { color: #fff; background: #2B97EF; }
 .tippy-tooltip.widget-toolbar-select-theme .item:hover svg { fill: #fff; }
 .tippy-tooltip.widget-toolbar-select-theme .item.selected { color: #fff; background: #2B97EF; }
