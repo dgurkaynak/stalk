@@ -16,7 +16,7 @@
   border-bottom-color: #ddd;
 }
 
-.logs-table-view .tabulator-col.tabulator-sortable:last-of-type {
+.logs-table-view .tabulator-col:last-of-type {
   border-right: 0;
 }
 

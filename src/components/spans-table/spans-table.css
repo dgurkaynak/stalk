@@ -16,7 +16,7 @@
   border-bottom-color: #ddd;
 }
 
-.spans-table-view .tabulator-col.tabulator-sortable:last-of-type {
+.spans-table-view .tabulator-col:last-of-type {
   border-right: 0;
 }
 
