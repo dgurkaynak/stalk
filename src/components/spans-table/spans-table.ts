@@ -606,13 +606,8 @@ export class SpansTableView extends EventEmitter {
 
   private onRowClick(e: any, row: Tabulator.RowComponent) {
     const spanRow = row.getData() as SpanRowData;
-    if (this.selectedSpanId == spanRow.span.id) {
-      this.selectSpan(null);
-      this.emit(SpansTableViewEvent.SPAN_SELECTED, null);
-    } else {
-      this.selectSpan(spanRow.span.id);
-      this.emit(SpansTableViewEvent.SPAN_SELECTED, spanRow.span.id);
-    }
+    this.selectSpan(spanRow.span.id);
+    this.emit(SpansTableViewEvent.SPAN_SELECTED, spanRow.span.id);
   }
 
   private onRowContext(e: MouseEvent, row: Tabulator.RowComponent) {
