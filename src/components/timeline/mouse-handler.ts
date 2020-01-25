@@ -3,7 +3,7 @@ import { Machine, interpret, actions } from 'xstate';
 
 const { send, cancel } = actions;
 
-const DOUBLE_CLICK_WAIT_TIME = 300;
+const DOUBLE_CLICK_WAIT_TIME = 0;
 const PAN_DETECTION_DELTA_X = 3;
 const PAN_DETECTION_DELTA_Y = 3;
 
