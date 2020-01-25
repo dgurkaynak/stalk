@@ -24,6 +24,14 @@
 .tippy-tooltip.context-menu-theme .item .text {
   margin-right: 1em;
 }
+.tippy-tooltip.context-menu-theme .item .alt {
+  flex-grow: 1;
+  text-align: right;
+  padding-left: 3em;
+  font-size: 0.75em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
 .tippy-tooltip.context-menu-theme .item:hover { background: #2B97EF; }
 .tippy-tooltip.context-menu-theme .item.selected { background: #2B97EF; }
 .tippy-tooltip.context-menu-theme .item.selected:hover { background: #288bdb; }

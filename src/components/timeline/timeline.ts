@@ -40,6 +40,7 @@ import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { Span } from '../../model/interfaces';
 import VerticalLineDecoration from './decorations/vertical-line';
 import { ContextMenuManager } from '../ui/context-menu/context-menu-manager';
+import { clipboard } from 'electron';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -998,24 +999,30 @@ export class Timeline extends EventEmitter {
           y: e.clientY,
           menuItems: [
             {
-              selectItem: { type: 'item', text: 'test', id: 'test1' },
-              onSelected: () => console.log('test clicked')
+              selectItem: {
+                type: 'item',
+                text: 'Show in Table View',
+                id: 'showInTableView'
+              },
+              onSelected: () => console.log('showInTableView')
             },
             {
               selectItem: {
                 type: 'item',
-                text: 'test 2',
-                id: 'test2',
-                disabled: true
+                text: 'Focus',
+                altText: 'F',
+                id: 'focus'
               },
-              onSelected: () => console.log('test 2 clicked')
+              onSelected: () => this.focusSpans([clickedSpanId])
             },
             {
-              selectItem: { type: 'divider' }
-            },
-            {
-              selectItem: { type: 'item', text: 'test 3', id: 'test3' },
-              onSelected: () => console.log('test 3 clicked')
+              selectItem: {
+                type: 'item',
+                text: 'Copy Span To Clipboard',
+                id: 'copyToClipboard',
+                altText: '⌘C'
+              },
+              onSelected: () => this.copySpanToClipboard(clickedSpanId)
             }
           ]
         });
@@ -1024,6 +1031,13 @@ export class Timeline extends EventEmitter {
 
       return;
     }
+  }
+
+  private copySpanToClipboard(spanId: string) {
+    if (!spanId) return;
+    const [groupView, spanView] = this.findSpanView(spanId);
+    if (!spanView) return;
+    clipboard.writeText(JSON.stringify(spanView.span, null, 4));
   }
 
   ///////////////////////////////////////

@@ -422,25 +422,30 @@ export class TimelineWrapper {
     if (e.target != this.elements.container) return;
 
     switch (e.key) {
-      case 'f':
-        this.timeline.focusSpans([this.timeline.getSelectedSpanId()]);
-        break;
-
-      case 'c':
-        if (!(e.ctrlKey || e.metaKey)) break;
+      case 'f': {
         const selectedSpanId = this.timeline.getSelectedSpanId();
-        if (!selectedSpanId) break;
-        const span = this.stage.getMainSpanGroup().get(selectedSpanId);
-        if (!span) break;
-        clipboard.writeText(JSON.stringify(span, null, 4));
-        break;
+        if (!selectedSpanId) return;
+        this.timeline.focusSpans([selectedSpanId]);
+        return;
+      }
 
-      case 'Alt':
-        if (this.timeline.tool == TimelineTool.RULER) break;
+      case 'c': {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        const selectedSpanId = this.timeline.getSelectedSpanId();
+        if (!selectedSpanId) return;
+        const span = this.stage.getMainSpanGroup().get(selectedSpanId);
+        if (!span) return;
+        clipboard.writeText(JSON.stringify(span, null, 4));
+        return;
+      }
+
+      case 'Alt': {
+        if (this.timeline.tool == TimelineTool.RULER) return;
         this.timelineToolBeforeTemporarySwitchToRulerTool = this.timeline.tool;
         this.timeline.updateTool(TimelineTool.RULER);
         this.updateSelectedTool();
-        break;
+        return;
+      }
     }
   }
 
@@ -450,7 +455,7 @@ export class TimelineWrapper {
     if (e.target != this.elements.container) return;
 
     switch (e.key) {
-      case 'Alt':
+      case 'Alt': {
         if (this.timelineToolBeforeTemporarySwitchToRulerTool) {
           this.timeline.updateTool(
             this.timelineToolBeforeTemporarySwitchToRulerTool
@@ -458,7 +463,8 @@ export class TimelineWrapper {
           this.timelineToolBeforeTemporarySwitchToRulerTool = null;
           this.updateSelectedTool();
         }
-        break;
+        return;
+      }
     }
   }
 
