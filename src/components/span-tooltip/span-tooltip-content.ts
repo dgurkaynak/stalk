@@ -246,10 +246,11 @@ export class SpanTooltipContent {
       const logFields = Object.keys(log.logView.log.fields);
       logFields.forEach(key => {
         const value = log.logView.log.fields[key];
+        const extraClass = key.toLowerCase() == 'error' ? 'error' : '';
         if (!value) return;
         html +=
-          `<span class="log-field-key">${key}:</span>` +
-          `<span class="log-field-value">${value}</span>`;
+          `<span class="log-field-key ${extraClass}">${key}:</span>` +
+          `<span class="log-field-value ${extraClass}">${value}</span>`;
       });
 
       logContainer.innerHTML = html;
