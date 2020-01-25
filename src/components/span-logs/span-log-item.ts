@@ -113,7 +113,7 @@ export class SpanLogItemView {
         return 0;
       })
       .map(key => {
-        if (key == 'error') hasError = true;
+        if (key.toLowerCase() == 'error') hasError = true;
         const value = this.options.log.fields[key];
         return `<span class="key">${key}:</span>
           <span class="value">${value}</span>`;
@@ -141,7 +141,7 @@ export class SpanLogItemView {
         return 0;
       })
       .map(key => {
-        if (key == 'error') hasError = true;
+        if (key.toLowerCase() == 'error') hasError = true;
         const value = this.options.log.fields[key];
         return `<div class="body-row">
           <span class="key">${key}:</span>

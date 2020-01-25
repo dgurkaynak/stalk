@@ -141,7 +141,7 @@ export class SpanTagsView {
   private renderTagItems(tagItems: SpanTagItem[]) {
     this.elements.contentContainer.innerHTML = tagItems
       .map(({ key, value }) => {
-        const errorClass = key == 'error' ? 'error' : '';
+        const errorClass = key.toLowerCase() == 'error' ? 'error' : '';
         return `<div class="key-value-row ${errorClass}">
         <div class="key">${key}:</div>
         <div class="value bold">${value}</div>
