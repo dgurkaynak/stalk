@@ -18,6 +18,7 @@ import { TypeScriptManager } from './components/customization/typescript-manager
 import { ipcRenderer } from 'electron';
 import { SpanSummaryView } from './components/span-summary/span-summary';
 import { SpanTagsView } from './components/span-tags/span-tags';
+import { SpanProcessTagsView } from './components/span-process-tags/span-process-tags';
 import { SpanLogsView } from './components/span-logs/span-logs';
 import { SpansTableView } from './components/spans-table/spans-table';
 import { LogsTableView } from './components/logs-table/logs-table';
@@ -37,6 +38,7 @@ export enum AppWidgetType {
   LOGS_TABLE = 'logs-table',
   SPAN_SUMMARY = 'span-summary',
   SPAN_TAGS = 'span-tags',
+  SPAN_PROCESS_TAGS = 'span-process-tags',
   SPAN_LOGS = 'span-logs'
 }
 
@@ -51,6 +53,7 @@ export class App {
   private timeline = new TimelineWrapper();
   private spanSummary = new SpanSummaryView();
   private spanTags = new SpanTagsView();
+  private spanProcessTags = new SpanProcessTagsView();
   private spanLogs = new SpanLogsView();
   private spansTable = new SpansTableView();
   private logsTable = new LogsTableView();
@@ -66,6 +69,7 @@ export class App {
     onTimelineResize: this.onTimelineResize.bind(this),
     onSpanSummaryResize: throttle(this.onSpanSummaryResize.bind(this), 100),
     onSpanTagsResize: throttle(this.onSpanTagsResize.bind(this), 100),
+    onSpanProcessTagsResize: throttle(this.onSpanProcessTagsResize.bind(this), 100),
     onSpanLogsResize: throttle(this.onSpanLogsResize.bind(this), 100),
     onSpansTableResize: throttle(this.onSpansTableResize.bind(this), 100),
     onSpansTableShow: this.onSpansTableShow.bind(this),
@@ -123,6 +127,13 @@ export class App {
     const spanTagsWidgetEl = this.widgets[AppWidgetType.SPAN_TAGS].node;
     this.spanTags.mount(spanTagsWidgetEl);
     this.spanTags.init({
+      timeline: this.timeline.timeline,
+      spansTable: this.spansTable
+    });
+
+    const spanProcessTagsWidgetEl = this.widgets[AppWidgetType.SPAN_PROCESS_TAGS].node;
+    this.spanProcessTags.mount(spanProcessTagsWidgetEl);
+    this.spanProcessTags.init({
       timeline: this.timeline.timeline,
       spansTable: this.spansTable
     });
@@ -215,6 +226,11 @@ export class App {
       onResize: this.binded.onSpanTagsResize
     });
 
+    this.widgets[AppWidgetType.SPAN_PROCESS_TAGS] = new WidgetWrapper({
+      title: 'Process Tags',
+      onResize: this.binded.onSpanProcessTagsResize
+    });
+
     this.widgets[AppWidgetType.SPAN_LOGS] = new WidgetWrapper({
       title: 'Span Logs',
       onResize: this.binded.onSpanLogsResize
@@ -245,7 +261,10 @@ export class App {
               {
                 type: 'tab-area',
                 currentIndex: 0,
-                widgets: [this.widgets[AppWidgetType.SPAN_TAGS]]
+                widgets: [
+                  this.widgets[AppWidgetType.SPAN_TAGS],
+                  this.widgets[AppWidgetType.SPAN_PROCESS_TAGS]
+                ]
               },
               {
                 type: 'tab-area',
@@ -286,6 +305,10 @@ export class App {
 
   onSpanTagsResize(msg: { width: number; height: number }) {
     this.spanTags.resize(msg.width, msg.height);
+  }
+
+  onSpanProcessTagsResize(msg: { width: number; height: number }) {
+    this.spanProcessTags.resize(msg.width, msg.height);
   }
 
   onSpanLogsResize(msg: { width: number; height: number }) {
