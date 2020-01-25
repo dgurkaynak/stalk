@@ -235,6 +235,9 @@ export class SpansTableView extends EventEmitter {
       rowContext: this.binded.onRowContext,
       keybindings: false
     });
+
+    // Init column picker
+    this.updateColumnsMultiSelectItems();
   }
 
   private initTooltips() {
@@ -300,21 +303,15 @@ export class SpansTableView extends EventEmitter {
   }
 
   private onTraceRemoved(trace: Trace) {
-    this.updateColumnsMultiSelectItems();
-
     trace.spans.forEach(span =>
       remove(this.spanRows, spanRow => spanRow.span.id == span.id)
     );
 
+    this.updateColumnsMultiSelectItems();
     this.updateTableData();
   }
 
   private updateColumnsMultiSelectItems() {
-    if (this.stage.getAllTraces().length == 0) {
-      this.columnsMultiSelect.updateItems([]);
-      return;
-    }
-
     const currentColumns = this.table.getColumnDefinitions();
     const items: WidgetToolbarMultiSelectItem[] = Object.keys(
       this.columnDefinitions
