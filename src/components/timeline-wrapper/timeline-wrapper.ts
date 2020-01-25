@@ -34,6 +34,7 @@ import { SpanLabellingFormModalContent } from '../customization/span-labelling-f
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 import { Trace } from '../../model/trace';
 import { Stage } from '../../model/stage';
+import { clipboard } from 'electron';
 
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
 import SvgFormatColorFill from '!!raw-loader!@mdi/svg/svg/format-color-fill.svg';
@@ -124,7 +125,7 @@ export class TimelineWrapper {
       { type: 'item', text: 'Process', id: processGroupingOptions.key },
       { type: 'item', text: 'Service', id: serviceNameGroupingOptions.key },
       { type: 'divider' },
-      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
+      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' }
       // {
       //   type: 'item',
       //   text: 'Manage All',
@@ -145,7 +146,7 @@ export class TimelineWrapper {
         id: serviceOperationLabellingOptions.key
       },
       { type: 'divider' },
-      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
+      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' }
       // {
       //   type: 'item',
       //   text: 'Manage All',
@@ -162,7 +163,7 @@ export class TimelineWrapper {
       { type: 'item', text: 'Operation', id: operationColoringOptions.key },
       { type: 'item', text: 'Service', id: serviceColoringOptions.key },
       { type: 'divider' },
-      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
+      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' }
       // {
       //   type: 'item',
       //   text: 'Manage All',
@@ -423,6 +424,15 @@ export class TimelineWrapper {
     switch (e.key) {
       case 'f':
         this.timeline.focusSpans([this.timeline.getSelectedSpanId()]);
+        break;
+
+      case 'c':
+        if (!(e.ctrlKey || e.metaKey)) break;
+        const selectedSpanId = this.timeline.getSelectedSpanId();
+        if (!selectedSpanId) break;
+        const span = this.stage.getMainSpanGroup().get(selectedSpanId);
+        if (!span) break;
+        clipboard.writeText(JSON.stringify(span, null, 4));
         break;
 
       case 'Alt':
