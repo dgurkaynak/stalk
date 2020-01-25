@@ -22,6 +22,7 @@ import { SpanSummaryView } from './components/span-summary/span-summary';
 import { SpanTagsView } from './components/span-tags/span-tags';
 import { SpanLogsView } from './components/span-logs/span-logs';
 import { SpansTableView } from './components/spans-table/spans-table';
+import { ContextMenuManager } from './components/ui/context-menu/context-menu-manager';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -85,7 +86,8 @@ export class App {
       SpanGroupingManager.getSingleton().init(),
       SpanColoringManager.getSingleton().init(),
       SpanLabellingManager.getSingleton().init(),
-      TypeScriptManager.getSingleton().init()
+      TypeScriptManager.getSingleton().init(),
+      ContextMenuManager.getSingleton().init()
     ]);
 
     this.initDockPanelAndWidgets();

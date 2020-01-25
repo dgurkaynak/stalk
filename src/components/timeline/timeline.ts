@@ -205,6 +205,7 @@ export class Timeline extends EventEmitter {
       trigger: 'custom',
       arrow: true,
       content: this.spanTooltipContent.element,
+      multiple: true,
       placement: 'top',
       theme: 'span-tooltip',
       onCreate(instance) {

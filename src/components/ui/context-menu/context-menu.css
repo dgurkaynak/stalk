@@ -1,0 +1,32 @@
+/* Really-custom ones */
+.tippy-tooltip.context-menu-theme > .tippy-content {
+  padding: 0;
+}
+.tippy-tooltip.context-menu-theme > .tippy-content > div {
+  padding: 0.3em 0;
+}
+.tippy-tooltip.context-menu-theme > .tippy-content > div > .item-divider {
+  height: 0.7em;
+  background: linear-gradient(#666, #666) no-repeat center/100% 1px;
+}
+.tippy-tooltip.context-menu-theme > .tippy-content > div > .item {
+  font-size: 1em;
+  line-height: 1.9em;
+  padding: 0 0.75em;
+  display: flex;
+  align-items: center;
+}
+.tippy-tooltip.context-menu-theme .item svg {
+  height: 1.3em;
+  margin-right: 0.3em;
+  fill: #fff;
+}
+.tippy-tooltip.context-menu-theme .item .text {
+  margin-right: 1em;
+}
+.tippy-tooltip.context-menu-theme .item:hover { background: #2B97EF; }
+.tippy-tooltip.context-menu-theme .item.selected { background: #2B97EF; }
+.tippy-tooltip.context-menu-theme .item.selected:hover { background: #288bdb; }
+.tippy-tooltip.context-menu-theme .item.disabled { cursor: default; color: #666; }
+.tippy-tooltip.context-menu-theme .item.disabled svg { fill: #666; }
+.tippy-tooltip.context-menu-theme .item.disabled:hover { background: none; }
