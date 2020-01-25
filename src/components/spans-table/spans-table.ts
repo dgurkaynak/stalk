@@ -15,6 +15,7 @@ import remove from 'lodash/remove';
 import sampleSize from 'lodash/sampleSize';
 import debounce from 'lodash/debounce';
 import { clipboard } from 'electron';
+import cloneDeep from 'lodash/cloneDeep';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
@@ -420,12 +421,8 @@ export class SpansTableView {
 
     // When a custom `tag` column added, tabulator defines a property
     // in all of the span tags object, even if it's undefined. This is
-    // a mutation that we don't want now. As a workaround, clone
-    // span tags & process tags object.
-    const spanCopy = { ...span };
-    if (spanCopy.tags) span.tags = { ...span.tags };
-    if (spanCopy.process && spanCopy.process.tags)
-      spanCopy.process.tags = { ...spanCopy.process.tags };
+    // a mutation that we don't want now. As a workaround, clone the span.
+    const spanCopy = cloneDeep(span);
 
     return {
       id: span.id,
