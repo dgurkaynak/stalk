@@ -409,9 +409,18 @@ export class SpansTableView {
     const totalTime = span.finishTime - span.startTime;
     const selfTime = this.stage.getSpanSelfTime(span.id);
     const serviceName = serviceNameOf(span);
+
+    // When a custom `tag` column added, tabulator defines a property
+    // in all of the span tags object, even if it's undefined. This is
+    // a mutation that we don't want now. As a workaround, clone
+    // span tags & process tags object.
+    const spanCopy = { ...span };
+    if (spanCopy.tags) span.tags = { ...span.tags };
+    if (spanCopy.process && spanCopy.process.tags) spanCopy.process.tags = { ...spanCopy.process.tags };
+
     return {
       id: span.id,
-      span,
+      span: spanCopy,
       totalTime,
       selfTime,
       serviceName
