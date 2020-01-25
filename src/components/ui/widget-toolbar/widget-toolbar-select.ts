@@ -39,9 +39,10 @@ export class WidgetToolbarSelect {
     this.render();
   }
 
-  // updateItems(newItems: WidgetToolbarSelectItemOptions) {
-  //   // We don't need it for now
-  // }
+  updateItems(newItems: WidgetToolbarSelectItem[]) {
+    this.options.items = newItems;
+    this.render();
+  }
 
   render() {
     this.element.innerHTML = '';
