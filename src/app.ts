@@ -11,8 +11,6 @@ import { Stage, StageEvent } from './model/stage';
 import { TimelineWrapper } from './components/timeline-wrapper/timeline-wrapper';
 import { DockPanel } from '@phosphor/widgets';
 import { WidgetWrapper } from './components/ui/widget-wrapper';
-import { LogsDataView } from './components/logs-data-view/logs-data-view';
-import { SpansDataView } from './components/spans-data-view/spans-data-view';
 import Noty from 'noty';
 import { isJaegerJSON, convertFromJaegerTrace } from './model/api/jaeger/span';
 import { isZipkinJSON, convertFromZipkinTrace } from './model/api/zipkin/span';
@@ -34,14 +32,12 @@ import 'noty/lib/themes/bootstrap-v4.css';
 import './app.css';
 
 export enum AppWidgetType {
-  TIMELINE_VIEW = 'timeline-view',
-  LOGS_DATA_VIEW = 'logs-data-view',
-  SPANS_DATA_VIEW = 'spans-data-view',
+  TIMELINE = 'timeline-view',
+  SPANS_TABLE = 'spans-table',
+  LOGS_TABLE = 'logs-table',
   SPAN_SUMMARY = 'span-summary',
   SPAN_TAGS = 'span-tags',
-  SPAN_LOGS = 'span-logs',
-  SPANS_TABLE = 'spans-table',
-  LOGS_TABLE = 'logs-table'
+  SPAN_LOGS = 'span-logs'
 }
 
 export interface AppOptions {
@@ -53,8 +49,6 @@ export class App {
   private contextMenuManager = ContextMenuManager.getSingleton();
   private toolbar = new AppToolbar({});
   private timeline = new TimelineWrapper();
-  private logsData = new LogsDataView();
-  private spansData = new SpansDataView();
   private spanSummary = new SpanSummaryView();
   private spanTags = new SpanTagsView();
   private spanLogs = new SpanLogsView();
@@ -70,8 +64,6 @@ export class App {
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
     onWindowResize: this.onWindowResize.bind(this),
     onTimelineResize: this.onTimelineResize.bind(this),
-    onLogsDataResize: throttle(this.onLogsDataResize.bind(this), 100),
-    onSpansDataResize: throttle(this.onSpansDataResize.bind(this), 100),
     onSpanSummaryResize: throttle(this.onSpanSummaryResize.bind(this), 100),
     onSpanTagsResize: throttle(this.onSpanTagsResize.bind(this), 100),
     onSpanLogsResize: throttle(this.onSpanLogsResize.bind(this), 100),
@@ -105,7 +97,7 @@ export class App {
 
     this.toolbar.mount(this.options.element);
 
-    const timelineWidgetEl = this.widgets[AppWidgetType.TIMELINE_VIEW].node;
+    const timelineWidgetEl = this.widgets[AppWidgetType.TIMELINE].node;
     this.timeline.mount(timelineWidgetEl);
     const { offsetWidth: w1, offsetHeight: h1 } = timelineWidgetEl;
     this.timeline.init({ width: w1, height: h1 });
@@ -120,16 +112,6 @@ export class App {
     this.logsTable.mount(logsTableWidgetEl);
     const { offsetWidth: w5, offsetHeight: h5 } = logsTableWidgetEl;
     this.logsTable.init({ width: w5, height: h5 });
-
-    const logsDataWidgetEl = this.widgets[AppWidgetType.LOGS_DATA_VIEW].node;
-    this.logsData.mount(logsDataWidgetEl);
-    const { offsetWidth: w2, offsetHeight: h2 } = logsDataWidgetEl;
-    this.logsData.init({ width: w2, height: h2 });
-
-    const spansDataWidgetEl = this.widgets[AppWidgetType.SPANS_DATA_VIEW].node;
-    this.spansData.mount(spansDataWidgetEl);
-    const { offsetWidth: w3, offsetHeight: h3 } = spansDataWidgetEl;
-    this.spansData.init({ width: w3, height: h3 });
 
     const spanSummaryWidgetEl = this.widgets[AppWidgetType.SPAN_SUMMARY].node;
     this.spanSummary.mount(spanSummaryWidgetEl);
@@ -206,19 +188,9 @@ export class App {
   initDockPanelAndWidgets() {
     this.dockPanel.id = 'app-dock-panel';
 
-    this.widgets[AppWidgetType.TIMELINE_VIEW] = new WidgetWrapper({
+    this.widgets[AppWidgetType.TIMELINE] = new WidgetWrapper({
       title: 'Timeline View',
       onResize: this.binded.onTimelineResize
-    });
-
-    this.widgets[AppWidgetType.LOGS_DATA_VIEW] = new WidgetWrapper({
-      title: 'Logs Data View',
-      onResize: this.binded.onLogsDataResize
-    });
-
-    this.widgets[AppWidgetType.SPANS_DATA_VIEW] = new WidgetWrapper({
-      title: 'Spans Data View',
-      onResize: this.binded.onSpansDataResize
     });
 
     this.widgets[AppWidgetType.SPANS_TABLE] = new WidgetWrapper({
@@ -255,9 +227,7 @@ export class App {
             type: 'tab-area',
             currentIndex: 0,
             widgets: [
-              this.widgets[AppWidgetType.TIMELINE_VIEW],
-              this.widgets[AppWidgetType.SPANS_DATA_VIEW],
-              this.widgets[AppWidgetType.LOGS_DATA_VIEW],
+              this.widgets[AppWidgetType.TIMELINE],
               this.widgets[AppWidgetType.SPANS_TABLE],
               this.widgets[AppWidgetType.LOGS_TABLE]
             ]
@@ -308,14 +278,6 @@ export class App {
 
   onTimelineResize(msg: { width: number; height: number }) {
     this.timeline.resize(msg.width, msg.height);
-  }
-
-  onLogsDataResize(msg: { width: number; height: number }) {
-    this.logsData.resize(msg.width, msg.height);
-  }
-
-  onSpansDataResize(msg: { width: number; height: number }) {
-    this.spansData.resize(msg.width, msg.height);
   }
 
   onSpanSummaryResize(msg: { width: number; height: number }) {
@@ -535,7 +497,7 @@ export class App {
     if (!spanId) return;
     this.timeline.timeline.selectSpan(spanId, true);
     this.timeline.timeline.focusSpans([spanId]);
-    this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE_VIEW]);
+    this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE]);
   }
 
   dispose() {
