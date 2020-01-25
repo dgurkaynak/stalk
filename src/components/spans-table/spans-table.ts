@@ -14,7 +14,6 @@ import find from 'lodash/find';
 import remove from 'lodash/remove';
 import sampleSize from 'lodash/sampleSize';
 import debounce from 'lodash/debounce';
-import Fuse from 'fuse.js';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
@@ -29,18 +28,12 @@ export interface SpanRowData {
   totalTime: number;
   selfTime: number;
   serviceName: string;
-  tagsArr: { key: string; value: string }[];
-  processTagsArr: { key: string; value: string }[];
 }
 
 export class SpansTableView {
   private stage = Stage.getSingleton();
   private table: Tabulator;
   private spanRows: SpanRowData[] = [];
-  private fuse: Fuse<SpanRowData, Fuse.FuseOptions<SpanRowData>> = new Fuse(
-    [],
-    { keys: [] }
-  );
   private selectedSpanId: string;
 
   private elements = {
@@ -198,7 +191,6 @@ export class SpansTableView {
     this.spanRows = this.stage
       .getAllSpans()
       .map(span => this.span2RowData(span));
-    this.updateFuse();
 
     // Init table
     this.table = new Tabulator(this.elements.tableContainer, {
@@ -258,7 +250,6 @@ export class SpansTableView {
       if (span.tags.error) includesErrorTag = true;
       this.spanRows.push(this.span2RowData(span));
     });
-    this.updateFuse();
 
     // If any span includes `error` tag, add error column if not already added!
     if (includesErrorTag) {
@@ -291,27 +282,8 @@ export class SpansTableView {
     trace.spans.forEach(span =>
       remove(this.spanRows, spanRow => spanRow.span.id == span.id)
     );
-    this.updateFuse();
 
     this.updateTableData();
-  }
-
-  private updateFuse() {
-    // Disabled in favor of `simpleSearch`
-    // NOOP for now.
-    return;
-    this.fuse = new Fuse(this.spanRows, {
-      keys: [
-        // 'span.id',
-        // 'span.traceId',
-        'span.operationName',
-        'serviceName',
-        'tagsArr.key',
-        'tagsArr.value',
-        'processTagsArr.key',
-        'processTagsArr.value'
-      ]
-    });
   }
 
   private updateColumnsMultiSelectItems() {
@@ -437,27 +409,12 @@ export class SpansTableView {
     const totalTime = span.finishTime - span.startTime;
     const selfTime = this.stage.getSpanSelfTime(span.id);
     const serviceName = serviceNameOf(span);
-    const tagsArr = Object.keys(span.tags).map(key => ({
-      key,
-      value: span.tags[key]
-    }));
-    const processTagsArr = Object.keys(
-      span.process ? span.process.tags || {} : {}
-    ).map(key => ({ key, value: span.process.tags[key] }));
     return {
       id: span.id,
       span,
       totalTime,
       selfTime,
-      serviceName,
-      tagsArr: Object.keys(span.tags).map(key => ({
-        key,
-        value: span.tags[key]
-      })),
-      processTagsArr: Object.keys(span.tags).map(key => ({
-        key,
-        value: span.tags[key]
-      }))
+      serviceName
     };
   }
 
@@ -527,11 +484,6 @@ export class SpansTableView {
   private updateTableData() {
     const searchQuery = this.elements.searchInput.value.trim();
     if (searchQuery) {
-      // Disable fuse.js search, it's too fuzzy I guess
-      // If you want to enable it again, do not forget
-      // to uncomment `updateFuse()` method
-      // const results = this.fuse.search(searchQuery);
-
       // Simple (case insensitive, contains like) search
       const results = this.simpleSearch(searchQuery);
 
