@@ -22,6 +22,7 @@ import { SpanSummaryView } from './components/span-summary/span-summary';
 import { SpanTagsView } from './components/span-tags/span-tags';
 import { SpanLogsView } from './components/span-logs/span-logs';
 import { SpansTableView } from './components/spans-table/spans-table';
+import { LogsTableView } from './components/logs-table/logs-table';
 import {
   ContextMenuManager,
   ContextMenuEvent
@@ -39,7 +40,8 @@ export enum AppWidgetType {
   SPAN_SUMMARY = 'span-summary',
   SPAN_TAGS = 'span-tags',
   SPAN_LOGS = 'span-logs',
-  SPANS_TABLE = 'spans-table'
+  SPANS_TABLE = 'spans-table',
+  LOGS_TABLE = 'logs-table'
 }
 
 export interface AppOptions {
@@ -57,6 +59,7 @@ export class App {
   private spanTags = new SpanTagsView();
   private spanLogs = new SpanLogsView();
   private spansTable = new SpansTableView();
+  private logsTable = new LogsTableView();
 
   private dockPanel = new DockPanel();
   private widgets: { [key: string]: WidgetWrapper } = {};
@@ -74,6 +77,8 @@ export class App {
     onSpanLogsResize: throttle(this.onSpanLogsResize.bind(this), 100),
     onSpansTableResize: throttle(this.onSpansTableResize.bind(this), 100),
     onSpansTableShow: this.onSpansTableShow.bind(this),
+    onLogsTableResize: throttle(this.onLogsTableResize.bind(this), 100),
+    onLogsTableShow: this.onLogsTableShow.bind(this),
     onDrop: this.onDrop.bind(this),
     onDragOver: this.onDragOver.bind(this),
     onDragLeave: this.onDragLeave.bind(this),
@@ -110,6 +115,11 @@ export class App {
     this.spansTable.mount(spansTableWidgetEl);
     const { offsetWidth: w4, offsetHeight: h4 } = spansTableWidgetEl;
     this.spansTable.init({ width: w4, height: h4 });
+
+    const logsTableWidgetEl = this.widgets[AppWidgetType.LOGS_TABLE].node;
+    this.logsTable.mount(logsTableWidgetEl);
+    const { offsetWidth: w5, offsetHeight: h5 } = logsTableWidgetEl;
+    this.logsTable.init({ width: w5, height: h5 });
 
     const logsDataWidgetEl = this.widgets[AppWidgetType.LOGS_DATA_VIEW].node;
     this.logsData.mount(logsDataWidgetEl);
@@ -217,6 +227,12 @@ export class App {
       onAfterShow: this.binded.onSpansTableShow
     });
 
+    this.widgets[AppWidgetType.LOGS_TABLE] = new WidgetWrapper({
+      title: 'Logs Table View',
+      onResize: this.binded.onLogsTableResize,
+      onAfterShow: this.binded.onLogsTableShow
+    });
+
     this.widgets[AppWidgetType.SPAN_SUMMARY] = new WidgetWrapper({
       title: 'Span Summary',
       onResize: this.binded.onSpanSummaryResize
@@ -242,7 +258,8 @@ export class App {
               this.widgets[AppWidgetType.TIMELINE_VIEW],
               this.widgets[AppWidgetType.SPANS_DATA_VIEW],
               this.widgets[AppWidgetType.LOGS_DATA_VIEW],
-              this.widgets[AppWidgetType.SPANS_TABLE]
+              this.widgets[AppWidgetType.SPANS_TABLE],
+              this.widgets[AppWidgetType.LOGS_TABLE]
             ]
           },
           {
@@ -319,6 +336,14 @@ export class App {
 
   onSpansTableShow() {
     this.spansTable.redrawTable();
+  }
+
+  onLogsTableResize(msg: { width: number; height: number }) {
+    this.logsTable.resize(msg.width, msg.height);
+  }
+
+  onLogsTableShow() {
+    this.logsTable.redrawTable();
   }
 
   initDropZone() {

@@ -9,44 +9,42 @@ import { formatMicroseconds } from '../../utils/format-microseconds';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 import { serviceNameOf } from '../../model/span-grouping/service-name';
 import * as Tabulator from 'tabulator-tables';
-import { Span } from '../../model/interfaces';
+import { Span, SpanLog } from '../../model/interfaces';
 import find from 'lodash/find';
 import remove from 'lodash/remove';
 import sampleSize from 'lodash/sampleSize';
 import debounce from 'lodash/debounce';
 import { clipboard } from 'electron';
 import cloneDeep from 'lodash/cloneDeep';
-import EventEmitter from 'events';
 import {
   ContextMenuManager,
   ContextMenuEvent
 } from '../ui/context-menu/context-menu-manager';
+import * as shortid from 'shortid';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
 import '../ui/widget-toolbar/widget-toolbar.css';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import './spans-table.css';
+import './logs-table.css';
 
 const TOOLBAR_HEIGHT = 27; // TODO: Sorry :(
 
-export interface SpanRowData {
+export interface LogRowData {
+  id: string;
   span: Span;
-  totalTime: number;
-  selfTime: number;
   serviceName: string;
+  timestamp: number;
+  spanTimestamp: number;
+  fields: { [key: string]: string };
 }
 
-export enum SpansTableViewEvent {
-  SPAN_SELECTED = 'span_selected'
-}
-
-export class SpansTableView extends EventEmitter {
+export class LogsTableView {
   private stage = Stage.getSingleton();
   private contextMenuManager = ContextMenuManager.getSingleton();
   private table: Tabulator;
-  private spanRows: SpanRowData[] = [];
-  private selectedSpanId: string;
+  private logRows: LogRowData[] = [];
+  private selectedLogId: string;
 
   private elements = {
     container: document.createElement('div'),
@@ -72,8 +70,7 @@ export class SpansTableView extends EventEmitter {
     ),
     formatTimestamp: this.formatTimestamp.bind(this),
     formatDuration: this.formatDuration.bind(this),
-    formatTags: this.formatTags.bind(this),
-    formatProcessTags: this.formatProcessTags.bind(this),
+    formatFields: this.formatFields.bind(this),
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
     onRowClick: this.onRowClick.bind(this),
     onRowContext: this.onRowContext.bind(this),
@@ -81,7 +78,10 @@ export class SpansTableView extends EventEmitter {
   };
 
   private columnDefinitions = {
-    id: { title: 'Span ID', field: 'span.id' } as Tabulator.ColumnDefinition,
+    spanId: {
+      title: 'Span ID',
+      field: 'span.id'
+    } as Tabulator.ColumnDefinition,
     traceId: {
       title: 'Trace ID',
       field: 'span.traceId'
@@ -94,36 +94,20 @@ export class SpansTableView extends EventEmitter {
       title: 'Service Name',
       field: 'serviceName'
     } as Tabulator.ColumnDefinition,
-    startTime: {
-      title: 'Start Time',
-      field: 'span.startTime',
+    timestamp: {
+      title: 'Timestamp',
+      field: 'timestamp',
       formatter: this.binded.formatTimestamp
     } as Tabulator.ColumnDefinition,
-    finishTime: {
-      title: 'Finish Time',
-      field: 'span.finishTime',
-      formatter: this.binded.formatTimestamp
-    } as Tabulator.ColumnDefinition,
-    totalTime: {
-      title: 'Total Time',
-      field: 'totalTime',
+    spanTimestamp: {
+      title: 'In-Span Timestamp',
+      field: 'spanTimestamp',
       formatter: this.binded.formatDuration
     } as Tabulator.ColumnDefinition,
-    selfTime: {
-      title: 'Self Time',
-      field: 'selfTime',
-      formatter: this.binded.formatDuration
-    } as Tabulator.ColumnDefinition,
-    tags: {
-      title: 'Tags',
-      field: 'span.tags',
-      formatter: this.binded.formatTags,
-      headerSort: false
-    } as Tabulator.ColumnDefinition,
-    processTags: {
-      title: 'Process Tags',
-      field: 'span.process.tags',
-      formatter: this.binded.formatProcessTags,
+    fields: {
+      title: 'Fields',
+      field: 'fields',
+      formatter: this.binded.formatFields,
       headerSort: false
     } as Tabulator.ColumnDefinition
   };
@@ -139,14 +123,12 @@ export class SpansTableView extends EventEmitter {
     onUnselect: this.binded.onColumnsMultiSelectUnselect,
     onSearchInput: this.binded.onColumnsMultiSelectSearchInput,
     items: [],
-    emptyMessage: 'No Spans'
+    emptyMessage: 'No Logs'
   });
 
   constructor() {
-    super();
-
     const { container, toolbar, tableContainer } = this.elements;
-    container.classList.add('spans-table-view');
+    container.classList.add('logs-table-view');
     container.appendChild(toolbar);
     container.appendChild(tableContainer);
     this.prepareToolbar();
@@ -209,27 +191,25 @@ export class SpansTableView extends EventEmitter {
     );
 
     // Prepare initial data
-    this.spanRows = this.stage
-      .getAllSpans()
-      .map(span => this.span2RowData(span));
+    this.logRows = this.stage.getAllLogs().map(log => this.log2RowData(log));
 
     // Init table
     this.table = new Tabulator(this.elements.tableContainer, {
       autoResize: false, // This causes to lose focus when widget is hidden
       height: this.viewPropertiesCache.height - TOOLBAR_HEIGHT,
-      data: this.spanRows,
+      data: this.logRows,
       layout: 'fitDataFill',
       movableColumns: true,
       selectable: 1,
       columns: [
-        this.columnDefinitions.startTime,
-        this.columnDefinitions.totalTime,
-        this.columnDefinitions.selfTime,
+        this.columnDefinitions.timestamp,
+        this.columnDefinitions.spanTimestamp,
         this.columnDefinitions.operationName,
-        this.columnDefinitions.serviceName
+        this.columnDefinitions.serviceName,
+        this.columnDefinitions.fields
       ],
       initialSort: [
-        { column: this.columnDefinitions.startTime.field, dir: 'asc' }
+        { column: this.columnDefinitions.timestamp.field, dir: 'asc' }
       ],
       rowClick: this.binded.onRowClick,
       rowContext: this.binded.onRowContext,
@@ -271,28 +251,69 @@ export class SpansTableView extends EventEmitter {
   }
 
   private onTraceAdded(trace: Trace) {
-    let includesErrorTag = false;
+    let includesErrorField = false;
+    let totalLogCount = 0;
+    const fieldCounts: { [key: string]: number } = {};
+
+    // Scan the added spans, prepare the log data
     trace.spans.forEach(span => {
-      if (span.tags.error) includesErrorTag = true;
-      this.spanRows.push(this.span2RowData(span));
+      span.logs.forEach(log => {
+        if (log.fields.error) includesErrorField = true;
+        const rowData = this.log2RowData({
+          span,
+          timestamp: log.timestamp,
+          fields: cloneDeep(log.fields)
+        });
+        Object.keys(rowData.fields).forEach(fieldKey => {
+          if (!fieldCounts[fieldKey]) fieldCounts[fieldKey] = 0;
+          fieldCounts[fieldKey]++;
+        });
+        this.logRows.push(rowData);
+        totalLogCount++;
+      });
     });
 
-    // If any span includes `error` tag, add error column if not already added!
-    if (includesErrorTag) {
+    // If any field has more than %90 occurance rate, add the column (if not already added!)
+    Object.keys(fieldCounts).forEach(fieldKey => {
+      const rate = fieldCounts[fieldKey] / totalLogCount;
+      if (rate < 0.9) return;
+
+      // Duplication alert
       const currentColumns = this.table.getColumnDefinitions();
       const isAdded = !!find(
         currentColumns,
-        col => col.field == getColumnFieldSelectorByTag('error')
+        col => col.field == getColumnIdByFieldKey(fieldKey)
       );
       if (!isAdded) {
-        this.addColumnGracefullyBeforeTagsOrProcessTagsColumn({
+        this.addColumnGracefullyBeforeFieldsColumn({
           // The title and field must be same with normal generated
           // column struct, see: `onColumnsMultiSelectSelect()` method
-          title: getColumnIdByTag('error'),
-          field: getColumnFieldSelectorByTag('error'),
+          title: getColumnIdByFieldKey(fieldKey),
+          field: getColumnFieldSelectorByFieldKey(fieldKey),
           formatter: cell => {
-            const spanRow = cell.getRow().getData();
-            return spanRow.span.tags.error || '';
+            const logRow = cell.getRow().getData();
+            return logRow.fields[fieldKey] || '';
+          }
+        });
+      }
+    });
+
+    // If any span includes `error` tag, add error column (if not already added!)
+    if (includesErrorField) {
+      const currentColumns = this.table.getColumnDefinitions();
+      const isAdded = !!find(
+        currentColumns,
+        col => col.field == getColumnIdByFieldKey('error')
+      );
+      if (!isAdded) {
+        this.addColumnGracefullyBeforeFieldsColumn({
+          // The title and field must be same with normal generated
+          // column struct, see: `onColumnsMultiSelectSelect()` method
+          title: getColumnIdByFieldKey('error'),
+          field: getColumnFieldSelectorByFieldKey('error'),
+          formatter: cell => {
+            const logRow = cell.getRow().getData();
+            return logRow.fields.error || '';
           }
         });
       }
@@ -304,7 +325,7 @@ export class SpansTableView extends EventEmitter {
 
   private onTraceRemoved(trace: Trace) {
     trace.spans.forEach(span =>
-      remove(this.spanRows, spanRow => spanRow.span.id == span.id)
+      remove(this.logRows, logRow => logRow.span.id == span.id)
     );
 
     this.updateColumnsMultiSelectItems();
@@ -321,28 +342,15 @@ export class SpansTableView extends EventEmitter {
       return { id, text: def.title as string, selected };
     });
 
-    Object.keys(this.stage.getAllSpanTags()).forEach(tag => {
+    Object.keys(this.stage.getAllLogFieldKeys()).forEach(fieldKey => {
       const selected = !!find(
         currentColumns,
-        col => col.field == getColumnFieldSelectorByTag(tag)
+        col => col.field == getColumnFieldSelectorByFieldKey(fieldKey)
       );
       items.push({
-        id: getColumnIdByTag(tag),
-        text: getColumnIdByTag(tag),
-        category: 'Span Tags',
-        selected
-      });
-    });
-
-    Object.keys(this.stage.getAllProcessTags()).forEach(tag => {
-      const selected = !!find(
-        currentColumns,
-        col => col.field == getColumnFieldSelectorByProcessTag(tag)
-      );
-      items.push({
-        id: getColumnIdByProcessTag(tag),
-        text: getColumnIdByProcessTag(tag),
-        category: 'Process Tags',
+        id: getColumnIdByFieldKey(fieldKey),
+        text: getColumnIdByFieldKey(fieldKey),
+        category: 'Log Fields',
         selected
       });
     });
@@ -356,29 +364,14 @@ export class SpansTableView extends EventEmitter {
     let columnDefinition: Tabulator.ColumnDefinition = (this
       .columnDefinitions as any)[item.id];
 
-    if (!columnDefinition && item.id.indexOf(TAG_ID_PREFIX) == 0) {
-      const tagKey = item.id.replace(TAG_ID_PREFIX, '');
+    if (!columnDefinition && item.id.indexOf(FIELD_ID_PREFIX) == 0) {
+      const fieldKey = item.id.replace(FIELD_ID_PREFIX, '');
       columnDefinition = {
         title: item.id,
-        field: `span.tags.${tagKey}`,
+        field: getColumnFieldSelectorByFieldKey(fieldKey),
         formatter: cell => {
-          const spanRow = cell.getRow().getData();
-          return spanRow.span.tags[tagKey] || '';
-        }
-      };
-    }
-
-    if (!columnDefinition && item.id.indexOf(PROCESS_TAG_ID_PREFIX) == 0) {
-      const tagKey = item.id.replace(PROCESS_TAG_ID_PREFIX, '');
-      columnDefinition = {
-        title: item.id,
-        field: `span.process.tags.${tagKey}`,
-        formatter: cell => {
-          const spanRow = cell.getRow().getData();
-          const processTags = spanRow.span.process
-            ? spanRow.span.process.tags || {}
-            : {};
-          return processTags[tagKey] || '';
+          const logRow = cell.getRow().getData();
+          return logRow.fields[fieldKey] || '';
         }
       };
     }
@@ -388,22 +381,20 @@ export class SpansTableView extends EventEmitter {
       throw new Error(`Unknown column id: "${item.id}"`);
     }
 
-    this.addColumnGracefullyBeforeTagsOrProcessTagsColumn(columnDefinition);
+    this.addColumnGracefullyBeforeFieldsColumn(columnDefinition);
   }
 
-  private addColumnGracefullyBeforeTagsOrProcessTagsColumn(
+  private addColumnGracefullyBeforeFieldsColumn(
     def: Tabulator.ColumnDefinition
   ) {
     const currentColumns = this.table.getColumnDefinitions();
-    const columnDef = find(currentColumns, col => {
-      return (
-        col.field == this.columnDefinitions.tags.field ||
-        col.field == this.columnDefinitions.processTags.field
-      );
-    });
+    const isFieldsColumnExists = !!find(
+      currentColumns,
+      col => col.field == this.columnDefinitions.fields.field
+    );
 
-    if (columnDef) {
-      this.table.addColumn(def, true, columnDef.field);
+    if (isFieldsColumnExists) {
+      this.table.addColumn(def, true, this.columnDefinitions.fields.field);
     } else {
       this.table.addColumn(def);
     }
@@ -417,14 +408,9 @@ export class SpansTableView extends EventEmitter {
       fieldToDelete = (this.columnDefinitions as any)[item.id].field;
     }
 
-    if (!fieldToDelete && item.id.indexOf(TAG_ID_PREFIX) == 0) {
-      const tagKey = item.id.replace(TAG_ID_PREFIX, '');
-      fieldToDelete = `span.tags.${tagKey}`;
-    }
-
-    if (!fieldToDelete && item.id.indexOf(PROCESS_TAG_ID_PREFIX) == 0) {
-      const tagKey = item.id.replace(PROCESS_TAG_ID_PREFIX, '');
-      fieldToDelete = `span.process.tags.${tagKey}`;
+    if (!fieldToDelete && item.id.indexOf(FIELD_ID_PREFIX) == 0) {
+      const fieldKey = item.id.replace(FIELD_ID_PREFIX, '');
+      fieldToDelete = getColumnFieldSelectorByFieldKey(fieldKey);
     }
 
     if (!fieldToDelete) {
@@ -443,21 +429,21 @@ export class SpansTableView extends EventEmitter {
     this.dropdowns.columnsSelection.popperInstance.update();
   }
 
-  private span2RowData(span: Span) {
-    const totalTime = span.finishTime - span.startTime;
-    const selfTime = this.stage.getSpanSelfTime(span.id);
-    const serviceName = serviceNameOf(span);
-
-    // When a custom `tag` column added, tabulator defines a property
-    // in all of the span tags object, even if it's undefined. This is
-    // a mutation that we don't want now. As a workaround, clone the span.
-    const spanCopy = cloneDeep(span);
+  private log2RowData(log: {
+    span: Span;
+    timestamp: number;
+    fields: { [key: string]: string };
+  }) {
+    const spanTimestamp = log.timestamp - log.span.startTime;
+    const serviceName = serviceNameOf(log.span);
+    const fieldsCopy = cloneDeep(log.fields);
 
     return {
-      id: span.id,
-      span: spanCopy,
-      totalTime,
-      selfTime,
+      id: shortid.generate(),
+      span: log.span,
+      timestamp: log.timestamp,
+      spanTimestamp,
+      fields: fieldsCopy,
       serviceName
     };
   }
@@ -470,66 +456,33 @@ export class SpansTableView extends EventEmitter {
     return formatMicroseconds(cell.getValue());
   }
 
-  private formatTags(cell: any) {
-    const spanRowData = cell.getRow().getData();
+  private formatFields(cell: any) {
+    const logRowData = cell.getRow().getData();
     const currentColumns = this.table.getColumnDefinitions();
     let html = '';
 
     // TODO: Sort these with occurance frequency
-    Object.keys(spanRowData.span.tags)
+    Object.keys(logRowData.fields)
       .sort((a, b) => {
         if (a > b) return 1;
         if (a < b) return -1;
         return 0;
       })
-      .forEach(tag => {
+      .forEach(fieldKey => {
         const hasSeperateColumn = !!find(
           currentColumns,
-          col => col.field == `span.tags.${tag}`
+          col => col.field == getColumnFieldSelectorByFieldKey(fieldKey)
         );
         if (hasSeperateColumn) return;
 
-        const value = spanRowData.span.tags[tag];
+        const value = logRowData.fields[fieldKey];
 
         // When adding/removing fields, tabulator adds a property
         // to object with `undefined` value. We're filtering that.
         if (!value) return;
 
-        html += `<span class="spans-table-tag">${tag}:</span>
-        <span class="spans-table-value">${value}</span>`;
-      });
-
-    return html;
-  }
-
-  private formatProcessTags(cell: any) {
-    const spanRowData = cell.getRow().getData();
-    const currentColumns = this.table.getColumnDefinitions();
-    let html = '';
-
-    Object.keys(
-      spanRowData.span.process ? spanRowData.span.process.tags || {} : {}
-    )
-      .sort((a, b) => {
-        if (a > b) return 1;
-        if (a < b) return -1;
-        return 0;
-      })
-      .forEach(tag => {
-        const hasSeperateColumn = !!find(
-          currentColumns,
-          col => col.field == `span.process.tags.${tag}`
-        );
-        if (hasSeperateColumn) return;
-
-        const value = spanRowData.span.process.tags[tag];
-
-        // When adding/removing fields, tabulator adds a property
-        // to object with `undefined` value. We're filtering that.
-        if (!value) return;
-
-        html += `<span class="spans-table-tag">${tag}:</span>
-        <span class="spans-table-value">${value}</span>`;
+        html += `<span class="logs-table-tag">${fieldKey}:</span>
+        <span class="logs-table-value">${value}</span>`;
       });
 
     return html;
@@ -546,13 +499,13 @@ export class SpansTableView extends EventEmitter {
       return;
     }
 
-    await this.table.replaceData(this.spanRows);
+    await this.table.replaceData(this.logRows);
     this.updateRowSelectionGracefully();
   }
 
   private updateRowSelectionGracefully() {
-    if (!this.selectedSpanId) return;
-    this.selectSpan(this.selectedSpanId);
+    if (!this.selectedLogId) return;
+    this.selectLog(this.selectedLogId);
   }
 
   async clearSearch() {
@@ -560,45 +513,41 @@ export class SpansTableView extends EventEmitter {
     await this.updateTableData();
   }
 
-  selectSpan(spanId: string) {
-    if (!spanId) {
-      this.selectedSpanId = null;
+  selectLog(logId: string) {
+    if (!logId) {
+      this.selectedLogId = null;
       this.table.deselectRow();
       return;
     }
 
-    const row = this.table.getRow(spanId);
+    const row = this.table.getRow(logId);
     if (!row) {
-      this.selectedSpanId = null;
+      this.selectedLogId = null;
       this.table.deselectRow();
       return;
     }
 
-    this.selectedSpanId = spanId;
+    this.selectedLogId = logId;
     this.table.deselectRow();
     row.select();
   }
 
-  focusSpan(spanId: string) {
-    const row = this.table.getRow(spanId);
+  focusLog(logId: string) {
+    const row = this.table.getRow(logId);
     if (!row) return;
-    this.table.scrollToRow(spanId);
+    this.table.scrollToRow(logId);
   }
 
   private simpleSearch(keyword: string) {
     keyword = keyword.toLowerCase();
-    return this.spanRows.filter(spanRow => {
-      const s = spanRow.span;
+    return this.logRows.filter(logRow => {
+      const s = logRow.span;
       if (s.id.toLowerCase().indexOf(keyword) > -1) return true;
       if (s.traceId.toLowerCase().indexOf(keyword) > -1) return true;
       if (s.operationName.toLowerCase().indexOf(keyword) > -1) return true;
-      if (spanRow.serviceName.toLowerCase().indexOf(keyword) > -1) return true;
-      const tagsStr = JSON.stringify(s.tags || {}).toLowerCase();
-      if (tagsStr.indexOf(keyword) > -1) return true;
-      const processTagsStr = JSON.stringify(
-        s.process ? s.process.tags || {} : {}
-      ).toLowerCase();
-      if (processTagsStr.indexOf(keyword) > -1) return true;
+      if (logRow.serviceName.toLowerCase().indexOf(keyword) > -1) return true;
+      const fieldsStr = JSON.stringify(logRow.fields || {}).toLowerCase();
+      if (fieldsStr.indexOf(keyword) > -1) return true;
       return false;
     });
   }
@@ -630,13 +579,12 @@ export class SpansTableView extends EventEmitter {
   }
 
   private onRowClick(e: any, row: Tabulator.RowComponent) {
-    const spanRow = row.getData() as SpanRowData;
-    this.selectSpan(spanRow.span.id);
-    this.emit(SpansTableViewEvent.SPAN_SELECTED, spanRow.span.id);
+    const logRow = row.getData() as LogRowData;
+    this.selectLog(logRow.id);
   }
 
   private onRowContext(e: MouseEvent, row: Tabulator.RowComponent) {
-    const spanRow = row.getData() as SpanRowData;
+    const logRow = row.getData() as LogRowData;
 
     this.contextMenuManager.show({
       x: e.clientX,
@@ -645,36 +593,55 @@ export class SpansTableView extends EventEmitter {
         {
           selectItem: {
             type: 'item',
-            text: 'Show in Timeline View',
+            text: 'Show Span in Timeline View',
             id: 'showInTimelineView'
           },
           emitEvent: {
             event: ContextMenuEvent.SHOW_SPAN_IN_TIMELINE_VIEW,
-            data: spanRow.span.id
+            data: logRow.span.id
           }
         },
         {
           selectItem: {
             type: 'item',
-            text: 'Copy Span To Clipboard',
+            text: 'Show Span in Table View',
+            id: 'showInTableView'
+          },
+          emitEvent: {
+            event: ContextMenuEvent.SHOW_SPAN_IN_TABLE_VIEW,
+            data: logRow.span.id
+          }
+        },
+        {
+          selectItem: {
+            type: 'item',
+            text: 'Copy Log To Clipboard',
             id: 'copyToClipboard',
             altText: '⌘C'
           },
-          onSelected: () => this.copySpanToClipboard(spanRow.span.id)
+          onSelected: () => this.copyLogToClipboard(logRow.id)
         }
       ]
     });
   }
 
-  private copySpanToClipboard(spanId: string) {
-    if (!spanId) return;
-    const spanRow = find(this.spanRows, row => row.span.id == spanId);
-    if (!spanRow) return;
-    clipboard.writeText(JSON.stringify(spanRow.span, null, 4));
+  private copyLogToClipboard(logId: string) {
+    if (!logId) return;
+    const logRow = find(this.logRows, row => row.id == logId);
+    if (!logRow) return;
+    const str = JSON.stringify(
+      {
+        timestamp: logRow.timestamp,
+        fields: logRow.fields
+      },
+      null,
+      4
+    );
+    clipboard.writeText(str);
   }
 
-  getSelectedSpanId() {
-    return this.selectedSpanId;
+  getSelectedLogId() {
+    return this.selectedLogId;
   }
 
   private onKeyDown(e: KeyboardEvent) {
@@ -688,12 +655,10 @@ export class SpansTableView extends EventEmitter {
       return;
     }
 
-    // CMD + C => Copy the JSON of selected span (if exists)
+    // CMD + C => Copy the JSON of selected log (if exists)
     if (e.key == 'c' && (e.ctrlKey || e.metaKey)) {
-      if (!this.selectedSpanId) return;
-      const span = this.stage.getMainSpanGroup().get(this.selectedSpanId);
-      if (!span) return;
-      clipboard.writeText(JSON.stringify(span, null, 4));
+      if (!this.selectedLogId) return;
+      this.copyLogToClipboard(this.selectedLogId);
       return;
     }
   }
@@ -742,26 +707,15 @@ export class SpansTableView extends EventEmitter {
       tippy.destroy();
     }
     this.dropdowns = null;
-
-    this.removeAllListeners();
   }
 }
 
-const TAG_ID_PREFIX = `tag.`;
-const PROCESS_TAG_ID_PREFIX = `process.tag.`;
+const FIELD_ID_PREFIX = `field.`;
 
-function getColumnIdByTag(tag: string) {
-  return `${TAG_ID_PREFIX}${tag}`;
+function getColumnIdByFieldKey(tag: string) {
+  return `${FIELD_ID_PREFIX}${tag}`;
 }
 
-function getColumnFieldSelectorByTag(tag: string) {
-  return `span.tags.${tag}`;
-}
-
-function getColumnIdByProcessTag(tag: string) {
-  return `${PROCESS_TAG_ID_PREFIX}${tag}`;
-}
-
-function getColumnFieldSelectorByProcessTag(tag: string) {
-  return `span.process.tags.${tag}`;
+function getColumnFieldSelectorByFieldKey(fieldKey: string) {
+  return `fields.${fieldKey}`;
 }
