@@ -35,7 +35,7 @@ export enum AppWidgetType {
   SPAN_SUMMARY = 'span-summary',
   SPAN_TAGS = 'span-tags',
   SPAN_LOGS = 'span-logs',
-  SPANS_TABLE = 'spans-table',
+  SPANS_TABLE = 'spans-table'
 }
 
 export interface AppOptions {
@@ -98,6 +98,11 @@ export class App {
     this.timeline.init({ width: w1, height: h1 });
     this.toolbar.init(); // Needs dsManager
 
+    const spansTableWidgetEl = this.widgets[AppWidgetType.SPANS_TABLE].node;
+    this.spansTable.mount(spansTableWidgetEl);
+    const { offsetWidth: w4, offsetHeight: h4 } = spansTableWidgetEl;
+    this.spansTable.init({ width: w4, height: h4 });
+
     const logsDataWidgetEl = this.widgets[AppWidgetType.LOGS_DATA_VIEW].node;
     this.logsData.mount(logsDataWidgetEl);
     const { offsetWidth: w2, offsetHeight: h2 } = logsDataWidgetEl;
@@ -110,20 +115,24 @@ export class App {
 
     const spanSummaryWidgetEl = this.widgets[AppWidgetType.SPAN_SUMMARY].node;
     this.spanSummary.mount(spanSummaryWidgetEl);
-    this.spanSummary.init({ timeline: this.timeline.timeline });
+    this.spanSummary.init({
+      timeline: this.timeline.timeline,
+      spansTable: this.spansTable
+    });
 
     const spanTagsWidgetEl = this.widgets[AppWidgetType.SPAN_TAGS].node;
     this.spanTags.mount(spanTagsWidgetEl);
-    this.spanTags.init({ timeline: this.timeline.timeline });
+    this.spanTags.init({
+      timeline: this.timeline.timeline,
+      spansTable: this.spansTable
+    });
 
     const spanLogsWidgetEl = this.widgets[AppWidgetType.SPAN_LOGS].node;
     this.spanLogs.mount(spanLogsWidgetEl);
-    this.spanLogs.init({ timeline: this.timeline.timeline });
-
-    const spansTableWidgetEl = this.widgets[AppWidgetType.SPANS_TABLE].node;
-    this.spansTable.mount(spansTableWidgetEl);
-    const { offsetWidth: w4, offsetHeight: h4 } = spansTableWidgetEl;
-    this.spansTable.init({ width: w4, height: h4 });
+    this.spanLogs.init({
+      timeline: this.timeline.timeline,
+      spansTable: this.spansTable
+    });
 
     this.initDropZone();
 
@@ -217,7 +226,7 @@ export class App {
               this.widgets[AppWidgetType.TIMELINE_VIEW],
               this.widgets[AppWidgetType.SPANS_DATA_VIEW],
               this.widgets[AppWidgetType.LOGS_DATA_VIEW],
-              this.widgets[AppWidgetType.SPANS_TABLE],
+              this.widgets[AppWidgetType.SPANS_TABLE]
             ]
           },
           {
@@ -225,14 +234,26 @@ export class App {
             orientation: 'horizontal',
             sizes: [0.33, 0.33, 0.33],
             children: [
-              { type: 'tab-area', currentIndex: 0, widgets: [ this.widgets[AppWidgetType.SPAN_SUMMARY] ] },
-              { type: 'tab-area', currentIndex: 0, widgets: [ this.widgets[AppWidgetType.SPAN_TAGS] ] },
-              { type: 'tab-area', currentIndex: 0, widgets: [ this.widgets[AppWidgetType.SPAN_LOGS] ] }
+              {
+                type: 'tab-area',
+                currentIndex: 0,
+                widgets: [this.widgets[AppWidgetType.SPAN_SUMMARY]]
+              },
+              {
+                type: 'tab-area',
+                currentIndex: 0,
+                widgets: [this.widgets[AppWidgetType.SPAN_TAGS]]
+              },
+              {
+                type: 'tab-area',
+                currentIndex: 0,
+                widgets: [this.widgets[AppWidgetType.SPAN_LOGS]]
+              }
             ]
           }
         ],
         orientation: 'vertical',
-        sizes: [0.70, 0.30],
+        sizes: [0.7, 0.3],
         type: 'split-area'
       }
     });

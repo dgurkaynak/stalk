@@ -1,6 +1,10 @@
 import find from 'lodash/find';
 import { Stage } from '../../model/stage';
 import { Timeline, TimelineEvent } from '../timeline/timeline';
+import {
+  SpansTableView,
+  SpansTableViewEvent
+} from '../spans-table/spans-table';
 import { serviceNameOf } from '../../model/span-grouping/service-name';
 import { formatMicroseconds } from '../../utils/format-microseconds';
 
@@ -11,13 +15,15 @@ import './span-summary.css';
 export class SpanSummaryView {
   private stage = Stage.getSingleton();
   private timeline: Timeline;
+  private spansTable: SpansTableView;
   private elements = {
     container: document.createElement('div')
   };
   private selectedSpanId: string;
 
   private binded = {
-    onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this)
+    onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
+    onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this)
   };
 
   constructor() {
@@ -25,26 +31,35 @@ export class SpanSummaryView {
     container.classList.add('span-summary');
   }
 
-  init(options: { timeline: Timeline }) {
+  init(options: { timeline: Timeline; spansTable: SpansTableView }) {
     this.timeline = options.timeline;
+    this.spansTable = options.spansTable;
 
     // Bind events
     this.timeline.on(
       TimelineEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
     );
+    this.spansTable.on(
+      SpansTableViewEvent.SPAN_SELECTED,
+      this.binded.onSpansTableSpanSelected
+    );
 
     // Initial render
-    this.updateView();
+    this.render(
+      this.timeline.getSelectedSpanId() || this.spansTable.getSelectedSpanId()
+    );
   }
 
-  private onTimelineSpanSelected() {
-    this.updateView();
+  private onTimelineSpanSelected(spanId: string) {
+    this.render(spanId);
   }
 
-  private updateView() {
-    const spanId = this.timeline.getSelectedSpanId();
+  private onSpansTableSpanSelected(spanId: string) {
+    this.render(spanId);
+  }
 
+  private render(spanId: string) {
     if (!spanId) {
       this.selectedSpanId = null;
       this.elements.container.innerHTML = `<div class="no-span-selected">
@@ -142,6 +157,10 @@ export class SpanSummaryView {
     this.timeline.removeListener(
       TimelineEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
+    );
+    this.spansTable.removeListener(
+      SpansTableViewEvent.SPAN_SELECTED,
+      this.binded.onSpansTableSpanSelected
     );
   }
 }

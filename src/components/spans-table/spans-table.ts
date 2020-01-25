@@ -16,6 +16,7 @@ import sampleSize from 'lodash/sampleSize';
 import debounce from 'lodash/debounce';
 import { clipboard } from 'electron';
 import cloneDeep from 'lodash/cloneDeep';
+import EventEmitter from 'events';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
@@ -32,7 +33,11 @@ export interface SpanRowData {
   serviceName: string;
 }
 
-export class SpansTableView {
+export enum SpansTableViewEvent {
+  SPAN_SELECTED = 'span_selected'
+}
+
+export class SpansTableView extends EventEmitter {
   private stage = Stage.getSingleton();
   private table: Tabulator;
   private spanRows: SpanRowData[] = [];
@@ -132,6 +137,8 @@ export class SpansTableView {
   });
 
   constructor() {
+    super();
+
     const { container, toolbar, tableContainer } = this.elements;
     container.classList.add('spans-table-view');
     container.appendChild(toolbar);
@@ -566,7 +573,17 @@ export class SpansTableView {
 
   private onRowClick(e: any, row: Tabulator.RowComponent) {
     const spanRow = row.getData() as SpanRowData;
-    this.selectedSpanId = spanRow.span.id;
+    if (this.selectedSpanId == spanRow.span.id) {
+      this.selectedSpanId = null;
+      this.emit(SpansTableViewEvent.SPAN_SELECTED, null);
+    } else {
+      this.selectedSpanId = spanRow.span.id;
+      this.emit(SpansTableViewEvent.SPAN_SELECTED, this.selectedSpanId);
+    }
+  }
+
+  getSelectedSpanId() {
+    return this.selectedSpanId;
   }
 
   private onKeyDown(e: KeyboardEvent) {
@@ -634,6 +651,8 @@ export class SpansTableView {
       tippy.destroy();
     }
     this.dropdowns = null;
+
+    this.removeAllListeners();
   }
 }
 

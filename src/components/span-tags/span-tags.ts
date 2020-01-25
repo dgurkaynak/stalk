@@ -2,6 +2,10 @@ import Fuse from 'fuse.js';
 import { Stage } from '../../model/stage';
 import debounce from 'lodash/debounce';
 import { Timeline, TimelineEvent } from '../timeline/timeline';
+import {
+  SpansTableView,
+  SpansTableViewEvent
+} from '../spans-table/spans-table';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgCursorDefaultClick from '!!raw-loader!@mdi/svg/svg/cursor-default-click-outline.svg';
@@ -17,6 +21,7 @@ interface SpanTagItem {
 export class SpanTagsView {
   private stage = Stage.getSingleton();
   private timeline: Timeline;
+  private spansTable: SpansTableView;
   private selectedSpanId: string;
   private tagItems: SpanTagItem[] = [];
   private fuse: Fuse<SpanTagItem, Fuse.FuseOptions<SpanTagItem>> = new Fuse(
@@ -33,7 +38,8 @@ export class SpanTagsView {
 
   private binded = {
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
-    onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this)
+    onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
+    onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this)
   };
 
   constructor() {
@@ -72,8 +78,9 @@ export class SpanTagsView {
     searchContainer.appendChild(searchInput);
   }
 
-  init(options: { timeline: Timeline }) {
+  init(options: { timeline: Timeline; spansTable: SpansTableView }) {
     this.timeline = options.timeline;
+    this.spansTable = options.spansTable;
 
     // Bind events
     this.elements.searchInput.addEventListener(
@@ -84,6 +91,10 @@ export class SpanTagsView {
     this.timeline.on(
       TimelineEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
+    );
+    this.spansTable.on(
+      SpansTableViewEvent.SPAN_SELECTED,
+      this.binded.onSpansTableSpanSelected
     );
 
     // Initial render
@@ -143,9 +154,15 @@ export class SpanTagsView {
     this.render();
   }
 
-  private onTimelineSpanSelected() {
-    const spanId = this.timeline.getSelectedSpanId();
+  private onTimelineSpanSelected(spanId: string) {
+    this.updateSpan(spanId);
+  }
 
+  private onSpansTableSpanSelected(spanId: string) {
+    this.updateSpan(spanId);
+  }
+
+  private updateSpan(spanId: string) {
     if (this.selectedSpanId == spanId) return;
 
     if (!spanId) {
@@ -192,6 +209,10 @@ export class SpanTagsView {
     this.timeline.removeListener(
       TimelineEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
+    );
+    this.spansTable.removeListener(
+      SpansTableViewEvent.SPAN_SELECTED,
+      this.binded.onSpansTableSpanSelected
     );
   }
 }

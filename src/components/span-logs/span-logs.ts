@@ -3,6 +3,10 @@ import { Stage } from '../../model/stage';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import { Timeline, TimelineEvent } from '../timeline/timeline';
+import {
+  SpansTableView,
+  SpansTableViewEvent
+} from '../spans-table/spans-table';
 import { SpanLogItemView } from './span-log-item';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 
@@ -17,6 +21,7 @@ import './span-logs.css';
 export class SpanLogsView {
   private stage = Stage.getSingleton();
   private timeline: Timeline;
+  private spansTable: SpansTableView;
   private selectedSpanId: string;
   private logItemViews: SpanLogItemView[] = [];
   private fuse: Fuse<
@@ -38,6 +43,7 @@ export class SpanLogsView {
   private binded = {
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
+    onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
     onExpandAllClick: this.onExpandAllClick.bind(this),
     onCollapseAllClick: this.onCollapseAllClick.bind(this),
     onMouseMove: this.onMouseMove.bind(this),
@@ -91,8 +97,9 @@ export class SpanLogsView {
     rightPane.appendChild(btn.collapseAll);
   }
 
-  init(options: { timeline: Timeline }) {
+  init(options: { timeline: Timeline, spansTable: SpansTableView }) {
     this.timeline = options.timeline;
+    this.spansTable = options.spansTable;
     this.initTooltips();
 
     // Bind events
@@ -104,6 +111,10 @@ export class SpanLogsView {
     this.timeline.on(
       TimelineEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
+    );
+    this.spansTable.on(
+      SpansTableViewEvent.SPAN_SELECTED,
+      this.binded.onSpansTableSpanSelected
     );
     this.elements.toolbarBtn.expandAll.addEventListener(
       'click',
@@ -203,9 +214,15 @@ export class SpanLogsView {
     this.render();
   }
 
-  private onTimelineSpanSelected() {
-    const spanId = this.timeline.getSelectedSpanId();
+  private onTimelineSpanSelected(spanId: string) {
+    this.updateSpan(spanId);
+  }
 
+  private onSpansTableSpanSelected(spanId: string) {
+    this.updateSpan(spanId);
+  }
+
+  private updateSpan(spanId: string) {
     if (this.selectedSpanId == spanId) return;
 
     if (!spanId) {
@@ -281,6 +298,10 @@ export class SpanLogsView {
     this.timeline.removeListener(
       TimelineEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
+    );
+    this.spansTable.removeListener(
+      SpansTableViewEvent.SPAN_SELECTED,
+      this.binded.onSpansTableSpanSelected
     );
     this.elements.toolbarBtn.expandAll.removeEventListener(
       'click',

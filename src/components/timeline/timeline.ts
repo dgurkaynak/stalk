@@ -689,7 +689,7 @@ export class Timeline extends EventEmitter {
       this.decorations.selectedSpanIntervalHighlight.mount();
     }
 
-    this.emit(TimelineEvent.SPAN_SELECTED);
+    this.emit(TimelineEvent.SPAN_SELECTED, this.selectedSpanId);
   }
 
   getSelectedSpanId() {
