@@ -78,5 +78,5 @@
 }
 
 .span-tags .content-container .key-value-row.error {
-  color: #f00;
+  color: rgba(255, 0, 0, 0.85);
 }

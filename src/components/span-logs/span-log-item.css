@@ -28,7 +28,7 @@
   position: relative;
   left: 0.05em;
   top: 0.15em;
-  fill: red;
+  fill: rgba(255, 0, 0, 0.85);
 }
 
 .span-log-item .curly {
