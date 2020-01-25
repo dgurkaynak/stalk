@@ -39,7 +39,7 @@ import { SpanTooltipContent } from '../span-tooltip/span-tooltip-content';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { Span } from '../../model/interfaces';
 import VerticalLineDecoration from './decorations/vertical-line';
-import { ContextMenuManager } from '../ui/context-menu/context-menu-manager';
+import { ContextMenuManager, ContextMenuEvent } from '../ui/context-menu/context-menu-manager';
 import { clipboard } from 'electron';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -1004,7 +1004,10 @@ export class Timeline extends EventEmitter {
                 text: 'Show in Table View',
                 id: 'showInTableView'
               },
-              onSelected: () => console.log('showInTableView')
+              emitEvent: {
+                event: ContextMenuEvent.SHOW_SPAN_IN_TABLE_VIEW,
+                data: clickedSpanId
+              }
             },
             {
               selectItem: {

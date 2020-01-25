@@ -503,28 +503,54 @@ export class SpansTableView extends EventEmitter {
     return html;
   }
 
-  private updateTableData() {
+  private async updateTableData() {
     const searchQuery = this.elements.searchInput.value.trim();
     if (searchQuery) {
       // Simple (case insensitive, contains like) search
       const results = this.simpleSearch(searchQuery);
 
-      this.table
-        .replaceData(results)
-        .then(() => this.updateRowSelectionGracefully());
+      await this.table.replaceData(results);
+      this.updateRowSelectionGracefully();
       return;
     }
 
-    this.table
-      .replaceData(this.spanRows)
-      .then(() => this.updateRowSelectionGracefully());
+    await this.table.replaceData(this.spanRows);
+    this.updateRowSelectionGracefully();
   }
 
   private updateRowSelectionGracefully() {
     if (!this.selectedSpanId) return;
-    const row = this.table.getRow(this.selectedSpanId);
-    if (!row) return;
+    this.selectSpan(this.selectedSpanId);
+  }
+
+  async clearSearch() {
+    this.elements.searchInput.value = '';
+    await this.updateTableData();
+  }
+
+  selectSpan(spanId: string) {
+    if (!spanId) {
+      this.selectedSpanId = null;
+      this.table.deselectRow();
+      return;
+    }
+
+    const row = this.table.getRow(spanId);
+    if (!row) {
+      this.selectedSpanId = null;
+      this.table.deselectRow();
+      return;
+    }
+
+    this.selectedSpanId = spanId;
+    this.table.deselectRow();
     row.select();
+  }
+
+  focusSpan(spanId: string) {
+    const row = this.table.getRow(spanId);
+    if (!row) return;
+    this.table.scrollToRow(spanId);
   }
 
   private simpleSearch(keyword: string) {
@@ -574,11 +600,11 @@ export class SpansTableView extends EventEmitter {
   private onRowClick(e: any, row: Tabulator.RowComponent) {
     const spanRow = row.getData() as SpanRowData;
     if (this.selectedSpanId == spanRow.span.id) {
-      this.selectedSpanId = null;
+      this.selectSpan(null);
       this.emit(SpansTableViewEvent.SPAN_SELECTED, null);
     } else {
-      this.selectedSpanId = spanRow.span.id;
-      this.emit(SpansTableViewEvent.SPAN_SELECTED, this.selectedSpanId);
+      this.selectSpan(spanRow.span.id);
+      this.emit(SpansTableViewEvent.SPAN_SELECTED, spanRow.span.id);
     }
   }
 

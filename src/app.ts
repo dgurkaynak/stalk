@@ -22,7 +22,10 @@ import { SpanSummaryView } from './components/span-summary/span-summary';
 import { SpanTagsView } from './components/span-tags/span-tags';
 import { SpanLogsView } from './components/span-logs/span-logs';
 import { SpansTableView } from './components/spans-table/spans-table';
-import { ContextMenuManager } from './components/ui/context-menu/context-menu-manager';
+import {
+  ContextMenuManager,
+  ContextMenuEvent
+} from './components/ui/context-menu/context-menu-manager';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -45,6 +48,7 @@ export interface AppOptions {
 
 export class App {
   private stage = Stage.getSingleton();
+  private contextMenuManager = ContextMenuManager.getSingleton();
   private toolbar = new AppToolbar({});
   private timeline = new TimelineWrapper();
   private logsData = new LogsDataView();
@@ -72,7 +76,9 @@ export class App {
     onSpansTableShow: this.onSpansTableShow.bind(this),
     onDrop: this.onDrop.bind(this),
     onDragOver: this.onDragOver.bind(this),
-    onDragLeave: this.onDragLeave.bind(this)
+    onDragLeave: this.onDragLeave.bind(this),
+    showSpanInTableView: this.showSpanInTableView.bind(this),
+    showSpanInTimelineView: this.showSpanInTimelineView.bind(this)
   };
 
   constructor(private options: AppOptions) {
@@ -87,7 +93,7 @@ export class App {
       SpanColoringManager.getSingleton().init(),
       SpanLabellingManager.getSingleton().init(),
       TypeScriptManager.getSingleton().init(),
-      ContextMenuManager.getSingleton().init()
+      this.contextMenuManager.init()
     ]);
 
     this.initDockPanelAndWidgets();
@@ -152,6 +158,14 @@ export class App {
       'dragleave',
       this.binded.onDragLeave,
       false
+    );
+    this.contextMenuManager.on(
+      ContextMenuEvent.SHOW_SPAN_IN_TABLE_VIEW,
+      this.binded.showSpanInTableView
+    );
+    this.contextMenuManager.on(
+      ContextMenuEvent.SHOW_SPAN_IN_TIMELINE_VIEW,
+      this.binded.showSpanInTimelineView
     );
 
     // Hide initial loading
@@ -472,13 +486,28 @@ export class App {
     }
   }
 
-  onDragOver(e: DragEvent) {
+  private onDragOver(e: DragEvent) {
     e.preventDefault();
     this.dropZoneEl.style.display = 'block';
   }
 
-  onDragLeave(e: DragEvent) {
+  private onDragLeave(e: DragEvent) {
     this.dropZoneEl.style.display = 'none';
+  }
+
+  private async showSpanInTableView(spanId: string) {
+    if (!spanId) return;
+    await this.spansTable.clearSearch();
+    this.spansTable.selectSpan(spanId);
+    this.dockPanel.activateWidget(this.widgets[AppWidgetType.SPANS_TABLE]);
+
+    // When spans-table is opening first time, it needs a little time
+    // to catch-up to scroll to row.
+    setTimeout(() => this.spansTable.focusSpan(spanId), 100);
+  }
+
+  private showSpanInTimelineView(spanId: string) {
+    console.log('showSpanInTimelineView', spanId);
   }
 
   dispose() {
@@ -493,6 +522,14 @@ export class App {
       'dragleave',
       this.binded.onDragLeave,
       false
+    );
+    this.contextMenuManager.removeListener(
+      ContextMenuEvent.SHOW_SPAN_IN_TABLE_VIEW,
+      this.binded.showSpanInTableView
+    );
+    this.contextMenuManager.removeListener(
+      ContextMenuEvent.SHOW_SPAN_IN_TIMELINE_VIEW,
+      this.binded.showSpanInTimelineView
     );
 
     this.toolbar.dispose();
