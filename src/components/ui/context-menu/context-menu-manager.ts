@@ -3,25 +3,39 @@ import {
   WidgetToolbarSelect,
   WidgetToolbarSelectItem
 } from '../widget-toolbar/widget-toolbar-select';
-import { find } from 'lodash';
+import find from 'lodash/find';
+import EventEmitter from 'events';
 
 import '../context-menu/context-menu.css';
 
+export enum ContextMenuEvent {
+  SHOW_SPAN_IN_TABLE_VIEW = 'showSpanInTableView',
+  SHOW_SPAN_IN_TIMELINE_VIEW = 'showSpanInTimelineView'
+}
+
+export interface ContextMenuItem {
+  selectItem: WidgetToolbarSelectItem;
+  onSelected?: () => void;
+  emitEvent?: {
+    event: ContextMenuEvent;
+    data?: any;
+  };
+}
+
 let _singletonIns: ContextMenuManager;
 
-export class ContextMenuManager {
+export class ContextMenuManager extends EventEmitter {
   private tippy: TippyInstance;
   private _isShowing = false;
-  get isShowing() { return this._isShowing; }
+  get isShowing() {
+    return this._isShowing;
+  }
 
   private binded = {
     onMenuItemClick: this.onMenuItemClick.bind(this)
   };
 
-  private menuItems: {
-    selectItem: WidgetToolbarSelectItem;
-    onSelected?: () => void;
-  }[] = [];
+  private menuItems: ContextMenuItem[] = [];
   private menu = new WidgetToolbarSelect({
     // width: 150,
     items: [],
@@ -61,19 +75,16 @@ export class ContextMenuManager {
           }
         };
       },
-      onShow: () => { this._isShowing = true; },
-      onHide: () => { this._isShowing = false; }
+      onShow: () => {
+        this._isShowing = true;
+      },
+      onHide: () => {
+        this._isShowing = false;
+      }
     });
   }
 
-  show(options: {
-    x: number;
-    y: number;
-    menuItems: {
-      selectItem: WidgetToolbarSelectItem;
-      onSelected?: () => void;
-    }[];
-  }) {
+  show(options: { x: number; y: number; menuItems: ContextMenuItem[] }) {
     this.menuItems = options.menuItems;
     this.menu.updateItems(options.menuItems.map(i => i.selectItem));
 
@@ -109,6 +120,10 @@ export class ContextMenuManager {
     );
     if (menuItem) {
       menuItem.onSelected && menuItem.onSelected();
+      if (menuItem.emitEvent) {
+        this.emit(menuItem.emitEvent.event, menuItem.emitEvent.data);
+      }
+
       this.hide();
     } else {
       this.hide();
@@ -119,5 +134,6 @@ export class ContextMenuManager {
     this.tippy.destroy();
     this.menuItems = [];
     this.menu.dispose();
+    this.removeAllListeners();
   }
 }
