@@ -14,6 +14,7 @@ import find from 'lodash/find';
 import remove from 'lodash/remove';
 import sampleSize from 'lodash/sampleSize';
 import debounce from 'lodash/debounce';
+import { clipboard } from 'electron';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
@@ -63,7 +64,8 @@ export class SpansTableView {
     formatTags: this.formatTags.bind(this),
     formatProcessTags: this.formatProcessTags.bind(this),
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
-    onRowClick: this.onRowClick.bind(this)
+    onRowClick: this.onRowClick.bind(this),
+    onKeyDown: this.onKeyDown.bind(this)
   };
 
   private columnDefinitions = {
@@ -129,10 +131,10 @@ export class SpansTableView {
   });
 
   constructor() {
-    const { container, toolbar, tableContainer: hotContainer } = this.elements;
+    const { container, toolbar, tableContainer } = this.elements;
     container.classList.add('spans-table-view');
     container.appendChild(toolbar);
-    container.appendChild(hotContainer);
+    container.appendChild(tableContainer);
     this.prepareToolbar();
   }
 
@@ -186,6 +188,11 @@ export class SpansTableView {
       this.binded.onSearchInput,
       false
     );
+    this.elements.container.addEventListener(
+      'keydown',
+      this.binded.onKeyDown,
+      false
+    );
 
     // Prepare initial data
     this.spanRows = this.stage
@@ -210,7 +217,8 @@ export class SpansTableView {
       initialSort: [
         { column: this.columnDefinitions.startTime.field, dir: 'asc' }
       ],
-      rowClick: this.binded.onRowClick
+      rowClick: this.binded.onRowClick,
+      keybindings: false
     });
   }
 
@@ -416,7 +424,8 @@ export class SpansTableView {
     // span tags & process tags object.
     const spanCopy = { ...span };
     if (spanCopy.tags) span.tags = { ...span.tags };
-    if (spanCopy.process && spanCopy.process.tags) spanCopy.process.tags = { ...spanCopy.process.tags };
+    if (spanCopy.process && spanCopy.process.tags)
+      spanCopy.process.tags = { ...spanCopy.process.tags };
 
     return {
       id: span.id,
@@ -563,6 +572,27 @@ export class SpansTableView {
     this.selectedSpanId = spanRow.span.id;
   }
 
+  private onKeyDown(e: KeyboardEvent) {
+    // If user is typing on any kind of input element which is
+    // child of this component, we don't want to trigger shortcuts
+    if (e.target instanceof HTMLInputElement) return;
+
+    // CMD + F => Focus to search input elemen
+    if (e.key == 'f' && (e.ctrlKey || e.metaKey)) {
+      this.elements.searchInput.focus();
+      return;
+    }
+
+    // CMD + C => Copy the JSON of selected span (if exists)
+    if (e.key == 'c' && (e.ctrlKey || e.metaKey)) {
+      if (!this.selectedSpanId) return;
+      const span = this.stage.getMainSpanGroup().get(this.selectedSpanId);
+      if (!span) return;
+      clipboard.writeText(JSON.stringify(span, null, 4));
+      return;
+    }
+  }
+
   mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }
@@ -585,6 +615,11 @@ export class SpansTableView {
     this.elements.searchInput.removeEventListener(
       'input',
       this.binded.onSearchInput,
+      false
+    );
+    this.elements.container.removeEventListener(
+      'keydown',
+      this.binded.onKeyDown,
       false
     );
 
