@@ -39,6 +39,7 @@ import { SpanTooltipContent } from '../span-tooltip/span-tooltip-content';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { Span } from '../../model/interfaces';
 import VerticalLineDecoration from './decorations/vertical-line';
+import { ContextMenuManager } from '../ui/context-menu/context-menu-manager';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -120,6 +121,8 @@ export class Timeline extends EventEmitter {
     svgBBTop: 0,
     idleMouseClientX: 0
   };
+
+  private contextMenuManager = ContextMenuManager.getSingleton();
 
   private binded = {
     onMouseIdleMove: this.onMouseIdleMove.bind(this),
@@ -778,6 +781,9 @@ export class Timeline extends EventEmitter {
   onMouseIdleMove(e: MouseEvent) {
     if (this.traces.length === 0) return;
 
+    // If context menu is dislaying, prevent span tooltip
+    if (this.contextMenuManager.isShowing) return;
+
     // We want to update immdieadely span tooltip
     this.spanTooltipContent.updateMousePos(e.offsetX, e.offsetY);
 
@@ -940,6 +946,8 @@ export class Timeline extends EventEmitter {
     this.spanTooltipTippy.hide();
 
     if (!e) return; // Sometimes event can be garbage-collected
+
+    // Get interacted element
     const matches = this.getInteractedElementsFromMouseEvent(e);
 
     let clickedSpanId: string | null = null;
@@ -963,22 +971,59 @@ export class Timeline extends EventEmitter {
       }
     });
 
-    const groupView =
-      clickedGroupLabelId && this.findGroupView(clickedGroupLabelId);
-    if (clickedGroupLabelId && groupView) {
-      const isVisible = groupView.toggleView();
-      this.updateGroupVerticalPositions();
-      this.keepPanelTraslateYInScreen();
-      this.updateAllDecorations();
+    // If left button clicked
+    if (e.button == 0) {
+      const groupView =
+        clickedGroupLabelId && this.findGroupView(clickedGroupLabelId);
+      if (clickedGroupLabelId && groupView) {
+        const isVisible = groupView.toggleView();
+        this.updateGroupVerticalPositions();
+        this.keepPanelTraslateYInScreen();
+        this.updateAllDecorations();
 
-      // TODO: Selected span can be collapsed right now
-      // TODO: A reference-connected span can be collapsed/expanded now
+        return; // Early terminate so that selection does not lost
+      }
 
-      return; // Early terminate so that selection does not lost
+      // Select clicked span, or nothing (deselectes all of them)
+      this.selectSpan(clickedSpanId);
+      return;
     }
 
-    // Select clicked span, or nothing (deselectes all of them)
-    this.selectSpan(clickedSpanId);
+    // If right button click
+    if (e.button == 2) {
+      // If clicked on a span, show context menu
+      if (clickedSpanId) {
+        this.contextMenuManager.show({
+          x: e.clientX,
+          y: e.clientY,
+          menuItems: [
+            {
+              selectItem: { type: 'item', text: 'test', id: 'test1' },
+              onSelected: () => console.log('test clicked')
+            },
+            {
+              selectItem: {
+                type: 'item',
+                text: 'test 2',
+                id: 'test2',
+                disabled: true
+              },
+              onSelected: () => console.log('test 2 clicked')
+            },
+            {
+              selectItem: { type: 'divider' }
+            },
+            {
+              selectItem: { type: 'item', text: 'test 3', id: 'test3' },
+              onSelected: () => console.log('test 3 clicked')
+            }
+          ]
+        });
+        return;
+      }
+
+      return;
+    }
   }
 
   ///////////////////////////////////////
