@@ -16,6 +16,10 @@
   opacity: 0.25;
 }
 
+/* Full-screen adjustments */
+.full-screen #app-toolbar { padding-left: 0; }
+.full-screen .app-toolbar-divider:first-of-type { display: none; }
+
 /* Traces badge count */
 .toolbar-traces-badge-count {
   background: #f5222d;
