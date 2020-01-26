@@ -8,11 +8,11 @@ import { DataSourceType } from '../../model/datasource/interfaces';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
+
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgSourceBranch from '!!raw-loader!@mdi/svg/svg/source-branch.svg';
-import SvgWidgets from '!!raw-loader!@mdi/svg/svg/widgets.svg';
 import SvgSettings from '!!raw-loader!@mdi/svg/svg/settings.svg';
 import './app-toolbar.css';
 
@@ -34,7 +34,6 @@ export class AppToolbar {
       dataSources: document.createElement('div'),
       search: document.createElement('div'),
       traces: document.createElement('div'),
-      widgets: document.createElement('div'),
       settings: document.createElement('div')
     },
     tracesBadgeCount: document.createElement('div'),
@@ -110,10 +109,6 @@ export class AppToolbar {
     leftPane.appendChild(btn.traces);
 
     // Right buttons
-    btn.widgets.classList.add('app-toolbar-button');
-    btn.widgets.innerHTML = SvgWidgets;
-    rightPane.appendChild(btn.widgets);
-
     btn.settings.classList.add('app-toolbar-button');
     btn.settings.innerHTML = SvgSettings;
     rightPane.appendChild(btn.settings);
@@ -183,13 +178,6 @@ export class AppToolbar {
         this.elements.btn.traces,
         {
           content: 'Traces in the Stage',
-          multiple: true
-        }
-      ],
-      [
-        this.elements.btn.widgets,
-        {
-          content: 'Widgets',
           multiple: true
         }
       ],
@@ -273,20 +261,6 @@ export class AppToolbar {
     } else {
       el.parentElement && this.elements.btn.traces.removeChild(el);
     }
-  }
-
-  updateButtonSelection(
-    type: AppToolbarButtonType,
-    isSelected: boolean,
-    style: 'background-fill' | 'svg-fill'
-  ) {
-    const el = this.elements.btn[type];
-    if (!el) return;
-    const className = {
-      'background-fill': 'selected',
-      'svg-fill': 'selected-fill'
-    }[style];
-    isSelected ? el.classList.add(className) : el.classList.remove(className);
   }
 
   ///////////////////////////////////////////////
@@ -374,7 +348,6 @@ export class AppToolbar {
       this.elements.btn.dataSources,
       this.elements.btn.search,
       this.elements.btn.traces,
-      this.elements.btn.widgets,
       this.elements.btn.settings
     ]);
     for (let tippy of Object.values(this.dropdowns)) {
