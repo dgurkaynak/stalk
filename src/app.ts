@@ -171,6 +171,18 @@ export class App {
       this.binded.showSpanInTimelineView
     );
 
+    // Listen for electron's full-screen events
+    ipcRenderer.on('enter-full-screen', () => document.body.classList.add('full-screen'));
+    ipcRenderer.on('leave-full-screen', () => document.body.classList.remove('full-screen'));
+
+    // Listen for electron's `open-file` events
+    ipcRenderer.on('open-file', (event, arg) => {
+      this.openFiles([arg]);
+    });
+    ipcRenderer.once('app-initalized-response', (event, arg) => {
+      this.openFiles(arg.openFiles);
+    });
+
     // Hide initial loading
     const loadingEl = document.getElementById(
       'initial-loading'
@@ -186,13 +198,7 @@ export class App {
       loadingEl.classList.add('hidden');
     }
 
-    // Handle `open-file` events
-    ipcRenderer.on('open-file', (event, arg) => {
-      this.openFiles([arg]);
-    });
-    ipcRenderer.once('app-initalized-response', (event, arg) => {
-      this.openFiles(arg.openFiles);
-    });
+    // Send event to main process that app is done initalizing
     ipcRenderer.send('app-initalized');
   }
 

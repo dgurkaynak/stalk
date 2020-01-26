@@ -43,6 +43,10 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+  // Delegate full-screen events
+  mainWindow.on('enter-full-screen', () => mainWindow.webContents.send('enter-full-screen'));
+  mainWindow.on('leave-full-screen', () => mainWindow.webContents.send('leave-full-screen'));
 }
 
 // Handle open-file events for following cases:
