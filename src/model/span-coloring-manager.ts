@@ -2,7 +2,7 @@ import find from 'lodash/find';
 import remove from 'lodash/remove';
 import isObject from 'lodash/isObject';
 import EventEmitter from 'events';
-import MPN65ColorAssigner from '../components/ui/color-assigner/mpn65';
+import MPN65ColorAssigner from '../components/ui/color-assigner-mpn65';
 import { Span } from './interfaces';
 import db from './db';
 import { TypeScriptManager } from './../components/customization/typescript-manager';

@@ -3,7 +3,6 @@ import shuffle from 'lodash/shuffle';
 import remove from 'lodash/remove';
 import isNumber from 'lodash/isNumber';
 import palette from 'google-palette';
-import { IColorAssigner } from './interfaces';
 
 interface MPN65ColorAssignerOptions {
   shuffle?: boolean;
@@ -14,7 +13,7 @@ interface MPN65ColorAssignerOptions {
  * mpn65 color palette
  * http://google.github.io/palette.js/
  */
-export class MPN65ColorAssigner implements IColorAssigner {
+export class MPN65ColorAssigner {
   private index = 0;
   private colors: string[] = [];
   private keyColorIndexMap: { [key: string]: number } = {};
