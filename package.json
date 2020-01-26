@@ -16,8 +16,8 @@
   "scripts": {
     "build": "webpack --mode production",
     "format": "prettier --write \"src/**/*.ts\"",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder",
+    "package": "electron-builder --dir",
+    "distribute": "electron-builder",
     "start:electron": "node scripts/electron-wait-webpack-dev-server.js",
     "start:dev-server": "webpack-dev-server --port 9000",
     "start": "cross-env BROWSER=none nf start"
