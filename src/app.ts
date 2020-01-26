@@ -66,7 +66,7 @@ export class App {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
     onWindowResize: this.onWindowResize.bind(this),
-    onTimelineResize: this.onTimelineResize.bind(this),
+    onTimelineResize: throttle(this.onTimelineResize.bind(this), 100),
     onSpanSummaryResize: throttle(this.onSpanSummaryResize.bind(this), 100),
     onSpanTagsResize: throttle(this.onSpanTagsResize.bind(this), 100),
     onSpanProcessTagsResize: throttle(this.onSpanProcessTagsResize.bind(this), 100),
@@ -201,39 +201,46 @@ export class App {
 
     this.widgets[AppWidgetType.TIMELINE] = new WidgetWrapper({
       title: 'Timeline View',
-      onResize: this.binded.onTimelineResize
+      onResize: this.binded.onTimelineResize,
+      closable: false
     });
 
     this.widgets[AppWidgetType.SPANS_TABLE] = new WidgetWrapper({
       title: 'Spans Table View',
       onResize: this.binded.onSpansTableResize,
-      onAfterShow: this.binded.onSpansTableShow
+      onAfterShow: this.binded.onSpansTableShow,
+      closable: false
     });
 
     this.widgets[AppWidgetType.LOGS_TABLE] = new WidgetWrapper({
       title: 'Logs Table View',
       onResize: this.binded.onLogsTableResize,
-      onAfterShow: this.binded.onLogsTableShow
+      onAfterShow: this.binded.onLogsTableShow,
+      closable: false
     });
 
     this.widgets[AppWidgetType.SPAN_SUMMARY] = new WidgetWrapper({
       title: 'Span Summary',
-      onResize: this.binded.onSpanSummaryResize
+      onResize: this.binded.onSpanSummaryResize,
+      closable: false
     });
 
     this.widgets[AppWidgetType.SPAN_TAGS] = new WidgetWrapper({
       title: 'Span Tags',
-      onResize: this.binded.onSpanTagsResize
+      onResize: this.binded.onSpanTagsResize,
+      closable: false
     });
 
     this.widgets[AppWidgetType.SPAN_PROCESS_TAGS] = new WidgetWrapper({
       title: 'Process Tags',
-      onResize: this.binded.onSpanProcessTagsResize
+      onResize: this.binded.onSpanProcessTagsResize,
+      closable: false
     });
 
     this.widgets[AppWidgetType.SPAN_LOGS] = new WidgetWrapper({
       title: 'Span Logs',
-      onResize: this.binded.onSpanLogsResize
+      onResize: this.binded.onSpanLogsResize,
+      closable: false
     });
 
     this.dockPanel.restoreLayout({
