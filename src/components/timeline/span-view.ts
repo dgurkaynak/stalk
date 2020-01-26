@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import find from 'lodash/find';
 import { Span, SpanLog } from '../../model/interfaces';
 import vc from './view-constants';
 import * as shortid from 'shortid';
@@ -267,7 +267,7 @@ export default class SpanView {
   }
 
   getLogViewById(logId: string) {
-    return _.find(this.logViews, l => l.id === logId);
+    return find(this.logViews, l => l.id === logId);
   }
 
   getLogViews() {

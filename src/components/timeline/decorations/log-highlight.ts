@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import defaults from 'lodash/defaults';
 import BaseDecoration from './base';
 import vc from '../view-constants';
 import GroupView from '../group-view';
@@ -36,7 +36,7 @@ export default class LogHighlightDecoration extends BaseDecoration {
   private circle = document.createElementNS(SVG_NS, 'circle');
 
   prepare(settings: LogHighlightDecorationSettings) {
-    this.settings = _.defaults(settings, this.settings);
+    this.settings = defaults(settings, this.settings);
 
     this.spanView = null;
     this.groupView = null;

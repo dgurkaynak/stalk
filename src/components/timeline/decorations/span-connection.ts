@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import defaults from 'lodash/defaults';
 import BaseDecoration from './base';
 import SpanView from '../span-view';
 import GroupView from '../group-view';
@@ -31,7 +31,7 @@ export class SpanConnectionDecoration extends BaseDecoration {
   private path = document.createElementNS(SVG_NS, 'path');
 
   prepare(settings: SpanConnectionDecorationSettings) {
-    this.settings = _.defaults(settings, this.settings);
+    this.settings = defaults(settings, this.settings);
 
     this.path.parentElement && this.path.parentElement.removeChild(this.path);
 

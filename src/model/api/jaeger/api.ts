@@ -1,4 +1,7 @@
-import * as _ from 'lodash';
+import isNumber from 'lodash/isNumber';
+import isString from 'lodash/isString';
+import isObject from 'lodash/isObject';
+import isArray from 'lodash/isArray';
 import { SearchQuery, SearchResulList } from '../interfaces';
 import { convertFromJaegerTrace } from './span';
 import { API } from '../interfaces';
@@ -15,7 +18,7 @@ export class JaegerAPI implements API {
     username?: string;
     password?: string;
   }) {
-    if (!_.isString(options.baseUrl)) {
+    if (!isString(options.baseUrl)) {
       throw new Error(`"options.baseUrl" must be a string`);
     }
 
@@ -62,18 +65,18 @@ export class JaegerAPI implements API {
     if (query.finishTime) queryParams.end = String(query.finishTime * 1000);
 
     /** Defaults to 20 */
-    if (_.isNumber(query.limit)) queryParams.limit = String(query.limit);
-    if (_.isNumber(query.offset)) queryParams.offset = String(query.offset);
+    if (isNumber(query.limit)) queryParams.limit = String(query.limit);
+    if (isNumber(query.offset)) queryParams.offset = String(query.offset);
 
     /**
      * It expects a human readable duration string like `100ms` or `1.2ss` or `10us`.
      * `minDuration` works, but I guess `maxDuration` is not working. When I search for
      * max `1s`, it returns traces longer than `1s`? (Update: when I search with some tags, it works)
      */
-    if (_.isNumber(query.minDuration)) {
+    if (isNumber(query.minDuration)) {
       queryParams.minDuration = `${query.minDuration}ms`;
     }
-    if (_.isNumber(query.maxDuration)) {
+    if (isNumber(query.maxDuration)) {
       queryParams.maxDuration = `${query.maxDuration}ms`;
     }
 
@@ -88,16 +91,16 @@ export class JaegerAPI implements API {
      * `error test` => {"error":"true","test":"true"}
      * `error=false test` => {"error":"false","test":"true"}
      */
-    if (_.isArray(query.tags) && query.tags.length > 0) {
+    if (isArray(query.tags) && query.tags.length > 0) {
       let tags: { [key: string]: string } = {};
 
       query.tags.forEach(data => {
-        if (_.isString(data)) {
+        if (isString(data)) {
           tags[data] = 'true';
           return;
         }
 
-        if (_.isObject(data)) {
+        if (isObject(data)) {
           tags = {
             ...tags,
             ...data
@@ -112,7 +115,7 @@ export class JaegerAPI implements API {
     }
 
     const response = await this.get(`/traces`, queryParams as any);
-    if (!_.isArray(response.data))
+    if (!isArray(response.data))
       throw new Error(
         `Expected jaeger response object must contain "data" array`
       );
@@ -175,7 +178,7 @@ export class JaegerAPI implements API {
   }) {
     let url = `${this.baseUrl}/api${options.path}`;
     if (
-      _.isObject(options.queryParams) &&
+      isObject(options.queryParams) &&
       Object.keys(options.queryParams).length > 0
     ) {
       (url as any) = new URL(url);

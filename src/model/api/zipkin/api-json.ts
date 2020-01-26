@@ -1,4 +1,5 @@
-import * as _ from 'lodash';
+import isObject from 'lodash/isObject';
+import isArray from 'lodash/isArray';
 import { SearchQuery, SearchResulList } from '../interfaces';
 import { convertFromZipkinTrace, isZipkinJSON } from './span';
 import { API } from '../interfaces';
@@ -13,13 +14,13 @@ export class ZipkinJsonAPI implements API {
       throw new Error('JSON is not in zipkin format');
     }
 
-    if (_.isArray(rawData[0])) {
+    if (isArray(rawData[0])) {
       this.traces = rawData.map((rawTrace: any) => {
         const spans = convertFromZipkinTrace(rawTrace);
         const trace = new Trace(spans);
         return trace;
       });
-    } else if (_.isObject(rawData[0])) {
+    } else if (isObject(rawData[0])) {
       const spans = convertFromZipkinTrace(rawData);
       const trace = new Trace(spans);
       this.traces = [trace];

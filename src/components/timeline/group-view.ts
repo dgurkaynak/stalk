@@ -1,4 +1,6 @@
-import * as _ from 'lodash';
+import isNumber from 'lodash/isNumber';
+import forEach from 'lodash/forEach';
+import every from 'lodash/every';
 import { SpanGroup } from '../../model/span-group/span-group';
 import SpanView, { SpanViewSharedOptions } from './span-view';
 import SpanGroupNode from '../../model/span-group/span-group-node';
@@ -189,7 +191,7 @@ export default class GroupView {
 
     // If collapsed, hide all the spans
     if (this.options.isCollapsed) {
-      _.forEach(spanViews, v => v.unmount());
+      forEach(spanViews, v => v.unmount());
 
       this.rowsAndSpanIntervals = [];
       this.spanIdToRowIndex = {};
@@ -217,7 +219,7 @@ export default class GroupView {
             let parentRowIndex = this.spanIdToRowIndex[
               node.parentOrFollows.spanId
             ];
-            if (_.isNumber(parentRowIndex)) minRowIndex = parentRowIndex + 1;
+            if (isNumber(parentRowIndex)) minRowIndex = parentRowIndex + 1;
           }
           availableRowIndex = this.getAvailableRow({
             startTime,
@@ -307,7 +309,7 @@ export default class GroupView {
     while (rowIndex < this.rowsAndSpanIntervals.length) {
       const spanIntervals = this.rowsAndSpanIntervals[rowIndex];
 
-      const isRowAvaliable = _.every(spanIntervals, ([s, f]) => {
+      const isRowAvaliable = every(spanIntervals, ([s, f]) => {
         if (options.finishTime <= s) return true;
         if (options.startTime >= f) return true;
         return false;

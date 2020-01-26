@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import { SearchQuery, SearchResulList } from '../interfaces';
 import { convertFromJaegerTrace, isJaegerJSON } from './span';
 import { API } from '../interfaces';

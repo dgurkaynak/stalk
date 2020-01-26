@@ -1,22 +1,25 @@
-import * as _ from 'lodash';
+import isNumber from 'lodash/isNumber';
+import isString from 'lodash/isString';
+import isObject from 'lodash/isObject';
+import isArray from 'lodash/isArray';
 import { Span } from '../../interfaces';
 
 export function isZipkinJSON(json: any) {
-  if (!_.isArray(json)) return false;
+  if (!isArray(json)) return false;
   const firstTraceSpans = json[0] as any[];
 
-  if (_.isArray(firstTraceSpans)) {
+  if (isArray(firstTraceSpans)) {
     const firstSpan = firstTraceSpans[0] as any;
-    if (!_.isObject(firstSpan)) return false;
+    if (!isObject(firstSpan)) return false;
     return (
-      _.isString((firstSpan as any)['traceId']) &&
-      _.isString((firstSpan as any)['id'])
+      isString((firstSpan as any)['traceId']) &&
+      isString((firstSpan as any)['id'])
     );
-  } else if (_.isObject(firstTraceSpans)) {
+  } else if (isObject(firstTraceSpans)) {
     const firstSpan = firstTraceSpans;
     return (
-      _.isString((firstSpan as any)['traceId']) &&
-      _.isString((firstSpan as any)['id'])
+      isString((firstSpan as any)['traceId']) &&
+      isString((firstSpan as any)['id'])
     );
   }
 
@@ -24,16 +27,16 @@ export function isZipkinJSON(json: any) {
 }
 
 export function convertFromZipkinTrace(rawTrace: any) {
-  if (!_.isArray(rawTrace)) throw new Error(`Trace must be array`);
+  if (!isArray(rawTrace)) throw new Error(`Trace must be array`);
 
   const spans: Span[] = rawTrace.map((rawSpan: any) => {
-    if (!_.isString(rawSpan.id) && rawSpan.id.length > 0)
+    if (!isString(rawSpan.id) && rawSpan.id.length > 0)
       throw new Error(`"rawSpan.id" must be string`);
-    if (!_.isString(rawSpan.traceId) && rawSpan.traceId.length > 0)
+    if (!isString(rawSpan.traceId) && rawSpan.traceId.length > 0)
       throw new Error(`"rawSpan.traceId" must be string`);
-    if (!_.isNumber(rawSpan.timestamp))
+    if (!isNumber(rawSpan.timestamp))
       throw new Error(`"rawSpan.timestamp" must be number`);
-    if (!_.isNumber(rawSpan.duration)) rawSpan.duration = 0;
+    if (!isNumber(rawSpan.duration)) rawSpan.duration = 0;
 
     const span: Span = {
       id: rawSpan.id,
@@ -42,14 +45,14 @@ export function convertFromZipkinTrace(rawTrace: any) {
       startTime: rawSpan.timestamp,
       finishTime: rawSpan.timestamp + rawSpan.duration,
       references: [],
-      tags: _.isObject(rawSpan.tags) ? rawSpan.tags : {},
+      tags: isObject(rawSpan.tags) ? rawSpan.tags : {},
       logs: [],
-      localEndpoint: _.isObject(rawSpan.localEndpoint)
+      localEndpoint: isObject(rawSpan.localEndpoint)
         ? rawSpan.localEndpoint
         : { serviceName: 'unknown' }
     };
 
-    if (_.isString(rawSpan.parentId) && rawSpan.parentId.length > 0) {
+    if (isString(rawSpan.parentId) && rawSpan.parentId.length > 0) {
       span.references.push({
         type: 'childOf',
         traceId: rawSpan.traceId,
@@ -57,7 +60,7 @@ export function convertFromZipkinTrace(rawTrace: any) {
       });
     }
 
-    if (_.isArray(rawSpan.annotations)) {
+    if (isArray(rawSpan.annotations)) {
       span.logs = rawSpan.annotations.map((anno: any) => ({
         timestamp: anno.timestamp,
         fields: {

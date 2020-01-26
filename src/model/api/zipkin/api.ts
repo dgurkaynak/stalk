@@ -1,4 +1,7 @@
-import * as _ from 'lodash';
+import isNumber from 'lodash/isNumber';
+import isString from 'lodash/isString';
+import isObject from 'lodash/isObject';
+import isArray from 'lodash/isArray';
 import { SearchQuery, SearchResulList } from '../interfaces';
 import { convertFromZipkinTrace } from './span';
 import { API } from '../interfaces';
@@ -16,7 +19,7 @@ export class ZipkinAPI implements API {
     username?: string;
     password?: string;
   }) {
-    if (!_.isString(options.baseUrl)) {
+    if (!isString(options.baseUrl)) {
       throw new Error(`"options.baseUrl" must be a string`);
     }
 
@@ -65,14 +68,14 @@ export class ZipkinAPI implements API {
      * So, this is not working: `component=Player error=true`.
      * The valid form: `component=Player and error=true`
      */
-    if (_.isArray(query.tags) && query.tags.length > 0) {
+    if (isArray(query.tags) && query.tags.length > 0) {
       queryParams.annotationQuery = query.tags
         .map(data => {
-          if (_.isString(data)) {
+          if (isString(data)) {
             return data;
           }
 
-          if (_.isObject(data)) {
+          if (isObject(data)) {
             const keys = Object.keys(data);
             if (keys.length === 0)
               throw new Error(`Tag object must contain one key/value pair`);
@@ -91,14 +94,14 @@ export class ZipkinAPI implements API {
      * `minDuration` => Ex. 100000 (for 100ms). Only return traces whose Span.duration is
      * greater than or equal to minDuration microseconds.
      */
-    if (_.isNumber(query.minDuration))
+    if (isNumber(query.minDuration))
       queryParams.minDuration = String(query.minDuration * 1000);
 
     /**
      * `maxDuration` => Only return traces whose Span.duration is less than or equal to
      * maxDuration microseconds. Only valid with minDuration.
      */
-    if (_.isNumber(query.maxDuration))
+    if (isNumber(query.maxDuration))
       queryParams.maxDuration = String(query.maxDuration * 1000);
 
     /**
@@ -120,7 +123,7 @@ export class ZipkinAPI implements API {
     if (query.limit) queryParams.limit = String(query.limit);
 
     const response = await this.get('/traces', queryParams);
-    if (!_.isArray(response))
+    if (!isArray(response))
       throw new Error('Expected zipkin response must be array');
     return {
       query,
@@ -175,7 +178,7 @@ export class ZipkinAPI implements API {
   }) {
     let url = `${this.baseUrl}/zipkin/api/v2${options.path}`;
     if (
-      _.isObject(options.queryParams) &&
+      isObject(options.queryParams) &&
       Object.keys(options.queryParams).length > 0
     ) {
       (url as any) = new URL(url);

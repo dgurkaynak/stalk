@@ -1,4 +1,7 @@
-import * as _ from 'lodash';
+import defaults from 'lodash/defaults';
+import shuffle from 'lodash/shuffle';
+import remove from 'lodash/remove';
+import isNumber from 'lodash/isNumber';
 import palette from 'google-palette';
 import { IColorAssigner } from './interfaces';
 
@@ -17,7 +20,7 @@ export class MPN65ColorAssigner implements IColorAssigner {
   private keyColorIndexMap: { [key: string]: number } = {};
 
   constructor(options?: MPN65ColorAssignerOptions) {
-    options = _.defaults({}, options || {}, {
+    options = defaults({}, options || {}, {
       shuffle: false,
       excludeColors: [
         'ff0029',
@@ -33,11 +36,11 @@ export class MPN65ColorAssigner implements IColorAssigner {
       ]
     });
     const rawColors: string[] = options.shuffle
-      ? _.shuffle(palette('mpn65', 65))
+      ? shuffle(palette('mpn65', 65))
       : palette('mpn65', 65);
 
     if (options.excludeColors!.length > 0) {
-      _.remove(rawColors, c => options!.excludeColors!.indexOf(c) > -1);
+      remove(rawColors, c => options!.excludeColors!.indexOf(c) > -1);
     }
 
     this.colors = rawColors.map((c: string) => `#${c}`);
@@ -45,7 +48,7 @@ export class MPN65ColorAssigner implements IColorAssigner {
 
   colorFor(key: string) {
     let index = this.keyColorIndexMap[key];
-    if (!_.isNumber(index)) {
+    if (!isNumber(index)) {
       index = this.index;
       this.keyColorIndexMap[key] = index;
       this.index = (this.index + 1) % this.colors.length;

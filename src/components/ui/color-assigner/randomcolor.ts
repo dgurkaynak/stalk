@@ -1,4 +1,5 @@
-import * as _ from 'lodash';
+import defaults from 'lodash/defaults';
+import isNumber from 'lodash/isNumber';
 import * as randomColor from 'randomcolor';
 import { IColorAssigner } from './interfaces';
 
@@ -27,7 +28,7 @@ export class RandomColorAssigner implements IColorAssigner {
   private keyColorIndexMap: { [key: string]: number } = {};
 
   constructor(options?: RandomColorAssignerOptions) {
-    options = _.defaults({}, options || {}, {
+    options = defaults({}, options || {}, {
       count: 50
     });
     this.colors = randomColor(options);
@@ -35,7 +36,7 @@ export class RandomColorAssigner implements IColorAssigner {
 
   colorFor(key: string) {
     let index = this.keyColorIndexMap[key];
-    if (!_.isNumber(index)) {
+    if (!isNumber(index)) {
       index = this.index;
       this.keyColorIndexMap[key] = index;
       this.index = (this.index + 1) % this.colors.length;

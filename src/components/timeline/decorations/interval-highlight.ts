@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import defaults from 'lodash/defaults';
 import BaseDecoration from './base';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -25,7 +25,7 @@ export default class IntervalHighlightDecoration extends BaseDecoration {
   private rect = document.createElementNS(SVG_NS, 'rect');
 
   prepare(settings: IntervalHighlightDecorationSettings) {
-    this.settings = _.defaults(settings, this.settings);
+    this.settings = defaults(settings, this.settings);
 
     [this.lineLeft, this.lineRight].forEach(line => {
       line.setAttribute('x1', '0');

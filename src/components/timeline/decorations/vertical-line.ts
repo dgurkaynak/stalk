@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import defaults from 'lodash/defaults';
 import BaseDecoration from './base';
 import { formatMicroseconds } from '../../../utils/format-microseconds';
 
@@ -31,7 +31,7 @@ export default class VerticalLineDecoration extends BaseDecoration {
   private text = document.createElementNS(SVG_NS, 'text');
 
   prepare(settings: VerticalLineDecorationSettings) {
-    this.settings = _.defaults(settings, this.settings);
+    this.settings = defaults(settings, this.settings);
 
     this.line.setAttribute('x1', '0');
     this.line.setAttribute('x2', '0');
