@@ -2,9 +2,7 @@ import find from 'lodash/find';
 import findIndex from 'lodash/findIndex';
 import { DataSourceType, DataSource } from './interfaces';
 import JaegerAPI from '../api/jaeger/api';
-import JaegerJsonAPI from '../api/jaeger/api-json';
 import ZipkinAPI from '../api/zipkin/api';
-import ZipkinJsonAPI from '../api/zipkin/api-json';
 import db from '../db';
 import EventEmitter from 'events';
 
@@ -19,7 +17,7 @@ let singletonIns: DataSourceManager;
 export class DataSourceManager extends EventEmitter {
   private datasources: DataSource[] = [];
   private apis: {
-    [key: string]: JaegerAPI | JaegerJsonAPI | ZipkinAPI | ZipkinJsonAPI;
+    [key: string]: JaegerAPI | ZipkinAPI;
   } = {};
 
   static getSingleton(): DataSourceManager {
@@ -36,7 +34,7 @@ export class DataSourceManager extends EventEmitter {
 
   async add(ds: DataSource, doNotPersistToDatabase = false) {
     const { id, type } = ds;
-    let api: JaegerAPI | JaegerJsonAPI | ZipkinAPI | ZipkinJsonAPI;
+    let api: JaegerAPI | ZipkinAPI;
 
     // TODO: Check id is existing
 
@@ -49,22 +47,12 @@ export class DataSourceManager extends EventEmitter {
         });
         break;
       }
-      case DataSourceType.JAEGER_JSON: {
-        // TODO: Try-catch
-        api = new JaegerJsonAPI(ds.data);
-        break;
-      }
       case DataSourceType.ZIPKIN: {
         api = new ZipkinAPI({
           baseUrl: ds.baseUrl!,
           username: ds.username,
           password: ds.password
         });
-        break;
-      }
-      case DataSourceType.ZIPKIN_JSON: {
-        // TODO: Try-catch
-        api = new ZipkinJsonAPI(ds.data);
         break;
       }
       default: {

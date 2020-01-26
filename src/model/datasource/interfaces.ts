@@ -1,8 +1,6 @@
 export enum DataSourceType {
   JAEGER = 'jaeger',
-  JAEGER_JSON = 'jaeger_json',
   ZIPKIN = 'zipkin',
-  ZIPKIN_JSON = 'zipkin_json'
 }
 
 export interface DataSource {
