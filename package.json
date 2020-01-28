@@ -12,7 +12,9 @@
     "url": "https://github.com/dgurkaynak"
   },
   "main": "main.js",
-  "dependencies": {},
+  "dependencies": {
+    "node-int64": "^0.4.0"
+  },
   "scripts": {
     "build": "webpack --mode production",
     "format": "prettier --write \"src/**/*.ts\"",
