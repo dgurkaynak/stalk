@@ -1,14 +1,9 @@
 const http = require('http');
-const port = 14268;
-const thrift = require('../src/vendor/thrift');
-const JaegerTypes = require('../src/vendor/jaeger/gen-nodejs/jaeger_types');
-
-const Transport = thrift.TFramedTransport;
-const Protocol = thrift.TBinaryProtocol;
+const port = 9411;
 
 const server = http.createServer((request, response) => {
 
-  // TODO: Check if coming to `/api/traces` with a POST request
+  // TODO: Check if coming to `/api/v2/spans` with a POST request
 
   let body = [];
   request.on('data', (chunk) => {
@@ -17,11 +12,7 @@ const server = http.createServer((request, response) => {
     const buffer = Buffer.concat(body);
 
     // at this point, `body` has the entire request body stored in it as a string
-    const bufTrans = new Transport(buffer);
-    const myprot = new Protocol(bufTrans);
-    const batch = new JaegerTypes.Batch();
-    batch.read(myprot);
-    console.log(batch);
+    console.log(JSON.parse(buffer.toString()));
 
     response.statusCode = 202;
     response.end();
