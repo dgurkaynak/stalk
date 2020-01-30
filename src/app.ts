@@ -66,15 +66,6 @@ export class App {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
     onWindowResize: this.onWindowResize.bind(this),
-    onTimelineResize: throttle(this.onTimelineResize.bind(this), 100),
-    onSpanSummaryResize: throttle(this.onSpanSummaryResize.bind(this), 100),
-    onSpanTagsResize: throttle(this.onSpanTagsResize.bind(this), 100),
-    onSpanProcessTagsResize: throttle(this.onSpanProcessTagsResize.bind(this), 100),
-    onSpanLogsResize: throttle(this.onSpanLogsResize.bind(this), 100),
-    onSpansTableResize: throttle(this.onSpansTableResize.bind(this), 100),
-    onSpansTableShow: this.onSpansTableShow.bind(this),
-    onLogsTableResize: throttle(this.onLogsTableResize.bind(this), 100),
-    onLogsTableShow: this.onLogsTableShow.bind(this),
     onDrop: this.onDrop.bind(this),
     onDragOver: this.onDragOver.bind(this),
     onDragLeave: this.onDragLeave.bind(this),
@@ -131,7 +122,9 @@ export class App {
       spansTable: this.spansTable
     });
 
-    const spanProcessTagsWidgetEl = this.widgets[AppWidgetType.SPAN_PROCESS_TAGS].node;
+    const spanProcessTagsWidgetEl = this.widgets[
+      AppWidgetType.SPAN_PROCESS_TAGS
+    ].node;
     this.spanProcessTags.mount(spanProcessTagsWidgetEl);
     this.spanProcessTags.init({
       timeline: this.timeline.timeline,
@@ -172,8 +165,12 @@ export class App {
     );
 
     // Listen for electron's full-screen events
-    ipcRenderer.on('enter-full-screen', () => document.body.classList.add('full-screen'));
-    ipcRenderer.on('leave-full-screen', () => document.body.classList.remove('full-screen'));
+    ipcRenderer.on('enter-full-screen', () =>
+      document.body.classList.add('full-screen')
+    );
+    ipcRenderer.on('leave-full-screen', () =>
+      document.body.classList.remove('full-screen')
+    );
 
     // Listen for electron's `open-file` events
     ipcRenderer.on('open-file', (event, arg) => {
@@ -202,50 +199,64 @@ export class App {
     ipcRenderer.send('app-initalized');
   }
 
-  initDockPanelAndWidgets() {
+  private initDockPanelAndWidgets() {
     this.dockPanel.id = 'app-dock-panel';
 
     this.widgets[AppWidgetType.TIMELINE] = new WidgetWrapper({
       title: 'Timeline View',
-      onResize: this.binded.onTimelineResize,
+      onResize: throttle((msg: { width: number; height: number }) => {
+        this.timeline.resize(msg.width, msg.height);
+      }, 100),
       closable: false
     });
 
     this.widgets[AppWidgetType.SPANS_TABLE] = new WidgetWrapper({
       title: 'Spans Table View',
-      onResize: this.binded.onSpansTableResize,
-      onAfterShow: this.binded.onSpansTableShow,
+      onResize: throttle((msg: { width: number; height: number }) => {
+        this.spansTable.resize(msg.width, msg.height);
+      }, 100),
+      onAfterShow: () => this.spansTable.redrawTable(),
       closable: false
     });
 
     this.widgets[AppWidgetType.LOGS_TABLE] = new WidgetWrapper({
       title: 'Logs Table View',
-      onResize: this.binded.onLogsTableResize,
-      onAfterShow: this.binded.onLogsTableShow,
+      onResize: throttle((msg: { width: number; height: number }) => {
+        this.logsTable.resize(msg.width, msg.height);
+      }, 100),
+      onAfterShow: () => this.logsTable.redrawTable(),
       closable: false
     });
 
     this.widgets[AppWidgetType.SPAN_SUMMARY] = new WidgetWrapper({
       title: 'Span Summary',
-      onResize: this.binded.onSpanSummaryResize,
+      onResize: throttle((msg: { width: number; height: number }) => {
+        this.spanSummary.resize(msg.width, msg.height);
+      }, 100),
       closable: false
     });
 
     this.widgets[AppWidgetType.SPAN_TAGS] = new WidgetWrapper({
       title: 'Span Tags',
-      onResize: this.binded.onSpanTagsResize,
+      onResize: throttle((msg: { width: number; height: number }) => {
+        this.spanTags.resize(msg.width, msg.height);
+      }, 100),
       closable: false
     });
 
     this.widgets[AppWidgetType.SPAN_PROCESS_TAGS] = new WidgetWrapper({
       title: 'Process Tags',
-      onResize: this.binded.onSpanProcessTagsResize,
+      onResize: throttle((msg: { width: number; height: number }) => {
+        this.spanProcessTags.resize(msg.width, msg.height);
+      }, 100),
       closable: false
     });
 
     this.widgets[AppWidgetType.SPAN_LOGS] = new WidgetWrapper({
       title: 'Span Logs',
-      onResize: this.binded.onSpanLogsResize,
+      onResize: throttle((msg: { width: number; height: number }) => {
+        this.spanLogs.resize(msg.width, msg.height);
+      }, 100),
       closable: false
     });
 
@@ -296,55 +307,19 @@ export class App {
     DockPanel.attach(this.dockPanel, this.options.element);
   }
 
-  onStageTraceAdded(trace: Trace) {
+  private onStageTraceAdded(trace: Trace) {
     this.timeline.addTrace(trace);
   }
 
-  onStageTraceRemoved(trace: Trace) {
+  private onStageTraceRemoved(trace: Trace) {
     this.timeline.removeTrace(trace);
   }
 
-  onWindowResize() {
+  private onWindowResize() {
     this.dockPanel.update();
   }
 
-  onTimelineResize(msg: { width: number; height: number }) {
-    this.timeline.resize(msg.width, msg.height);
-  }
-
-  onSpanSummaryResize(msg: { width: number; height: number }) {
-    this.spanSummary.resize(msg.width, msg.height);
-  }
-
-  onSpanTagsResize(msg: { width: number; height: number }) {
-    this.spanTags.resize(msg.width, msg.height);
-  }
-
-  onSpanProcessTagsResize(msg: { width: number; height: number }) {
-    this.spanProcessTags.resize(msg.width, msg.height);
-  }
-
-  onSpanLogsResize(msg: { width: number; height: number }) {
-    this.spanLogs.resize(msg.width, msg.height);
-  }
-
-  onSpansTableResize(msg: { width: number; height: number }) {
-    this.spansTable.resize(msg.width, msg.height);
-  }
-
-  onSpansTableShow() {
-    this.spansTable.redrawTable();
-  }
-
-  onLogsTableResize(msg: { width: number; height: number }) {
-    this.logsTable.resize(msg.width, msg.height);
-  }
-
-  onLogsTableShow() {
-    this.logsTable.redrawTable();
-  }
-
-  initDropZone() {
+  private initDropZone() {
     this.dropZoneEl.id = 'drop-zone';
     // Drop zone should not have any children, it causes unexpected dragleave/dragover events
     // https://stackoverflow.com/questions/20958176/why-is-dragleave-event-firing-unexpectedly
@@ -354,7 +329,7 @@ export class App {
     this.options.element.appendChild(this.dropZoneEl);
   }
 
-  async onDrop(e: DragEvent) {
+  private async onDrop(e: DragEvent) {
     e.preventDefault();
     this.dropZoneEl.style.display = 'none';
     const errorMessages = [] as string[];
