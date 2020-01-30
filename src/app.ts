@@ -93,10 +93,10 @@ export class App {
       SpanGroupingManager.getSingleton().init(),
       SpanColoringManager.getSingleton().init(),
       SpanLabellingManager.getSingleton().init(),
-      TypeScriptManager.getSingleton().init(),
-      this.contextMenuManager.init()
+      TypeScriptManager.getSingleton().init()
     ]);
 
+    this.contextMenuManager.init();
     this.initDockPanelAndWidgets();
 
     this.toolbar.mount(this.options.element);
