@@ -57,6 +57,7 @@
     "raw-loader": "^3.1.0",
     "shortid": "^2.2.15",
     "source-map-loader": "^0.2.4",
+    "stalk-opentracing": "0.0.4",
     "style-loader": "^1.0.0",
     "tabulator-tables": "^4.5.3",
     "tippy.js": "^5.1.1",
