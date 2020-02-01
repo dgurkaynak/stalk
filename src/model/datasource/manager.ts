@@ -5,15 +5,17 @@ import JaegerAPI from '../api/jaeger/api';
 import ZipkinAPI from '../api/zipkin/api';
 import db from '../db';
 import EventEmitter from 'events';
+import { opentracing, stalk } from 'stalk-opentracing';
 
-// Maybe seperate events like ADDED, DELETED, UPDATED?
-// Not sure whether if it's gonna worth it
 export enum DataSourceManagerEvent {
-  UPDATED = 'dsm_updated'
+  ADDED = 'dsm_added',
+  UPDATED = 'dsm_updated',
+  REMOVED = 'dsm_removed'
 }
 
 let singletonIns: DataSourceManager;
 
+@stalk.decorators.Tag.Component('dsmanager')
 export class DataSourceManager extends EventEmitter {
   private datasources: DataSource[] = [];
   private apis: {
@@ -25,18 +27,40 @@ export class DataSourceManager extends EventEmitter {
     return singletonIns;
   }
 
-  async init() {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'dsmanager.init',
+    relation: 'childOf'
+  })
+  async init(ctx: opentracing.Span) {
     await db.open();
+    ctx.log({ message: 'DB opened successfully' });
 
     const dataSources = await db.dataSources.toArray();
-    dataSources.forEach(ds => this.add(ds, true));
+    ctx.log({
+      message: `Got ${dataSources.length} datasource(s), adding them`
+    });
+
+    await Promise.all(dataSources.map(ds => this.add(ctx, ds, true)));
   }
 
-  async add(ds: DataSource, doNotPersistToDatabase = false) {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'dsmanager.add',
+    relation: 'childOf'
+  })
+  async add(
+    ctx: opentracing.Span,
+    ds: DataSource,
+    doNotPersistToDatabase = false
+  ) {
     const { id, type } = ds;
     let api: JaegerAPI | ZipkinAPI;
 
-    // TODO: Check id is existing
+    ctx.addTags({ ...ds, doNotPersistToDatabase });
+
+    if (find(this.datasources, ds => ds.id == id)) {
+      ctx.log({ message: `There is already a datasource with id "${id}"` });
+      return false;
+    }
 
     switch (type) {
       case DataSourceType.JAEGER: {
@@ -66,11 +90,15 @@ export class DataSourceManager extends EventEmitter {
       a.name.toLowerCase().localeCompare(b.name.toLowerCase())
     );
     this.apis[id] = api;
-    this.emit(DataSourceManagerEvent.UPDATED);
+    this.emit(DataSourceManagerEvent.ADDED, ctx, ds);
     return ds;
   }
 
-  async update(ds: DataSource) {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'dsmanager.update',
+    relation: 'childOf'
+  })
+  async update(ctx: opentracing.Span, ds: DataSource) {
     const index = findIndex(this.datasources, x => x.id === ds.id);
     if (index === -1) return false;
     await db.dataSources.update(this.datasources[index].id, ds);
@@ -78,16 +106,20 @@ export class DataSourceManager extends EventEmitter {
     this.datasources.sort((a, b) =>
       a.name.toLowerCase().localeCompare(b.name.toLowerCase())
     );
-    this.emit(DataSourceManagerEvent.UPDATED);
+    this.emit(DataSourceManagerEvent.UPDATED, ctx, ds);
   }
 
-  async remove(dsOrId: DataSource | string) {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'dsmanager.remove',
+    relation: 'childOf'
+  })
+  async remove(ctx: opentracing.Span, dsOrId: DataSource | string) {
     const index = this.getIndex(dsOrId);
     if (index === -1) return false;
     await db.dataSources.delete(this.datasources[index].id);
     const [ds] = this.datasources.splice(index, 1);
     delete this.apis[ds.id];
-    this.emit(DataSourceManagerEvent.UPDATED);
+    this.emit(DataSourceManagerEvent.REMOVED, ctx, ds);
     return ds;
   }
 

@@ -6,6 +6,7 @@ import MPN65ColorAssigner from '../components/ui/color-assigner-mpn65';
 import { Span } from './interfaces';
 import db from './db';
 import { TypeScriptManager } from './../components/customization/typescript-manager';
+import { opentracing, stalk } from 'stalk-opentracing';
 
 export enum SpanColoringManagerEvent {
   ADDED = 'scm_added',
@@ -27,6 +28,7 @@ export interface SpanColoringOptions {
 
 let singletonIns: SpanColoringManager;
 
+@stalk.decorators.Tag.Component('scmanager')
 export class SpanColoringManager extends EventEmitter {
   private builtInOptions: SpanColoringOptions[] = [
     operationColoringOptions,
@@ -39,22 +41,42 @@ export class SpanColoringManager extends EventEmitter {
     return singletonIns;
   }
 
-  async init() {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'scmanager.init',
+    relation: 'childOf'
+  })
+  async init(ctx: opentracing.Span) {
     await db.open();
+    ctx.log({ message: 'DB opened successfully' });
+
     const rawOptions = await db.spanColorings.toArray();
-    rawOptions.forEach(raw => this.add(raw, true));
+    ctx.log({ message: `Got ${rawOptions.length} span coloring(s), adding them` });
+
+    await Promise.all(rawOptions.map(raw => this.add(ctx, raw, true)));
   }
 
-  async add(raw: SpanColoringRawOptions, doNotPersistToDatabase = false) {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'scmanager.add',
+    relation: 'childOf'
+  })
+  async add(ctx: opentracing.Span, raw: SpanColoringRawOptions, doNotPersistToDatabase = false) {
     const allOptions = [...this.builtInOptions, ...this.customOptions];
-    const keyMatch = find(allOptions, c => c.key === options.key);
-    if (keyMatch) return false;
+    ctx.addTags({ ...raw, doNotPersistToDatabase });
 
     const options: SpanColoringOptions = {
       key: raw.key,
       name: raw.name,
       colorBy: TypeScriptManager.generateFunction(raw.compiledCode, 'colorBy')
     };
+
+    const keyMatch = find(allOptions, c => c.key === options.key);
+    if (keyMatch) {
+      ctx.log({
+        message: `There is already a span coloring with key "${options.key}"`
+      });
+      return false;
+    }
+
     this.customOptions.push(options);
 
     if (!doNotPersistToDatabase) await db.spanColorings.put(raw);

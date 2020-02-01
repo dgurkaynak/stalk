@@ -41,6 +41,7 @@ import { Span } from '../../model/interfaces';
 import VerticalLineDecoration from './decorations/vertical-line';
 import { ContextMenuManager, ContextMenuEvent } from '../ui/context-menu/context-menu-manager';
 import { clipboard } from 'electron';
+import { opentracing, stalk } from 'stalk-opentracing';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -53,6 +54,7 @@ export enum TimelineTool {
   RULER = 'ruler'
 }
 
+@stalk.decorators.Tag.Component('timeline')
 export class Timeline extends EventEmitter {
   private svg = document.createElementNS(SVG_NS, 'svg');
   private defs = document.createElementNS(SVG_NS, 'defs');
@@ -171,14 +173,19 @@ export class Timeline extends EventEmitter {
     this.spanGrouping = new SpanGrouping(processSpanGroupingOptions); // Do not forget to change related config in timeline-wrapper
   }
 
-  init(options: { width: number; height: number }) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'timeline.init',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  init(ctx: opentracing.Span, options: { width: number; height: number }) {
     let width = options && options.width;
     let height = options && options.height;
     if (!width || !height) {
       throw new Error('Missing timeline dimensions');
     }
-    this.resize(width, height);
-    this.setupPanels();
+    this.resize(ctx, width, height);
+    this.setupPanels(ctx);
     this.mouseHandler.init();
 
     // Bind events
@@ -240,7 +247,12 @@ export class Timeline extends EventEmitter {
     this.svg.parentElement && this.svg.parentElement.removeChild(this.svg);
   }
 
-  resize(width: number, height: number) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'timeline.resize',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  resize(ctx: opentracing.Span, width: number, height: number) {
     this._width = width;
     this._height = height;
 
@@ -287,7 +299,12 @@ export class Timeline extends EventEmitter {
     }
   }
 
-  setupPanels() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'timeline.setupPanels',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  setupPanels(ctx: opentracing.Span) {
     const { _width: width, _height: height } = this;
 
     this.bodyClipPath.id = 'body-clip-path';
@@ -374,27 +391,43 @@ export class Timeline extends EventEmitter {
     this.removeAllListeners();
   }
 
-  updateGroupLayoutMode(groupLayoutType: GroupLayoutType) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'timeline.updateGroupLayoutMode',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  updateGroupLayoutMode(ctx: opentracing.Span, groupLayoutType: GroupLayoutType) {
     this.groupLayoutMode = groupLayoutType;
     this.groupViews.forEach(g => {
       g.setLayoutType(groupLayoutType);
-      g.layout();
+      g.layout(ctx);
     });
-    this.updateGroupVerticalPositions();
+    this.updateGroupVerticalPositions(ctx);
     this.updateAllDecorations();
     this.keepPanelTraslateYInScreen();
   }
 
-  updateSpanGrouping(spanGroupingOptions: SpanGroupingOptions) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'timeline.updateSpanGrouping',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  updateSpanGrouping(ctx: opentracing.Span, spanGroupingOptions: SpanGroupingOptions) {
     // TODO: Dispose previous grouping maybe?
     this.spanGrouping = new SpanGrouping(spanGroupingOptions);
     this.traces.forEach(t =>
       t.spans.forEach(s => this.spanGrouping.addSpan(s, t))
     );
-    this.layout();
+    ctx.log({ message: `New span grouping is ready` });
+    this.layout(ctx);
   }
 
-  updateSpanColoring(options: SpanColoringOptions) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'timeline.updateSpanColoring',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  updateSpanColoring(ctx: opentracing.Span, options: SpanColoringOptions) {
     this.spanViewSharedOptions.colorFor = options.colorBy;
     this.groupViews.forEach(g => {
       const spanViews = g.getAllSpanViews();
@@ -402,7 +435,12 @@ export class Timeline extends EventEmitter {
     });
   }
 
-  updateSpanLabelling(options: SpanLabellingOptions) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'timeline.updateSpanLabelling',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  updateSpanLabelling(ctx: opentracing.Span, options: SpanLabellingOptions) {
     this.spanViewSharedOptions.labelFor = options.labelBy;
     this.groupViews.forEach(g => {
       const spanViews = g.getAllSpanViews();
@@ -418,18 +456,38 @@ export class Timeline extends EventEmitter {
     this._tool = tool;
   }
 
-  addTrace(trace: Trace) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'timeline.addTrace',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  addTrace(ctx: opentracing.Span, trace: Trace) {
     const idMatch = find(this.traces, t => t.id === trace.id);
-    if (idMatch) return false;
+    if (idMatch) {
+      ctx.log({ message: `Trace is already added, noop` });
+      return false;
+    }
+
     this.traces.push(trace);
     trace.spans.forEach(s => this.spanGrouping.addSpan(s, trace));
-    this.layout();
+    ctx.log({ message: `New spans added to span grouping` });
+
+    this.layout(ctx);
     return true;
   }
 
-  removeTrace(trace: Trace) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'timeline.removeTrace',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  removeTrace(ctx: opentracing.Span, trace: Trace) {
     const removeds = remove(this.traces, t => t.id === trace.id);
-    if (removeds.length === 0) return false;
+    if (removeds.length === 0) {
+      ctx.log({ message: `Trace is not in timeline, noop` });
+      return false;
+    }
+
     let isSelectedSpanRemoved = false;
     trace.spans.forEach(s => {
       this.spanGrouping.removeSpan(s);
@@ -437,8 +495,13 @@ export class Timeline extends EventEmitter {
         isSelectedSpanRemoved = true;
       }
     });
-    this.layout();
-    if (isSelectedSpanRemoved) this.selectSpan(null);
+    ctx.log({ message: `Spans remofed from span grouping` });
+
+    this.layout(ctx);
+    if (isSelectedSpanRemoved) {
+      ctx.addTags({ isSelectedSpanRemoved });
+      this.selectSpan(null);
+    }
     return true;
   }
 
@@ -523,7 +586,12 @@ export class Timeline extends EventEmitter {
     return acc;
   }
 
-  layout() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'timeline.layout',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  layout(ctx: opentracing.Span) {
     let startTimestamp = Infinity;
     let finishTimestamp = -Infinity;
     this.traces.forEach(trace => {
@@ -537,6 +605,7 @@ export class Timeline extends EventEmitter {
     );
 
     this.groupViews.forEach(v => v.dispose());
+    ctx.log({ message: `Disposed old group views`, groupViewCount: this.groupViews.length });
     this.groupViews = [];
 
     const groups = this.spanGrouping
@@ -553,7 +622,7 @@ export class Timeline extends EventEmitter {
         svgDefs: this.defs,
         spanViewSharedOptions: this.spanViewSharedOptions
       });
-      groupView.layout();
+      groupView.layout(ctx);
 
       this.groupViews.push(groupView);
     });
@@ -561,7 +630,7 @@ export class Timeline extends EventEmitter {
     // TODO: Check if selected span id is still existing, if it doesn't remove it from selecteds,
     // Re-select the previous ones
 
-    this.updateGroupVerticalPositions();
+    this.updateGroupVerticalPositions(ctx);
 
     // Annotations
     this.updateAllDecorations(true); // Force re-prepare because all the groupViews and spanViews are replaced w/ new
@@ -571,9 +640,16 @@ export class Timeline extends EventEmitter {
     this.setPanelTranslateY(0);
   }
 
-  updateGroupVerticalPositions() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'timeline.updateGroupVerticalPositions',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  updateGroupVerticalPositions(ctx: opentracing.Span) {
     const { groupPaddingTop, groupPaddingBottom, rowHeight } = vc;
     let y = 0;
+
+    ctx.addTags({ groupViewsCount: this.groupViews.length });
 
     this.groupViews.forEach((groupView, i) => {
       groupView.updatePosition({ y });
@@ -979,10 +1055,17 @@ export class Timeline extends EventEmitter {
       const groupView =
         clickedGroupLabelId && this.findGroupView(clickedGroupLabelId);
       if (clickedGroupLabelId && groupView) {
-        const isVisible = groupView.toggleView();
-        this.updateGroupVerticalPositions();
+        // Create a trace here
+        const tracer = opentracing.globalTracer();
+        const ctx = tracer.startSpan('timeline.onClickOnGroupLabel');
+
+        const isVisible = groupView.toggleView(ctx);
+        this.updateGroupVerticalPositions(ctx);
         this.keepPanelTraslateYInScreen();
         this.updateAllDecorations();
+
+        ctx.addTags({ groupId: clickedGroupLabelId, isVisible });
+        ctx.finish();
 
         return; // Early terminate so that selection does not lost
       }

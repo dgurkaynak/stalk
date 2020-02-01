@@ -5,6 +5,7 @@ import EventEmitter from 'events';
 import { Span } from './interfaces';
 import db from './db';
 import { TypeScriptManager } from './../components/customization/typescript-manager';
+import { opentracing, stalk } from 'stalk-opentracing';
 
 export enum SpanLabellingManagerEvent {
   ADDED = 'slm_added',
@@ -26,6 +27,7 @@ export interface SpanLabellingOptions {
 
 let singletonIns: SpanLabellingManager;
 
+@stalk.decorators.Tag.Component('slmanager')
 export class SpanLabellingManager extends EventEmitter {
   private builtInOptions: SpanLabellingOptions[] = [
     operationLabellingOptions,
@@ -38,22 +40,42 @@ export class SpanLabellingManager extends EventEmitter {
     return singletonIns;
   }
 
-  async init() {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'slmanager.init',
+    relation: 'childOf'
+  })
+  async init(ctx: opentracing.Span) {
     await db.open();
+    ctx.log({ message: 'DB opened successfully' });
+
     const rawOptions = await db.spanLabellings.toArray();
-    rawOptions.forEach(raw => this.add(raw, true));
+    ctx.log({ message: `Got ${rawOptions.length} span labelling(s), adding them` });
+
+    await Promise.all(rawOptions.map(raw => this.add(ctx, raw, true)));
   }
 
-  async add(raw: SpanLabellingRawOptions, doNotPersistToDatabase = false) {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'slmanager.add',
+    relation: 'childOf'
+  })
+  async add(ctx: opentracing.Span, raw: SpanLabellingRawOptions, doNotPersistToDatabase = false) {
     const allOptions = [...this.builtInOptions, ...this.customOptions];
-    const keyMatch = find(allOptions, c => c.key === options.key);
-    if (keyMatch) return false;
+    ctx.addTags({ ...raw, doNotPersistToDatabase });
 
     const options: SpanLabellingOptions = {
       key: raw.key,
       name: raw.name,
       labelBy: TypeScriptManager.generateFunction(raw.compiledCode, 'labelBy')
     };
+
+    const keyMatch = find(allOptions, c => c.key === options.key);
+    if (keyMatch) {
+      ctx.log({
+        message: `There is already a span labelling with key "${options.key}"`
+      });
+      return false;
+    }
+
     this.customOptions.push(options);
 
     if (!doNotPersistToDatabase) await db.spanLabellings.put(raw);

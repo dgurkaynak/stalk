@@ -21,6 +21,7 @@ import {
   ContextMenuManager,
   ContextMenuEvent
 } from '../ui/context-menu/context-menu-manager';
+import { opentracing, stalk } from 'stalk-opentracing';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
@@ -41,6 +42,7 @@ export enum SpansTableViewEvent {
   SPAN_SELECTED = 'span_selected'
 }
 
+@stalk.decorators.Tag.Component('spans-table')
 export class SpansTableView extends EventEmitter {
   private stage = Stage.getSingleton();
   private contextMenuManager = ContextMenuManager.getSingleton();
@@ -186,13 +188,18 @@ export class SpansTableView extends EventEmitter {
     rightPane.appendChild(btn.columns);
   }
 
-  init(options: { width: number; height: number }) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'spans-table.init',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  init(ctx: opentracing.Span, options: { width: number; height: number }) {
     this.viewPropertiesCache = {
       width: options.width,
       height: options.height
     };
-    this.initTooltips();
-    this.initDropdowns();
+    this.initTooltips(ctx);
+    this.initDropdowns(ctx);
 
     // Bind events
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onTraceAdded);
@@ -237,10 +244,15 @@ export class SpansTableView extends EventEmitter {
     });
 
     // Init column picker
-    this.updateColumnsMultiSelectItems();
+    this.updateColumnsMultiSelectItems(ctx);
   }
 
-  private initTooltips() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'spans-table.initTooltips',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  private initTooltips(ctx: opentracing.Span) {
     const tooltipManager = TooltipManager.getSingleton();
     const btn = this.elements.toolbarBtn;
     tooltipManager.addToSingleton([
@@ -254,7 +266,12 @@ export class SpansTableView extends EventEmitter {
     ]);
   }
 
-  private initDropdowns() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'spans-table.initDropdowns',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  private initDropdowns(ctx: opentracing.Span) {
     this.dropdowns = {
       columnsSelection: tippy(this.elements.toolbarBtn.columns, {
         content: this.columnsMultiSelect.element,
@@ -270,12 +287,17 @@ export class SpansTableView extends EventEmitter {
     };
   }
 
-  private onTraceAdded(trace: Trace) {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'spans-table.onTraceAdded',
+    relation: 'followsFrom'
+  })
+  private async onTraceAdded(ctx: opentracing.Span, trace: Trace) {
     let includesErrorTag = false;
     trace.spans.forEach(span => {
       if (span.tags.error) includesErrorTag = true;
       this.spanRows.push(this.span2RowData(span));
     });
+    ctx.log({ message: `Spans processed & added` });
 
     // If any span includes `error` tag, add error column if not already added!
     if (includesErrorTag) {
@@ -298,20 +320,30 @@ export class SpansTableView extends EventEmitter {
       }
     }
 
-    this.updateColumnsMultiSelectItems();
-    this.updateTableData();
+    this.updateColumnsMultiSelectItems(ctx);
+    await this.updateTableData();
   }
 
-  private onTraceRemoved(trace: Trace) {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'spans-table.onTraceRemoved',
+    relation: 'followsFrom'
+  })
+  private async onTraceRemoved(ctx: opentracing.Span, trace: Trace) {
     trace.spans.forEach(span =>
       remove(this.spanRows, spanRow => spanRow.span.id == span.id)
     );
+    ctx.log({ message: `Spans removed` });
 
-    this.updateColumnsMultiSelectItems();
-    this.updateTableData();
+    this.updateColumnsMultiSelectItems(ctx);
+    await this.updateTableData();
   }
 
-  private updateColumnsMultiSelectItems() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'spans-table.updateColumnsMultiSelectItems',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  private updateColumnsMultiSelectItems(ctx: opentracing.Span) {
     const currentColumns = this.table.getColumnDefinitions();
     const items: WidgetToolbarMultiSelectItem[] = Object.keys(
       this.columnDefinitions
@@ -625,8 +657,8 @@ export class SpansTableView extends EventEmitter {
     this.table.redraw(forceRerender);
   }
 
-  private onSearchInput(e: InputEvent) {
-    this.updateTableData();
+  private async onSearchInput(e: InputEvent) {
+    await this.updateTableData();
   }
 
   private onRowClick(e: any, row: Tabulator.RowComponent) {

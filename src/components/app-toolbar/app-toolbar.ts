@@ -4,10 +4,11 @@ import {
   DataSourceManager,
   DataSourceManagerEvent
 } from '../../model/datasource/manager';
-import { DataSourceType } from '../../model/datasource/interfaces';
+import { DataSourceType, DataSource } from '../../model/datasource/interfaces';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
+import { opentracing, stalk } from 'stalk-opentracing';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
@@ -27,6 +28,7 @@ export type AppToolbarButtonType =
 
 export type AppToolbarButtonState = 'selected' | 'disabled';
 
+@stalk.decorators.Tag.Component('app-toolbar')
 export class AppToolbar {
   private elements = {
     container: document.createElement('div'),
@@ -49,7 +51,9 @@ export class AppToolbar {
   };
 
   private binded = {
-    onDataSourceManagerUpdate: this.onDataSourceManagerUpdate.bind(this),
+    onDataSourceManagerAdded: this.onDataSourceManagerAdded.bind(this),
+    onDataSourceManagerUpdated: this.onDataSourceManagerUpdated.bind(this),
+    onDataSourceManagerRemoved: this.onDataSourceManagerRemoved.bind(this),
     onDataSourceMenuListButtonClick: this.onDataSourceMenuListButtonClick.bind(
       this
     ),
@@ -114,9 +118,14 @@ export class AppToolbar {
     rightPane.appendChild(btn.settings);
   }
 
-  init() {
-    this.initTooltips();
-    this.initDropdowns();
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app-toolbar.init',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  init(ctx: opentracing.Span) {
+    this.initTooltips(ctx);
+    this.initDropdowns(ctx);
     this.initTracesBadgeCount();
 
     // Prepare dataSource menu list header
@@ -148,7 +157,7 @@ export class AppToolbar {
       or you can drag & drop Jaeger or Zipkin traces in JSON format.</span>`;
 
     // Prepare datasource lists
-    this.updateDataSourceList();
+    this.updateDataSourceList(ctx);
 
     // Bind events
     this.bindEvents();
@@ -163,7 +172,12 @@ export class AppToolbar {
     el.parentElement && el.parentElement.removeChild(el);
   }
 
-  private initTooltips() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app-toolbar.initTooltips',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  private initTooltips(ctx: opentracing.Span) {
     const tooltipManager = TooltipManager.getSingleton();
     tooltipManager.addToSingleton([
       [
@@ -185,7 +199,12 @@ export class AppToolbar {
     ]);
   }
 
-  private initDropdowns() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app-toolbar.initDropdowns',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  private initDropdowns(ctx: opentracing.Span) {
     this.dropdowns = {
       dataSources: tippy(this.elements.btn.dataSources, {
         content: this.dataSourcesMenuList.element,
@@ -221,12 +240,20 @@ export class AppToolbar {
   //////////// VIEW UPDATES ////////////
   //////////////////////////////////////
 
-  private updateDataSourceList() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app-toolbar.updateDataSourceList',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  private updateDataSourceList(ctx: opentracing.Span) {
     this.dataSourcesMenuList.removeAllItems();
-    this.dsManager.getAll().forEach(ds => {
+    const dataSources = this.dsManager.getAll();
+    ctx.addTags({ dsCount: dataSources.length });
+    dataSources.forEach(ds => {
       this.dataSourcesMenuList.addItem({
         text: ds.name,
         buttons:
+          // TODO: We don't need it
           ds.type == DataSourceType.JAEGER || ds.type == DataSourceType.ZIPKIN
             ? [
                 { id: 'search', icon: 'magnify' },
@@ -270,8 +297,16 @@ export class AppToolbar {
   private bindEvents() {
     const { btn } = this.elements;
     this.dsManager.on(
+      DataSourceManagerEvent.ADDED,
+      this.binded.onDataSourceManagerAdded
+    );
+    this.dsManager.on(
       DataSourceManagerEvent.UPDATED,
-      this.binded.onDataSourceManagerUpdate
+      this.binded.onDataSourceManagerUpdated
+    );
+    this.dsManager.on(
+      DataSourceManagerEvent.REMOVED,
+      this.binded.onDataSourceManagerRemoved
     );
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
@@ -280,8 +315,16 @@ export class AppToolbar {
   private unbindEvents() {
     const { btn } = this.elements;
     this.dsManager.removeListener(
+      DataSourceManagerEvent.ADDED,
+      this.binded.onDataSourceManagerAdded
+    );
+    this.dsManager.removeListener(
       DataSourceManagerEvent.UPDATED,
-      this.binded.onDataSourceManagerUpdate
+      this.binded.onDataSourceManagerUpdated
+    );
+    this.dsManager.removeListener(
+      DataSourceManagerEvent.REMOVED,
+      this.binded.onDataSourceManagerRemoved
     );
     this.stage.removeListener(
       StageEvent.TRACE_ADDED,
@@ -309,7 +352,7 @@ export class AppToolbar {
         const result = await api.search({} as any);
         const traces = result.data.map(spans => new Trace(spans));
         // Add all of the traces
-        traces.forEach(trace => this.stage.addTrace(trace));
+        traces.forEach(trace => this.stage.addTrace(null, trace));
         this.dropdowns.dataSources.hide();
         return;
       }
@@ -320,15 +363,57 @@ export class AppToolbar {
     }
   }
 
-  private onDataSourceManagerUpdate() {
-    this.updateDataSourceList();
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app-toolbar.onDataSourceManagerAdded',
+    relation: 'followsFrom',
+    autoFinish: true
+  })
+  private onDataSourceManagerAdded(
+    ctx: opentracing.Span,
+    dataSource: DataSource
+  ) {
+    this.updateDataSourceList(ctx);
   }
 
-  private onStageTraceAdded(trace: Trace) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app-toolbar.onDataSourceManagerUpdated',
+    relation: 'followsFrom',
+    autoFinish: true
+  })
+  private onDataSourceManagerUpdated(
+    ctx: opentracing.Span,
+    dataSource: DataSource
+  ) {
+    this.updateDataSourceList(ctx);
+  }
+
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app-toolbar.onDataSourceManagerRemoved',
+    relation: 'followsFrom',
+    autoFinish: true
+  })
+  private onDataSourceManagerRemoved(
+    ctx: opentracing.Span,
+    dataSource: DataSource
+  ) {
+    this.updateDataSourceList(ctx);
+  }
+
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app-toolbar.onStageTraceAdded',
+    relation: 'followsFrom',
+    autoFinish: true
+  })
+  private onStageTraceAdded(ctx: opentracing.Span, trace: Trace) {
     this.updateTracesList();
   }
 
-  private onStageTraceRemoved(trace: Trace) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app-toolbar.onStageTraceRemoved',
+    relation: 'followsFrom',
+    autoFinish: true
+  })
+  private onStageTraceRemoved(ctx: opentracing.Span, trace: Trace) {
     this.updateTracesList();
   }
 
@@ -338,7 +423,7 @@ export class AppToolbar {
   ) {
     const trace = this.stage.getAllTraces()[index];
     if (!trace) return;
-    this.stage.removeTrace(trace.id);
+    this.stage.removeTrace(null, trace.id);
     this.dropdowns.traces.hide();
   }
 

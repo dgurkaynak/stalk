@@ -26,6 +26,7 @@ import {
   ContextMenuManager,
   ContextMenuEvent
 } from './components/ui/context-menu/context-menu-manager';
+import { opentracing, stalk } from 'stalk-opentracing';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -46,6 +47,7 @@ export interface AppOptions {
   element: HTMLDivElement;
 }
 
+@stalk.decorators.Tag.Component('app')
 export class App {
   private stage = Stage.getSingleton();
   private contextMenuManager = ContextMenuManager.getSingleton();
@@ -77,36 +79,40 @@ export class App {
     // Noop
   }
 
-  async init() {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'app.init',
+    relation: 'newTrace'
+  })
+  async init(ctx: opentracing.Span) {
     // Init managers related with db
     await Promise.all([
-      DataSourceManager.getSingleton().init(),
-      SpanGroupingManager.getSingleton().init(),
-      SpanColoringManager.getSingleton().init(),
-      SpanLabellingManager.getSingleton().init(),
-      TypeScriptManager.getSingleton().init()
+      DataSourceManager.getSingleton().init(ctx),
+      SpanGroupingManager.getSingleton().init(ctx),
+      SpanColoringManager.getSingleton().init(ctx),
+      SpanLabellingManager.getSingleton().init(ctx),
+      TypeScriptManager.getSingleton().init(ctx)
     ]);
 
     this.contextMenuManager.init();
-    this.initDockPanelAndWidgets();
+    this.initDockPanelAndWidgets(ctx);
 
     this.toolbar.mount(this.options.element);
 
     const timelineWidgetEl = this.widgets[AppWidgetType.TIMELINE].node;
     this.timeline.mount(timelineWidgetEl);
     const { offsetWidth: w1, offsetHeight: h1 } = timelineWidgetEl;
-    this.timeline.init({ width: w1, height: h1 });
-    this.toolbar.init(); // Needs dsManager
+    this.timeline.init(ctx, { width: w1, height: h1 });
+    this.toolbar.init(ctx); // Needs dsManager
 
     const spansTableWidgetEl = this.widgets[AppWidgetType.SPANS_TABLE].node;
     this.spansTable.mount(spansTableWidgetEl);
     const { offsetWidth: w4, offsetHeight: h4 } = spansTableWidgetEl;
-    this.spansTable.init({ width: w4, height: h4 });
+    this.spansTable.init(ctx, { width: w4, height: h4 });
 
     const logsTableWidgetEl = this.widgets[AppWidgetType.LOGS_TABLE].node;
     this.logsTable.mount(logsTableWidgetEl);
     const { offsetWidth: w5, offsetHeight: h5 } = logsTableWidgetEl;
-    this.logsTable.init({ width: w5, height: h5 });
+    this.logsTable.init(ctx, { width: w5, height: h5 });
 
     const spanSummaryWidgetEl = this.widgets[AppWidgetType.SPAN_SUMMARY].node;
     this.spanSummary.mount(spanSummaryWidgetEl);
@@ -199,13 +205,18 @@ export class App {
     ipcRenderer.send('app-initalized');
   }
 
-  private initDockPanelAndWidgets() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app.initDockPanelAndWidgets',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  private initDockPanelAndWidgets(ctx: opentracing.Span) {
     this.dockPanel.id = 'app-dock-panel';
 
     this.widgets[AppWidgetType.TIMELINE] = new WidgetWrapper({
       title: 'Timeline View',
       onResize: throttle((msg: { width: number; height: number }) => {
-        this.timeline.resize(msg.width, msg.height);
+        this.onTimelineWidgetResize(null, msg);
       }, 100),
       closable: false
     });
@@ -307,16 +318,38 @@ export class App {
     DockPanel.attach(this.dockPanel, this.options.element);
   }
 
-  private onStageTraceAdded(trace: Trace) {
-    this.timeline.addTrace(trace);
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app.onStageTraceAdded',
+    relation: 'followsFrom',
+    autoFinish: true
+  })
+  private onStageTraceAdded(ctx: opentracing.Span, trace: Trace) {
+    this.timeline.addTrace(ctx, trace);
   }
 
-  private onStageTraceRemoved(trace: Trace) {
-    this.timeline.removeTrace(trace);
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app.onStageTraceRemoved',
+    relation: 'followsFrom',
+    autoFinish: true
+  })
+  private onStageTraceRemoved(ctx: opentracing.Span, trace: Trace) {
+    this.timeline.removeTrace(ctx, trace);
   }
 
   private onWindowResize() {
     this.dockPanel.update();
+  }
+
+  @stalk.decorators.Trace.Trace({
+    operationName: 'app.onTimelineWidgetResize',
+    relation: 'newTrace',
+    autoFinish: true
+  })
+  private onTimelineWidgetResize(
+    ctx: opentracing.Span,
+    msg: { width: number; height: number }
+  ) {
+    this.timeline.resize(ctx, msg.width, msg.height);
   }
 
   private initDropZone() {
@@ -379,7 +412,7 @@ export class App {
         parsedJson.data.forEach((rawTrace: any) => {
           const spans = convertFromJaegerTrace(rawTrace);
           const trace = new Trace(spans);
-          this.stage.addTrace(trace);
+          this.stage.addTrace(null, trace);
         });
       }
 
@@ -388,12 +421,12 @@ export class App {
           parsedJson.forEach((rawTrace: any) => {
             const spans = convertFromZipkinTrace(rawTrace);
             const trace = new Trace(spans);
-            this.stage.addTrace(trace);
+            this.stage.addTrace(null, trace);
           });
         } else if (isObject(parsedJson[0])) {
           const spans = convertFromZipkinTrace(parsedJson);
           const trace = new Trace(spans);
-          this.stage.addTrace(trace);
+          this.stage.addTrace(null, trace);
         } else {
           errorMessages.push(`${file.name}: Unrecognized Zipkin format`);
           continue;
@@ -451,7 +484,7 @@ export class App {
         parsedJson.data.forEach((rawTrace: any) => {
           const spans = convertFromJaegerTrace(rawTrace);
           const trace = new Trace(spans);
-          this.stage.addTrace(trace);
+          this.stage.addTrace(null, trace);
         });
       }
 
@@ -460,12 +493,12 @@ export class App {
           parsedJson.forEach((rawTrace: any) => {
             const spans = convertFromZipkinTrace(rawTrace);
             const trace = new Trace(spans);
-            this.stage.addTrace(trace);
+            this.stage.addTrace(null, trace);
           });
         } else if (isObject(parsedJson[0])) {
           const spans = convertFromZipkinTrace(parsedJson);
           const trace = new Trace(spans);
-          this.stage.addTrace(trace);
+          this.stage.addTrace(null, trace);
         } else {
           errorMessages.push(`${file.name}: Unrecognized Zipkin format`);
           continue;

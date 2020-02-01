@@ -9,6 +9,7 @@ import {
   TimelineInteractableElementAttribute,
   TimelineInteractableElementType
 } from './interaction';
+import { opentracing, stalk } from 'stalk-opentracing';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -18,6 +19,7 @@ export enum GroupLayoutType {
   WATERFALL = 'waterfall'
 }
 
+@stalk.decorators.Tag.Component('group-view')
 export default class GroupView {
   readonly spanGroup: SpanGroup;
   private spanViews: { [key: string]: SpanView } = {};
@@ -114,14 +116,19 @@ export default class GroupView {
     this.spanIdToRowIndex = {};
   }
 
-  toggleView() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'group-view.toggleView',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  toggleView(ctx: opentracing.Span) {
     this.options.isCollapsed = !this.options.isCollapsed;
 
     const prefixChar = this.options.isCollapsed ? '►' : '▼';
     this.labelText.textContent = `${prefixChar} ${this.spanGroup.name}`;
     // this.updateLabelTextDecoration();
 
-    this.layout();
+    this.layout(ctx);
 
     return !this.options.isCollapsed;
   }
@@ -176,7 +183,12 @@ export default class GroupView {
     // TODO: Call .layout() maybe?
   }
 
-  layout() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'group-view.layout',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  layout(ctx: opentracing.Span) {
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
     const { spanGroup: group, spanViews, container } = this;
@@ -188,10 +200,20 @@ export default class GroupView {
       const spanB = group.get(b.spanId);
       return spanA.startTime - spanB.startTime;
     });
+    ctx.log({ message: 'Sorted root and orphan nodes' });
+
+    const allSpans = group.getAll();
+    ctx.addTags({
+      layoutType: this.layoutType,
+      spansCount: allSpans.length,
+      rootSpansCount: group.rootNodes.length,
+      orphanSpansCount: group.orphanNodes.length
+    });
 
     // If collapsed, hide all the spans
     if (this.options.isCollapsed) {
       forEach(spanViews, v => v.unmount());
+      ctx.log({ message: 'Unmounted span views, because view is collapsed' });
 
       this.rowsAndSpanIntervals = [];
       this.spanIdToRowIndex = {};
@@ -258,7 +280,7 @@ export default class GroupView {
           const spanB = group.get(b.spanId);
           return spanA.startTime - spanB.startTime;
         })
-        .reverse()
+        .reverse() // because we're unshifting
         .forEach(childNode => nodeQueue.unshift(childNode));
 
       i++;

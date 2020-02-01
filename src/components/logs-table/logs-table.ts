@@ -21,6 +21,7 @@ import {
   ContextMenuEvent
 } from '../ui/context-menu/context-menu-manager';
 import * as shortid from 'shortid';
+import { opentracing, stalk } from 'stalk-opentracing';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
@@ -39,6 +40,7 @@ export interface LogRowData {
   fields: { [key: string]: string };
 }
 
+@stalk.decorators.Tag.Component('logs-table')
 export class LogsTableView {
   private stage = Stage.getSingleton();
   private contextMenuManager = ContextMenuManager.getSingleton();
@@ -168,13 +170,18 @@ export class LogsTableView {
     rightPane.appendChild(btn.columns);
   }
 
-  init(options: { width: number; height: number }) {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'logs-table.init',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  init(ctx: opentracing.Span, options: { width: number; height: number }) {
     this.viewPropertiesCache = {
       width: options.width,
       height: options.height
     };
-    this.initTooltips();
-    this.initDropdowns();
+    this.initTooltips(ctx);
+    this.initDropdowns(ctx);
 
     // Bind events
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onTraceAdded);
@@ -217,10 +224,15 @@ export class LogsTableView {
     });
 
     // Init column picker
-    this.updateColumnsMultiSelectItems();
+    this.updateColumnsMultiSelectItems(ctx);
   }
 
-  private initTooltips() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'logs-table.initTooltips',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  private initTooltips(ctx: opentracing.Span) {
     const tooltipManager = TooltipManager.getSingleton();
     const btn = this.elements.toolbarBtn;
     tooltipManager.addToSingleton([
@@ -234,7 +246,12 @@ export class LogsTableView {
     ]);
   }
 
-  private initDropdowns() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'logs-table.initDropdowns',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  private initDropdowns(ctx: opentracing.Span) {
     this.dropdowns = {
       columnsSelection: tippy(this.elements.toolbarBtn.columns, {
         content: this.columnsMultiSelect.element,
@@ -250,7 +267,11 @@ export class LogsTableView {
     };
   }
 
-  private onTraceAdded(trace: Trace) {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'logs-table.onTraceAdded',
+    relation: 'followsFrom'
+  })
+  private async onTraceAdded(ctx: opentracing.Span, trace: Trace) {
     let includesErrorField = false;
     let totalLogCount = 0;
     const fieldCounts: { [key: string]: number } = {};
@@ -272,6 +293,8 @@ export class LogsTableView {
         totalLogCount++;
       });
     });
+    ctx.addTags({ logCount: totalLogCount });
+    ctx.log({ message: `Spans processed & logs added` });
 
     // If any field has more than %90 occurance rate, add the column (if not already added!)
     Object.keys(fieldCounts).forEach(fieldKey => {
@@ -297,6 +320,7 @@ export class LogsTableView {
         });
       }
     });
+    ctx.log({ message: `Log fields analyzed for auto-column display` });
 
     // If any span includes `error` tag, add error column (if not already added!)
     if (includesErrorField) {
@@ -319,20 +343,29 @@ export class LogsTableView {
       }
     }
 
-    this.updateColumnsMultiSelectItems();
-    this.updateTableData();
+    this.updateColumnsMultiSelectItems(ctx);
+    await this.updateTableData();
   }
 
-  private onTraceRemoved(trace: Trace) {
+  @stalk.decorators.Trace.TraceAsync({
+    operationName: 'logs-table.onTraceRemoved',
+    relation: 'followsFrom'
+  })
+  private async onTraceRemoved(ctx: opentracing.Span, trace: Trace) {
     trace.spans.forEach(span =>
       remove(this.logRows, logRow => logRow.span.id == span.id)
     );
 
-    this.updateColumnsMultiSelectItems();
-    this.updateTableData();
+    this.updateColumnsMultiSelectItems(ctx);
+    await this.updateTableData();
   }
 
-  private updateColumnsMultiSelectItems() {
+  @stalk.decorators.Trace.Trace({
+    operationName: 'logs-table.updateColumnsMultiSelectItems',
+    relation: 'childOf',
+    autoFinish: true
+  })
+  private updateColumnsMultiSelectItems(ctx: opentracing.Span) {
     const currentColumns = this.table.getColumnDefinitions();
     const items: WidgetToolbarMultiSelectItem[] = Object.keys(
       this.columnDefinitions
@@ -574,8 +607,8 @@ export class LogsTableView {
     this.table.redraw(forceRerender);
   }
 
-  private onSearchInput(e: InputEvent) {
-    this.updateTableData();
+  private async onSearchInput(e: InputEvent) {
+    await this.updateTableData();
   }
 
   private onRowClick(e: any, row: Tabulator.RowComponent) {

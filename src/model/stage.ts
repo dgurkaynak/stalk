@@ -3,6 +3,7 @@ import EventEmitter from 'events';
 import { SpanGroup } from './span-group/span-group';
 import flatMap from 'lodash/flatMap';
 import { union } from '../utils/interval-helper';
+import { opentracing, stalk } from 'stalk-opentracing';
 
 export enum StageEvent {
   TRACE_ADDED = 'trace_added',
@@ -11,6 +12,7 @@ export enum StageEvent {
 
 let _singletonIns: Stage;
 
+@stalk.decorators.Tag.Component('stage')
 export class Stage extends EventEmitter {
   private traces: { [key: string]: Trace } = {};
   private mainSpanGroup = new SpanGroup('main', '');
@@ -33,8 +35,22 @@ export class Stage extends EventEmitter {
     return Object.values(this.traces);
   }
 
-  addTrace(trace: Trace) {
-    if (this.traces[trace.id]) return false;
+  @stalk.decorators.Trace.Trace({
+    operationName: 'stage.addTrace',
+    relation: 'newTrace',
+    autoFinish: true
+  })
+  addTrace(ctx: opentracing.Span, trace: Trace) {
+    ctx.addTags({
+      traceId: trace.id,
+      traceName: trace.name,
+      spanCount: trace.spans.length
+    });
+
+    if (this.traces[trace.id]) {
+      ctx.log({ message: `Trace already added to stage` });
+      return false;
+    }
     this.traces[trace.id] = trace;
 
     trace.spans.forEach(span => {
@@ -63,6 +79,7 @@ export class Stage extends EventEmitter {
         }
       }
     });
+    ctx.log({ message: `Initial processing completed` });
 
     // Span self time
     // We cant do this within previous loop, we need to wait until
@@ -78,12 +95,22 @@ export class Stage extends EventEmitter {
       const selfTime = span.finishTime - span.startTime - childrenTime;
       this.spanSelfTimes[span.id] = selfTime;
     });
+    ctx.log({ message: `Calculated span self times` });
 
-    this.emit(StageEvent.TRACE_ADDED, trace);
+    this.emit(StageEvent.TRACE_ADDED, ctx, trace);
   }
 
-  removeTrace(traceId: string) {
-    if (!this.traces[traceId]) return false;
+  @stalk.decorators.Trace.Trace({
+    operationName: 'stage.removeTrace',
+    relation: 'newTrace',
+    autoFinish: true
+  })
+  removeTrace(ctx: opentracing.Span, traceId: string) {
+    ctx.addTags({ traceId });
+    if (!this.traces[traceId]) {
+      ctx.log({ message: `Trace is not in the stage, noop` });
+      return false;
+    }
     const trace = this.traces[traceId];
 
     trace.spans.forEach(span => {
@@ -117,9 +144,10 @@ export class Stage extends EventEmitter {
       // Span self time
       delete this.spanSelfTimes[span.id];
     });
+    ctx.log({ message: `Removal process completed` });
 
     delete this.traces[traceId];
-    this.emit(StageEvent.TRACE_REMOVED, trace);
+    this.emit(StageEvent.TRACE_REMOVED, ctx, trace);
   }
 
   isTraceAdded(traceId: string) {

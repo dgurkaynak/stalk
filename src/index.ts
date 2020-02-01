@@ -10,7 +10,7 @@ async function main() {
     element: document.getElementById('app') as HTMLDivElement
   });
   (window as any).app = app;
-  await app.init();
+  await app.init(null);
 }
 
 main().catch(err => console.error(err));
