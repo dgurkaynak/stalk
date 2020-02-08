@@ -9,7 +9,9 @@ import {
   TimelineInteractableElementAttribute,
   TimelineInteractableElementType
 } from './interaction';
-import { opentracing, stalk } from 'stalk-opentracing';
+import { opentracing } from 'stalk-opentracing';
+import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
+import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -19,7 +21,7 @@ export enum GroupLayoutType {
   WATERFALL = 'waterfall'
 }
 
-@stalk.decorators.Tag.Component('group-view')
+@OperationNamePrefix('group-view.')
 export default class GroupView {
   readonly spanGroup: SpanGroup;
   private spanViews: { [key: string]: SpanView } = {};
@@ -116,11 +118,7 @@ export default class GroupView {
     this.spanIdToRowIndex = {};
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'group-view.toggleView',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   toggleView(ctx: opentracing.Span) {
     this.options.isCollapsed = !this.options.isCollapsed;
 
@@ -183,11 +181,7 @@ export default class GroupView {
     // TODO: Call .layout() maybe?
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'group-view.layout',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   layout(ctx: opentracing.Span) {
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
@@ -204,6 +198,8 @@ export default class GroupView {
 
     const allSpans = group.getAll();
     ctx.addTags({
+      groupId: this.spanGroup.id,
+      groupName: this.spanGroup.name,
       layoutType: this.layoutType,
       spansCount: allSpans.length,
       rootSpansCount: group.rootNodes.length,

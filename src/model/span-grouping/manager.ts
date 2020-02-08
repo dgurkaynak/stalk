@@ -7,7 +7,9 @@ import ProcessGrouping from './process';
 import ServiceNameGrouping from './service-name';
 import db from '../db';
 import { TypeScriptManager } from '../../components/customization/typescript-manager';
-import { opentracing, stalk } from 'stalk-opentracing';
+import { opentracing } from 'stalk-opentracing';
+import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
+import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 
 export enum SpanGroupingManagerEvent {
   ADDED = 'sgm_added',
@@ -16,7 +18,7 @@ export enum SpanGroupingManagerEvent {
 
 let singletonIns: SpanGroupingManager;
 
-@stalk.decorators.Tag.Component('sgmanager')
+@OperationNamePrefix('sgmanager.')
 export class SpanGroupingManager extends EventEmitter {
   private builtInSpanGroupings: SpanGroupingOptions[] = [
     TraceGrouping,
@@ -30,10 +32,7 @@ export class SpanGroupingManager extends EventEmitter {
     return singletonIns;
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'sgmanager.init',
-    relation: 'childOf'
-  })
+  @Stalk({ handler: ChildOf })
   async init(ctx: opentracing.Span) {
     await db.open();
     ctx.log({ message: 'DB opened successfully' });
@@ -44,10 +43,7 @@ export class SpanGroupingManager extends EventEmitter {
     await Promise.all(rawOptions.map(raw => this.add(ctx, raw, true)));
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'sgmanager.add',
-    relation: 'childOf'
-  })
+  @Stalk({ handler: ChildOf })
   async add(
     ctx: opentracing.Span,
     raw: SpanGroupingRawOptions,

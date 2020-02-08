@@ -27,6 +27,8 @@ import {
   ContextMenuEvent
 } from './components/ui/context-menu/context-menu-manager';
 import { opentracing, stalk } from 'stalk-opentracing';
+import { OperationNamePrefix } from './utils/self-tracing/opname-prefix-decorator';
+import { Stalk, NewTrace, ChildOf, FollowsFrom } from './utils/self-tracing/trace-decorator';
 import { StalkStudioReporter } from './utils/self-tracing/reporter';
 
 import 'tippy.js/dist/tippy.css';
@@ -48,7 +50,7 @@ export interface AppOptions {
   element: HTMLDivElement;
 }
 
-@stalk.decorators.Tag.Component('app')
+@OperationNamePrefix('app.')
 export class App {
   private stage = Stage.getSingleton();
   private contextMenuManager = ContextMenuManager.getSingleton();
@@ -80,10 +82,7 @@ export class App {
     // Noop
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'app.init',
-    relation: 'newTrace'
-  })
+  @Stalk({ handler: NewTrace })
   async init(ctx: opentracing.Span) {
     // Init managers related with db
     await Promise.all([
@@ -206,11 +205,7 @@ export class App {
     ipcRenderer.send('app-initalized');
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app.initDockPanelAndWidgets',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   private initDockPanelAndWidgets(ctx: opentracing.Span) {
     this.dockPanel.id = 'app-dock-panel';
 
@@ -319,20 +314,12 @@ export class App {
     DockPanel.attach(this.dockPanel, this.options.element);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app.onStageTraceAdded',
-    relation: 'followsFrom',
-    autoFinish: true
-  })
+  @Stalk({ handler: FollowsFrom })
   private onStageTraceAdded(ctx: opentracing.Span, trace: Trace) {
     this.timeline.addTrace(ctx, trace);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app.onStageTraceRemoved',
-    relation: 'followsFrom',
-    autoFinish: true
-  })
+  @Stalk({ handler: FollowsFrom })
   private onStageTraceRemoved(ctx: opentracing.Span, trace: Trace) {
     this.timeline.removeTrace(ctx, trace);
   }
@@ -341,11 +328,7 @@ export class App {
     this.dockPanel.update();
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app.onTimelineWidgetResize',
-    relation: 'newTrace',
-    autoFinish: true
-  })
+  @Stalk({ handler: NewTrace })
   private onTimelineWidgetResize(
     ctx: opentracing.Span,
     msg: { width: number; height: number }

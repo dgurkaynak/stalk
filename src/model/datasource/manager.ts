@@ -5,7 +5,9 @@ import JaegerAPI from '../api/jaeger/api';
 import ZipkinAPI from '../api/zipkin/api';
 import db from '../db';
 import EventEmitter from 'events';
-import { opentracing, stalk } from 'stalk-opentracing';
+import { opentracing } from 'stalk-opentracing';
+import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
+import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 
 export enum DataSourceManagerEvent {
   ADDED = 'dsm_added',
@@ -15,7 +17,7 @@ export enum DataSourceManagerEvent {
 
 let singletonIns: DataSourceManager;
 
-@stalk.decorators.Tag.Component('dsmanager')
+@OperationNamePrefix('dsmanager.')
 export class DataSourceManager extends EventEmitter {
   private datasources: DataSource[] = [];
   private apis: {
@@ -27,10 +29,7 @@ export class DataSourceManager extends EventEmitter {
     return singletonIns;
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'dsmanager.init',
-    relation: 'childOf'
-  })
+  @Stalk({ handler: ChildOf })
   async init(ctx: opentracing.Span) {
     await db.open();
     ctx.log({ message: 'DB opened successfully' });
@@ -43,10 +42,7 @@ export class DataSourceManager extends EventEmitter {
     await Promise.all(dataSources.map(ds => this.add(ctx, ds, true)));
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'dsmanager.add',
-    relation: 'childOf'
-  })
+  @Stalk({ handler: ChildOf })
   async add(
     ctx: opentracing.Span,
     ds: DataSource,
@@ -94,10 +90,7 @@ export class DataSourceManager extends EventEmitter {
     return ds;
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'dsmanager.update',
-    relation: 'childOf'
-  })
+  @Stalk({ handler: ChildOf })
   async update(ctx: opentracing.Span, ds: DataSource) {
     const index = findIndex(this.datasources, x => x.id === ds.id);
     if (index === -1) return false;
@@ -109,10 +102,7 @@ export class DataSourceManager extends EventEmitter {
     this.emit(DataSourceManagerEvent.UPDATED, ctx, ds);
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'dsmanager.remove',
-    relation: 'childOf'
-  })
+  @Stalk({ handler: ChildOf })
   async remove(ctx: opentracing.Span, dsOrId: DataSource | string) {
     const index = this.getIndex(dsOrId);
     if (index === -1) return false;

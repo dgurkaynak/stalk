@@ -6,7 +6,9 @@ import MPN65ColorAssigner from '../components/ui/color-assigner-mpn65';
 import { Span } from './interfaces';
 import db from './db';
 import { TypeScriptManager } from './../components/customization/typescript-manager';
-import { opentracing, stalk } from 'stalk-opentracing';
+import { opentracing } from 'stalk-opentracing';
+import { OperationNamePrefix } from '../utils/self-tracing/opname-prefix-decorator';
+import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../utils/self-tracing/trace-decorator';
 
 export enum SpanColoringManagerEvent {
   ADDED = 'scm_added',
@@ -28,7 +30,7 @@ export interface SpanColoringOptions {
 
 let singletonIns: SpanColoringManager;
 
-@stalk.decorators.Tag.Component('scmanager')
+@OperationNamePrefix('scmanager.')
 export class SpanColoringManager extends EventEmitter {
   private builtInOptions: SpanColoringOptions[] = [
     operationColoringOptions,
@@ -41,10 +43,7 @@ export class SpanColoringManager extends EventEmitter {
     return singletonIns;
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'scmanager.init',
-    relation: 'childOf'
-  })
+  @Stalk({ handler: ChildOf })
   async init(ctx: opentracing.Span) {
     await db.open();
     ctx.log({ message: 'DB opened successfully' });
@@ -55,10 +54,7 @@ export class SpanColoringManager extends EventEmitter {
     await Promise.all(rawOptions.map(raw => this.add(ctx, raw, true)));
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'scmanager.add',
-    relation: 'childOf'
-  })
+  @Stalk({ handler: ChildOf })
   async add(ctx: opentracing.Span, raw: SpanColoringRawOptions, doNotPersistToDatabase = false) {
     const allOptions = [...this.builtInOptions, ...this.customOptions];
     ctx.addTags({ ...raw, doNotPersistToDatabase });

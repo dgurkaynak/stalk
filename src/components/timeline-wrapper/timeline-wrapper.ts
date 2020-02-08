@@ -35,7 +35,9 @@ import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 import { Trace } from '../../model/trace';
 import { Stage } from '../../model/stage';
 import { clipboard } from 'electron';
-import { opentracing, stalk } from 'stalk-opentracing';
+import { opentracing } from 'stalk-opentracing';
+import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
+import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
 import SvgFormatColorFill from '!!raw-loader!@mdi/svg/svg/format-color-fill.svg';
@@ -47,7 +49,7 @@ import './timeline-wrapper.css';
 
 const TOOLBAR_HEIGHT = 30; // TODO: Sorry :(
 
-@stalk.decorators.Tag.Component('timeline-wrapper')
+@OperationNamePrefix('timeline-wrapper.')
 export class TimelineWrapper {
   readonly timeline = new Timeline();
   private stage = Stage.getSingleton();
@@ -265,11 +267,7 @@ export class TimelineWrapper {
     rightPane.appendChild(btn.spanTooltipCustomization);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.init',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   init(ctx: opentracing.Span, options: { width: number; height: number }) {
     this.timeline.init(ctx, {
       width: options.width,
@@ -309,11 +307,7 @@ export class TimelineWrapper {
     this.stage.getAllTraces().forEach(trace => this.timeline.addTrace(ctx, trace));
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.initTooltips',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   private initTooltips(ctx: opentracing.Span) {
     const tooltipManager = TooltipManager.getSingleton();
     const btn = this.elements.toolbarBtn;
@@ -370,11 +364,7 @@ export class TimelineWrapper {
     ]);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.initDropdowns',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   private initDropdowns(ctx: opentracing.Span) {
     const btn = this.elements.toolbarBtn;
     this.dropdowns = {
@@ -498,11 +488,7 @@ export class TimelineWrapper {
     this.updateSelectedTool();
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.onSpanGroupingModeMenuItemClick',
-    relation: 'newTrace',
-    autoFinish: true
-  })
+  @Stalk({ handler: NewTrace })
   private onSpanGroupingModeMenuItemClick(ctx: opentracing.Span, item: WidgetToolbarSelectItem) {
     ctx.addTags({
       itemType: item.type,
@@ -546,11 +532,7 @@ export class TimelineWrapper {
     this.spanGroupingModeMenu.select(item.id);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.onCustomSpanGroupingModalClose',
-    relation: 'newTrace',
-    autoFinish: true
-  })
+  @Stalk({ handler: NewTrace })
   private onCustomSpanGroupingModalClose(
     ctx: opentracing.Span,
     triggerType: ModalCloseTriggerType,
@@ -585,11 +567,7 @@ export class TimelineWrapper {
     });
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.onSpanLabellingMenuItemClick',
-    relation: 'newTrace',
-    autoFinish: true
-  })
+  @Stalk({ handler: NewTrace })
   private onSpanLabellingMenuItemClick(ctx: opentracing.Span, item: WidgetToolbarSelectItem) {
     ctx.addTags({
       itemType: item.type,
@@ -632,11 +610,7 @@ export class TimelineWrapper {
     this.spanLabellingModeMenu.select(item.id);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.onCustomSpanLabellingModalClose',
-    relation: 'newTrace',
-    autoFinish: true
-  })
+  @Stalk({ handler: NewTrace })
   private onCustomSpanLabellingModalClose(
     ctx: opentracing.Span,
     triggerType: ModalCloseTriggerType,
@@ -671,11 +645,7 @@ export class TimelineWrapper {
     });
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.onSpanColoringMenuItemClick',
-    relation: 'newTrace',
-    autoFinish: true
-  })
+  @Stalk({ handler: NewTrace })
   private onSpanColoringMenuItemClick(ctx: opentracing.Span, item: WidgetToolbarSelectItem) {
     ctx.addTags({
       itemType: item.type,
@@ -719,11 +689,7 @@ export class TimelineWrapper {
     this.spanColoringModeMenu.select(item.id);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.onCustomSpanColoringModalClose',
-    relation: 'newTrace',
-    autoFinish: true
-  })
+  @Stalk({ handler: NewTrace })
   private onCustomSpanColoringModalClose(
     ctx: opentracing.Span,
     triggerType: ModalCloseTriggerType,
@@ -758,11 +724,7 @@ export class TimelineWrapper {
     });
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.onGroupLayoutMenuItemClick',
-    relation: 'newTrace',
-    autoFinish: true
-  })
+  @Stalk({ handler: NewTrace })
   private onGroupLayoutMenuItemClick(ctx: opentracing.Span, item: WidgetToolbarSelectItem) {
     ctx.addTags({
       itemType: item.type,
@@ -854,11 +816,7 @@ export class TimelineWrapper {
     selectedTool && selectedTool.classList.add('selected');
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.updateSpanTooltipCustomizationMultiSelect',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   private updateSpanTooltipCustomizationMultiSelect(ctx: opentracing.Span) {
     const tooltipOptions = this.timeline.getSpanTooltipContent().getOptions();
     const items: WidgetToolbarMultiSelectItem[] = [
@@ -900,21 +858,13 @@ export class TimelineWrapper {
     this.spanTooltipCustomizationMultiSelect.updateItems(items);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.addTrace',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   addTrace(ctx: opentracing.Span, trace: Trace) {
     this.timeline.addTrace(ctx, trace);
     this.updateSpanTooltipCustomizationMultiSelect(ctx);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.removeTrace',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   removeTrace(ctx: opentracing.Span, trace: Trace) {
     this.timeline.removeTrace(ctx, trace);
     this.updateSpanTooltipCustomizationMultiSelect(ctx);
@@ -929,11 +879,7 @@ export class TimelineWrapper {
     parent && parent.removeChild(this.elements.container);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'timeline-wrapper.resize',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   resize(ctx: opentracing.Span, width: number, height: number) {
     this.timeline.resize(ctx, width, height - TOOLBAR_HEIGHT);
   }

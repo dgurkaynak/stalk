@@ -5,7 +5,9 @@ import EventEmitter from 'events';
 import { Span } from './interfaces';
 import db from './db';
 import { TypeScriptManager } from './../components/customization/typescript-manager';
-import { opentracing, stalk } from 'stalk-opentracing';
+import { opentracing } from 'stalk-opentracing';
+import { OperationNamePrefix } from '../utils/self-tracing/opname-prefix-decorator';
+import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../utils/self-tracing/trace-decorator';
 
 export enum SpanLabellingManagerEvent {
   ADDED = 'slm_added',
@@ -27,7 +29,7 @@ export interface SpanLabellingOptions {
 
 let singletonIns: SpanLabellingManager;
 
-@stalk.decorators.Tag.Component('slmanager')
+@OperationNamePrefix('slmanager')
 export class SpanLabellingManager extends EventEmitter {
   private builtInOptions: SpanLabellingOptions[] = [
     operationLabellingOptions,
@@ -40,10 +42,7 @@ export class SpanLabellingManager extends EventEmitter {
     return singletonIns;
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'slmanager.init',
-    relation: 'childOf'
-  })
+  @Stalk({ handler: ChildOf })
   async init(ctx: opentracing.Span) {
     await db.open();
     ctx.log({ message: 'DB opened successfully' });
@@ -54,10 +53,7 @@ export class SpanLabellingManager extends EventEmitter {
     await Promise.all(rawOptions.map(raw => this.add(ctx, raw, true)));
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'slmanager.add',
-    relation: 'childOf'
-  })
+  @Stalk({ handler: ChildOf })
   async add(ctx: opentracing.Span, raw: SpanLabellingRawOptions, doNotPersistToDatabase = false) {
     const allOptions = [...this.builtInOptions, ...this.customOptions];
     ctx.addTags({ ...raw, doNotPersistToDatabase });

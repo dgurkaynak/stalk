@@ -1,11 +1,13 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as languageFeatures from 'monaco-editor/esm/vs/language/typescript/languageFeatures';
 import DefaultInterfacesRawText from '!!raw-loader!../../model/interfaces.ts';
-import { opentracing, stalk } from 'stalk-opentracing';
+import { opentracing } from 'stalk-opentracing';
+import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
+import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 
 let _singletonIns: TypeScriptManager;
 
-@stalk.decorators.Tag.Component('tsmanager')
+@OperationNamePrefix('tsmanager.')
 export class TypeScriptManager {
   private defaultInterfacesDisposable?: monaco.IDisposable;
 
@@ -14,10 +16,7 @@ export class TypeScriptManager {
     return _singletonIns;
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'tsmanager.init',
-    relation: 'childOf'
-  })
+  @Stalk({ handler: ChildOf })
   async init(ctx: opentracing.Span) {
     // TypeScriptManager.patchMonacoTypescriptToIgnoreDiagnostics();
 
@@ -36,10 +35,7 @@ export class TypeScriptManager {
     );
   }
 
-  @stalk.decorators.Trace.TraceAsync({
-    operationName: 'tsmanager.compile',
-    relation: 'newTrace'
-  })
+  @Stalk({ handler: NewTrace })
   async compile(ctx: opentracing.Span, uri: monaco.Uri) {
     const worker = await monaco.languages.typescript.getTypeScriptWorker();
     const client = await worker(uri);

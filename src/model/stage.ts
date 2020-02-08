@@ -3,7 +3,9 @@ import EventEmitter from 'events';
 import { SpanGroup } from './span-group/span-group';
 import flatMap from 'lodash/flatMap';
 import { union } from '../utils/interval-helper';
-import { opentracing, stalk } from 'stalk-opentracing';
+import { opentracing } from 'stalk-opentracing';
+import { OperationNamePrefix } from '../utils/self-tracing/opname-prefix-decorator';
+import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../utils/self-tracing/trace-decorator';
 
 export enum StageEvent {
   TRACE_ADDED = 'trace_added',
@@ -12,7 +14,7 @@ export enum StageEvent {
 
 let _singletonIns: Stage;
 
-@stalk.decorators.Tag.Component('stage')
+@OperationNamePrefix('stage.')
 export class Stage extends EventEmitter {
   private traces: { [key: string]: Trace } = {};
   private mainSpanGroup = new SpanGroup('main', '');
@@ -35,11 +37,7 @@ export class Stage extends EventEmitter {
     return Object.values(this.traces);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'stage.addTrace',
-    relation: 'newTrace',
-    autoFinish: true
-  })
+  @Stalk({ handler: NewTrace })
   addTrace(ctx: opentracing.Span, trace: Trace) {
     ctx.addTags({
       traceId: trace.id,
@@ -100,11 +98,7 @@ export class Stage extends EventEmitter {
     this.emit(StageEvent.TRACE_ADDED, ctx, trace);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'stage.removeTrace',
-    relation: 'newTrace',
-    autoFinish: true
-  })
+  @Stalk({ handler: NewTrace })
   removeTrace(ctx: opentracing.Span, traceId: string) {
     ctx.addTags({ traceId });
     if (!this.traces[traceId]) {

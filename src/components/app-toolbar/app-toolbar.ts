@@ -8,7 +8,9 @@ import { DataSourceType, DataSource } from '../../model/datasource/interfaces';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
-import { opentracing, stalk } from 'stalk-opentracing';
+import { opentracing } from 'stalk-opentracing';
+import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
+import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
@@ -28,7 +30,7 @@ export type AppToolbarButtonType =
 
 export type AppToolbarButtonState = 'selected' | 'disabled';
 
-@stalk.decorators.Tag.Component('app-toolbar')
+@OperationNamePrefix('app-toolbar.')
 export class AppToolbar {
   private elements = {
     container: document.createElement('div'),
@@ -118,11 +120,7 @@ export class AppToolbar {
     rightPane.appendChild(btn.settings);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app-toolbar.init',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   init(ctx: opentracing.Span) {
     this.initTooltips(ctx);
     this.initDropdowns(ctx);
@@ -172,11 +170,7 @@ export class AppToolbar {
     el.parentElement && el.parentElement.removeChild(el);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app-toolbar.initTooltips',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   private initTooltips(ctx: opentracing.Span) {
     const tooltipManager = TooltipManager.getSingleton();
     tooltipManager.addToSingleton([
@@ -199,11 +193,7 @@ export class AppToolbar {
     ]);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app-toolbar.initDropdowns',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   private initDropdowns(ctx: opentracing.Span) {
     this.dropdowns = {
       dataSources: tippy(this.elements.btn.dataSources, {
@@ -240,11 +230,7 @@ export class AppToolbar {
   //////////// VIEW UPDATES ////////////
   //////////////////////////////////////
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app-toolbar.updateDataSourceList',
-    relation: 'childOf',
-    autoFinish: true
-  })
+  @Stalk({ handler: ChildOf })
   private updateDataSourceList(ctx: opentracing.Span) {
     this.dataSourcesMenuList.removeAllItems();
     const dataSources = this.dsManager.getAll();
@@ -363,11 +349,7 @@ export class AppToolbar {
     }
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app-toolbar.onDataSourceManagerAdded',
-    relation: 'followsFrom',
-    autoFinish: true
-  })
+  @Stalk({ handler: FollowsFrom })
   private onDataSourceManagerAdded(
     ctx: opentracing.Span,
     dataSource: DataSource
@@ -375,11 +357,7 @@ export class AppToolbar {
     this.updateDataSourceList(ctx);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app-toolbar.onDataSourceManagerUpdated',
-    relation: 'followsFrom',
-    autoFinish: true
-  })
+  @Stalk({ handler: FollowsFrom })
   private onDataSourceManagerUpdated(
     ctx: opentracing.Span,
     dataSource: DataSource
@@ -387,11 +365,7 @@ export class AppToolbar {
     this.updateDataSourceList(ctx);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app-toolbar.onDataSourceManagerRemoved',
-    relation: 'followsFrom',
-    autoFinish: true
-  })
+  @Stalk({ handler: FollowsFrom })
   private onDataSourceManagerRemoved(
     ctx: opentracing.Span,
     dataSource: DataSource
@@ -399,20 +373,12 @@ export class AppToolbar {
     this.updateDataSourceList(ctx);
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app-toolbar.onStageTraceAdded',
-    relation: 'followsFrom',
-    autoFinish: true
-  })
+  @Stalk({ handler: FollowsFrom })
   private onStageTraceAdded(ctx: opentracing.Span, trace: Trace) {
     this.updateTracesList();
   }
 
-  @stalk.decorators.Trace.Trace({
-    operationName: 'app-toolbar.onStageTraceRemoved',
-    relation: 'followsFrom',
-    autoFinish: true
-  })
+  @Stalk({ handler: FollowsFrom })
   private onStageTraceRemoved(ctx: opentracing.Span, trace: Trace) {
     this.updateTracesList();
   }
