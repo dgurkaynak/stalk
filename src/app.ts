@@ -1,3 +1,4 @@
+import './utils/self-tracing/self-tracing'; // must be first
 import { AppToolbar } from './components/app-toolbar/app-toolbar';
 import throttle from 'lodash/throttle';
 import isArray from 'lodash/isArray';
@@ -26,10 +27,9 @@ import {
   ContextMenuManager,
   ContextMenuEvent
 } from './components/ui/context-menu/context-menu-manager';
-import { opentracing, stalk } from 'stalk-opentracing';
+import { opentracing } from 'stalk-opentracing';
 import { OperationNamePrefix } from './utils/self-tracing/opname-prefix-decorator';
 import { Stalk, NewTrace, ChildOf, FollowsFrom } from './utils/self-tracing/trace-decorator';
-import { StalkStudioReporter } from './utils/self-tracing/reporter';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -565,13 +565,4 @@ async function readFile(file: File): Promise<string> {
     fileReader.onload = () => resolve(fileReader.result as string);
     fileReader.readAsText(file);
   });
-}
-
-// This block enables self-tracing
-if (false) {
-  const tracer = new stalk.Tracer();
-  const customReporter = new StalkStudioReporter();
-  (window as any).reporter = customReporter;
-  tracer.addReporter(customReporter);
-  opentracing.initGlobalTracer(tracer);
 }
