@@ -27,7 +27,7 @@ import {
   ContextMenuEvent
 } from './components/ui/context-menu/context-menu-manager';
 import { opentracing, stalk } from 'stalk-opentracing';
-import { StalkCustomReporter } from './utils/stalk-custom-reporter';
+import { StalkStudioReporter } from './utils/self-tracing/reporter';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -587,7 +587,7 @@ async function readFile(file: File): Promise<string> {
 // This block enables self-tracing
 if (false) {
   const tracer = new stalk.Tracer();
-  const customReporter = new StalkCustomReporter();
+  const customReporter = new StalkStudioReporter();
   (window as any).reporter = customReporter;
   tracer.addReporter(customReporter);
   opentracing.initGlobalTracer(tracer);

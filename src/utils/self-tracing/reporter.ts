@@ -1,13 +1,13 @@
 import { stalk } from 'stalk-opentracing';
-import { Stage } from '../model/stage';
-import { Trace } from '../model/trace';
-import { Span } from '../model/interfaces';
+import { Stage } from '../../model/stage';
+import { Trace } from '../../model/trace';
+import { Span } from '../../model/interfaces';
 import groupBy from 'lodash/groupBy';
 import * as shortid from 'shortid';
 import * as os from 'os';
 
 
-export class StalkCustomReporter extends stalk.reporters.BaseReporter {
+export class StalkStudioReporter extends stalk.reporters.BaseReporter {
   static PROCESS_ID = shortid.generate();
 
   private stage = Stage.getSingleton();
@@ -16,7 +16,7 @@ export class StalkCustomReporter extends stalk.reporters.BaseReporter {
     serviceName: 'stalk-studio-renderer',
     tags: {
       hostname: os.hostname(),
-      processId: StalkCustomReporter.PROCESS_ID
+      processId: StalkStudioReporter.PROCESS_ID
     }
   };
 
@@ -71,18 +71,13 @@ export class StalkCustomReporter extends stalk.reporters.BaseReporter {
     });
   }
 
-
-  @stalk.decorators.Trace.Trace({
-    operationName: 'I DIDNT WANT THIS TRACE AT ALL',
-    relation: 'newTrace',
-    autoFinish: true
-  })
-  importTraces(ctx: stalk.Span) {
+  importTraces() {
     const traces = this.getTraces();
-    traces.forEach(t => this.stage.addTrace(ctx, t));
+    // TODO: ???
+    traces.forEach(t => this.stage.addTrace(undefined, t));
   }
 
 }
 
 
-export default StalkCustomReporter;
+export default StalkStudioReporter;
