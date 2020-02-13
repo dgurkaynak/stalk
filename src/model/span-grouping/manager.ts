@@ -7,7 +7,7 @@ import ProcessGrouping from './process';
 import ServiceNameGrouping from './service-name';
 import db from '../db';
 import { TypeScriptManager } from '../../components/customization/typescript-manager';
-import { opentracing } from 'stalk-opentracing';
+import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
 import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 

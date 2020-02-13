@@ -41,7 +41,7 @@ import { Span } from '../../model/interfaces';
 import VerticalLineDecoration from './decorations/vertical-line';
 import { ContextMenuManager, ContextMenuEvent } from '../ui/context-menu/context-menu-manager';
 import { clipboard } from 'electron';
-import { opentracing } from 'stalk-opentracing';
+import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
 import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 

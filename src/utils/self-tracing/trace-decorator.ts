@@ -1,4 +1,4 @@
-import { opentracing } from 'stalk-opentracing';
+import * as opentracing from 'opentracing';
 import { getOperationNamePrefix } from './opname-prefix-decorator';
 import getGlobal from '../get-global';
 

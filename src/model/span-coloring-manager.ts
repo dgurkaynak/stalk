@@ -6,7 +6,7 @@ import MPN65ColorAssigner from '../components/ui/color-assigner-mpn65';
 import { Span } from './interfaces';
 import db from './db';
 import { TypeScriptManager } from './../components/customization/typescript-manager';
-import { opentracing } from 'stalk-opentracing';
+import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from '../utils/self-tracing/opname-prefix-decorator';
 import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../utils/self-tracing/trace-decorator';
 

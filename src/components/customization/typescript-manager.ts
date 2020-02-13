@@ -1,7 +1,7 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as languageFeatures from 'monaco-editor/esm/vs/language/typescript/languageFeatures';
 import DefaultInterfacesRawText from '!!raw-loader!../../model/interfaces.ts';
-import { opentracing } from 'stalk-opentracing';
+import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
 import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 

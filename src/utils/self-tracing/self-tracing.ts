@@ -1,9 +1,10 @@
-import { opentracing, stalk } from 'stalk-opentracing';
+import * as opentracing from 'opentracing';
 import { StalkStudioReporter } from './reporter';
+import { Tracer } from './tracer';
 
 const LOCALSTORAGE_KEY = 'stalkSelfTracing';
 const noopTracer = new opentracing.Tracer();
-const stalkTracer = new stalk.Tracer();
+const stalkTracer = new Tracer();
 const customReporter = new StalkStudioReporter();
 stalkTracer.addReporter(customReporter);
 

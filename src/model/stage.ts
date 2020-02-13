@@ -3,7 +3,7 @@ import EventEmitter from 'events';
 import { SpanGroup } from './span-group/span-group';
 import flatMap from 'lodash/flatMap';
 import { union } from '../utils/interval-helper';
-import { opentracing } from 'stalk-opentracing';
+import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from '../utils/self-tracing/opname-prefix-decorator';
 import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../utils/self-tracing/trace-decorator';
 

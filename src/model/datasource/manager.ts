@@ -5,7 +5,7 @@ import JaegerAPI from '../api/jaeger/api';
 import ZipkinAPI from '../api/zipkin/api';
 import db from '../db';
 import EventEmitter from 'events';
-import { opentracing } from 'stalk-opentracing';
+import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
 import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 
