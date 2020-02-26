@@ -29,6 +29,7 @@ import {
   ChildOf,
   FollowsFrom
 } from '../../utils/self-tracing/trace-decorator';
+import EventEmitter from 'events';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
@@ -47,8 +48,12 @@ export interface LogRowData {
   fields: { [key: string]: string };
 }
 
+export enum LogsTableViewEvent {
+  LOG_SELECTED = 'log_selected'
+}
+
 @OperationNamePrefix('logs-table.')
-export class LogsTableView {
+export class LogsTableView extends EventEmitter {
   private stage = Stage.getSingleton();
   private contextMenuManager = ContextMenuManager.getSingleton();
   private table: Tabulator;
@@ -136,6 +141,8 @@ export class LogsTableView {
   });
 
   constructor() {
+    super();
+
     const { container, toolbar, tableContainer } = this.elements;
     container.classList.add('logs-table-view');
     container.appendChild(toolbar);
@@ -523,7 +530,7 @@ export class LogsTableView {
 
   private updateRowSelectionGracefully() {
     if (!this.selectedLogId) return;
-    this.selectLog(this.selectedLogId);
+    this.selectLog(this.selectedLogId, true);
   }
 
   async clearSearch() {
@@ -531,10 +538,11 @@ export class LogsTableView {
     await this.updateTableData();
   }
 
-  selectLog(logId: string) {
+  selectLog(logId: string, silent = false) {
     if (!logId) {
       this.selectedLogId = null;
       this.table.deselectRow();
+      !silent && this.emit(LogsTableViewEvent.LOG_SELECTED, {});
       return;
     }
 
@@ -542,12 +550,19 @@ export class LogsTableView {
     if (!row) {
       this.selectedLogId = null;
       this.table.deselectRow();
+      !silent && this.emit(LogsTableViewEvent.LOG_SELECTED, {});
       return;
     }
 
     this.selectedLogId = logId;
     this.table.deselectRow();
     row.select();
+
+    const logData = row.getData();
+    !silent && this.emit(LogsTableViewEvent.LOG_SELECTED, {
+      logId,
+      spanId: logData.span.id
+    });
   }
 
   focusLog(logId: string) {
