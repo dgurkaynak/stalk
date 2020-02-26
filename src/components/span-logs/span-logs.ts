@@ -7,6 +7,7 @@ import {
   SpansTableView,
   SpansTableViewEvent
 } from '../spans-table/spans-table';
+import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
 import { SpanLogItemView } from './span-log-item';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 
@@ -22,6 +23,7 @@ export class SpanLogsView {
   private stage = Stage.getSingleton();
   private timeline: Timeline;
   private spansTable: SpansTableView;
+  private logsTable: LogsTableView;
   private selectedSpanId: string;
   private logItemViews: SpanLogItemView[] = [];
   private fuse: Fuse<
@@ -44,6 +46,7 @@ export class SpanLogsView {
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
     onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
+    onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this),
     onExpandAllClick: this.onExpandAllClick.bind(this),
     onCollapseAllClick: this.onCollapseAllClick.bind(this),
     onMouseMove: this.onMouseMove.bind(this),
@@ -97,9 +100,14 @@ export class SpanLogsView {
     rightPane.appendChild(btn.collapseAll);
   }
 
-  init(options: { timeline: Timeline, spansTable: SpansTableView }) {
+  init(options: {
+    timeline: Timeline;
+    spansTable: SpansTableView;
+    logsTable: LogsTableView;
+  }) {
     this.timeline = options.timeline;
     this.spansTable = options.spansTable;
+    this.logsTable = options.logsTable;
     this.initTooltips();
 
     // Bind events
@@ -115,6 +123,10 @@ export class SpanLogsView {
     this.spansTable.on(
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
+    );
+    this.logsTable.on(
+      LogsTableViewEvent.LOG_SELECTED,
+      this.binded.onLogsTableLogSelected
     );
     this.elements.toolbarBtn.expandAll.addEventListener(
       'click',
@@ -220,6 +232,10 @@ export class SpanLogsView {
 
   private onSpansTableSpanSelected(spanId: string) {
     this.updateSpan(spanId);
+  }
+
+  private onLogsTableLogSelected(data: { spanId: string; logId: string }) {
+    data.spanId && this.updateSpan(data.spanId);
   }
 
   private updateSpan(spanId: string) {

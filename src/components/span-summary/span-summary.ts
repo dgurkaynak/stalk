@@ -5,6 +5,7 @@ import {
   SpansTableView,
   SpansTableViewEvent
 } from '../spans-table/spans-table';
+import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
 import { serviceNameOf } from '../../model/span-grouping/service-name';
 import { formatMicroseconds } from '../../utils/format-microseconds';
 
@@ -16,6 +17,7 @@ export class SpanSummaryView {
   private stage = Stage.getSingleton();
   private timeline: Timeline;
   private spansTable: SpansTableView;
+  private logsTable: LogsTableView;
   private elements = {
     container: document.createElement('div')
   };
@@ -23,7 +25,8 @@ export class SpanSummaryView {
 
   private binded = {
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
-    onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this)
+    onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
+    onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this)
   };
 
   constructor() {
@@ -31,9 +34,14 @@ export class SpanSummaryView {
     container.classList.add('span-summary');
   }
 
-  init(options: { timeline: Timeline; spansTable: SpansTableView }) {
+  init(options: {
+    timeline: Timeline;
+    spansTable: SpansTableView;
+    logsTable: LogsTableView;
+  }) {
     this.timeline = options.timeline;
     this.spansTable = options.spansTable;
+    this.logsTable = options.logsTable;
 
     // Bind events
     this.timeline.on(
@@ -43,6 +51,10 @@ export class SpanSummaryView {
     this.spansTable.on(
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
+    );
+    this.logsTable.on(
+      LogsTableViewEvent.LOG_SELECTED,
+      this.binded.onLogsTableLogSelected
     );
 
     // Initial render
@@ -57,6 +69,10 @@ export class SpanSummaryView {
 
   private onSpansTableSpanSelected(spanId: string) {
     this.render(spanId);
+  }
+
+  private onLogsTableLogSelected(data: { spanId: string; logId: string }) {
+    data.spanId && this.render(data.spanId);
   }
 
   private render(spanId: string) {

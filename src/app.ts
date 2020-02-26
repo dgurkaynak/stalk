@@ -29,7 +29,12 @@ import {
 } from './components/ui/context-menu/context-menu-manager';
 import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from './utils/self-tracing/opname-prefix-decorator';
-import { Stalk, NewTrace, ChildOf, FollowsFrom } from './utils/self-tracing/trace-decorator';
+import {
+  Stalk,
+  NewTrace,
+  ChildOf,
+  FollowsFrom
+} from './utils/self-tracing/trace-decorator';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -118,14 +123,16 @@ export class App {
     this.spanSummary.mount(spanSummaryWidgetEl);
     this.spanSummary.init({
       timeline: this.timeline.timeline,
-      spansTable: this.spansTable
+      spansTable: this.spansTable,
+      logsTable: this.logsTable
     });
 
     const spanTagsWidgetEl = this.widgets[AppWidgetType.SPAN_TAGS].node;
     this.spanTags.mount(spanTagsWidgetEl);
     this.spanTags.init({
       timeline: this.timeline.timeline,
-      spansTable: this.spansTable
+      spansTable: this.spansTable,
+      logsTable: this.logsTable
     });
 
     const spanProcessTagsWidgetEl = this.widgets[
@@ -134,14 +141,16 @@ export class App {
     this.spanProcessTags.mount(spanProcessTagsWidgetEl);
     this.spanProcessTags.init({
       timeline: this.timeline.timeline,
-      spansTable: this.spansTable
+      spansTable: this.spansTable,
+      logsTable: this.logsTable
     });
 
     const spanLogsWidgetEl = this.widgets[AppWidgetType.SPAN_LOGS].node;
     this.spanLogs.mount(spanLogsWidgetEl);
     this.spanLogs.init({
       timeline: this.timeline.timeline,
-      spansTable: this.spansTable
+      spansTable: this.spansTable,
+      logsTable: this.logsTable
     });
 
     this.initDropZone();
