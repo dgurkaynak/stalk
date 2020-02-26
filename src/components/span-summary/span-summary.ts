@@ -71,8 +71,8 @@ export class SpanSummaryView {
     this.render(spanId);
   }
 
-  private onLogsTableLogSelected(data: { spanId: string; logId: string }) {
-    data.spanId && this.render(data.spanId);
+  private onLogsTableLogSelected(logData: any) {
+    this.render(logData.span.id);
   }
 
   private render(spanId: string) {

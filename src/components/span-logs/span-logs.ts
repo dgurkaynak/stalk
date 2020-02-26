@@ -1,6 +1,5 @@
 import Fuse from 'fuse.js';
 import { Stage } from '../../model/stage';
-import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import { Timeline, TimelineEvent } from '../timeline/timeline';
 import {
@@ -228,14 +227,27 @@ export class SpanLogsView {
 
   private onTimelineSpanSelected(spanId: string) {
     this.updateSpan(spanId);
+    this.logItemViews.forEach(v => v.unhighlight());
   }
 
   private onSpansTableSpanSelected(spanId: string) {
     this.updateSpan(spanId);
+    this.logItemViews.forEach(v => v.unhighlight());
   }
 
-  private onLogsTableLogSelected(data: { spanId: string; logId: string }) {
-    data.spanId && this.updateSpan(data.spanId);
+  private onLogsTableLogSelected(logData: any) {
+    this.updateSpan(logData.span.id);
+
+    this.logItemViews.forEach(logView => {
+      if (logView.isEqual(logData)) {
+        logView.expand();
+        logView.highlight();
+        this.elements.contentContainer.scrollTop = logView.getElement().offsetTop;
+      } else {
+        // logView.collapse();
+        logView.unhighlight();
+      }
+    });
   }
 
   private updateSpan(spanId: string) {

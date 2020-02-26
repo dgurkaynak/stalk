@@ -10,7 +10,7 @@
   height: calc(100% - 27px);
   overflow-y: auto;
   box-sizing: border-box;
-  padding: 1em;
+  position: relative;
 }
 
 .span-logs .search-container {

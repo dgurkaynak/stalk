@@ -559,10 +559,7 @@ export class LogsTableView extends EventEmitter {
     row.select();
 
     const logData = row.getData();
-    !silent && this.emit(LogsTableViewEvent.LOG_SELECTED, {
-      logId,
-      spanId: logData.span.id
-    });
+    !silent && this.emit(LogsTableViewEvent.LOG_SELECTED, logData);
   }
 
   focusLog(logId: string) {

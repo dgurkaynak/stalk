@@ -174,8 +174,8 @@ export class SpanProcessTagsView {
     this.updateSpan(spanId);
   }
 
-  private onLogsTableLogSelected(data: { spanId: string; logId: string }) {
-    data.spanId && this.updateSpan(data.spanId);
+  private onLogsTableLogSelected(logData: any) {
+    this.updateSpan(logData.span.id);
   }
 
   private updateSpan(spanId: string) {

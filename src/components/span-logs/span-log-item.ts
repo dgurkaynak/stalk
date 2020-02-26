@@ -164,6 +164,35 @@ export class SpanLogItemView {
     this.render();
   }
 
+  getLog() {
+    return this.options.log;
+  }
+
+  isEqual(logObject: any) {
+    if (this.options.log.timestamp != logObject.timestamp) return false;
+
+    // Fucking tabulator mutates the original log object and adds `error` or any other column
+    // key to object which is undefined. that's why we cannot use lodash's isEqual check
+    for (const key in this.options.log.fields) {
+      const value = this.options.log.fields[key];
+      if (value != logObject.fields[key]) return false;
+    }
+
+    return true;
+  }
+
+  getElement() {
+    return this.elements.container;
+  }
+
+  highlight() {
+    this.elements.container.classList.add('highlighted');
+  }
+
+  unhighlight() {
+    this.elements.container.classList.remove('highlighted');
+  }
+
   mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }

@@ -1,5 +1,9 @@
 .span-log-item {
-  margin-bottom: 0.5em;
+  padding: 0.25em 1em;
+}
+
+.span-log-item.highlighted {
+  background: #f3f3f3;
 }
 
 .span-log-item-header {
