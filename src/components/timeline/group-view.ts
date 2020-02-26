@@ -11,7 +11,12 @@ import {
 } from './interaction';
 import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
-import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
+import {
+  Stalk,
+  NewTrace,
+  ChildOf,
+  FollowsFrom
+} from '../../utils/self-tracing/trace-decorator';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -102,11 +107,11 @@ export default class GroupView {
   dispose() {
     // Unmount self
     const parent1 = this.container.parentElement;
-    parent1 && parent1.removeChild(this.container);
+    parent1?.removeChild(this.container);
     const parent2 = this.seperatorLine.parentElement;
-    parent2 && parent2.removeChild(this.seperatorLine);
+    parent2?.removeChild(this.seperatorLine);
     const parent3 = this.labelText.parentElement;
-    parent3 && parent3.removeChild(this.labelText);
+    parent3?.removeChild(this.labelText);
 
     // Unmount spans
     const spanViews = Object.values(this.spanViews);

@@ -35,8 +35,7 @@ export default class SelectionView {
   }
 
   unmount() {
-    this.container.parentElement &&
-      this.container.parentElement.removeChild(this.container);
+    this.container.parentElement?.removeChild(this.container);
   }
 
   start(x: number, y: number) {

@@ -158,12 +158,12 @@ function getTracer(span: any): opentracing.Tracer {
 
 // Checks the `thing` has `.tracer()` method
 function hasTracerMethod(span: any) {
-  return span && span.tracer && typeof span.tracer == 'function';
+  return span?.tracer && typeof span.tracer == 'function';
 }
 
 // Checks the `thing` has `.context()` method
 function hasContextMethod(span: any) {
-  return span && span.context && typeof span.context == 'function';
+  return span?.context && typeof span.context == 'function';
 }
 
 export function ChildOf(

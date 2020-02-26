@@ -26,12 +26,8 @@ export default class BaseDecoration {
   }
 
   unmount() {
-    this.underlayElements.forEach(
-      el => el.parentElement && el.parentElement.removeChild(el)
-    );
-    this.overlayElements.forEach(
-      el => el.parentElement && el.parentElement.removeChild(el)
-    );
+    this.underlayElements.forEach(el => el.parentElement?.removeChild(el));
+    this.overlayElements.forEach(el => el.parentElement?.removeChild(el));
   }
 
   update(): void {

@@ -33,7 +33,7 @@ export class SpanConnectionDecoration extends BaseDecoration {
   prepare(settings: SpanConnectionDecorationSettings) {
     this.settings = defaults(settings, this.settings);
 
-    this.path.parentElement && this.path.parentElement.removeChild(this.path);
+    this.path.parentElement?.removeChild(this.path);
 
     this.groupView1 = null;
     this.spanView1 = null;

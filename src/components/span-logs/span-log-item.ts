@@ -170,7 +170,7 @@ export class SpanLogItemView {
 
   unmount() {
     const parent = this.elements.container.parentElement;
-    parent && parent.removeChild(this.elements.container);
+    parent?.removeChild(this.elements.container);
   }
 
   dispose() {

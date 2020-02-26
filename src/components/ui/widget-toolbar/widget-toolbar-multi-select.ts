@@ -173,8 +173,7 @@ export class WidgetToolbarMultiSelect {
 
   private onSearchInput(e: Event) {
     this.render();
-    this.options.onSearchInput &&
-      this.options.onSearchInput(this.elements.searchInput.value);
+    this.options.onSearchInput?.(this.elements.searchInput.value);
   }
 
   private onItemContainerClick(e: MouseEvent) {
@@ -185,9 +184,9 @@ export class WidgetToolbarMultiSelect {
     if (!item) return;
 
     if (item.selected) {
-      this.options.onUnselect && this.options.onUnselect(item);
+      this.options.onUnselect?.(item);
     } else {
-      this.options.onSelect && this.options.onSelect(item);
+      this.options.onSelect?.(item);
     }
   }
 

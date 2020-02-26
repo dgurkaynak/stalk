@@ -119,7 +119,7 @@ export class ContextMenuManager extends EventEmitter {
       i => (i.selectItem as any).id == item.id
     );
     if (menuItem) {
-      menuItem.onSelected && menuItem.onSelected();
+      menuItem.onSelected?.();
       if (menuItem.emitEvent) {
         this.emit(menuItem.emitEvent.event, menuItem.emitEvent.data);
       }

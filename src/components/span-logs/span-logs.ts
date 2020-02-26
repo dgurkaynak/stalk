@@ -282,7 +282,7 @@ export class SpanLogsView {
 
   unmount() {
     const parent = this.elements.container.parentElement;
-    parent && parent.removeChild(this.elements.container);
+    parent?.removeChild(this.elements.container);
   }
 
   resize(width: number, height: number) {

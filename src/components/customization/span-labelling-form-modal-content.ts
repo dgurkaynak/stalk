@@ -286,10 +286,9 @@ export class SpanLabellingFormModalContent {
       false
     );
 
-    this.editor && this.editor.dispose();
-    this.model && this.model.dispose();
-    this.editorContentChangeListener &&
-      this.editorContentChangeListener.dispose();
+    this.editor?.dispose();
+    this.model?.dispose();
+    this.editorContentChangeListener?.dispose();
     this.editor = undefined;
     this.model = undefined;
     this.editorContentChangeListener = undefined;

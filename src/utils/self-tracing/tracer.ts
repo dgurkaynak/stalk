@@ -95,7 +95,7 @@ export class Tracer extends opentracing.Tracer {
       : generateId();
     const spanId = generateId();
     const spanContext = new SpanContext(traceId, spanId);
-    if (firstRefContext && firstRefContext.baggageItems)
+    if (firstRefContext?.baggageItems)
       spanContext.addBaggageItems(firstRefContext.baggageItems);
 
     const span = new Span(this, spanContext);

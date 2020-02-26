@@ -177,8 +177,8 @@ export class Timeline extends EventEmitter {
 
   @Stalk({ handler: ChildOf })
   init(ctx: opentracing.Span, options: { width: number; height: number }) {
-    let width = options && options.width;
-    let height = options && options.height;
+    let width = options?.width;
+    let height = options?.height;
     if (!width || !height) {
       throw new Error('Missing timeline dimensions');
     }
@@ -242,7 +242,7 @@ export class Timeline extends EventEmitter {
   }
 
   unmount() {
-    this.svg.parentElement && this.svg.parentElement.removeChild(this.svg);
+    this.svg.parentElement?.removeChild(this.svg);
   }
 
   @Stalk({ handler: ChildOf })
@@ -488,7 +488,7 @@ export class Timeline extends EventEmitter {
   ): [GroupView | undefined, SpanView | undefined] {
     if (isString(spanId)) {
       const groupView = find(this.groupViews, g => !!g.getSpanViewById(spanId));
-      return [groupView, groupView && groupView.getSpanViewById(spanId)];
+      return [groupView, groupView?.getSpanViewById(spanId)];
     } else if (isFunction(spanId)) {
       for (let groupView of this.groupViews) {
         const spanViews = groupView.getAllSpanViews();
@@ -1093,8 +1093,8 @@ export class Timeline extends EventEmitter {
   updateTicks() {
     if (this.traces.length == 0) {
       this.tickElements.forEach(({ text, line }) => {
-        text.parentElement && text.parentElement.removeChild(text);
-        line.parentElement && line.parentElement.removeChild(line);
+        text.parentElement?.removeChild(text);
+        line.parentElement?.removeChild(line);
       });
       return;
     }
@@ -1133,8 +1133,8 @@ export class Timeline extends EventEmitter {
     if (this.tickElements.length > ticks.length) {
       for (let i = ticks.length; i < this.tickElements.length; i++) {
         const { line, text } = this.tickElements[i];
-        line.parentElement && line.parentElement.removeChild(line);
-        text.parentElement && text.parentElement.removeChild(text);
+        line.parentElement?.removeChild(line);
+        text.parentElement?.removeChild(text);
       }
     }
   }

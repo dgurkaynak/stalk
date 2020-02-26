@@ -813,7 +813,7 @@ export class TimelineWrapper {
     };
     Object.values(toolButtons).forEach(el => el.classList.remove('selected'));
     const selectedTool = toolButtons[this.timeline.tool];
-    selectedTool && selectedTool.classList.add('selected');
+    selectedTool?.classList.add('selected');
   }
 
   @Stalk({ handler: ChildOf })
@@ -876,7 +876,7 @@ export class TimelineWrapper {
 
   unmount() {
     const parent = this.elements.container.parentElement;
-    parent && parent.removeChild(this.elements.container);
+    parent?.removeChild(this.elements.container);
   }
 
   @Stalk({ handler: ChildOf })

@@ -10,7 +10,12 @@ import { Trace } from '../../model/trace';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
-import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
+import {
+  Stalk,
+  NewTrace,
+  ChildOf,
+  FollowsFrom
+} from '../../utils/self-tracing/trace-decorator';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
@@ -167,7 +172,7 @@ export class AppToolbar {
 
   unmount() {
     const el = this.elements.container;
-    el.parentElement && el.parentElement.removeChild(el);
+    el.parentElement?.removeChild(el);
   }
 
   @Stalk({ handler: ChildOf })
@@ -272,7 +277,7 @@ export class AppToolbar {
       el.textContent = count + '';
       !el.parentElement && this.elements.btn.traces.appendChild(el);
     } else {
-      el.parentElement && this.elements.btn.traces.removeChild(el);
+      el.parentElement?.removeChild(el);
     }
   }
 

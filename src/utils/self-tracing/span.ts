@@ -90,7 +90,7 @@ export class Span extends opentracing.Span {
     span._startTime = raw.startTime;
     span._finishTime = raw.finishTime;
 
-    if (raw.references && raw.references.length > 0) {
+    if (raw.references?.length > 0) {
       span._references = raw.references.map((ref: any) => {
         const refCtx = new SpanContext(
           ref.referencedContext.traceId,

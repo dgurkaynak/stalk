@@ -97,7 +97,7 @@ export class WidgetToolbarSelect {
       const currentSelectedItem = this.element.querySelector(
         `[data-item-id="${this.selectedItemId}"]`
       );
-      currentSelectedItem && currentSelectedItem.classList.remove('selected');
+      currentSelectedItem?.classList.remove('selected');
     }
 
     this.selectedItemId = item.id;
@@ -112,7 +112,7 @@ export class WidgetToolbarSelect {
     if (!item) return;
     if (item.type == 'divider') return;
     if (item.disabled) return;
-    this.options.onSelect && this.options.onSelect(item);
+    this.options.onSelect?.(item);
   }
 
   dispose() {

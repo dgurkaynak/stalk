@@ -83,10 +83,10 @@ export default class SpanView {
 
   unmount() {
     const parent1 = this.container.parentElement;
-    parent1 && parent1.removeChild(this.container);
+    parent1?.removeChild(this.container);
 
     const parent2 = this.clipPath.parentElement;
-    parent2 && parent2.removeChild(this.clipPath);
+    parent2?.removeChild(this.clipPath);
   }
 
   reuse(span: Span) {
@@ -261,9 +261,7 @@ export default class SpanView {
   }
 
   hideLogs() {
-    this.logViews.forEach(
-      l => l.line.parentElement && l.line.parentElement.removeChild(l.line)
-    );
+    this.logViews.forEach(l => l.line.parentElement?.removeChild(l.line));
   }
 
   getLogViewById(logId: string) {

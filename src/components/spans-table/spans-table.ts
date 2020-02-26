@@ -23,7 +23,12 @@ import {
 } from '../ui/context-menu/context-menu-manager';
 import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
-import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
+import {
+  Stalk,
+  NewTrace,
+  ChildOf,
+  FollowsFrom
+} from '../../utils/self-tracing/trace-decorator';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
@@ -716,7 +721,7 @@ export class SpansTableView extends EventEmitter {
 
   unmount() {
     const parent = this.elements.container.parentElement;
-    parent && parent.removeChild(this.elements.container);
+    parent?.removeChild(this.elements.container);
   }
 
   resize(width: number, height: number) {
@@ -726,7 +731,7 @@ export class SpansTableView extends EventEmitter {
   }
 
   dispose() {
-    this.table && this.table.destroy();
+    this.table?.destroy();
     this.table = null;
 
     this.elements.searchInput.removeEventListener(

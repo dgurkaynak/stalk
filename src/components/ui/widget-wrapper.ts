@@ -19,16 +19,16 @@ export class WidgetWrapper extends Widget {
   }
 
   protected onResize(msg: any) {
-    this.options.onResize && this.options.onResize(msg);
+    this.options.onResize?.(msg);
   }
 
   protected onCloseRequest(msg: any) {
     super.onCloseRequest(msg);
-    this.options.onClose && this.options.onClose();
+    this.options.onClose?.();
   }
 
   protected onAfterShow(msg: any) {
     super.onAfterShow(msg);
-    this.options.onAfterShow && this.options.onAfterShow();
+    this.options.onAfterShow?.();
   }
 }
