@@ -513,7 +513,7 @@ export class App {
   private async showSpanInTableView(spanId: string) {
     if (!spanId) return;
     await this.spansTable.clearSearch();
-    this.spansTable.selectSpan(spanId);
+    this.spansTable.selectSpan(spanId, true);
     this.dockPanel.activateWidget(this.widgets[AppWidgetType.SPANS_TABLE]);
 
     // When spans-table is opening first time, it needs a little time

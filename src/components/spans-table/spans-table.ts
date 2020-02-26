@@ -569,7 +569,7 @@ export class SpansTableView extends EventEmitter {
 
   private updateRowSelectionGracefully() {
     if (!this.selectedSpanId) return;
-    this.selectSpan(this.selectedSpanId);
+    this.selectSpan(this.selectedSpanId, true);
   }
 
   async clearSearch() {
@@ -577,10 +577,11 @@ export class SpansTableView extends EventEmitter {
     await this.updateTableData();
   }
 
-  selectSpan(spanId: string) {
+  selectSpan(spanId: string, silent = false) {
     if (!spanId) {
       this.selectedSpanId = null;
       this.table.deselectRow();
+      !silent && this.emit(SpansTableViewEvent.SPAN_SELECTED, null);
       return;
     }
 
@@ -588,12 +589,14 @@ export class SpansTableView extends EventEmitter {
     if (!row) {
       this.selectedSpanId = null;
       this.table.deselectRow();
+      !silent && this.emit(SpansTableViewEvent.SPAN_SELECTED, null);
       return;
     }
 
     this.selectedSpanId = spanId;
     this.table.deselectRow();
     row.select();
+    !silent && this.emit(SpansTableViewEvent.SPAN_SELECTED, spanId);
   }
 
   focusSpan(spanId: string) {
@@ -649,7 +652,6 @@ export class SpansTableView extends EventEmitter {
   private onRowClick(e: any, row: Tabulator.RowComponent) {
     const spanRow = row.getData() as SpanRowData;
     this.selectSpan(spanRow.span.id);
-    this.emit(SpansTableViewEvent.SPAN_SELECTED, spanRow.span.id);
   }
 
   private onRowContext(e: MouseEvent, row: Tabulator.RowComponent) {
