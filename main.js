@@ -13,15 +13,15 @@ let mainWindow;
 function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 800,
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       webSecurity: false,
       nodeIntegration: true
     }
   });
-  mainWindow.maximize();
+  // mainWindow.maximize();
 
   // and load the index.html of the app.
   const startUrl =
