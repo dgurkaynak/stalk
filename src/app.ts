@@ -10,6 +10,7 @@ import { SpanLabellingManager } from './model/span-labelling-manager';
 import { Trace } from './model/trace';
 import { Stage, StageEvent } from './model/stage';
 import { TimelineWrapper } from './components/timeline-wrapper/timeline-wrapper';
+import { TimelineEvent } from './components/timeline/timeline';
 import { DockPanel } from '@phosphor/widgets';
 import { WidgetWrapper } from './components/ui/widget-wrapper';
 import Noty from 'noty';
@@ -21,8 +22,14 @@ import { SpanSummaryView } from './components/span-summary/span-summary';
 import { SpanTagsView } from './components/span-tags/span-tags';
 import { SpanProcessTagsView } from './components/span-process-tags/span-process-tags';
 import { SpanLogsView } from './components/span-logs/span-logs';
-import { SpansTableView } from './components/spans-table/spans-table';
-import { LogsTableView } from './components/logs-table/logs-table';
+import {
+  SpansTableView,
+  SpansTableViewEvent
+} from './components/spans-table/spans-table';
+import {
+  LogsTableView,
+  LogsTableViewEvent
+} from './components/logs-table/logs-table';
 import {
   ContextMenuManager,
   ContextMenuEvent
@@ -75,6 +82,9 @@ export class App {
   private binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
+    onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
+    onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
+    onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this),
     onWindowResize: this.onWindowResize.bind(this),
     onDrop: this.onDrop.bind(this),
     onDragOver: this.onDragOver.bind(this),
@@ -158,6 +168,18 @@ export class App {
     // Bind events
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
+    this.timeline.timeline.on(
+      TimelineEvent.SPAN_SELECTED,
+      this.binded.onTimelineSpanSelected
+    );
+    this.spansTable.on(
+      SpansTableViewEvent.SPAN_SELECTED,
+      this.binded.onSpansTableSpanSelected
+    );
+    this.logsTable.on(
+      LogsTableViewEvent.LOG_SELECTED,
+      this.binded.onLogsTableLogSelected
+    );
     window.addEventListener('resize', this.binded.onWindowResize, false);
     this.options.element.addEventListener('drop', this.binded.onDrop, false);
     this.options.element.addEventListener(
@@ -331,6 +353,32 @@ export class App {
   @Stalk({ handler: FollowsFrom })
   private onStageTraceRemoved(ctx: opentracing.Span, trace: Trace) {
     this.timeline.removeTrace(ctx, trace);
+  }
+
+  private onTimelineSpanSelected(spanId: string) {
+    if (this.widgets[AppWidgetType.SPANS_TABLE].isVisible) {
+      this.spansTable.selectSpan(spanId, true);
+      this.spansTable.focusSpan(spanId);
+    }
+  }
+
+  private onSpansTableSpanSelected(spanId: string) {
+    if (this.widgets[AppWidgetType.TIMELINE].isVisible) {
+      this.timeline.timeline.selectSpan(spanId, true);
+      this.timeline.timeline.focusSpans([spanId]);
+    }
+  }
+
+  private onLogsTableLogSelected(logData: any) {
+    if (this.widgets[AppWidgetType.TIMELINE].isVisible) {
+      this.timeline.timeline.selectSpan(logData.span.id, true);
+      this.timeline.timeline.focusSpans([logData.span.id]);
+    }
+
+    if (this.widgets[AppWidgetType.SPANS_TABLE].isVisible) {
+      this.spansTable.selectSpan(logData.span.id, true);
+      this.spansTable.focusSpan(logData.span.id);
+    }
   }
 
   private onWindowResize() {
