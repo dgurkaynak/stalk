@@ -19,6 +19,7 @@ import {
 import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
 import { ModalManager } from '../ui/modal/modal-manager';
 import { DataSourceFormModalContent } from '../datasource/datasource-form-modal-content';
+import shortid from 'shortid';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
@@ -366,6 +367,28 @@ export class AppToolbar {
         return;
       }
 
+      case 'edit': {
+        this.dataSourceFormModalContent = new DataSourceFormModalContent({
+          type: 'edit',
+          dataSource: ds
+        });
+        const modal = new Modal({
+          content: this.dataSourceFormModalContent.getElement(),
+          onClose: this.binded.onNewDataSourceModalClose
+        });
+        this.dataSourceFormModalContent.init();
+        ModalManager.getSingleton().show(modal);
+        this.dropdowns.dataSources.hide();
+
+        return;
+      }
+
+      case 'delete': {
+        // TODO: Show prompt, like.: https://ant.design/components/popconfirm/
+        this.dsManager.remove(undefined, ds);
+        return;
+      }
+
       default: {
         console.error(`Unknown data source menu list button id: "${buttonId}"`);
       }
@@ -429,7 +452,7 @@ export class AppToolbar {
     this.dropdowns.dataSources.hide();
   }
 
-  private onNewDataSourceModalClose(
+  private async onNewDataSourceModalClose(
     triggerType: ModalCloseTriggerType,
     data: any
   ) {
@@ -445,7 +468,14 @@ export class AppToolbar {
       return;
     }
 
-    console.log('yo', data);
+    if (data.dataSource.id) {
+      // Editing already existing ds
+      await this.dsManager.update(undefined, data.dataSource);
+    } else {
+      // Creating a new ds
+      data.dataSource.id = shortid.generate();
+      await this.dsManager.add(undefined, data.dataSource);
+    }
   }
 
   dispose() {

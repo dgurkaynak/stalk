@@ -1,7 +1,8 @@
-import * as shortid from 'shortid';
 import { DataSourceType, DataSource } from '../../model/datasource/interfaces';
 import { ModalManager } from '../ui/modal/modal-manager';
 import Noty from 'noty';
+import JaegerAPI from '../../model/api/jaeger/api';
+import ZipkinAPI from '../../model/api/zipkin/api';
 
 import './form-modal-content.css';
 
@@ -104,14 +105,29 @@ export class DataSourceFormModalContent {
   }
 
   private async onSaveButtonClick() {
+    // TODO: Form validation
+
     const modal = ModalManager.getSingleton().findModalFromElement(
       this.elements.container
     );
     if (!modal) throw new Error(`Could not find modal instance`);
-    modal.close({ data: { action: 'save' } });
+
+    const formEl = this.elements.form;
+    const dataSource: DataSource = {
+      id: this.options.dataSource?.id,
+      type: formEl.typeSelect.value,
+      name: formEl.nameInput.value,
+      baseUrl: formEl.baseUrlInput.value,
+      username: formEl.usernameInput.value,
+      password: formEl.passwordInput.value
+    };
+
+    modal.close({ data: { action: 'save', dataSource } });
   }
 
   private async onTestButtonClick() {
+    // TODO: Form validation
+
     try {
       await this.test();
       new Noty({
@@ -131,7 +147,19 @@ export class DataSourceFormModalContent {
   }
 
   private async test() {
-    // TODO
+    const formEl = this.elements.form;
+    const options = {
+      baseUrl: formEl.baseUrlInput.value,
+      username: formEl.usernameInput.value,
+      password: formEl.passwordInput.value
+    };
+
+    const api =
+      formEl.typeSelect.value == DataSourceType.JAEGER
+        ? new JaegerAPI(options)
+        : new ZipkinAPI(options);
+
+    return api.test();
   }
 
   private initForm() {
@@ -154,7 +182,11 @@ export class DataSourceFormModalContent {
     }
     typeRow.appendChild(formEl.typeSelect);
     this.elements.formContainer.appendChild(typeRow);
-    formEl.typeSelect.addEventListener('change', this.binded.onTypeSelectChange, false);
+    formEl.typeSelect.addEventListener(
+      'change',
+      this.binded.onTypeSelectChange,
+      false
+    );
 
     // Name
     const nameRow = document.createElement('div');
