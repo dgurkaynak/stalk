@@ -16,6 +16,9 @@ import {
   ChildOf,
   FollowsFrom
 } from '../../utils/self-tracing/trace-decorator';
+import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
+import { ModalManager } from '../ui/modal/modal-manager';
+import { DataSourceFormModalContent } from '../datasource/datasource-form-modal-content';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
@@ -41,6 +44,7 @@ export class AppToolbar {
     container: document.createElement('div'),
     btn: {
       dataSources: document.createElement('div'),
+      newDataSource: document.createElement('div'),
       search: document.createElement('div'),
       traces: document.createElement('div'),
       settings: document.createElement('div')
@@ -56,6 +60,7 @@ export class AppToolbar {
     dataSources: TippyInstance;
     traces: TippyInstance;
   };
+  private dataSourceFormModalContent: DataSourceFormModalContent;
 
   private binded = {
     onDataSourceManagerAdded: this.onDataSourceManagerAdded.bind(this),
@@ -66,7 +71,9 @@ export class AppToolbar {
     ),
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
-    onTracesMenuListButtonClick: this.onTracesMenuListButtonClick.bind(this)
+    onTracesMenuListButtonClick: this.onTracesMenuListButtonClick.bind(this),
+    onNewDataSourceButtonClick: this.onNewDataSourceButtonClick.bind(this),
+    onNewDataSourceModalClose: this.onNewDataSourceModalClose.bind(this)
   };
 
   private stage = Stage.getSingleton();
@@ -140,9 +147,15 @@ export class AppToolbar {
     dsHeaderText.textContent = 'Data Sources';
     this.elements.dataSourceMenuList.header.appendChild(dsHeaderText);
 
-    const newDsButton = document.createElement('div');
-    newDsButton.innerHTML = SvgPlus;
-    this.elements.dataSourceMenuList.header.appendChild(newDsButton);
+    this.elements.btn.newDataSource.innerHTML = SvgPlus;
+    this.elements.btn.newDataSource.addEventListener(
+      'click',
+      this.binded.onNewDataSourceButtonClick,
+      false
+    );
+    this.elements.dataSourceMenuList.header.appendChild(
+      this.elements.btn.newDataSource
+    );
 
     // Prepare dataSource menu list empty
     this.elements.dataSourceMenuList.empty.classList.add(
@@ -325,6 +338,11 @@ export class AppToolbar {
       StageEvent.TRACE_REMOVED,
       this.binded.onStageTraceRemoved
     );
+    btn.newDataSource.removeEventListener(
+      'click',
+      this.binded.onNewDataSourceButtonClick,
+      false
+    );
   }
 
   private async onDataSourceMenuListButtonClick(
@@ -396,6 +414,38 @@ export class AppToolbar {
     if (!trace) return;
     this.stage.removeTrace(null, trace.id);
     this.dropdowns.traces.hide();
+  }
+
+  private onNewDataSourceButtonClick() {
+    this.dataSourceFormModalContent = new DataSourceFormModalContent({
+      type: 'new'
+    });
+    const modal = new Modal({
+      content: this.dataSourceFormModalContent.getElement(),
+      onClose: this.binded.onNewDataSourceModalClose
+    });
+    this.dataSourceFormModalContent.init();
+    ModalManager.getSingleton().show(modal);
+    this.dropdowns.dataSources.hide();
+  }
+
+  private onNewDataSourceModalClose(
+    triggerType: ModalCloseTriggerType,
+    data: any
+  ) {
+    if (this.dataSourceFormModalContent) {
+      this.dataSourceFormModalContent.dispose();
+      this.dataSourceFormModalContent = null;
+    }
+
+    if (
+      triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL ||
+      data.action != 'save'
+    ) {
+      return;
+    }
+
+    console.log('yo', data);
   }
 
   dispose() {

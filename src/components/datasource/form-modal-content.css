@@ -1,0 +1,38 @@
+.datasource-form-modal-content {
+  padding: 10px;
+  width: 400px;
+}
+
+.datasource-form-modal-content .buttons {
+  display: flex;
+}
+
+.datasource-form-modal-content .buttons .left {
+  flex-grow: 1;
+}
+
+.datasource-form-modal-content .form-container h2 {
+  margin: 0.25em 0 1em 0;
+}
+
+.datasource-form-modal-content .form-container {
+  margin-bottom: 1.5em;
+}
+
+.datasource-form-modal-content .form-row {
+  display: flex;
+  margin: 0.5em 0;
+  align-items: center;
+}
+
+.datasource-form-modal-content .form-row > div:first-child {
+  width: 10em;
+  margin: 0 0.5em;
+  text-align: right;
+}
+
+.datasource-form-modal-content .form-row input[type="text"],
+.datasource-form-modal-content .form-row input[type="password"] {
+  width: 20em;
+  padding: 0.25em;
+}
