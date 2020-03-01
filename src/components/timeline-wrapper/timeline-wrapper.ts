@@ -439,6 +439,26 @@ export class TimelineWrapper {
         return;
       }
 
+      case 'w': {
+        this.timeline.translateY(10);
+        return;
+      }
+
+      case 'a': {
+        this.timeline.translateX(10);
+        return;
+      }
+
+      case 's': {
+        this.timeline.translateY(-10);
+        return;
+      }
+
+      case 'd': {
+        this.timeline.translateX(-10);
+        return;
+      }
+
       case 'c': {
         if (!(e.ctrlKey || e.metaKey)) return;
         const selectedSpanId = this.timeline.getSelectedSpanId();
