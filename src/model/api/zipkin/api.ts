@@ -5,6 +5,7 @@ import isArray from 'lodash/isArray';
 import { SearchQuery, SearchResulList } from '../interfaces';
 import { convertFromZipkinTrace } from './span';
 import { API } from '../interfaces';
+import urlJoin from 'url-join';
 
 // const ZIPKIN_API_MAX_LIMIT = 250;
 
@@ -23,10 +24,7 @@ export class ZipkinAPI implements API {
       throw new Error(`"options.baseUrl" must be a string`);
     }
 
-    this.baseUrl = options.baseUrl;
-
-    // TODO: Trim ending `/` chars
-    // TODO: Handle this issue generally
+    this.baseUrl = options.baseUrl.trim();
 
     if (options.username || options.password) {
       const encoded = Buffer.from(
@@ -176,7 +174,7 @@ export class ZipkinAPI implements API {
     headers?: { [key: string]: string };
     queryParams?: { [key: string]: string };
   }) {
-    let url = `${this.baseUrl}/zipkin/api/v2${options.path}`;
+    let url = urlJoin(this.baseUrl, `zipkin/api/v2${options.path}`);
     if (
       isObject(options.queryParams) &&
       Object.keys(options.queryParams).length > 0
