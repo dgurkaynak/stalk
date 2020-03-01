@@ -116,8 +116,8 @@ export class DataSourceFormModalContent {
     const dataSource: DataSource = {
       id: this.options.dataSource?.id,
       type: formEl.typeSelect.value,
-      name: formEl.nameInput.value,
-      baseUrl: formEl.baseUrlInput.value,
+      name: formEl.nameInput.value.trim(),
+      baseUrl: formEl.baseUrlInput.value.trim(),
       username: formEl.usernameInput.value,
       password: formEl.passwordInput.value
     };
