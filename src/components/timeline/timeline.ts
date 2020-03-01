@@ -264,7 +264,7 @@ export class Timeline extends EventEmitter {
       vc.spanBarViewportMargin,
       width - vc.spanBarViewportMargin
     ]);
-    // TODO: Look for who listens AxisEvent.UPDATED event and trigger here
+
     this.groupViews.forEach(g => g.handleAxisUpdate());
     this.updateAllDecorations();
     this.updateTicks();
@@ -626,7 +626,6 @@ export class Timeline extends EventEmitter {
 
   translateX(delta: number) {
     this.axis.translate(delta);
-    // TODO: Look for who listens AxisEvent.TRANSLATED
     this.groupViews.forEach(g => g.handleAxisTranslate());
     this.updateAllDecorations();
     this.updateTicks();
@@ -682,7 +681,6 @@ export class Timeline extends EventEmitter {
 
   zoom(scaleFactor: number, anchorPosX: number) {
     this.axis.zoom(scaleFactor, anchorPosX);
-    // TODO: Look for who listens AxisEvent.ZOOMED
     this.groupViews.forEach(g => g.handleAxisZoom());
     this.updateAllDecorations();
     this.updateTicks();
@@ -917,18 +915,6 @@ export class Timeline extends EventEmitter {
     });
 
     if (removed.length === 0 && added.length === 0) return;
-
-    // TODO: Unhighligh logs in the sidebar
-    // this.setState({ highlightedLogId: '' });
-
-    // TODO: If log is hovered and its span is selected, highlight and scroll to log
-    // added.forEach(({ type, element }) => {
-    //   if (type !== TimelineInteractableElementType.SPAN_VIEW_LOG_CIRCLE) return;
-    //   const { spanId, id: logId } = SpanView.getPropsFromLogCircle(element);
-    //   if (!spanId || !logId) return;
-    //   if (spanId !== selectedSpanView.span.id) return;
-    //   this.highlightAndScrollToLog(logId);
-    // });
   }
 
   onMouseIdleLeave(e: MouseEvent) {
