@@ -108,6 +108,16 @@
   fill: #fff;
 }
 
+/* Override so hard */
+.tippy-tooltip.app-toolbar-menu-list-theme > .tippy-content > div.datasource-remove-popconfirm {
+  /* width: 200px; */
+  padding: 0.25em 0.5em;
+}
+
+.tippy-tooltip.app-toolbar-menu-list-theme > .tippy-content > div.datasource-remove-popconfirm > .text {
+  white-space: nowrap;
+}
+
 /* Traces menu list empty indicator */
 .toolbar-traces-menu-empty {
   width: 250px;

@@ -1,4 +1,4 @@
-import tippy, { createSingleton, Instance as TippyInstance } from 'tippy.js';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { ToolbarMenuList, ToolbarMenuListOptions } from './menu-list';
 import {
   DataSourceManager,
@@ -54,12 +54,15 @@ export class AppToolbar {
     tracesMenuListEmpty: document.createElement('div'),
     dataSourceMenuList: {
       header: document.createElement('div'),
-      empty: document.createElement('div')
+      empty: document.createElement('div'),
+      removePopConfirmContainer: document.createElement('div'),
+      removePopConfirmButton: document.createElement('button')
     }
   };
-  private dropdowns: {
+  private tippyInstaces: {
     dataSources: TippyInstance;
     traces: TippyInstance;
+    dataSourceRemovePopConfirm: TippyInstance;
   };
   private dataSourceFormModalContent: DataSourceFormModalContent;
 
@@ -74,7 +77,10 @@ export class AppToolbar {
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
     onTracesMenuListButtonClick: this.onTracesMenuListButtonClick.bind(this),
     onNewDataSourceButtonClick: this.onNewDataSourceButtonClick.bind(this),
-    onNewDataSourceModalClose: this.onNewDataSourceModalClose.bind(this)
+    onNewDataSourceModalClose: this.onNewDataSourceModalClose.bind(this),
+    onDataSourceRemovePopConfirmButtonClick: this.onDataSourceRemovePopConfirmButtonClick.bind(
+      this
+    )
   };
 
   private stage = Stage.getSingleton();
@@ -136,7 +142,7 @@ export class AppToolbar {
   @Stalk({ handler: ChildOf })
   init(ctx: opentracing.Span) {
     this.initTooltips(ctx);
-    this.initDropdowns(ctx);
+    this.initTippyInstances(ctx);
     this.initTracesBadgeCount();
 
     // Prepare dataSource menu list header
@@ -172,6 +178,21 @@ export class AppToolbar {
     this.elements.tracesMenuListEmpty.innerHTML = `<span class="heading">No Traces in the Stage</span>
       <span class="description">You can search and add traces by clicking ${SvgMagnify} button on the left,
       or you can drag & drop Jaeger or Zipkin traces in JSON format.</span>`;
+
+    // Data source remove pop confirm
+    const {
+      removePopConfirmContainer,
+      removePopConfirmButton
+    } = this.elements.dataSourceMenuList;
+    removePopConfirmContainer.classList.add('datasource-remove-popconfirm');
+    removePopConfirmContainer.innerHTML = `<div class="text">Are you sure to delete this data source?</div>`;
+    removePopConfirmButton.textContent = 'Delete';
+    removePopConfirmContainer.appendChild(removePopConfirmButton);
+    removePopConfirmButton.addEventListener(
+      'click',
+      this.binded.onDataSourceRemovePopConfirmButtonClick,
+      false
+    );
 
     // Prepare datasource lists
     this.updateDataSourceList(ctx);
@@ -213,8 +234,8 @@ export class AppToolbar {
   }
 
   @Stalk({ handler: ChildOf })
-  private initDropdowns(ctx: opentracing.Span) {
-    this.dropdowns = {
+  private initTippyInstances(ctx: opentracing.Span) {
+    this.tippyInstaces = {
       dataSources: tippy(this.elements.btn.dataSources, {
         content: this.dataSourcesMenuList.element,
         multiple: true,
@@ -236,6 +257,35 @@ export class AppToolbar {
         theme: 'app-toolbar-menu-list',
         trigger: 'click',
         interactive: true
+      }),
+      dataSourceRemovePopConfirm: tippy(document.body, {
+        lazy: false,
+        duration: 0,
+        updateDuration: 0,
+        trigger: 'custom',
+        arrow: true,
+        content: this.elements.dataSourceMenuList.removePopConfirmContainer,
+        appendTo: this.dataSourcesMenuList.element,
+        multiple: true,
+        interactive: true,
+        placement: 'right',
+        theme: 'app-toolbar-menu-list',
+        onCreate(instance) {
+          instance.popperInstance.reference = {
+            clientWidth: 0,
+            clientHeight: 0,
+            getBoundingClientRect() {
+              return {
+                width: 0,
+                height: 0,
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0
+              };
+            }
+          };
+        }
       })
     };
   }
@@ -257,18 +307,11 @@ export class AppToolbar {
     dataSources.forEach(ds => {
       this.dataSourcesMenuList.addItem({
         text: ds.name,
-        buttons:
-          // TODO: We don't need it
-          ds.type == DataSourceType.JAEGER || ds.type == DataSourceType.ZIPKIN
-            ? [
-                { id: 'search', icon: 'magnify' },
-                { id: 'edit', icon: 'pencil' },
-                { id: 'delete', icon: 'delete' }
-              ]
-            : [
-                { id: 'add-to-stage', icon: 'plus' },
-                { id: 'delete', icon: 'delete' }
-              ]
+        buttons: [
+          { id: 'search', icon: 'magnify' },
+          { id: 'edit', icon: 'pencil' },
+          { id: 'delete', icon: 'delete' }
+        ]
       });
     });
   }
@@ -344,6 +387,11 @@ export class AppToolbar {
       this.binded.onNewDataSourceButtonClick,
       false
     );
+    this.elements.dataSourceMenuList.removePopConfirmButton.removeEventListener(
+      'click',
+      this.binded.onDataSourceRemovePopConfirmButtonClick,
+      false
+    );
   }
 
   private async onDataSourceMenuListButtonClick(
@@ -363,7 +411,7 @@ export class AppToolbar {
         const traces = result.data.map(spans => new Trace(spans));
         // Add all of the traces
         traces.forEach(trace => this.stage.addTrace(null, trace));
-        this.dropdowns.dataSources.hide();
+        this.tippyInstaces.dataSources.hide();
         return;
       }
 
@@ -378,14 +426,37 @@ export class AppToolbar {
         });
         this.dataSourceFormModalContent.init();
         ModalManager.getSingleton().show(modal);
-        this.dropdowns.dataSources.hide();
+        this.tippyInstaces.dataSources.hide();
 
         return;
       }
 
       case 'delete': {
-        // TODO: Show prompt, like.: https://ant.design/components/popconfirm/
-        this.dsManager.remove(undefined, ds);
+        const menuItem = this.dataSourcesMenuList.getItems()[index];
+        const itemBBRect = menuItem.element.getBoundingClientRect();
+        const parentMenuBBRect = this.dataSourcesMenuList.element.getBoundingClientRect();
+        const tippyIns = this.tippyInstaces.dataSourceRemovePopConfirm;
+        Object.assign(tippyIns.popperInstance.reference, {
+          clientWidth: 0,
+          clientHeight: 0,
+          getBoundingClientRect: () => {
+            return {
+              width: itemBBRect.width,
+              height: itemBBRect.height,
+              top: itemBBRect.top - parentMenuBBRect.top,
+              bottom: itemBBRect.bottom - parentMenuBBRect.top,
+              left: itemBBRect.left,
+              right: itemBBRect.right
+            };
+          }
+        });
+        tippyIns.popperInstance.update();
+        tippyIns.show();
+        this.elements.dataSourceMenuList.removePopConfirmButton.setAttribute(
+          'data-datasource-id',
+          ds.id
+        );
+
         return;
       }
 
@@ -393,6 +464,12 @@ export class AppToolbar {
         console.error(`Unknown data source menu list button id: "${buttonId}"`);
       }
     }
+  }
+
+  private onDataSourceRemovePopConfirmButtonClick(e: MouseEvent) {
+    const dsId = (e.target as any).getAttribute('data-datasource-id');
+    this.dsManager.remove(undefined, dsId);
+    this.tippyInstaces.dataSourceRemovePopConfirm.hide();
   }
 
   @Stalk({ handler: FollowsFrom })
@@ -436,7 +513,7 @@ export class AppToolbar {
     const trace = this.stage.getAllTraces()[index];
     if (!trace) return;
     this.stage.removeTrace(null, trace.id);
-    this.dropdowns.traces.hide();
+    this.tippyInstaces.traces.hide();
   }
 
   private onNewDataSourceButtonClick() {
@@ -449,7 +526,7 @@ export class AppToolbar {
     });
     this.dataSourceFormModalContent.init();
     ModalManager.getSingleton().show(modal);
-    this.dropdowns.dataSources.hide();
+    this.tippyInstaces.dataSources.hide();
   }
 
   private async onNewDataSourceModalClose(
@@ -486,10 +563,10 @@ export class AppToolbar {
       this.elements.btn.traces,
       this.elements.btn.settings
     ]);
-    for (let tippy of Object.values(this.dropdowns)) {
+    for (let tippy of Object.values(this.tippyInstaces)) {
       tippy.destroy();
     }
-    this.dropdowns = null;
+    this.tippyInstaces = null;
     this.unbindEvents();
     this.elements = null;
     this.options = null;

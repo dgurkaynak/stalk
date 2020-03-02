@@ -19,7 +19,7 @@
   white-space: nowrap;
 }
 .tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item > div {
-  padding-left: 1em;
+  padding-left: 2.5em;
   display: inline-flex;
 }
 .tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item .button {
