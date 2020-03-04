@@ -133,14 +133,12 @@ export class DataSourceFormModalContent {
       new Noty({
         text: 'Data source is working',
         type: 'success',
-        theme: 'bootstrap-v4',
         timeout: 2500
       }).show();
     } catch (err) {
       new Noty({
         text: `Error: ${err.message || ''}`, // TODO
         type: 'error',
-        theme: 'bootstrap-v4',
         timeout: 2500
       }).show();
     }

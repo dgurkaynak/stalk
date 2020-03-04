@@ -45,7 +45,6 @@ import {
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
-import 'noty/lib/themes/bootstrap-v4.css';
 import './app.css';
 
 export enum AppWidgetType {
@@ -480,8 +479,7 @@ export class App {
         <ul>${errorMessages.map(m => `<li>${m}</li>`).join('')}</ul>`;
       new Noty({
         text,
-        type: 'error',
-        theme: 'bootstrap-v4'
+        type: 'error'
       }).show();
     }
   }
@@ -552,8 +550,7 @@ export class App {
         <ul>${errorMessages.map(m => `<li>${m}</li>`).join('')}</ul>`;
       new Noty({
         text,
-        type: 'error',
-        theme: 'bootstrap-v4'
+        type: 'error'
       }).show();
     }
   }
