@@ -9,6 +9,7 @@ export interface ToolbarMenuListOptions {
   width?: number;
   items: ToolbarMenuListItemOptions[];
   onButtonClick: (buttonId: string, index: number) => void;
+  onTextClick?: (index: number) => void;
   headerEl?: HTMLDivElement;
   emptyEl?: HTMLDivElement;
 }
@@ -61,6 +62,7 @@ export class ToolbarMenuList {
 
     const textEl = document.createElement('span');
     textEl.classList.add('text');
+    if (this.options.onTextClick) textEl.classList.add('clickable');
     textEl.textContent = options.text;
     el.appendChild(textEl);
 
@@ -121,13 +123,21 @@ export class ToolbarMenuList {
     const index = this.items.indexOf(item);
     if (index == -1) return false;
 
-    const buttonEl: HTMLDivElement = (e.target as any).closest(
+    const targetEl = e.target as any;
+
+    const textEl: HTMLDivElement = targetEl.closest('.text');
+    if (textEl) {
+      this.options.onTextClick?.(index);
+      return;
+    }
+
+    const buttonEl: HTMLDivElement = targetEl.closest(
       '[data-menu-list-button-id]'
     );
-    if (!buttonEl) return;
-    const buttonId = buttonEl.getAttribute('data-menu-list-button-id');
-    if (!buttonId) return;
-
-    this.options.onButtonClick(buttonId, index);
+    if (buttonEl) {
+      const buttonId = buttonEl.getAttribute('data-menu-list-button-id');
+      if (!buttonId) return;
+      this.options.onButtonClick(buttonId, index);
+    }
   }
 }

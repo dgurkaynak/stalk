@@ -18,6 +18,13 @@
   overflow: hidden;
   white-space: nowrap;
 }
+.tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item .text.clickable {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.75);
+}
+.tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item .text.clickable:hover {
+  color: rgba(255, 255, 255, 1);
+}
 .tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item > div {
   padding-left: 2.5em;
   display: inline-flex;
