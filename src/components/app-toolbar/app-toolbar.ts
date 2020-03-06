@@ -46,7 +46,6 @@ export class AppToolbar {
     btn: {
       dataSources: document.createElement('div'),
       newDataSource: document.createElement('div'),
-      search: document.createElement('div'),
       traces: document.createElement('div'),
       settings: document.createElement('div')
     },
@@ -125,10 +124,6 @@ export class AppToolbar {
     btn.dataSources.innerHTML = SvgDatabase;
     leftPane.appendChild(btn.dataSources);
 
-    btn.search.classList.add('app-toolbar-button', 'search');
-    btn.search.innerHTML = SvgMagnify;
-    leftPane.appendChild(btn.search);
-
     btn.traces.classList.add('app-toolbar-button', 'traces');
     btn.traces.innerHTML = SvgSourceBranch;
     leftPane.appendChild(btn.traces);
@@ -176,7 +171,7 @@ export class AppToolbar {
       'toolbar-traces-menu-empty'
     );
     this.elements.tracesMenuListEmpty.innerHTML = `<span class="heading">No Traces in the Stage</span>
-      <span class="description">You can search and add traces by clicking ${SvgMagnify} button on the left,
+      <span class="description">You can search and add traces by clicking ${SvgMagnify} button of a data source,
       or you can drag & drop Jaeger or Zipkin traces in JSON format.</span>`;
 
     // Data source remove pop confirm
@@ -221,7 +216,6 @@ export class AppToolbar {
           multiple: true
         }
       ],
-      [this.elements.btn.search, { content: 'Search Traces' }],
       [
         this.elements.btn.traces,
         {
@@ -559,7 +553,6 @@ export class AppToolbar {
     const tooltipManager = TooltipManager.getSingleton();
     tooltipManager.removeFromSingleton([
       this.elements.btn.dataSources,
-      this.elements.btn.search,
       this.elements.btn.traces,
       this.elements.btn.settings
     ]);
