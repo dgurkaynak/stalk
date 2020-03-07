@@ -4,7 +4,7 @@ import Noty from 'noty';
 import JaegerAPI from '../../model/api/jaeger/api';
 import ZipkinAPI from '../../model/api/zipkin/api';
 
-import './form-modal-content.css';
+import './datasource-form-modal-content.css';
 
 export interface DataSourceFormModalContentOptions {
   type: 'new' | 'edit';
