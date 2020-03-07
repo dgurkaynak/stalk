@@ -20,6 +20,8 @@ import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
 import { ModalManager } from '../ui/modal/modal-manager';
 import { DataSourceFormModalContent } from '../datasource/datasource-form-modal-content';
 import shortid from 'shortid';
+import { JaegerSearchModalContent } from '../search/jaeger-search-modal-content';
+import JaegerAPI from '../../model/api/jaeger/api';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
@@ -64,6 +66,9 @@ export class AppToolbar {
     dataSourceRemovePopConfirm: TippyInstance;
   };
   private dataSourceFormModalContent: DataSourceFormModalContent;
+  private jaegerSearchModalContents: {
+    [key: string]: JaegerSearchModalContent;
+  } = {};
 
   private binded = {
     onDataSourceManagerAdded: this.onDataSourceManagerAdded.bind(this),
@@ -399,12 +404,36 @@ export class AppToolbar {
     }
 
     switch (buttonId) {
-      case 'add-to-stage': {
-        const api = this.dsManager.apiFor(ds);
-        const result = await api.search({} as any);
-        const traces = result.data.map(spans => new Trace(spans));
-        // Add all of the traces
-        traces.forEach(trace => this.stage.addTrace(null, trace));
+      case 'search': {
+        let modalContent: JaegerSearchModalContent; // TODO: Or can be zipkin modal content
+        let contentContainerClassName = '';
+
+        if (ds.type == DataSourceType.JAEGER) {
+          contentContainerClassName = 'jaeger-search-modal-container';
+          modalContent = this.jaegerSearchModalContents[ds.id];
+          if (!modalContent) {
+            modalContent = new JaegerSearchModalContent({
+              api: this.dsManager.apiFor(ds) as JaegerAPI
+            });
+            modalContent.init();
+            this.jaegerSearchModalContents[ds.id] = modalContent;
+          }
+        } else if (ds.type == DataSourceType.ZIPKIN) {
+          // TODO
+        } else {
+          console.error(
+            `Unknown/unsupported data source type to search: "${ds.type}"`
+          );
+          return;
+        }
+
+        const modal = new Modal({
+          content: modalContent.getElement(),
+          shouldCloseOnEscPress: true,
+          shouldCloseOnOverlayClick: true,
+          contentContainerClassName
+        });
+        ModalManager.getSingleton().show(modal);
         this.tippyInstaces.dataSources.hide();
         return;
       }
@@ -560,6 +589,10 @@ export class AppToolbar {
       tippy.destroy();
     }
     this.tippyInstaces = null;
+
+    Object.values(this.jaegerSearchModalContents).forEach(c => c.dispose);
+    this.jaegerSearchModalContents = {};
+
     this.unbindEvents();
     this.elements = null;
     this.options = null;

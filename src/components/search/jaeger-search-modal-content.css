@@ -1,0 +1,10 @@
+.jaeger-search-modal-container {
+  width: 90%;
+  height: 90%;
+}
+
+.jaeger-search-modal-content {
+  padding: 10px;
+  width: 100%;
+  height: 100%;
+}
