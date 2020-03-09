@@ -1,7 +1,7 @@
 import { DataSourceType, DataSource } from '../../model/datasource/interfaces';
 import { ModalManager } from '../ui/modal/modal-manager';
 import Noty from 'noty';
-import JaegerAPI from '../../model/api/jaeger/api';
+import { JaegerAPI } from '../../model/jaeger';
 
 import './jaeger-search-modal-content.css';
 

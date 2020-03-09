@@ -1,8 +1,8 @@
 import { DataSourceType, DataSource } from '../../model/datasource/interfaces';
 import { ModalManager } from '../ui/modal/modal-manager';
 import Noty from 'noty';
-import JaegerAPI from '../../model/api/jaeger/api';
-import ZipkinAPI from '../../model/api/zipkin/api';
+import { JaegerAPI } from '../../model/jaeger';
+import { ZipkinAPI } from '../../model/zipkin';
 
 import './datasource-form-modal-content.css';
 

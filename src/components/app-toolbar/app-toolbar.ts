@@ -21,7 +21,7 @@ import { ModalManager } from '../ui/modal/modal-manager';
 import { DataSourceFormModalContent } from '../datasource/datasource-form-modal-content';
 import shortid from 'shortid';
 import { JaegerSearchModalContent } from '../search/jaeger-search-modal-content';
-import JaegerAPI from '../../model/api/jaeger/api';
+import { JaegerAPI } from '../../model/jaeger';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';

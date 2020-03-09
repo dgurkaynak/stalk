@@ -1,8 +1,8 @@
 import find from 'lodash/find';
 import findIndex from 'lodash/findIndex';
 import { DataSourceType, DataSource } from './interfaces';
-import JaegerAPI from '../api/jaeger/api';
-import ZipkinAPI from '../api/zipkin/api';
+import { JaegerAPI } from '../jaeger';
+import { ZipkinAPI } from '../zipkin';
 import db from '../db';
 import EventEmitter from 'events';
 import * as opentracing from 'opentracing';
