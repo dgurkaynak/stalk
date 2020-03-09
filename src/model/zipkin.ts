@@ -19,7 +19,7 @@ export interface ZipkinAPISearchQuery {
   offset?: number;
 }
 
-// https://zipkin.apache.org/zipkin-api/#/
+// https://zipkin.io/zipkin-api/
 export class ZipkinAPI {
   private baseUrl: string;
   private headers: { [key: string]: string } = {};
@@ -45,7 +45,7 @@ export class ZipkinAPI {
   }
 
   /**
-   * https://zipkin.apache.org/zipkin-api/#/default/get_traces
+   * https://zipkin.io/zipkin-api/#/default/get_traces
    */
   async search(query: ZipkinAPISearchQuery) {
     const queryParams: any = {};
