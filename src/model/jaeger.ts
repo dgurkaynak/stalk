@@ -4,18 +4,54 @@ import isObject from 'lodash/isObject';
 import isArray from 'lodash/isArray';
 import { Span } from './interfaces';
 import urlJoin from 'url-join';
-
-// const JAEGER_API_MAX_LIMIT = 1500; // UI says its 1500, but you can send request with higher
+import logfmt from 'logfmt';
 
 export interface JaegerAPISearchQuery {
-  serviceName: string;
-  operationName?: string;
-  startTime: number;
-  finishTime: number;
-  tags: (string | { [key: string]: string })[];
-  minDuration?: number;
-  maxDuration?: number;
-  limit: number;
+  /**
+   * `service` is the only required parameter. If it's omitted, it gives the following error:
+   * {"data":null,"total":0,"limit":0,"offset":0,"errors":[{"code":400,"msg":"Parameter 'service' is required"}]}
+   */
+  service: string;
+
+  /**
+   * Operation is optional.
+   */
+  operation?: string;
+
+  /**
+   * Neither `start` and `end` is required, it expects microseconds.
+   * There is also `lookback` param valued `1h`, but I think it's unnecessarry.
+   * You can omit it.
+   */
+  start?: number;
+  end?: number;
+  // lookback: string;
+
+  /**
+   * It expects a human readable duration string like `100ms` or `1.2ss` or `10us`.
+   * `minDuration` works, but I guess `maxDuration` is not working. When I search for
+   * max `1s`, it returns traces longer than `1s`? (Update: when I search with some tags, it works)
+   */
+  minDuration?: string;
+  maxDuration?: string;
+
+  /**
+   * Tags should be in the logfmt format.
+   * - Use space for conjunctions
+   * - Values containing whitespace should be enclosed in quotes
+   *
+   * Notes to self:
+   * We need to convert this string to JSON-string before sending to API, like:
+   * `error` => {"error":"true"}
+   * `error test` => {"error":"true","test":"true"}
+   * `error=false test` => {"error":"false","test":"true"}
+   */
+  tags?: string;
+
+  /**
+   * Optional limit & offset.
+   */
+  limit?: number;
   offset?: number;
 }
 
@@ -44,95 +80,17 @@ export class JaegerAPI {
   }
 
   async search(query: JaegerAPISearchQuery) {
-    const queryParams: {
-      service: string;
-      operation?: string;
-      start?: string;
-      end?: string;
-      limit?: string;
-      minDuration?: string;
-      maxDuration?: string;
-      tags?: string;
-      offset?: string;
-    } = {
-      /**
-       * `service` is required.
-       * Error: {"data":null,"total":0,"limit":0,"offset":0,"errors":[{"code":400,"msg":"Parameter 'service' is required"}]}
-       */
-      service: query.serviceName
-    };
-
-    if (query.operationName) queryParams.operation = query.operationName;
-
-    /**
-     * Neither `start` and `end` is required, it expects microseconds.
-     * There is also `lookback` param valued `1h`, but I think it's unnecessarry.
-     * You can omit it.
-     */
-    if (query.startTime) queryParams.start = String(query.startTime * 1000);
-    if (query.finishTime) queryParams.end = String(query.finishTime * 1000);
-
-    /** Defaults to 20 */
-    if (isNumber(query.limit)) queryParams.limit = String(query.limit);
-    if (isNumber(query.offset)) queryParams.offset = String(query.offset);
-
-    /**
-     * It expects a human readable duration string like `100ms` or `1.2ss` or `10us`.
-     * `minDuration` works, but I guess `maxDuration` is not working. When I search for
-     * max `1s`, it returns traces longer than `1s`? (Update: when I search with some tags, it works)
-     */
-    if (isNumber(query.minDuration)) {
-      queryParams.minDuration = `${query.minDuration}ms`;
-    }
-    if (isNumber(query.maxDuration)) {
-      queryParams.maxDuration = `${query.maxDuration}ms`;
+    // Parse logfmt string into object, and stringify it again.
+    if (isString(query.tags)) {
+      query.tags = JSON.stringify(logfmt.parse(query.tags));
     }
 
-    /**
-     * Values should be in the logfmt format.
-     * - Use space for conjunctions
-     * - Values containing whitespace should be enclosed in quotes
-     *
-     * Notes to self:
-     * It expects JSON object string like:
-     * `error` => {"error":"true"}
-     * `error test` => {"error":"true","test":"true"}
-     * `error=false test` => {"error":"false","test":"true"}
-     */
-    if (isArray(query.tags) && query.tags.length > 0) {
-      let tags: { [key: string]: string } = {};
-
-      query.tags.forEach(data => {
-        if (isString(data)) {
-          tags[data] = 'true';
-          return;
-        }
-
-        if (isObject(data)) {
-          tags = {
-            ...tags,
-            ...data
-          };
-          return;
-        }
-
-        throw new Error(`Unsupported tag, it must be string or an object`);
-      });
-
-      queryParams.tags = JSON.stringify(tags);
-    }
-
-    const response = await this.get(`/traces`, queryParams as any);
+    const response = await this.get(`/traces`, query as any);
     if (!isArray(response.data))
       throw new Error(
         `Expected jaeger response object must contain "data" array`
       );
-    return {
-      query,
-      data: response.data.map((rawTrace: any) =>
-        convertFromJaegerTrace(rawTrace)
-      )
-    };
+    return response.data.map(convertFromJaegerTrace);
   }
 
   async test() {
