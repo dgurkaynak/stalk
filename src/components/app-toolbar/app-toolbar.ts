@@ -413,6 +413,7 @@ export class AppToolbar {
           modalContent = this.jaegerSearchModalContents[ds.id];
           if (!modalContent) {
             modalContent = new JaegerSearchModalContent({
+              dataSource: ds,
               api: this.dsManager.apiFor(ds) as JaegerAPI
             });
             modalContent.init();

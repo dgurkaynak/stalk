@@ -6,6 +6,7 @@ import { JaegerAPI } from '../../model/jaeger';
 import './jaeger-search-modal-content.css';
 
 export interface JaegerSearchModalContentOptions {
+  dataSource: DataSource;
   api: JaegerAPI;
 }
 
