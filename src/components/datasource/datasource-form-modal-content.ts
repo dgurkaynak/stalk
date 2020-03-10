@@ -18,6 +18,7 @@ export class DataSourceFormModalContent {
     form: {
       typeSelect: document.createElement('select'),
       nameInput: document.createElement('input'),
+      baseUrlLabel: document.createElement('div'),
       baseUrlInput: document.createElement('input'),
       basicAuthCheckbox: document.createElement('input'),
       usernameRow: document.createElement('div'),
@@ -202,10 +203,11 @@ export class DataSourceFormModalContent {
     // Base url
     const baseUrlRow = document.createElement('div');
     baseUrlRow.classList.add('form-row');
-    baseUrlRow.innerHTML = `<div>API Base URL:</div>`;
+    formEl.baseUrlLabel.textContent = `Query API Base URL:`;
+    baseUrlRow.appendChild(formEl.baseUrlLabel);
     formEl.baseUrlInput.type = 'text';
     formEl.baseUrlInput.required = true;
-    formEl.baseUrlInput.placeholder = 'http://0.0.0.0:16686';
+    formEl.baseUrlInput.placeholder = 'http://0.0.0.0:16686/api';
     if (this.options.dataSource?.baseUrl) {
       formEl.baseUrlInput.value = this.options.dataSource.baseUrl;
     }
@@ -273,11 +275,13 @@ export class DataSourceFormModalContent {
     const formEl = this.elements.form;
 
     if (formEl.typeSelect.value == DataSourceType.JAEGER) {
-      formEl.baseUrlInput.placeholder = 'http://0.0.0.0:16686';
+      formEl.baseUrlInput.placeholder = 'http://0.0.0.0:16686/api';
+      formEl.baseUrlLabel.textContent = `Query API Base URL:`;
     }
 
     if (formEl.typeSelect.value == DataSourceType.ZIPKIN) {
-      formEl.baseUrlInput.placeholder = 'http://0.0.0.0:9411';
+      formEl.baseUrlInput.placeholder = 'http://0.0.0.0:9411/api/v2';
+      formEl.baseUrlLabel.textContent = `API Base URL:`;
     }
   }
 

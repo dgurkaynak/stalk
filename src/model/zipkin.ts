@@ -184,7 +184,7 @@ export class ZipkinAPI {
     headers?: { [key: string]: string };
     queryParams?: { [key: string]: string };
   }) {
-    let url = urlJoin(this.baseUrl, `zipkin/api/v2${options.path}`);
+    let url = urlJoin(this.baseUrl, options.path);
     if (
       isObject(options.queryParams) &&
       Object.keys(options.queryParams).length > 0

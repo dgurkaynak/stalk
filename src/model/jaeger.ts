@@ -142,7 +142,7 @@ export class JaegerAPI {
     headers?: { [key: string]: string };
     queryParams?: { [key: string]: string };
   }) {
-    let url = urlJoin(this.baseUrl, `api${options.path}`);
+    let url = urlJoin(this.baseUrl, options.path);
     if (
       isObject(options.queryParams) &&
       Object.keys(options.queryParams).length > 0
