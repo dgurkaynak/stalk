@@ -30,7 +30,7 @@
 .jaeger-search-modal-content .left .header {
   font-size: 2.5em;
   font-weight: 600;
-  margin: 0.1em;
+  margin: 0.1em 0 0.5em;
 }
 
 .jaeger-search-modal-content .left .status {
@@ -48,4 +48,28 @@
 
 .jaeger-search-modal-content .left .status.error svg {
   fill: #f5222d;
+}
+
+.jaeger-search-modal-content .left .search-widget {
+  border-radius: 0.3em;
+  border: 1px solid #eee;
+}
+
+.jaeger-search-modal-content .left .search-widget .title {
+  font-weight: 600;
+  font-size: 1em;
+  background: #eee;
+  padding: 0.4em;
+}
+
+.jaeger-search-modal-content .left .search-widget form {
+  padding: 0.4em;
+}
+
+.jaeger-search-modal-content .left .search-by-trace-id form {
+  display: flex;
+}
+
+.jaeger-search-modal-content .left .search-by-trace-id form input {
+  flex-grow: 1;
 }

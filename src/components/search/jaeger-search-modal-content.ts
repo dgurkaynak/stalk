@@ -18,7 +18,12 @@ export class JaegerSearchModalContent {
   private elements = {
     container: document.createElement('div'),
     statusContainer: document.createElement('span'),
-    statusContent: document.createElement('div')
+    statusContent: document.createElement('div'),
+    searchByTraceId: {
+      form: document.createElement('form'),
+      input: document.createElement('input'),
+      button: document.createElement('button')
+    }
   };
 
   private tippyInstaces: {
@@ -53,12 +58,36 @@ export class JaegerSearchModalContent {
     els.statusContainer.classList.add('status');
     headerContainer.appendChild(els.statusContainer);
 
+    // Search by trace id
+    {
+      const container = document.createElement('div');
+      container.classList.add('search-widget', 'search-by-trace-id');
+      leftContainer.appendChild(container);
+
+      const title = document.createElement('div');
+      title.classList.add('title');
+      title.textContent = 'Search by Trace ID';
+      container.appendChild(title);
+
+      const { form, input, button } = this.elements.searchByTraceId;
+      container.appendChild(form);
+
+      input.placeholder = 'Trace ID';
+      form.appendChild(input);
+
+      button.textContent = 'Search';
+      button.type = 'submit';
+      form.appendChild(button);
+    }
+
     // Right container
   }
 
   init() {
     this.initTippyInstances();
     this.testApiAndUpdateStatus();
+
+    // TODO: Listen for data source updates!
   }
 
   private initTippyInstances() {
@@ -98,5 +127,7 @@ export class JaegerSearchModalContent {
     return this.elements.container;
   }
 
-  dispose() {}
+  dispose() {
+    Object.values(this.tippyInstaces).forEach(t => t.destroy());
+  }
 }
