@@ -30,7 +30,9 @@ export class JaegerSearchModalContent {
     status: TippyInstance;
   };
 
-  private binded = {};
+  private binded = {
+    onSearchByTraceIdFormSubmit: this.onSearchByTraceIdFormSubmit.bind(this)
+  };
 
   constructor(private options: JaegerSearchModalContentOptions) {
     // Prepare DOM
@@ -88,6 +90,12 @@ export class JaegerSearchModalContent {
     this.testApiAndUpdateStatus();
 
     // TODO: Listen for data source updates!
+
+    this.elements.searchByTraceId.form.addEventListener(
+      'submit',
+      this.binded.onSearchByTraceIdFormSubmit,
+      false
+    );
   }
 
   private initTippyInstances() {
@@ -123,11 +131,22 @@ export class JaegerSearchModalContent {
     }
   }
 
+  private onSearchByTraceIdFormSubmit(e: Event) {
+    e.preventDefault();
+    console.log('form submit');
+  }
+
   getElement() {
     return this.elements.container;
   }
 
   dispose() {
     Object.values(this.tippyInstaces).forEach(t => t.destroy());
+
+    this.elements.searchByTraceId.form.removeEventListener(
+      'submit',
+      this.binded.onSearchByTraceIdFormSubmit,
+      false
+    );
   }
 }
