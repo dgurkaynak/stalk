@@ -73,3 +73,21 @@
 .jaeger-search-modal-content .left .search-by-trace-id form input {
   flex-grow: 1;
 }
+
+.jaeger-search-modal-content .left .search-widget.search {
+  margin-top: 1em;
+}
+
+.jaeger-search-modal-content .left .search-widget.search form .field {
+  margin-bottom: 1em;
+}
+
+.jaeger-search-modal-content .left .search-widget.search form .field-title {
+  font-weight: 500;
+}
+
+.jaeger-search-modal-content .left .search-widget.search form .field input,
+.jaeger-search-modal-content .left .search-widget.search form .field select {
+  width: 100%;
+  box-sizing: border-box;
+}

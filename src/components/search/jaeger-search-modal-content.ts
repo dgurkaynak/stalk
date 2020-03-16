@@ -14,6 +14,17 @@ export interface JaegerSearchModalContentOptions {
   api: JaegerAPI;
 }
 
+export enum JaegerLookbackValue {
+  LAST_HOUR = 'lastHour',
+  LAST_2_HOURS = 'last2Hours',
+  LAST_3_HOURS = 'last3Hours',
+  LAST_6_HOURS = 'last6Hours',
+  LAST_12_HOURS = 'last12Hours',
+  LAST_24_HOURS = 'last24Hours',
+  LAST_2_DAYS = 'last2Days',
+  LAST_7_DAYS = 'last7Days'
+}
+
 export class JaegerSearchModalContent {
   private elements = {
     container: document.createElement('div'),
@@ -23,6 +34,17 @@ export class JaegerSearchModalContent {
       form: document.createElement('form'),
       input: document.createElement('input'),
       button: document.createElement('button')
+    },
+    search: {
+      form: document.createElement('form'),
+      serviceSelect: document.createElement('select'),
+      operationSelect: document.createElement('select'),
+      tagsInput: document.createElement('input'),
+      lookbackSelect: document.createElement('select'),
+      minDurationInput: document.createElement('input'),
+      maxDurationInput: document.createElement('input'),
+      limitInput: document.createElement('input'),
+      button: document.createElement('button')
     }
   };
 
@@ -31,7 +53,8 @@ export class JaegerSearchModalContent {
   };
 
   private binded = {
-    onSearchByTraceIdFormSubmit: this.onSearchByTraceIdFormSubmit.bind(this)
+    onSearchByTraceIdFormSubmit: this.onSearchByTraceIdFormSubmit.bind(this),
+    onSearcFormSubmit: this.onSearcFormSubmit.bind(this)
   };
 
   constructor(private options: JaegerSearchModalContentOptions) {
@@ -82,6 +105,112 @@ export class JaegerSearchModalContent {
       form.appendChild(button);
     }
 
+    // Normal search
+    {
+      const container = document.createElement('div');
+      container.classList.add('search-widget', 'search');
+      leftContainer.appendChild(container);
+
+      const title = document.createElement('div');
+      title.classList.add('title');
+      title.textContent = 'Search';
+      container.appendChild(title);
+
+      const {
+        form,
+        serviceSelect,
+        operationSelect,
+        tagsInput,
+        lookbackSelect,
+        minDurationInput,
+        maxDurationInput,
+        limitInput,
+        button
+      } = this.elements.search;
+      container.appendChild(form);
+
+      const serviceContainer = document.createElement('div');
+      serviceContainer.classList.add('field');
+      form.appendChild(serviceContainer);
+      const serviceTitleContainer = document.createElement('div');
+      serviceTitleContainer.textContent = 'Service';
+      serviceTitleContainer.classList.add('field-title');
+      serviceContainer.appendChild(serviceTitleContainer);
+      serviceContainer.appendChild(serviceSelect);
+
+      const operationContainer = document.createElement('div');
+      operationContainer.classList.add('field');
+      form.appendChild(operationContainer);
+      const operationTitleContainer = document.createElement('div');
+      operationTitleContainer.textContent = 'Operation';
+      operationTitleContainer.classList.add('field-title');
+      operationContainer.appendChild(operationTitleContainer);
+      operationContainer.appendChild(operationSelect);
+
+      const tagsContainer = document.createElement('div');
+      tagsContainer.classList.add('field');
+      form.appendChild(tagsContainer);
+      const tagsTitleContainer = document.createElement('div');
+      tagsTitleContainer.textContent = 'Tags';
+      tagsTitleContainer.classList.add('field-title');
+      tagsContainer.appendChild(tagsTitleContainer);
+      tagsInput.placeholder = 'http.status_code=200 error=true';
+      tagsContainer.appendChild(tagsInput);
+
+      const lookbackContainer = document.createElement('div');
+      lookbackContainer.classList.add('field');
+      form.appendChild(lookbackContainer);
+      const lookbackTitleContainer = document.createElement('div');
+      lookbackTitleContainer.textContent = 'Lookback';
+      lookbackTitleContainer.classList.add('field-title');
+      lookbackContainer.appendChild(lookbackTitleContainer);
+      lookbackContainer.appendChild(lookbackSelect);
+
+      lookbackSelect.innerHTML = `<option value="${JaegerLookbackValue.LAST_HOUR}">Last Hour</option>
+      <option value="${JaegerLookbackValue.LAST_2_HOURS}">Last 2 Hours</option>
+      <option value="${JaegerLookbackValue.LAST_3_HOURS}">Last 3 Hours</option>
+      <option value="${JaegerLookbackValue.LAST_6_HOURS}">Last 6 Hours</option>
+      <option value="${JaegerLookbackValue.LAST_12_HOURS}">Last 12 Hours</option>
+      <option value="${JaegerLookbackValue.LAST_24_HOURS}">Last 24 Hours</option>
+      <option value="${JaegerLookbackValue.LAST_2_DAYS}">Last 2 Days</option>
+      <option value="${JaegerLookbackValue.LAST_7_DAYS}">Last 7 Days</option>`;
+
+      const minDurationContainer = document.createElement('div');
+      minDurationContainer.classList.add('field');
+      form.appendChild(minDurationContainer);
+      const minDurationTitleContainer = document.createElement('div');
+      minDurationTitleContainer.textContent = 'Min Duration';
+      minDurationTitleContainer.classList.add('field-title');
+      minDurationContainer.appendChild(minDurationTitleContainer);
+      minDurationInput.placeholder = 'e.g. 1.2s, 100ms, 500us';
+      minDurationContainer.appendChild(minDurationInput);
+
+      const maxDurationContainer = document.createElement('div');
+      maxDurationContainer.classList.add('field');
+      form.appendChild(maxDurationContainer);
+      const maxDurationTitleContainer = document.createElement('div');
+      maxDurationTitleContainer.textContent = 'Max Duration';
+      maxDurationTitleContainer.classList.add('field-title');
+      maxDurationContainer.appendChild(maxDurationTitleContainer);
+      maxDurationInput.placeholder = 'e.g. 1.2s, 100ms, 500us';
+      maxDurationContainer.appendChild(maxDurationInput);
+
+      const limitContainer = document.createElement('div');
+      limitContainer.classList.add('field');
+      form.appendChild(limitContainer);
+      const limitTitleContainer = document.createElement('div');
+      limitTitleContainer.textContent = 'Limit';
+      limitTitleContainer.classList.add('field-title');
+      limitContainer.appendChild(limitTitleContainer);
+      limitInput.value = '20';
+      limitInput.type = 'number';
+      limitContainer.appendChild(limitInput);
+
+      button.textContent = 'Search';
+      button.type = 'submit';
+      form.appendChild(button);
+    }
+
     // Right container
   }
 
@@ -94,6 +223,12 @@ export class JaegerSearchModalContent {
     this.elements.searchByTraceId.form.addEventListener(
       'submit',
       this.binded.onSearchByTraceIdFormSubmit,
+      false
+    );
+
+    this.elements.search.form.addEventListener(
+      'submit',
+      this.binded.onSearcFormSubmit,
       false
     );
   }
@@ -133,7 +268,12 @@ export class JaegerSearchModalContent {
 
   private onSearchByTraceIdFormSubmit(e: Event) {
     e.preventDefault();
-    console.log('form submit');
+    console.log('search by trace id form submit');
+  }
+
+  private onSearcFormSubmit(e: Event) {
+    e.preventDefault();
+    console.log('search form submit');
   }
 
   getElement() {
@@ -146,6 +286,11 @@ export class JaegerSearchModalContent {
     this.elements.searchByTraceId.form.removeEventListener(
       'submit',
       this.binded.onSearchByTraceIdFormSubmit,
+      false
+    );
+    this.elements.search.form.removeEventListener(
+      'submit',
+      this.binded.onSearcFormSubmit,
       false
     );
   }
