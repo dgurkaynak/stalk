@@ -59,7 +59,8 @@ export class JaegerSearchModalContent {
   private binded = {
     onDataSourceManagerUpdate: this.onDataSourceManagerUpdate.bind(this),
     onSearchByTraceIdFormSubmit: this.onSearchByTraceIdFormSubmit.bind(this),
-    onSearcFormSubmit: this.onSearcFormSubmit.bind(this)
+    onSearcFormSubmit: this.onSearcFormSubmit.bind(this),
+    onServiceSelectChange: this.onServiceSelectChange.bind(this)
   };
 
   constructor(private options: JaegerSearchModalContentOptions) {
@@ -143,6 +144,7 @@ export class JaegerSearchModalContent {
       serviceTitleContainer.textContent = 'Service';
       serviceTitleContainer.classList.add('field-title');
       serviceContainer.appendChild(serviceTitleContainer);
+      serviceSelect.required = true;
       serviceContainer.appendChild(serviceSelect);
 
       const operationContainer = document.createElement('div');
@@ -152,6 +154,7 @@ export class JaegerSearchModalContent {
       operationTitleContainer.textContent = 'Operation';
       operationTitleContainer.classList.add('field-title');
       operationContainer.appendChild(operationTitleContainer);
+      operationSelect.required = true;
       operationContainer.appendChild(operationSelect);
 
       const tagsContainer = document.createElement('div');
@@ -171,6 +174,7 @@ export class JaegerSearchModalContent {
       lookbackTitleContainer.textContent = 'Lookback';
       lookbackTitleContainer.classList.add('field-title');
       lookbackContainer.appendChild(lookbackTitleContainer);
+      lookbackSelect.required = true;
       lookbackContainer.appendChild(lookbackSelect);
 
       lookbackSelect.innerHTML = `<option value="${JaegerLookbackValue.LAST_HOUR}">Last Hour</option>
@@ -211,6 +215,7 @@ export class JaegerSearchModalContent {
       limitContainer.appendChild(limitTitleContainer);
       limitInput.value = '20';
       limitInput.type = 'number';
+      limitInput.required = true;
       limitContainer.appendChild(limitInput);
 
       button.textContent = 'Search';
@@ -238,6 +243,11 @@ export class JaegerSearchModalContent {
       this.binded.onSearcFormSubmit,
       false
     );
+    this.elements.search.serviceSelect.addEventListener(
+      'change',
+      this.binded.onServiceSelectChange,
+      false
+    );
   }
 
   private initTippyInstances() {
@@ -253,7 +263,7 @@ export class JaegerSearchModalContent {
     };
   }
 
-  async testApiAndUpdateStatus() {
+  private async testApiAndUpdateStatus() {
     const els = this.elements;
 
     els.statusContainer.classList.remove('success', 'error');
@@ -275,7 +285,52 @@ export class JaegerSearchModalContent {
 
   onShow() {
     this.testApiAndUpdateStatus();
-    console.log('on show kanki');
+    this.updateServicesSelect();
+  }
+
+  private async updateServicesSelect() {
+    const currentValue = this.elements.search.serviceSelect.value;
+
+    try {
+      const response = await this.api.getServices();
+      const serviceNames: string[] = response.data.sort();
+      this.elements.search.serviceSelect.innerHTML = serviceNames
+        .map(s => `<option value="${s}">${s}</option>`)
+        .join('');
+
+      if (serviceNames.indexOf(currentValue) > -1) {
+        this.elements.search.serviceSelect.value = currentValue;
+      }
+
+      this.updateOperationsSelect();
+    } catch (err) {
+      new Noty({
+        text: `Could not fetch services from API: "${err.message}"`,
+        type: 'error'
+      }).show();
+    }
+  }
+
+  private async updateOperationsSelect() {
+    const serviceName = this.elements.search.serviceSelect.value;
+    const currentValue = this.elements.search.operationSelect.value;
+
+    try {
+      const response = await this.api.getOperations(serviceName);
+      const operationNames: string[] = ['all', ...response.data.sort()];
+      this.elements.search.operationSelect.innerHTML = operationNames
+        .map(o => `<option value="${o}">${o}</option>`)
+        .join('');
+
+      if (operationNames.indexOf(currentValue) > -1) {
+        this.elements.search.operationSelect.value = currentValue;
+      }
+    } catch (err) {
+      new Noty({
+        text: `Could not fetch operations from API: "${err.message}"`,
+        type: 'error'
+      }).show();
+    }
   }
 
   private onDataSourceManagerUpdate(ctx: any, ds: DataSource) {
@@ -292,6 +347,10 @@ export class JaegerSearchModalContent {
   private onSearcFormSubmit(e: Event) {
     e.preventDefault();
     console.log('search form submit');
+  }
+
+  private onServiceSelectChange() {
+    this.updateOperationsSelect();
   }
 
   getElement() {
@@ -313,6 +372,11 @@ export class JaegerSearchModalContent {
     this.elements.search.form.removeEventListener(
       'submit',
       this.binded.onSearcFormSubmit,
+      false
+    );
+    this.elements.search.serviceSelect.removeEventListener(
+      'change',
+      this.binded.onServiceSelectChange,
       false
     );
   }
