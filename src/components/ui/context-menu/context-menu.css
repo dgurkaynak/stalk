@@ -1,6 +1,7 @@
 /* Really-custom ones */
 .tippy-tooltip.context-menu-theme > .tippy-content {
   padding: 0;
+  font-size: 1.1em;
 }
 .tippy-tooltip.context-menu-theme > .tippy-content > div {
   padding: 0.3em 0;

@@ -30,6 +30,7 @@
 }
 .tippy-tooltip.widget-toolbar-select-theme > .tippy-content {
   padding: 0;
+  font-size: 1.1em;
 }
 /* Really-custom ones */
 .tippy-tooltip.widget-toolbar-select-theme > .tippy-content > div {

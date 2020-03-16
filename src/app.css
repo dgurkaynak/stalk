@@ -12,6 +12,11 @@
   padding: 0.5em;
 }
 
+/* Fix tippy's fixed font-size */
+.tippy-tooltip {
+  font-size: inherit;
+}
+
 /* Drop zone */
 #drop-zone {
   display: none;
