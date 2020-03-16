@@ -58,27 +58,7 @@ export class DataSourceManager extends EventEmitter {
       return false;
     }
 
-    switch (type) {
-      case DataSourceType.JAEGER: {
-        api = new JaegerAPI({
-          baseUrl: ds.baseUrl!,
-          username: ds.username,
-          password: ds.password
-        });
-        break;
-      }
-      case DataSourceType.ZIPKIN: {
-        api = new ZipkinAPI({
-          baseUrl: ds.baseUrl!,
-          username: ds.username,
-          password: ds.password
-        });
-        break;
-      }
-      default: {
-        throw new Error(`Unsupported data source type "${ds.type}"`);
-      }
-    }
+    api = createAPI(ds);
 
     if (!doNotPersistToDatabase) await db.dataSources.put(ds);
     this.datasources.push(ds);
@@ -99,6 +79,7 @@ export class DataSourceManager extends EventEmitter {
     this.datasources.sort((a, b) =>
       a.name.toLowerCase().localeCompare(b.name.toLowerCase())
     );
+    this.apis[ds.id] = createAPI(ds);
     this.emit(DataSourceManagerEvent.UPDATED, ctx, ds);
   }
 
@@ -129,5 +110,27 @@ export class DataSourceManager extends EventEmitter {
   getIndex(dsOrId: DataSource | string) {
     const id = typeof dsOrId == 'object' && dsOrId.id ? dsOrId.id : dsOrId;
     return findIndex(this.datasources, x => x.id === id);
+  }
+}
+
+export function createAPI(ds: DataSource) {
+  switch (ds.type) {
+    case DataSourceType.JAEGER: {
+      return new JaegerAPI({
+        baseUrl: ds.baseUrl!,
+        username: ds.username,
+        password: ds.password
+      });
+    }
+    case DataSourceType.ZIPKIN: {
+      return new ZipkinAPI({
+        baseUrl: ds.baseUrl!,
+        username: ds.username,
+        password: ds.password
+      });
+    }
+    default: {
+      throw new Error(`Unsupported data source type "${ds.type}"`);
+    }
   }
 }
