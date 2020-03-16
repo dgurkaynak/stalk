@@ -58,7 +58,6 @@ export interface JaegerAPISearchQuery {
 export class JaegerAPI {
   private baseUrl: string;
   private headers: { [key: string]: string } = {};
-  private servicesAndOperationsCache: { [key: string]: string[] } = {};
 
   constructor(options: {
     baseUrl: string;
@@ -97,34 +96,15 @@ export class JaegerAPI {
     await this.getServices();
   }
 
-  async updateServicesAndOperationsCache() {
-    const servicesAndOperations: { [key: string]: string[] } = {};
-    const { data: services } = await this.getServices();
-    const tasks = services.map((service: string) =>
-      this.getOperations(service)
-    );
-    const operationsArr = await Promise.all(tasks);
-    services.forEach((service: string, index: number) => {
-      servicesAndOperations[service] = (operationsArr[index] as any)
-        .data as string[];
-    });
-    this.servicesAndOperationsCache = servicesAndOperations;
-    return servicesAndOperations;
-  }
-
-  getServicesAndOperations() {
-    return this.servicesAndOperationsCache;
-  }
-
-  private async getServices() {
+  async getServices() {
     return this.get('/services');
   }
 
-  private async getOperations(serviceName: string) {
+  async getOperations(serviceName: string) {
     return this.get(`/services/${serviceName}/operations`);
   }
 
-  private async getTrace(traceId: string) {
+  async getTrace(traceId: string) {
     // or `/traces/${traceId}`
     return this.get(`/traces`, { traceID: traceId });
   }
