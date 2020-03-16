@@ -1,4 +1,8 @@
 import { DataSourceType, DataSource } from '../../model/datasource/interfaces';
+import {
+  DataSourceManager,
+  DataSourceManagerEvent
+} from '../../model/datasource/manager';
 import { ModalManager } from '../ui/modal/modal-manager';
 import Noty from 'noty';
 import { JaegerAPI } from '../../model/jaeger';
@@ -11,7 +15,6 @@ import './jaeger-search-modal-content.css';
 
 export interface JaegerSearchModalContentOptions {
   dataSource: DataSource;
-  api: JaegerAPI;
 }
 
 export enum JaegerLookbackValue {
@@ -26,6 +29,8 @@ export enum JaegerLookbackValue {
 }
 
 export class JaegerSearchModalContent {
+  private dsManager = DataSourceManager.getSingleton();
+  private api: JaegerAPI;
   private elements = {
     container: document.createElement('div'),
     statusContainer: document.createElement('span'),
@@ -47,17 +52,19 @@ export class JaegerSearchModalContent {
       button: document.createElement('button')
     }
   };
-
   private tippyInstaces: {
     status: TippyInstance;
   };
 
   private binded = {
+    onDataSourceManagerUpdate: this.onDataSourceManagerUpdate.bind(this),
     onSearchByTraceIdFormSubmit: this.onSearchByTraceIdFormSubmit.bind(this),
     onSearcFormSubmit: this.onSearcFormSubmit.bind(this)
   };
 
   constructor(private options: JaegerSearchModalContentOptions) {
+    this.api = this.dsManager.apiFor(this.options.dataSource) as JaegerAPI;
+
     // Prepare DOM
     const els = this.elements;
     els.container.classList.add('jaeger-search-modal-content');
@@ -217,14 +224,15 @@ export class JaegerSearchModalContent {
   init() {
     this.initTippyInstances();
 
-    // TODO: Listen for data source updates!
-
+    this.dsManager.on(
+      DataSourceManagerEvent.UPDATED,
+      this.binded.onDataSourceManagerUpdate
+    );
     this.elements.searchByTraceId.form.addEventListener(
       'submit',
       this.binded.onSearchByTraceIdFormSubmit,
       false
     );
-
     this.elements.search.form.addEventListener(
       'submit',
       this.binded.onSearcFormSubmit,
@@ -253,7 +261,7 @@ export class JaegerSearchModalContent {
     els.statusContent.textContent = 'Testing the API...';
 
     try {
-      await this.options.api.test();
+      await this.api.test();
 
       els.statusContainer.classList.add('success');
       els.statusContainer.innerHTML = SvgCheckCircle;
@@ -268,6 +276,12 @@ export class JaegerSearchModalContent {
   onShow() {
     this.testApiAndUpdateStatus();
     console.log('on show kanki');
+  }
+
+  private onDataSourceManagerUpdate(ctx: any, ds: DataSource) {
+    if (ds.id != this.options.dataSource.id) return;
+    this.options.dataSource = ds;
+    this.api = this.dsManager.apiFor(ds) as JaegerAPI;
   }
 
   private onSearchByTraceIdFormSubmit(e: Event) {
@@ -287,6 +301,10 @@ export class JaegerSearchModalContent {
   dispose() {
     Object.values(this.tippyInstaces).forEach(t => t.destroy());
 
+    this.dsManager.removeListener(
+      DataSourceManagerEvent.UPDATED,
+      this.binded.onDataSourceManagerUpdate
+    );
     this.elements.searchByTraceId.form.removeEventListener(
       'submit',
       this.binded.onSearchByTraceIdFormSubmit,
