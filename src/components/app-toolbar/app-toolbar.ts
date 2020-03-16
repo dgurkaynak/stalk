@@ -434,6 +434,7 @@ export class AppToolbar {
           shouldCloseOnOverlayClick: true,
           contentContainerClassName
         });
+        modalContent.onShow();
         ModalManager.getSingleton().show(modal);
         this.tippyInstaces.dataSources.hide();
         return;

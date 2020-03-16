@@ -216,7 +216,6 @@ export class JaegerSearchModalContent {
 
   init() {
     this.initTippyInstances();
-    this.testApiAndUpdateStatus();
 
     // TODO: Listen for data source updates!
 
@@ -264,6 +263,11 @@ export class JaegerSearchModalContent {
       els.statusContainer.innerHTML = SvgAlertCircle;
       els.statusContent.textContent = err.message;
     }
+  }
+
+  onShow() {
+    this.testApiAndUpdateStatus();
+    console.log('on show kanki');
   }
 
   private onSearchByTraceIdFormSubmit(e: Event) {
