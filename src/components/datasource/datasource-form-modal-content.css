@@ -5,6 +5,7 @@
 
 .datasource-form-modal-content .buttons {
   display: flex;
+  margin-top: 1.5em;
 }
 
 .datasource-form-modal-content .buttons .left {
@@ -13,10 +14,6 @@
 
 .datasource-form-modal-content .form-container h2 {
   margin: 0.25em 0 1em 0;
-}
-
-.datasource-form-modal-content .form-container {
-  margin-bottom: 1.5em;
 }
 
 .datasource-form-modal-content .form-row {

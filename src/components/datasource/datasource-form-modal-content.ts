@@ -14,8 +14,8 @@ export interface DataSourceFormModalContentOptions {
 export class DataSourceFormModalContent {
   private elements = {
     container: document.createElement('div'),
-    formContainer: document.createElement('div'),
     form: {
+      container: document.createElement('form'),
       typeSelect: document.createElement('select'),
       nameInput: document.createElement('input'),
       baseUrlLabel: document.createElement('div'),
@@ -24,16 +24,16 @@ export class DataSourceFormModalContent {
       usernameRow: document.createElement('div'),
       usernameInput: document.createElement('input'),
       passwordRow: document.createElement('div'),
-      passwordInput: document.createElement('input')
-    },
-    cancelButton: document.createElement('button'),
-    saveButton: document.createElement('button'),
-    testButton: document.createElement('button')
+      passwordInput: document.createElement('input'),
+      cancelButton: document.createElement('button'),
+      saveButton: document.createElement('button'),
+      testButton: document.createElement('button')
+    }
   };
 
   private binded = {
     onCancelButtonClick: this.onCancelButtonClick.bind(this),
-    onSaveButtonClick: this.onSaveButtonClick.bind(this),
+    onFormSubmit: this.onFormSubmit.bind(this),
     onTestButtonClick: this.onTestButtonClick.bind(this),
     onBasicAuthCheckboxChange: this.onBasicAuthCheckboxChange.bind(this),
     onTypeSelectChange: this.onTypeSelectChange.bind(this)
@@ -44,49 +44,25 @@ export class DataSourceFormModalContent {
     const els = this.elements;
     els.container.classList.add('datasource-form-modal-content');
 
-    els.formContainer.classList.add('form-container');
-    els.container.appendChild(els.formContainer);
+    els.form.container.classList.add('form-container');
+    els.container.appendChild(els.form.container);
     this.initForm();
-
-    const buttonsContainer = document.createElement('div');
-    buttonsContainer.classList.add('buttons');
-    els.container.appendChild(buttonsContainer);
-
-    const leftButtons = document.createElement('div');
-    leftButtons.classList.add('left');
-    buttonsContainer.appendChild(leftButtons);
-
-    const rightButtons = document.createElement('div');
-    rightButtons.classList.add('right');
-    buttonsContainer.appendChild(rightButtons);
-
-    els.cancelButton.classList.add('cancel');
-    els.cancelButton.textContent = 'Cancel';
-    leftButtons.appendChild(els.cancelButton);
-
-    els.testButton.classList.add('test');
-    els.testButton.textContent = 'Test';
-    rightButtons.appendChild(els.testButton);
-
-    els.saveButton.classList.add('save');
-    els.saveButton.textContent = 'Save';
-    rightButtons.appendChild(els.saveButton);
   }
 
   init() {
-    this.elements.cancelButton.addEventListener(
+    this.elements.form.cancelButton.addEventListener(
       'click',
       this.binded.onCancelButtonClick,
       false
     );
-    this.elements.testButton.addEventListener(
+    this.elements.form.testButton.addEventListener(
       'click',
       this.binded.onTestButtonClick,
       false
     );
-    this.elements.saveButton.addEventListener(
-      'click',
-      this.binded.onSaveButtonClick,
+    this.elements.form.container.addEventListener(
+      'submit',
+      this.binded.onFormSubmit,
       false
     );
 
@@ -97,7 +73,9 @@ export class DataSourceFormModalContent {
     return this.elements.container;
   }
 
-  private onCancelButtonClick() {
+  private onCancelButtonClick(e: Event) {
+    e.preventDefault();
+
     const modal = ModalManager.getSingleton().findModalFromElement(
       this.elements.container
     );
@@ -105,7 +83,9 @@ export class DataSourceFormModalContent {
     modal.close({ data: { action: 'cancel' } });
   }
 
-  private async onSaveButtonClick() {
+  private async onFormSubmit(e: Event) {
+    e.preventDefault();
+
     // TODO: Form validation
 
     const modal = ModalManager.getSingleton().findModalFromElement(
@@ -126,7 +106,9 @@ export class DataSourceFormModalContent {
     modal.close({ data: { action: 'save', dataSource } });
   }
 
-  private async onTestButtonClick() {
+  private async onTestButtonClick(e: Event) {
+    e.preventDefault();
+
     // TODO: Form validation
 
     try {
@@ -168,7 +150,7 @@ export class DataSourceFormModalContent {
     const isBasicAuthEnabled =
       this.options.dataSource?.username || this.options.dataSource?.password;
 
-    this.elements.formContainer.innerHTML = `<h2>${titleText}</h2>`;
+    this.elements.form.container.innerHTML = `<h2>${titleText}</h2>`;
 
     // Type
     const typeRow = document.createElement('div');
@@ -180,7 +162,7 @@ export class DataSourceFormModalContent {
       formEl.typeSelect.value = this.options.dataSource.type;
     }
     typeRow.appendChild(formEl.typeSelect);
-    this.elements.formContainer.appendChild(typeRow);
+    this.elements.form.container.appendChild(typeRow);
     formEl.typeSelect.addEventListener(
       'change',
       this.binded.onTypeSelectChange,
@@ -198,7 +180,7 @@ export class DataSourceFormModalContent {
       formEl.nameInput.value = this.options.dataSource.name;
     }
     nameRow.appendChild(formEl.nameInput);
-    this.elements.formContainer.appendChild(nameRow);
+    this.elements.form.container.appendChild(nameRow);
 
     // Base url
     const baseUrlRow = document.createElement('div');
@@ -212,7 +194,7 @@ export class DataSourceFormModalContent {
       formEl.baseUrlInput.value = this.options.dataSource.baseUrl;
     }
     baseUrlRow.appendChild(formEl.baseUrlInput);
-    this.elements.formContainer.appendChild(baseUrlRow);
+    this.elements.form.container.appendChild(baseUrlRow);
 
     // Basic auth
     const basicAuthRow = document.createElement('div');
@@ -223,7 +205,7 @@ export class DataSourceFormModalContent {
       formEl.basicAuthCheckbox.checked = true;
     }
     basicAuthRow.appendChild(formEl.basicAuthCheckbox);
-    this.elements.formContainer.appendChild(basicAuthRow);
+    this.elements.form.container.appendChild(basicAuthRow);
     formEl.basicAuthCheckbox.addEventListener(
       'change',
       this.binded.onBasicAuthCheckboxChange,
@@ -238,7 +220,7 @@ export class DataSourceFormModalContent {
       formEl.usernameInput.value = this.options.dataSource.username;
     }
     formEl.usernameRow.appendChild(formEl.usernameInput);
-    this.elements.formContainer.appendChild(formEl.usernameRow);
+    this.elements.form.container.appendChild(formEl.usernameRow);
     if (!isBasicAuthEnabled) {
       formEl.usernameRow.style.display = 'none';
     }
@@ -251,10 +233,36 @@ export class DataSourceFormModalContent {
       formEl.passwordInput.value = this.options.dataSource.password;
     }
     formEl.passwordRow.appendChild(formEl.passwordInput);
-    this.elements.formContainer.appendChild(formEl.passwordRow);
+    this.elements.form.container.appendChild(formEl.passwordRow);
     if (!isBasicAuthEnabled) {
       formEl.passwordRow.style.display = 'none';
     }
+
+    // Buttons
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.classList.add('buttons');
+    this.elements.form.container.appendChild(buttonsContainer);
+
+    const leftButtons = document.createElement('div');
+    leftButtons.classList.add('left');
+    buttonsContainer.appendChild(leftButtons);
+
+    const rightButtons = document.createElement('div');
+    rightButtons.classList.add('right');
+    buttonsContainer.appendChild(rightButtons);
+
+    formEl.cancelButton.classList.add('cancel');
+    formEl.cancelButton.textContent = 'Cancel';
+    leftButtons.appendChild(formEl.cancelButton);
+
+    formEl.testButton.classList.add('test');
+    formEl.testButton.textContent = 'Test';
+    rightButtons.appendChild(formEl.testButton);
+
+    formEl.saveButton.classList.add('save');
+    formEl.saveButton.type = 'submit';
+    formEl.saveButton.textContent = 'Save';
+    rightButtons.appendChild(formEl.saveButton);
   }
 
   private onBasicAuthCheckboxChange() {
@@ -286,19 +294,19 @@ export class DataSourceFormModalContent {
   }
 
   dispose() {
-    this.elements.cancelButton.removeEventListener(
+    this.elements.form.cancelButton.removeEventListener(
       'click',
       this.binded.onCancelButtonClick,
       false
     );
-    this.elements.testButton.removeEventListener(
+    this.elements.form.testButton.removeEventListener(
       'click',
       this.binded.onTestButtonClick,
       false
     );
-    this.elements.saveButton.removeEventListener(
-      'click',
-      this.binded.onSaveButtonClick,
+    this.elements.form.container.removeEventListener(
+      'submit',
+      this.binded.onFormSubmit,
       false
     );
     this.elements.form.basicAuthCheckbox.removeEventListener(
