@@ -21,7 +21,6 @@ import { ModalManager } from '../ui/modal/modal-manager';
 import { DataSourceFormModalContent } from '../datasource/datasource-form-modal-content';
 import shortid from 'shortid';
 import { JaegerSearchModalContent } from '../search/jaeger-search-modal-content';
-import { JaegerAPI } from '../../model/jaeger';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
@@ -407,6 +406,7 @@ export class AppToolbar {
       case 'search': {
         let modalContent: JaegerSearchModalContent; // TODO: Or can be zipkin modal content
         let contentContainerClassName = '';
+        let shouldInitModalContent = false;
 
         if (ds.type == DataSourceType.JAEGER) {
           contentContainerClassName = 'jaeger-search-modal-container';
@@ -415,7 +415,7 @@ export class AppToolbar {
             modalContent = new JaegerSearchModalContent({
               dataSource: ds
             });
-            modalContent.init();
+            shouldInitModalContent = true;
             this.jaegerSearchModalContents[ds.id] = modalContent;
           }
         } else if (ds.type == DataSourceType.ZIPKIN) {
@@ -433,8 +433,9 @@ export class AppToolbar {
           shouldCloseOnOverlayClick: true,
           contentContainerClassName
         });
-        modalContent.onShow();
         ModalManager.getSingleton().show(modal);
+        shouldInitModalContent && modalContent.init(); // must be inited after render
+        modalContent.onShow();
         this.tippyInstaces.dataSources.hide();
         return;
       }

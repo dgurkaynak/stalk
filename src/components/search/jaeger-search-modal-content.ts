@@ -1,12 +1,16 @@
 import { DataSourceType, DataSource } from '../../model/datasource/interfaces';
+import { Span } from '../../model/interfaces';
+import { Trace } from '../../model/trace';
 import {
   DataSourceManager,
   DataSourceManagerEvent
 } from '../../model/datasource/manager';
 import { ModalManager } from '../ui/modal/modal-manager';
 import Noty from 'noty';
-import { JaegerAPI } from '../../model/jaeger';
+import { JaegerAPI, JaegerAPISearchQuery } from '../../model/jaeger';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
+import { TracesTableView } from '../traces-table/traces-table';
+import parseDuration from 'parse-duration';
 
 import SvgCircleMedium from '!!raw-loader!@mdi/svg/svg/circle-small.svg';
 import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
@@ -18,21 +22,23 @@ export interface JaegerSearchModalContentOptions {
 }
 
 export enum JaegerLookbackValue {
-  LAST_HOUR = 'lastHour',
-  LAST_2_HOURS = 'last2Hours',
-  LAST_3_HOURS = 'last3Hours',
-  LAST_6_HOURS = 'last6Hours',
-  LAST_12_HOURS = 'last12Hours',
-  LAST_24_HOURS = 'last24Hours',
-  LAST_2_DAYS = 'last2Days',
-  LAST_7_DAYS = 'last7Days'
+  LAST_HOUR = '1h',
+  LAST_2_HOURS = '2h',
+  LAST_3_HOURS = '3h',
+  LAST_6_HOURS = '6h',
+  LAST_12_HOURS = '12h',
+  LAST_24_HOURS = '24h',
+  LAST_2_DAYS = '2d',
+  LAST_7_DAYS = '7d'
 }
 
 export class JaegerSearchModalContent {
   private dsManager = DataSourceManager.getSingleton();
   private api: JaegerAPI;
+  private tracesTable = new TracesTableView();
   private elements = {
     container: document.createElement('div'),
+    rightContainer: document.createElement('div'),
     statusContainer: document.createElement('span'),
     statusContent: document.createElement('div'),
     searchByTraceId: {
@@ -73,9 +79,8 @@ export class JaegerSearchModalContent {
     leftContainer.classList.add('left');
     els.container.appendChild(leftContainer);
 
-    const rightContainer = document.createElement('div');
-    rightContainer.classList.add('right');
-    els.container.appendChild(rightContainer);
+    els.rightContainer.classList.add('right');
+    els.container.appendChild(els.rightContainer);
 
     // Left container
     const headerContainer = document.createElement('div');
@@ -208,12 +213,12 @@ export class JaegerSearchModalContent {
       button.type = 'submit';
       form.appendChild(button);
     }
-
-    // Right container
   }
 
   init() {
     this.initTippyInstances();
+
+    // TODO: Bind resize events
 
     this.dsManager.on(
       DataSourceManagerEvent.UPDATED,
@@ -234,6 +239,13 @@ export class JaegerSearchModalContent {
       this.binded.onServiceSelectChange,
       false
     );
+
+    // Traces table
+    // In order to get offsetWidth and height, the dom must be rendered
+    // So before calling this `init()` method, ensure that dom is rendered.
+    this.tracesTable.mount(this.elements.rightContainer);
+    const { offsetWidth: w, offsetHeight: h } = this.elements.rightContainer;
+    this.tracesTable.init({ width: w, height: h });
   }
 
   private initTippyInstances() {
@@ -272,6 +284,7 @@ export class JaegerSearchModalContent {
   onShow() {
     this.testApiAndUpdateStatus();
     this.updateServicesSelect();
+    this.tracesTable.redrawTable();
   }
 
   private async updateServicesSelect() {
@@ -330,9 +343,55 @@ export class JaegerSearchModalContent {
     console.log('search by trace id form submit');
   }
 
-  private onSearcFormSubmit(e: Event) {
+  private async onSearcFormSubmit(e: Event) {
     e.preventDefault();
-    console.log('search form submit');
+    this.elements.search.button.disabled = true;
+
+    try {
+      const formEl = this.elements.search;
+      const query: JaegerAPISearchQuery = {
+        service: formEl.serviceSelect.value,
+        limit: 0
+      };
+
+      if (
+        formEl.operationSelect.value &&
+        formEl.operationSelect.value != 'all'
+      ) {
+        query.operation = formEl.operationSelect.value;
+      }
+
+      if (formEl.tagsInput.value) {
+        query.tags = formEl.tagsInput.value;
+      }
+
+      if (formEl.lookbackSelect.value == 'custom') {
+        // TODO
+      } else {
+        const duration = parseDuration(formEl.lookbackSelect.value);
+        query.end = Date.now() * 1000;
+        query.start = query.end - duration * 1000;
+      }
+
+      if (formEl.minDurationInput.value) {
+        query.minDuration = formEl.minDurationInput.value;
+      }
+
+      if (formEl.maxDurationInput.value) {
+        query.maxDuration = formEl.maxDurationInput.value;
+      }
+
+      const traceSpans: Span[][] = await this.api.search(query);
+      const traces = traceSpans.map(spans => new Trace(spans));
+      this.tracesTable.updateTraces(traces);
+    } catch (err) {
+      new Noty({
+        text: `Could not search: "${err.message}"`,
+        type: 'error'
+      }).show();
+    }
+
+    this.elements.search.button.disabled = false;
   }
 
   private onServiceSelectChange() {
