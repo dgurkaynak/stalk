@@ -5,23 +5,34 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
+const windowStateKeeper = require('electron-window-state');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
 function createWindow() {
+  // Remember window state (position & size)
+  const mainWindowState = windowStateKeeper({
+    defaultWidth: 800,
+    defaultHeight: 600
+  });
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       webSecurity: false,
       nodeIntegration: true
     }
   });
-  // mainWindow.maximize();
+
+  // Bind window events & persist
+  mainWindowState.manage(mainWindow);
 
   // and load the index.html of the app.
   const startUrl =
