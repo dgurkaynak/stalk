@@ -48,7 +48,6 @@ export class JaegerSearchModalContent {
       lookbackSelect: document.createElement('select'),
       minDurationInput: document.createElement('input'),
       maxDurationInput: document.createElement('input'),
-      limitInput: document.createElement('input'),
       button: document.createElement('button')
     }
   };
@@ -132,7 +131,6 @@ export class JaegerSearchModalContent {
         lookbackSelect,
         minDurationInput,
         maxDurationInput,
-        limitInput,
         button
       } = this.elements.search;
       container.appendChild(form);
@@ -205,18 +203,6 @@ export class JaegerSearchModalContent {
       maxDurationContainer.appendChild(maxDurationTitleContainer);
       maxDurationInput.placeholder = 'e.g. 1.2s, 100ms, 500us';
       maxDurationContainer.appendChild(maxDurationInput);
-
-      const limitContainer = document.createElement('div');
-      limitContainer.classList.add('field');
-      form.appendChild(limitContainer);
-      const limitTitleContainer = document.createElement('div');
-      limitTitleContainer.textContent = 'Limit';
-      limitTitleContainer.classList.add('field-title');
-      limitContainer.appendChild(limitTitleContainer);
-      limitInput.value = '20';
-      limitInput.type = 'number';
-      limitInput.required = true;
-      limitContainer.appendChild(limitInput);
 
       button.textContent = 'Search';
       button.type = 'submit';

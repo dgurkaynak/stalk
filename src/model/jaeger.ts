@@ -50,6 +50,9 @@ export interface JaegerAPISearchQuery {
 
   /**
    * Optional limit & offset.
+   * When limit is omitted, API returns max 100 traces. However when it's explicitly
+   * set to 0, I guess there is no limit, I've managed to get more than 1000 traces
+   * with jaegertracing/all-in-one@1.17
    */
   limit?: number;
   offset?: number;
