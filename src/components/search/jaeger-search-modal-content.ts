@@ -11,6 +11,7 @@ import { JaegerAPI, JaegerAPISearchQuery } from '../../model/jaeger';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { TracesTableView } from '../traces-table/traces-table';
 import parseDuration from 'parse-duration';
+import throttle from 'lodash/throttle';
 
 import SvgCircleMedium from '!!raw-loader!@mdi/svg/svg/circle-small.svg';
 import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
@@ -65,7 +66,8 @@ export class JaegerSearchModalContent {
     onDataSourceManagerUpdate: this.onDataSourceManagerUpdate.bind(this),
     onSearchByTraceIdFormSubmit: this.onSearchByTraceIdFormSubmit.bind(this),
     onSearcFormSubmit: this.onSearcFormSubmit.bind(this),
-    onServiceSelectChange: this.onServiceSelectChange.bind(this)
+    onServiceSelectChange: this.onServiceSelectChange.bind(this),
+    onWindowResize: throttle(this.onWindowResize.bind(this), 100)
   };
 
   constructor(private options: JaegerSearchModalContentOptions) {
@@ -218,8 +220,7 @@ export class JaegerSearchModalContent {
   init() {
     this.initTippyInstances();
 
-    // TODO: Bind resize events
-
+    // Bind events
     this.dsManager.on(
       DataSourceManagerEvent.UPDATED,
       this.binded.onDataSourceManagerUpdate
@@ -239,6 +240,7 @@ export class JaegerSearchModalContent {
       this.binded.onServiceSelectChange,
       false
     );
+    window.addEventListener('resize', this.binded.onWindowResize, false);
 
     // Traces table
     // In order to get offsetWidth and height, the dom must be rendered
@@ -398,6 +400,11 @@ export class JaegerSearchModalContent {
     this.updateOperationsSelect();
   }
 
+  private onWindowResize() {
+    const { offsetWidth: w, offsetHeight: h } = this.elements.rightContainer;
+    this.tracesTable.resize(w, h);
+  }
+
   getElement() {
     return this.elements.container;
   }
@@ -424,5 +431,6 @@ export class JaegerSearchModalContent {
       this.binded.onServiceSelectChange,
       false
     );
+    window.removeEventListener('resize', this.binded.onWindowResize, false);
   }
 }
