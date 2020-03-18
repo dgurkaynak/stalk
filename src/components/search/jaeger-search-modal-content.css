@@ -1,6 +1,7 @@
 .jaeger-search-modal-container {
   width: 90%;
   height: 80%;
+  overflow: hidden;
 }
 
 .jaeger-search-modal-content {
