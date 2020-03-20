@@ -426,6 +426,7 @@ export class JaegerSearchModalContent {
 
   dispose() {
     Object.values(this.tippyInstaces).forEach(t => t.destroy());
+    this.tracesTable.dispose();
 
     this.dsManager.removeListener(
       DataSourceManagerEvent.UPDATED,
