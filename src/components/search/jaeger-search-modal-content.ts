@@ -294,6 +294,15 @@ export class JaegerSearchModalContent {
 
     try {
       const response = await this.api.getServices();
+
+      if (!response.data) {
+        new Noty({
+          text: `There is no services persisted to Jaeger`,
+          type: 'error'
+        }).show();
+        return;
+      }
+
       const serviceNames: string[] = response.data.sort();
       this.elements.search.serviceSelect.innerHTML = serviceNames
         .map(s => `<option value="${s}">${s}</option>`)
