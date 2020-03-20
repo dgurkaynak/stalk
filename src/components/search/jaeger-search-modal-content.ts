@@ -247,7 +247,11 @@ export class JaegerSearchModalContent {
     // So before calling this `init()` method, ensure that dom is rendered.
     this.tracesTable.mount(this.elements.rightContainer);
     const { offsetWidth: w, offsetHeight: h } = this.elements.rightContainer;
-    this.tracesTable.init({ width: w, height: h });
+    this.tracesTable.init({
+      width: w,
+      height: h,
+      disableTracesAlreadyInTheStage: true
+    });
   }
 
   private initTippyInstances() {

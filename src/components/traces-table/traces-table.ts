@@ -1,6 +1,8 @@
 import { Trace } from '../../model/trace';
+import { Stage } from '../../model/stage';
 import { formatMicroseconds } from '../../utils/format-microseconds';
 import * as Tabulator from 'tabulator-tables';
+import find from 'lodash/find';
 import sampleSize from 'lodash/sampleSize';
 import cloneDeep from 'lodash/cloneDeep';
 import EventEmitter from 'events';
@@ -18,11 +20,19 @@ export interface TraceRowData {
   services: { [key: string]: number };
 }
 
+export interface TracesTableOptions {
+  width: number;
+  height: number;
+  disableTracesAlreadyInTheStage?: boolean;
+}
+
 export enum TracesTableViewEvent {
   SELECTIONS_UPDATED = 'selections_updated'
 }
 
 export class TracesTableView extends EventEmitter {
+  private stage = Stage.getSingleton();
+  private options: TracesTableOptions;
   private table: Tabulator;
   private traceRows: TraceRowData[] = [];
 
@@ -40,7 +50,9 @@ export class TracesTableView extends EventEmitter {
     formatTimestamp: this.formatTimestamp.bind(this),
     formatDuration: this.formatDuration.bind(this),
     formatServices: this.formatServices.bind(this),
-    rowSelectionChanged: this.rowSelectionChanged.bind(this)
+    rowSelectionChanged: this.rowSelectionChanged.bind(this),
+    rowFormatter: this.rowFormatter.bind(this),
+    rowClick: this.rowClick.bind(this)
   };
 
   private columnDefinitions = {
@@ -105,7 +117,8 @@ export class TracesTableView extends EventEmitter {
     container.appendChild(loadingContainer);
   }
 
-  init(options: { width: number; height: number }) {
+  init(options: TracesTableOptions) {
+    this.options = options;
     this.viewPropertiesCache = {
       width: options.width,
       height: options.height
@@ -131,6 +144,8 @@ export class TracesTableView extends EventEmitter {
       initialSort: [
         { column: this.columnDefinitions.startTime.field, dir: 'desc' }
       ],
+      rowFormatter: this.binded.rowFormatter,
+      rowClick: this.binded.rowClick,
       rowSelectionChanged: this.binded.rowSelectionChanged,
       keybindings: false
     });
@@ -170,7 +185,6 @@ export class TracesTableView extends EventEmitter {
     const TraceRowData = cell.getRow().getData();
     let html = '';
 
-    // TODO: Sort these with occurance frequency
     Object.keys(TraceRowData.services)
       .sort((a, b) => {
         if (a > b) return 1;
@@ -186,6 +200,38 @@ export class TracesTableView extends EventEmitter {
       });
 
     return html;
+  }
+
+  private rowFormatter(row: any) {
+    const trace = row.getData();
+
+    if (this.options.disableTracesAlreadyInTheStage) {
+      const inStage = !!find(this.stage.getAllTraces(), t => t.id == trace.id);
+      const rowEl = row.getElement();
+
+      if (inStage) {
+        rowEl.style.color = '#bbb';
+        rowEl.style.backgroundColor = '#fff';
+        rowEl.style.cursor = 'default';
+      } else {
+        // For row re-using, clear the styles
+        rowEl.style.color = '';
+        rowEl.style.backgroundColor = '';
+        rowEl.style.cursor = '';
+      }
+    }
+  }
+
+  private rowClick(e: MouseEvent, row: any) {
+    const trace = row.getData();
+
+    if (this.options.disableTracesAlreadyInTheStage) {
+      const inStage = !!find(this.stage.getAllTraces(), t => t.id == trace.id);
+      if (inStage) {
+        // Prevent being selected (https://github.com/olifolkerd/tabulator/issues/612)
+        e.stopPropagation();
+      }
+    }
   }
 
   toggleLoading(shouldShow: boolean) {
