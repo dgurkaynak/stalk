@@ -28,7 +28,8 @@ export class TracesTableView extends EventEmitter {
 
   private elements = {
     container: document.createElement('div'),
-    tableContainer: document.createElement('div')
+    tableContainer: document.createElement('div'),
+    loadingContainer: document.createElement('div')
   };
   private viewPropertiesCache = {
     width: 0,
@@ -80,9 +81,28 @@ export class TracesTableView extends EventEmitter {
   constructor() {
     super();
 
-    const { container, tableContainer } = this.elements;
+    const { container, tableContainer, loadingContainer } = this.elements;
     container.classList.add('traces-table-view');
     container.appendChild(tableContainer);
+
+    loadingContainer.classList.add('loading-container');
+    // Borrowed from https://tobiasahlin.com/spinkit/
+    loadingContainer.innerHTML = `<div class="sk-circle">
+      <div class="sk-circle1 sk-child"></div>
+      <div class="sk-circle2 sk-child"></div>
+      <div class="sk-circle3 sk-child"></div>
+      <div class="sk-circle4 sk-child"></div>
+      <div class="sk-circle5 sk-child"></div>
+      <div class="sk-circle6 sk-child"></div>
+      <div class="sk-circle7 sk-child"></div>
+      <div class="sk-circle8 sk-child"></div>
+      <div class="sk-circle9 sk-child"></div>
+      <div class="sk-circle10 sk-child"></div>
+      <div class="sk-circle11 sk-child"></div>
+      <div class="sk-circle12 sk-child"></div>
+    </div>`;
+    this.toggleLoading(false);
+    container.appendChild(loadingContainer);
   }
 
   init(options: { width: number; height: number }) {
@@ -166,6 +186,15 @@ export class TracesTableView extends EventEmitter {
       });
 
     return html;
+  }
+
+  toggleLoading(shouldShow: boolean) {
+    if (shouldShow) {
+      this.elements.loadingContainer.style.display = '';
+      return;
+    }
+
+    this.elements.loadingContainer.style.display = 'none';
   }
 
   redrawTable() {

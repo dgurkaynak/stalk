@@ -357,6 +357,7 @@ export class JaegerSearchModalContent {
   private async onSearcFormSubmit(e: Event) {
     e.preventDefault();
     this.elements.search.button.disabled = true;
+    this.tracesTable.toggleLoading(true);
 
     try {
       const formEl = this.elements.search;
@@ -403,6 +404,7 @@ export class JaegerSearchModalContent {
     }
 
     this.elements.search.button.disabled = false;
+    this.tracesTable.toggleLoading(false);
   }
 
   private onServiceSelectChange() {
