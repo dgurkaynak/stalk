@@ -49,6 +49,10 @@ export class JaegerSearchModalContent {
     rightContainer: document.createElement('div'),
     statusContainer: document.createElement('span'),
     statusContent: document.createElement('div'),
+    tracesTableFooterPlaceholder: {
+      container: document.createElement('div'),
+      text: document.createElement('span')
+    },
     tracesTableFooter: {
       container: document.createElement('div'),
       text: document.createElement('span'),
@@ -236,6 +240,13 @@ export class JaegerSearchModalContent {
     els.tracesTableFooter.container.appendChild(els.tracesTableFooter.text);
     els.tracesTableFooter.button.textContent = 'Add Trace(s)';
     els.tracesTableFooter.container.appendChild(els.tracesTableFooter.button);
+
+    // Table placeholder
+    const elsTP = els.tracesTableFooterPlaceholder;
+    elsTP.container.style.display = 'none';
+    elsTP.container.classList.add('tabulator-placeholder');
+    elsTP.text.textContent = 'No traces found';
+    elsTP.container.appendChild(elsTP.text);
   }
 
   init() {
@@ -281,7 +292,8 @@ export class JaegerSearchModalContent {
       width: w,
       height: h,
       disableTracesAlreadyInTheStage: true,
-      footerElement: this.elements.tracesTableFooter.container
+      footerElement: this.elements.tracesTableFooter.container,
+      placeholderElement: this.elements.tracesTableFooterPlaceholder.container
     });
   }
 
@@ -395,6 +407,7 @@ export class JaegerSearchModalContent {
     this.traceResults = [];
     this.elements.search.button.disabled = true;
     this.tracesTable.toggleLoading(true);
+    this.elements.tracesTableFooterPlaceholder.container.style.display = 'none';
 
     try {
       const formEl = this.elements.search;
@@ -433,6 +446,8 @@ export class JaegerSearchModalContent {
       const traceSpans: Span[][] = await this.api.search(query);
       this.traceResults = traceSpans.map(spans => new Trace(spans));
       this.tracesTable.updateTraces(this.traceResults);
+
+      this.elements.tracesTableFooterPlaceholder.container.style.display = '';
     } catch (err) {
       new Noty({
         text: `Could not search: "${err.message}"`,

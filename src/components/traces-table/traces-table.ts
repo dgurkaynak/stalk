@@ -25,6 +25,7 @@ export interface TracesTableOptions {
   height: number;
   disableTracesAlreadyInTheStage?: boolean;
   footerElement?: HTMLElement;
+  placeholderElement?: HTMLElement;
 }
 
 export enum TracesTableViewEvent {
@@ -149,7 +150,8 @@ export class TracesTableView extends EventEmitter {
       selectableCheck: this.binded.selectableCheck,
       rowSelectionChanged: this.binded.rowSelectionChanged,
       keybindings: false,
-      footerElement: this.options.footerElement
+      footerElement: this.options.footerElement,
+      placeholder: this.options.placeholderElement
     });
   }
 
