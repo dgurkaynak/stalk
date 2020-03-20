@@ -6,6 +6,7 @@ import find from 'lodash/find';
 import sampleSize from 'lodash/sampleSize';
 import cloneDeep from 'lodash/cloneDeep';
 import EventEmitter from 'events';
+import format from 'date-fns/format'
 
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import './traces-table.css';
@@ -177,8 +178,7 @@ export class TracesTableView extends EventEmitter {
   }
 
   private formatTimestamp(cell: any) {
-    // TODO: Human readable date time
-    return cell.getValue();
+    return format(cell.getValue() / 1000, 'MMM dd HH:mm:ss.SSS');
   }
 
   private formatDuration(cell: any) {
