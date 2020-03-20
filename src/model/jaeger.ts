@@ -109,7 +109,8 @@ export class JaegerAPI {
 
   async getTrace(traceId: string) {
     // or `/traces/${traceId}`
-    return this.get(`/traces`, { traceID: traceId });
+    const response = await this.get(`/traces`, { traceID: traceId });
+    return response.data.map(convertFromJaegerTrace);
   }
 
   private async get(path: string, queryParams: { [key: string]: string } = {}) {

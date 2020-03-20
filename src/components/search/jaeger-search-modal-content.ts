@@ -396,9 +396,31 @@ export class JaegerSearchModalContent {
     this.api = this.dsManager.apiFor(ds) as JaegerAPI;
   }
 
-  private onSearchByTraceIdFormSubmit(e: Event) {
+  private async onSearchByTraceIdFormSubmit(e: Event) {
     e.preventDefault();
-    console.log('search by trace id form submit');
+
+    this.traceResults = [];
+    this.elements.searchByTraceId.button.disabled = true;
+    this.tracesTable.toggleLoading(true);
+    this.elements.tracesTableFooterPlaceholder.container.style.display = 'none';
+
+    try {
+      const formEl = this.elements.searchByTraceId;
+
+      const traceSpans: Span[][] = await this.api.getTrace(formEl.input.value);
+      this.traceResults = traceSpans.map(spans => new Trace(spans));
+      this.tracesTable.updateTraces(this.traceResults);
+
+      this.elements.tracesTableFooterPlaceholder.container.style.display = '';
+    } catch (err) {
+      new Noty({
+        text: `Could not search: "${err.message}"`,
+        type: 'error'
+      }).show();
+    }
+
+    this.elements.searchByTraceId.button.disabled = false;
+    this.tracesTable.toggleLoading(false);
   }
 
   private async onSearcFormSubmit(e: Event) {
