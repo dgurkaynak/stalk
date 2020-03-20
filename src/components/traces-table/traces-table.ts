@@ -53,7 +53,7 @@ export class TracesTableView extends EventEmitter {
     formatServices: this.formatServices.bind(this),
     rowSelectionChanged: this.rowSelectionChanged.bind(this),
     rowFormatter: this.rowFormatter.bind(this),
-    rowClick: this.rowClick.bind(this)
+    selectableCheck: this.selectableCheck.bind(this)
   };
 
   private columnDefinitions = {
@@ -146,7 +146,7 @@ export class TracesTableView extends EventEmitter {
         { column: this.columnDefinitions.startTime.field, dir: 'desc' }
       ],
       rowFormatter: this.binded.rowFormatter,
-      rowClick: this.binded.rowClick,
+      selectableCheck: this.binded.selectableCheck,
       rowSelectionChanged: this.binded.rowSelectionChanged,
       keybindings: false,
       footerElement: this.options.footerElement
@@ -224,16 +224,17 @@ export class TracesTableView extends EventEmitter {
     }
   }
 
-  private rowClick(e: MouseEvent, row: any) {
+  private selectableCheck(row: any) {
     const trace = row.getData();
 
     if (this.options.disableTracesAlreadyInTheStage) {
       const inStage = !!find(this.stage.getAllTraces(), t => t.id == trace.id);
       if (inStage) {
-        // Prevent being selected (https://github.com/olifolkerd/tabulator/issues/612)
-        e.stopPropagation();
+        return false;
       }
     }
+
+    return true;
   }
 
   toggleLoading(shouldShow: boolean) {
