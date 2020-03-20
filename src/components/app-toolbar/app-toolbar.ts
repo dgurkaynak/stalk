@@ -83,7 +83,8 @@ export class AppToolbar {
     onNewDataSourceModalClose: this.onNewDataSourceModalClose.bind(this),
     onDataSourceRemovePopConfirmButtonClick: this.onDataSourceRemovePopConfirmButtonClick.bind(
       this
-    )
+    ),
+    onJaegerSearchModalClosed: this.onJaegerSearchModalClosed.bind(this)
   };
 
   private stage = Stage.getSingleton();
@@ -431,7 +432,8 @@ export class AppToolbar {
           content: modalContent.getElement(),
           shouldCloseOnEscPress: true,
           shouldCloseOnOverlayClick: true,
-          contentContainerClassName
+          contentContainerClassName,
+          onClose: this.binded.onJaegerSearchModalClosed
         });
         ModalManager.getSingleton().show(modal);
         shouldInitModalContent && modalContent.init(); // must be inited after render
@@ -578,6 +580,15 @@ export class AppToolbar {
       data.dataSource.id = shortid.generate();
       await this.dsManager.add(undefined, data.dataSource);
     }
+  }
+
+  private onJaegerSearchModalClosed(
+    triggerType: ModalCloseTriggerType,
+    data: any
+  ) {
+    if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
+    if (data.action != 'addToStage') return;
+    (data.traces as Trace[]).forEach(t => this.stage.addTrace(undefined, t));
   }
 
   dispose() {

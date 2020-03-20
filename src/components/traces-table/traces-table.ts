@@ -24,6 +24,7 @@ export interface TracesTableOptions {
   width: number;
   height: number;
   disableTracesAlreadyInTheStage?: boolean;
+  footerElement?: HTMLElement;
 }
 
 export enum TracesTableViewEvent {
@@ -147,7 +148,8 @@ export class TracesTableView extends EventEmitter {
       rowFormatter: this.binded.rowFormatter,
       rowClick: this.binded.rowClick,
       rowSelectionChanged: this.binded.rowSelectionChanged,
-      keybindings: false
+      keybindings: false,
+      footerElement: this.options.footerElement
     });
   }
 
@@ -157,7 +159,7 @@ export class TracesTableView extends EventEmitter {
   }
 
   private rowSelectionChanged(data: any, rows: any) {
-    console.log('rowSelectionChanged', { data, rows });
+    this.emit(TracesTableViewEvent.SELECTIONS_UPDATED, data);
   }
 
   private trace2RowData(trace: Trace) {
@@ -244,6 +246,8 @@ export class TracesTableView extends EventEmitter {
   }
 
   redrawTable() {
+    if (!this.table) return;
+
     // Tabulator's layout mode `fitDataFill` is a little buggy
     // When the widget is not shown, a new trace is added
     // Row widths are broken. So as a workaround, we will check
@@ -263,6 +267,10 @@ export class TracesTableView extends EventEmitter {
     }
 
     this.table.redraw(forceRerender);
+  }
+
+  deselectAll() {
+    this.table.deselectRow();
   }
 
   mount(parentEl: HTMLElement) {

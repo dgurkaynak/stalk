@@ -9,9 +9,14 @@ import { ModalManager } from '../ui/modal/modal-manager';
 import Noty from 'noty';
 import { JaegerAPI, JaegerAPISearchQuery } from '../../model/jaeger';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
-import { TracesTableView } from '../traces-table/traces-table';
+import {
+  TracesTableView,
+  TracesTableViewEvent,
+  TraceRowData
+} from '../traces-table/traces-table';
 import parseDuration from 'parse-duration';
 import throttle from 'lodash/throttle';
+import find from 'lodash/find';
 
 import SvgCircleMedium from '!!raw-loader!@mdi/svg/svg/circle-small.svg';
 import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
@@ -37,11 +42,18 @@ export class JaegerSearchModalContent {
   private dsManager = DataSourceManager.getSingleton();
   private api: JaegerAPI;
   private tracesTable = new TracesTableView();
+  private traceResults: Trace[] = [];
+  private selectedTraceIds: string[] = [];
   private elements = {
     container: document.createElement('div'),
     rightContainer: document.createElement('div'),
     statusContainer: document.createElement('span'),
     statusContent: document.createElement('div'),
+    tracesTableFooter: {
+      container: document.createElement('div'),
+      text: document.createElement('span'),
+      button: document.createElement('button')
+    },
     searchByTraceId: {
       form: document.createElement('form'),
       input: document.createElement('input'),
@@ -67,7 +79,9 @@ export class JaegerSearchModalContent {
     onSearchByTraceIdFormSubmit: this.onSearchByTraceIdFormSubmit.bind(this),
     onSearcFormSubmit: this.onSearcFormSubmit.bind(this),
     onServiceSelectChange: this.onServiceSelectChange.bind(this),
-    onWindowResize: throttle(this.onWindowResize.bind(this), 100)
+    onWindowResize: throttle(this.onWindowResize.bind(this), 100),
+    onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
+    onTableFooterButtonClick: this.onTableFooterButtonClick.bind(this)
   };
 
   constructor(private options: JaegerSearchModalContentOptions) {
@@ -215,6 +229,13 @@ export class JaegerSearchModalContent {
       button.type = 'submit';
       form.appendChild(button);
     }
+
+    // Table footer
+    els.tracesTableFooter.container.classList.add('table-footer');
+    els.tracesTableFooter.container.style.display = 'none';
+    els.tracesTableFooter.container.appendChild(els.tracesTableFooter.text);
+    els.tracesTableFooter.button.textContent = 'Add Trace(s)';
+    els.tracesTableFooter.container.appendChild(els.tracesTableFooter.button);
   }
 
   init() {
@@ -224,6 +245,10 @@ export class JaegerSearchModalContent {
     this.dsManager.on(
       DataSourceManagerEvent.UPDATED,
       this.binded.onDataSourceManagerUpdate
+    );
+    this.tracesTable.on(
+      TracesTableViewEvent.SELECTIONS_UPDATED,
+      this.binded.onTableSelectionUpdated
     );
     this.elements.searchByTraceId.form.addEventListener(
       'submit',
@@ -240,6 +265,11 @@ export class JaegerSearchModalContent {
       this.binded.onServiceSelectChange,
       false
     );
+    this.elements.tracesTableFooter.button.addEventListener(
+      'click',
+      this.binded.onTableFooterButtonClick,
+      false
+    );
     window.addEventListener('resize', this.binded.onWindowResize, false);
 
     // Traces table
@@ -250,7 +280,8 @@ export class JaegerSearchModalContent {
     this.tracesTable.init({
       width: w,
       height: h,
-      disableTracesAlreadyInTheStage: true
+      disableTracesAlreadyInTheStage: true,
+      footerElement: this.elements.tracesTableFooter.container
     });
   }
 
@@ -360,6 +391,8 @@ export class JaegerSearchModalContent {
 
   private async onSearcFormSubmit(e: Event) {
     e.preventDefault();
+
+    this.traceResults = [];
     this.elements.search.button.disabled = true;
     this.tracesTable.toggleLoading(true);
 
@@ -398,8 +431,8 @@ export class JaegerSearchModalContent {
       }
 
       const traceSpans: Span[][] = await this.api.search(query);
-      const traces = traceSpans.map(spans => new Trace(spans));
-      this.tracesTable.updateTraces(traces);
+      this.traceResults = traceSpans.map(spans => new Trace(spans));
+      this.tracesTable.updateTraces(this.traceResults);
     } catch (err) {
       new Noty({
         text: `Could not search: "${err.message}"`,
@@ -420,17 +453,53 @@ export class JaegerSearchModalContent {
     this.tracesTable.resize(w, h);
   }
 
+  private async onTableSelectionUpdated(selectedTraces: TraceRowData[]) {
+    // When we try to redraw tabulator while it's already redrawing,
+    // it gives an error. So, we apply the most famous javascript workaround ever.
+    await new Promise(resolve => setTimeout(resolve, 0));
+    this.selectedTraceIds = selectedTraces.map(t => t.id);
+
+    if (selectedTraces.length == 0) {
+      this.elements.tracesTableFooter.container.style.display = 'none';
+      this.tracesTable.redrawTable();
+      return;
+    }
+
+    this.elements.tracesTableFooter.container.style.display = '';
+    let text = `${selectedTraces.length} traces`;
+    if (selectedTraces.length == 1) {
+      text = `1 trace`;
+    }
+    this.elements.tracesTableFooter.text.innerHTML = `<strong>${text}</strong> selected`;
+    this.tracesTable.redrawTable();
+  }
+
+  private onTableFooterButtonClick() {
+    const traces = this.selectedTraceIds.map(traceId => {
+      return find(this.traceResults, t => t.id == traceId);
+    });
+
+    const modal = ModalManager.getSingleton().findModalFromElement(
+      this.elements.container
+    );
+    if (!modal) throw new Error(`Could not find modal instance`);
+    modal.close({ data: { action: 'addToStage', traces } });
+
+    this.tracesTable.deselectAll();
+  }
+
   getElement() {
     return this.elements.container;
   }
 
   dispose() {
-    Object.values(this.tippyInstaces).forEach(t => t.destroy());
-    this.tracesTable.dispose();
-
     this.dsManager.removeListener(
       DataSourceManagerEvent.UPDATED,
       this.binded.onDataSourceManagerUpdate
+    );
+    this.tracesTable.removeListener(
+      TracesTableViewEvent.SELECTIONS_UPDATED,
+      this.binded.onTableSelectionUpdated
     );
     this.elements.searchByTraceId.form.removeEventListener(
       'submit',
@@ -447,6 +516,14 @@ export class JaegerSearchModalContent {
       this.binded.onServiceSelectChange,
       false
     );
+    this.elements.tracesTableFooter.button.removeEventListener(
+      'click',
+      this.binded.onTableFooterButtonClick,
+      false
+    );
     window.removeEventListener('resize', this.binded.onWindowResize, false);
+
+    Object.values(this.tippyInstaces).forEach(t => t.destroy());
+    this.tracesTable.dispose();
   }
 }

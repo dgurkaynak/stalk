@@ -44,12 +44,12 @@
 }
 
 .traces-table-tag {
-  background: #D0E2F2;
-  color: #7988B1;
-  padding: 1px 3px;
-  margin: 0 3px 0 10px;
+  /* background: #D0E2F2; */
+  /* color: #7988B1; */
+  /* padding: 1px 3px; */
+  /* margin: 0 3px 0 10px; */
   font-weight: 500;
-  border-radius: 2px;
+  /* border-radius: 2px; */
 }
 
 .traces-table-tag:first-child {

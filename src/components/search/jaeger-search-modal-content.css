@@ -90,3 +90,24 @@
   width: 100%;
   box-sizing: border-box;
 }
+
+.jaeger-search-modal-content .table-footer {
+  height: 2.5em;
+  border-top: 1px solid #ccc;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 1em;
+}
+
+.jaeger-search-modal-content .table-footer span {
+  margin-right: 1em;
+}
+
+.jaeger-search-modal-content .table-footer span strong {
+  font-weight: 700;
+}
+
+.jaeger-search-modal-content .table-footer button {
+
+}
