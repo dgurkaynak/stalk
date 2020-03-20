@@ -270,7 +270,7 @@ export class TracesTableView extends EventEmitter {
     this.elements.loadingContainer.style.display = 'none';
   }
 
-  redrawTable() {
+  redrawTable(force = false) {
     if (!this.table) return;
 
     // Tabulator's layout mode `fitDataFill` is a little buggy
@@ -278,7 +278,7 @@ export class TracesTableView extends EventEmitter {
     // Row widths are broken. So as a workaround, we will check
     // the first cell's width of some random rows are equal or not
     // If they'are not equal, force re-render the table.
-    let forceRerender = false;
+    let forceRerender = force;
     const firstCells = this.elements.tableContainer.querySelectorAll(
       '.tabulator-table > .tabulator-row .tabulator-cell:first-child'
     );

@@ -524,6 +524,7 @@ export class JaegerSearchModalContent {
     modal.close({ data: { action: 'addToStage', traces } });
 
     this.tracesTable.deselectAll();
+    this.tracesTable.redrawTable(true);
   }
 
   getElement() {
