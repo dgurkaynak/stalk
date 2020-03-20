@@ -6,7 +6,8 @@ import find from 'lodash/find';
 import sampleSize from 'lodash/sampleSize';
 import cloneDeep from 'lodash/cloneDeep';
 import EventEmitter from 'events';
-import format from 'date-fns/format'
+import format from 'date-fns/format';
+import areIntervalsOverlapping from 'date-fns/areIntervalsOverlapping';
 
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import './traces-table.css';
@@ -14,6 +15,7 @@ import './traces-table.css';
 export interface TraceRowData {
   id: string;
   startTime: number;
+  finishTime: number;
   duration: number;
   name: string;
   spanCount: number;
@@ -25,6 +27,7 @@ export interface TracesTableOptions {
   width: number;
   height: number;
   disableTracesAlreadyInTheStage?: boolean;
+  indicateTracesOverlappingWithStage?: boolean;
   footerElement?: HTMLElement;
   placeholderElement?: HTMLElement;
 }
@@ -169,6 +172,7 @@ export class TracesTableView extends EventEmitter {
     return {
       id: trace.id,
       startTime: trace.startTime,
+      finishTime: trace.finishTime,
       duration: trace.duration,
       name: trace.name,
       spanCount: trace.spanCount,
@@ -208,13 +212,13 @@ export class TracesTableView extends EventEmitter {
 
   private rowFormatter(row: any) {
     const trace = row.getData();
+    const rowEl = row.getElement();
 
     if (this.options.disableTracesAlreadyInTheStage) {
       const inStage = !!find(this.stage.getAllTraces(), t => t.id == trace.id);
-      const rowEl = row.getElement();
 
       if (inStage) {
-        rowEl.style.color = '#bbb';
+        rowEl.style.color = '#ccc';
         rowEl.style.backgroundColor = '#fff';
         rowEl.style.cursor = 'default';
       } else {
@@ -222,6 +226,24 @@ export class TracesTableView extends EventEmitter {
         rowEl.style.color = '';
         rowEl.style.backgroundColor = '';
         rowEl.style.cursor = '';
+      }
+    }
+
+    if (this.options.indicateTracesOverlappingWithStage) {
+      if (this.stage.getAllTraces().length > 0) {
+        const stageInterval = {
+          start: this.stage.startTimestamp,
+          end: this.stage.finishTimestamp
+        };
+        const traceInterval = { start: trace.startTime, end: trace.finishTime };
+
+        if (areIntervalsOverlapping(traceInterval, stageInterval)) {
+          rowEl.style.fontWeight = '700';
+        } else {
+          rowEl.style.fontWeight = '';
+        }
+      } else {
+        rowEl.style.fontWeight = '';
       }
     }
   }

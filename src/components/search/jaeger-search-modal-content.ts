@@ -292,6 +292,7 @@ export class JaegerSearchModalContent {
       width: w,
       height: h,
       disableTracesAlreadyInTheStage: true,
+      indicateTracesOverlappingWithStage: true,
       footerElement: this.elements.tracesTableFooter.container,
       placeholderElement: this.elements.tracesTableFooterPlaceholder.container
     });
