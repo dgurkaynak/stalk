@@ -326,7 +326,7 @@ export class JaegerSearchModalContent {
     this.tracesTable.init({
       width: w,
       height: h,
-      disableTracesAlreadyInTheStage: true,
+      indicateTracesAlreadyInTheStage: true,
       indicateTracesOverlappingWithStage: true,
       footerElement: this.elements.tracesTableFooter.container,
       placeholderElement: this.elements.tracesTableFooterPlaceholder.container

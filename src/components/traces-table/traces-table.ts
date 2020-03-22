@@ -26,7 +26,7 @@ export interface TraceRowData {
 export interface TracesTableOptions {
   width: number;
   height: number;
-  disableTracesAlreadyInTheStage?: boolean;
+  indicateTracesAlreadyInTheStage?: boolean;
   indicateTracesOverlappingWithStage?: boolean;
   footerElement?: HTMLElement;
   placeholderElement?: HTMLElement;
@@ -214,16 +214,14 @@ export class TracesTableView extends EventEmitter {
     const trace = row.getData();
     const rowEl = row.getElement();
 
-    if (this.options.disableTracesAlreadyInTheStage) {
+    if (this.options.indicateTracesAlreadyInTheStage) {
       const inStage = !!find(this.stage.getAllTraces(), t => t.id == trace.id);
 
       if (inStage) {
-        rowEl.style.color = '#ccc';
-        rowEl.style.backgroundColor = '#fff';
+        rowEl.style.backgroundColor = '#ddf5e1';
         rowEl.style.cursor = 'default';
       } else {
         // For row re-using, clear the styles
-        rowEl.style.color = '';
         rowEl.style.backgroundColor = '';
         rowEl.style.cursor = '';
       }
@@ -251,7 +249,7 @@ export class TracesTableView extends EventEmitter {
   private selectableCheck(row: any) {
     const trace = row.getData();
 
-    if (this.options.disableTracesAlreadyInTheStage) {
+    if (this.options.indicateTracesAlreadyInTheStage) {
       const inStage = !!find(this.stage.getAllTraces(), t => t.id == trace.id);
       if (inStage) {
         return false;
