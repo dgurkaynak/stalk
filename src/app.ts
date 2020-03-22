@@ -45,6 +45,7 @@ import {
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
+import 'flatpickr/dist/flatpickr.min.css';
 import './app.css';
 
 export enum AppWidgetType {
