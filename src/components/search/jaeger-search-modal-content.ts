@@ -17,10 +17,12 @@ import {
 import parseDuration from 'parse-duration';
 import throttle from 'lodash/throttle';
 import find from 'lodash/find';
+import flatpickr from 'flatpickr';
 
 import SvgCircleMedium from '!!raw-loader!@mdi/svg/svg/circle-small.svg';
 import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
 import SvgAlertCircle from '!!raw-loader!@mdi/svg/svg/alert-circle.svg';
+import 'flatpickr/dist/flatpickr.min.css';
 import './jaeger-search-modal-content.css';
 
 export interface JaegerSearchModalContentOptions {
@@ -35,8 +37,11 @@ export enum JaegerLookbackValue {
   LAST_12_HOURS = '12h',
   LAST_24_HOURS = '24h',
   LAST_2_DAYS = '2d',
-  LAST_7_DAYS = '7d'
+  LAST_7_DAYS = '7d',
+  CUSTOM = 'custom'
 }
+
+const DATE_RANGE_SEPERATOR = ' - ';
 
 export class JaegerSearchModalContent {
   private dsManager = DataSourceManager.getSingleton();
@@ -44,6 +49,7 @@ export class JaegerSearchModalContent {
   private tracesTable = new TracesTableView();
   private traceResults: Trace[] = [];
   private selectedTraceIds: string[] = [];
+  private customLookbackFlatpickr: flatpickr.Instance;
   private elements = {
     container: document.createElement('div'),
     rightContainer: document.createElement('div'),
@@ -69,6 +75,7 @@ export class JaegerSearchModalContent {
       operationSelect: document.createElement('select'),
       tagsInput: document.createElement('input'),
       lookbackSelect: document.createElement('select'),
+      customLookbackInput: document.createElement('input'),
       minDurationInput: document.createElement('input'),
       maxDurationInput: document.createElement('input'),
       button: document.createElement('button')
@@ -83,6 +90,7 @@ export class JaegerSearchModalContent {
     onSearchByTraceIdFormSubmit: this.onSearchByTraceIdFormSubmit.bind(this),
     onSearcFormSubmit: this.onSearcFormSubmit.bind(this),
     onServiceSelectChange: this.onServiceSelectChange.bind(this),
+    onLookbackSelectChange: this.onLookbackSelectChange.bind(this),
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
     onTableFooterButtonClick: this.onTableFooterButtonClick.bind(this)
@@ -154,6 +162,7 @@ export class JaegerSearchModalContent {
         operationSelect,
         tagsInput,
         lookbackSelect,
+        customLookbackInput,
         minDurationInput,
         maxDurationInput,
         button
@@ -207,7 +216,10 @@ export class JaegerSearchModalContent {
       <option value="${JaegerLookbackValue.LAST_12_HOURS}">Last 12 Hours</option>
       <option value="${JaegerLookbackValue.LAST_24_HOURS}">Last 24 Hours</option>
       <option value="${JaegerLookbackValue.LAST_2_DAYS}">Last 2 Days</option>
-      <option value="${JaegerLookbackValue.LAST_7_DAYS}">Last 7 Days</option>`;
+      <option value="${JaegerLookbackValue.LAST_7_DAYS}">Last 7 Days</option>
+      <option value="${JaegerLookbackValue.CUSTOM}">Custom</option>`;
+
+      lookbackContainer.appendChild(customLookbackInput);
 
       const minDurationContainer = document.createElement('div');
       minDurationContainer.classList.add('field');
@@ -276,12 +288,35 @@ export class JaegerSearchModalContent {
       this.binded.onServiceSelectChange,
       false
     );
+    this.elements.search.lookbackSelect.addEventListener(
+      'change',
+      this.binded.onLookbackSelectChange,
+      false
+    );
     this.elements.tracesTableFooter.button.addEventListener(
       'click',
       this.binded.onTableFooterButtonClick,
       false
     );
     window.addEventListener('resize', this.binded.onWindowResize, false);
+
+    // Date range picker
+    this.customLookbackFlatpickr = flatpickr(
+      this.elements.search.customLookbackInput,
+      {
+        mode: 'range',
+        enableTime: true,
+        time_24hr: true,
+        dateFormat: 'Z',
+        altInput: true,
+        altFormat: 'M d H:i',
+        locale: {
+          rangeSeparator: DATE_RANGE_SEPERATOR
+        } as any
+      }
+    );
+    // Initially hide custom date inputs
+    this.onLookbackSelectChange();
 
     // Traces table
     // In order to get offsetWidth and height, the dom must be rendered
@@ -450,8 +485,14 @@ export class JaegerSearchModalContent {
         query.tags = formEl.tagsInput.value;
       }
 
-      if (formEl.lookbackSelect.value == 'custom') {
-        // TODO
+      if (formEl.lookbackSelect.value == JaegerLookbackValue.CUSTOM) {
+        const dateRangeValue = this.customLookbackFlatpickr.input.value.trim();
+        const parts = dateRangeValue.split(DATE_RANGE_SEPERATOR);
+        if (parts.length != 2) {
+          throw new Error(`Unsupported custom lookback`);
+        }
+        query.start = new Date(parts[0]).getTime() * 1000;
+        query.end = new Date(parts[1]).getTime() * 1000;
       } else {
         const duration = parseDuration(formEl.lookbackSelect.value);
         query.end = Date.now() * 1000;
@@ -473,7 +514,7 @@ export class JaegerSearchModalContent {
       this.elements.tracesTableFooterPlaceholder.container.style.display = '';
     } catch (err) {
       new Noty({
-        text: `Could not search: "${err.message}"`,
+        text: err.message,
         type: 'error'
       }).show();
     }
@@ -484,6 +525,17 @@ export class JaegerSearchModalContent {
 
   private onServiceSelectChange() {
     this.updateOperationsSelect();
+  }
+
+  private onLookbackSelectChange() {
+    if (
+      this.elements.search.lookbackSelect.value == JaegerLookbackValue.CUSTOM
+    ) {
+      this.customLookbackFlatpickr.altInput.style.display = '';
+      this.customLookbackFlatpickr.open();
+    } else {
+      this.customLookbackFlatpickr.altInput.style.display = 'none';
+    }
   }
 
   private onWindowResize() {
@@ -555,6 +607,11 @@ export class JaegerSearchModalContent {
       this.binded.onServiceSelectChange,
       false
     );
+    this.elements.search.lookbackSelect.removeEventListener(
+      'change',
+      this.binded.onLookbackSelectChange,
+      false
+    );
     this.elements.tracesTableFooter.button.removeEventListener(
       'click',
       this.binded.onTableFooterButtonClick,
@@ -564,5 +621,6 @@ export class JaegerSearchModalContent {
 
     Object.values(this.tippyInstaces).forEach(t => t.destroy());
     this.tracesTable.dispose();
+    this.customLookbackFlatpickr.destroy();
   }
 }

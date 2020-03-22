@@ -47,6 +47,7 @@
     "electron": "^6.0.12",
     "electron-builder": "^21.2.0",
     "events": "^3.0.0",
+    "flatpickr": "^4.6.3",
     "foreman": "^3.0.1",
     "fork-ts-checker-webpack-plugin": "^3.1.0",
     "fuse.js": "^3.4.6",
