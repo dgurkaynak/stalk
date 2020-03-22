@@ -369,7 +369,7 @@ export class JaegerSearchModalContent {
   onShow() {
     this.testApiAndUpdateStatus();
     this.updateServicesSelect();
-    this.tracesTable.redrawTable();
+    this.tracesTable.redrawTable(true);
   }
 
   private async updateServicesSelect() {
@@ -576,7 +576,6 @@ export class JaegerSearchModalContent {
     modal.close({ data: { action: 'addToStage', traces } });
 
     this.tracesTable.deselectAll();
-    this.tracesTable.redrawTable(true);
   }
 
   getElement() {
