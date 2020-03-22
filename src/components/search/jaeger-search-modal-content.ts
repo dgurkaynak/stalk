@@ -22,7 +22,6 @@ import flatpickr from 'flatpickr';
 import SvgCircleMedium from '!!raw-loader!@mdi/svg/svg/circle-small.svg';
 import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
 import SvgAlertCircle from '!!raw-loader!@mdi/svg/svg/alert-circle.svg';
-import 'flatpickr/dist/flatpickr.min.css';
 import './jaeger-search-modal-content.css';
 
 export interface JaegerSearchModalContentOptions {
@@ -311,7 +310,8 @@ export class JaegerSearchModalContent {
         altInput: true,
         altFormat: 'M d H:i',
         locale: {
-          rangeSeparator: DATE_RANGE_SEPERATOR
+          rangeSeparator: DATE_RANGE_SEPERATOR,
+          firstDayOfWeek: 1
         } as any
       }
     );
