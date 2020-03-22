@@ -76,6 +76,9 @@ export class AppToolbar {
     onDataSourceMenuListButtonClick: this.onDataSourceMenuListButtonClick.bind(
       this
     ),
+    onDataSourceMenuListTextClick: this.onDataSourceMenuListTextClick.bind(
+      this
+    ),
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
     onTracesMenuListButtonClick: this.onTracesMenuListButtonClick.bind(this),
@@ -94,7 +97,8 @@ export class AppToolbar {
     headerEl: this.elements.dataSourceMenuList.header,
     emptyEl: this.elements.dataSourceMenuList.empty,
     items: [],
-    onButtonClick: this.binded.onDataSourceMenuListButtonClick
+    onButtonClick: this.binded.onDataSourceMenuListButtonClick,
+    onTextClick: this.binded.onDataSourceMenuListTextClick
   });
   private tracesMenuList = new ToolbarMenuList({
     emptyEl: this.elements.tracesMenuListEmpty,
@@ -405,38 +409,7 @@ export class AppToolbar {
 
     switch (buttonId) {
       case 'search': {
-        let modalContent: JaegerSearchModalContent; // TODO: Or can be zipkin modal content
-        let contentContainerClassName = '';
-        let shouldInitModalContent = false;
-
-        if (ds.type == DataSourceType.JAEGER) {
-          contentContainerClassName = 'jaeger-search-modal-container';
-          modalContent = this.jaegerSearchModalContents[ds.id];
-          if (!modalContent) {
-            modalContent = new JaegerSearchModalContent({
-              dataSource: ds
-            });
-            shouldInitModalContent = true;
-            this.jaegerSearchModalContents[ds.id] = modalContent;
-          }
-        } else if (ds.type == DataSourceType.ZIPKIN) {
-          // TODO
-        } else {
-          console.error(
-            `Unknown/unsupported data source type to search: "${ds.type}"`
-          );
-          return;
-        }
-
-        const modal = new Modal({
-          content: modalContent.getElement(),
-          contentContainerClassName,
-          onClose: this.binded.onJaegerSearchModalClosed
-        });
-        ModalManager.getSingleton().show(modal);
-        shouldInitModalContent && modalContent.init(); // must be inited after render
-        modalContent.onShow();
-        this.tippyInstaces.dataSources.hide();
+        this.showDataSourceSearchModal(index);
         return;
       }
 
@@ -489,6 +462,51 @@ export class AppToolbar {
         console.error(`Unknown data source menu list button id: "${buttonId}"`);
       }
     }
+  }
+
+  private async onDataSourceMenuListTextClick(index: number) {
+    this.showDataSourceSearchModal(index);
+  }
+
+  private async showDataSourceSearchModal(index: number) {
+    const ds = this.dsManager.getAll()[index];
+    if (!ds) {
+      console.error(`Data source not found at index: ${index}`);
+      return;
+    }
+
+    let modalContent: JaegerSearchModalContent; // TODO: Or can be zipkin modal content
+    let contentContainerClassName = '';
+    let shouldInitModalContent = false;
+
+    if (ds.type == DataSourceType.JAEGER) {
+      contentContainerClassName = 'jaeger-search-modal-container';
+      modalContent = this.jaegerSearchModalContents[ds.id];
+      if (!modalContent) {
+        modalContent = new JaegerSearchModalContent({
+          dataSource: ds
+        });
+        shouldInitModalContent = true;
+        this.jaegerSearchModalContents[ds.id] = modalContent;
+      }
+    } else if (ds.type == DataSourceType.ZIPKIN) {
+      // TODO
+    } else {
+      console.error(
+        `Unknown/unsupported data source type to search: "${ds.type}"`
+      );
+      return;
+    }
+
+    const modal = new Modal({
+      content: modalContent.getElement(),
+      contentContainerClassName,
+      onClose: this.binded.onJaegerSearchModalClosed
+    });
+    ModalManager.getSingleton().show(modal);
+    shouldInitModalContent && modalContent.init(); // must be inited after render
+    modalContent.onShow();
+    this.tippyInstaces.dataSources.hide();
   }
 
   private onDataSourceRemovePopConfirmButtonClick(e: MouseEvent) {
