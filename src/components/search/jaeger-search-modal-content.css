@@ -9,10 +9,39 @@
   height: 100%;
   box-sizing: border-box;
   display: flex;
-  align-items: stretch;
+  flex-direction: column;
 }
 
-.jaeger-search-modal-content .left {
+.jaeger-search-modal-content > .top {
+  display: flex;
+  align-items: stretch;
+  flex-grow: 1;
+}
+
+.jaeger-search-modal-content > .bottom {
+  display: flex;
+  height: 3em;
+  border-top: 1px solid #ccc;
+  padding: 0 1em;
+}
+
+.jaeger-search-modal-content > .bottom .left {
+  display: flex;
+  align-items: center;
+}
+
+.jaeger-search-modal-content > .bottom .right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.jaeger-search-modal-content > .bottom .right > div {
+  margin-right: 1em;
+}
+
+.jaeger-search-modal-content > .top > .left {
   width: 22em;
   min-width: 22em;
   border-right: 1px solid #ccc;
@@ -21,93 +50,72 @@
   overflow-y: auto;
 }
 
-.jaeger-search-modal-content .right {
+.jaeger-search-modal-content > .top > .right {
   flex-grow: 2;
   overflow-y: auto;
 }
 
-.jaeger-search-modal-content .left .header {
+.jaeger-search-modal-content > .top > .left .header {
   font-size: 2.5em;
   font-weight: 600;
   margin: 0.1em 0 0.5em;
 }
 
-.jaeger-search-modal-content .left .status {
+.jaeger-search-modal-content > .top > .left .status {
   margin-left: 0.1em;
 }
 
-.jaeger-search-modal-content .left .status svg {
+.jaeger-search-modal-content > .top > .left .status svg {
   width: 0.6em;
   height: 0.6em;
 }
 
-.jaeger-search-modal-content .left .status.success svg {
+.jaeger-search-modal-content > .top > .left .status.success svg {
   fill: #52c41a;
 }
 
-.jaeger-search-modal-content .left .status.error svg {
+.jaeger-search-modal-content > .top > .left .status.error svg {
   fill: #f5222d;
 }
 
-.jaeger-search-modal-content .left .search-widget {
+.jaeger-search-modal-content > .top > .left .search-widget {
   border-radius: 0.3em;
   border: 1px solid #eee;
 }
 
-.jaeger-search-modal-content .left .search-widget .title {
+.jaeger-search-modal-content > .top > .left .search-widget .title {
   font-weight: 600;
   font-size: 1em;
   background: #eee;
   padding: 0.4em;
 }
 
-.jaeger-search-modal-content .left .search-widget form {
+.jaeger-search-modal-content > .top > .left .search-widget form {
   padding: 0.4em;
 }
 
-.jaeger-search-modal-content .left .search-by-trace-id form {
+.jaeger-search-modal-content > .top > .left .search-by-trace-id form {
   display: flex;
 }
 
-.jaeger-search-modal-content .left .search-by-trace-id form input {
+.jaeger-search-modal-content > .top > .left .search-by-trace-id form input {
   flex-grow: 1;
 }
 
-.jaeger-search-modal-content .left .search-widget.search {
+.jaeger-search-modal-content > .top > .left .search-widget.search {
   margin-top: 1em;
 }
 
-.jaeger-search-modal-content .left .search-widget.search form .field {
+.jaeger-search-modal-content > .top > .left .search-widget.search form .field {
   margin-bottom: 1em;
 }
 
-.jaeger-search-modal-content .left .search-widget.search form .field-title {
+.jaeger-search-modal-content > .top > .left .search-widget.search form .field-title {
   font-weight: 500;
 }
 
-.jaeger-search-modal-content .left .search-widget.search form .field input,
-.jaeger-search-modal-content .left .search-widget.search form .field select {
+.jaeger-search-modal-content > .top > .left .search-widget.search form .field input,
+.jaeger-search-modal-content > .top > .left .search-widget.search form .field select {
   width: 100%;
   box-sizing: border-box;
-}
-
-.jaeger-search-modal-content .table-footer {
-  height: 2.5em;
-  border-top: 1px solid #ccc;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0 1em;
-}
-
-.jaeger-search-modal-content .table-footer span {
-  margin-right: 1em;
-}
-
-.jaeger-search-modal-content .table-footer span strong {
-  font-weight: 700;
-}
-
-.jaeger-search-modal-content .table-footer button {
-
 }

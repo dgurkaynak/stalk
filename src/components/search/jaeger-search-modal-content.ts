@@ -51,17 +51,19 @@ export class JaegerSearchModalContent {
   private customLookbackFlatpickr: flatpickr.Instance;
   private elements = {
     container: document.createElement('div'),
+    leftContainer: document.createElement('div'),
     rightContainer: document.createElement('div'),
     statusContainer: document.createElement('span'),
     statusContent: document.createElement('div'),
-    tracesTableFooterPlaceholder: {
+    tracesTablePlaceholder: {
       container: document.createElement('div'),
       text: document.createElement('span')
     },
-    tracesTableFooter: {
+    bottom: {
       container: document.createElement('div'),
-      text: document.createElement('span'),
-      button: document.createElement('button')
+      closeButton: document.createElement('button'),
+      selectionText: document.createElement('div'),
+      addToStageButton: document.createElement('button')
     },
     searchByTraceId: {
       form: document.createElement('form'),
@@ -87,12 +89,13 @@ export class JaegerSearchModalContent {
   private binded = {
     onDataSourceManagerUpdate: this.onDataSourceManagerUpdate.bind(this),
     onSearchByTraceIdFormSubmit: this.onSearchByTraceIdFormSubmit.bind(this),
-    onSearcFormSubmit: this.onSearcFormSubmit.bind(this),
+    onSearcFormSubmit: this.onSearchFormSubmit.bind(this),
     onServiceSelectChange: this.onServiceSelectChange.bind(this),
     onLookbackSelectChange: this.onLookbackSelectChange.bind(this),
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
-    onTableFooterButtonClick: this.onTableFooterButtonClick.bind(this)
+    onCloseButtonClick: this.onCloseButtonClick.bind(this),
+    onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this)
   };
 
   constructor(private options: JaegerSearchModalContentOptions) {
@@ -102,17 +105,23 @@ export class JaegerSearchModalContent {
     const els = this.elements;
     els.container.classList.add('jaeger-search-modal-content');
 
-    const leftContainer = document.createElement('div');
-    leftContainer.classList.add('left');
-    els.container.appendChild(leftContainer);
+    const topContainer = document.createElement('div');
+    topContainer.classList.add('top');
+    els.container.appendChild(topContainer);
+
+    els.bottom.container.classList.add('bottom');
+    els.container.appendChild(els.bottom.container);
+
+    els.leftContainer.classList.add('left');
+    topContainer.appendChild(els.leftContainer);
 
     els.rightContainer.classList.add('right');
-    els.container.appendChild(els.rightContainer);
+    topContainer.appendChild(els.rightContainer);
 
     // Left container
     const headerContainer = document.createElement('div');
     headerContainer.classList.add('header');
-    leftContainer.appendChild(headerContainer);
+    els.leftContainer.appendChild(headerContainer);
 
     const title = document.createElement('span');
     title.classList.add('title');
@@ -126,7 +135,7 @@ export class JaegerSearchModalContent {
     {
       const container = document.createElement('div');
       container.classList.add('search-widget', 'search-by-trace-id');
-      leftContainer.appendChild(container);
+      els.leftContainer.appendChild(container);
 
       const title = document.createElement('div');
       title.classList.add('title');
@@ -149,7 +158,7 @@ export class JaegerSearchModalContent {
     {
       const container = document.createElement('div');
       container.classList.add('search-widget', 'search');
-      leftContainer.appendChild(container);
+      els.leftContainer.appendChild(container);
 
       const title = document.createElement('div');
       title.classList.add('title');
@@ -246,19 +255,33 @@ export class JaegerSearchModalContent {
       form.appendChild(button);
     }
 
-    // Table footer
-    els.tracesTableFooter.container.classList.add('table-footer');
-    els.tracesTableFooter.container.style.display = 'none';
-    els.tracesTableFooter.container.appendChild(els.tracesTableFooter.text);
-    els.tracesTableFooter.button.textContent = 'Add Trace(s)';
-    els.tracesTableFooter.container.appendChild(els.tracesTableFooter.button);
-
     // Table placeholder
-    const elsTP = els.tracesTableFooterPlaceholder;
+    const elsTP = els.tracesTablePlaceholder;
     elsTP.container.style.display = 'none';
     elsTP.container.classList.add('tabulator-placeholder');
     elsTP.text.textContent = 'No traces found';
     elsTP.container.appendChild(elsTP.text);
+
+    // Bottom
+    {
+      const leftContainer = document.createElement('div');
+      leftContainer.classList.add('left');
+      els.bottom.container.appendChild(leftContainer);
+
+      const rightContainer = document.createElement('div');
+      rightContainer.classList.add('right');
+      els.bottom.container.appendChild(rightContainer);
+
+      els.bottom.closeButton.textContent = 'Close';
+      leftContainer.appendChild(els.bottom.closeButton);
+
+      els.bottom.selectionText.innerHTML = 'No trace selected';
+      rightContainer.appendChild(els.bottom.selectionText);
+
+      els.bottom.addToStageButton.textContent = 'Add to Stage';
+      els.bottom.addToStageButton.disabled = true;
+      rightContainer.appendChild(els.bottom.addToStageButton);
+    }
   }
 
   init() {
@@ -293,9 +316,14 @@ export class JaegerSearchModalContent {
       this.binded.onLookbackSelectChange,
       false
     );
-    this.elements.tracesTableFooter.button.addEventListener(
+    this.elements.bottom.closeButton.addEventListener(
       'click',
-      this.binded.onTableFooterButtonClick,
+      this.binded.onCloseButtonClick,
+      false
+    );
+    this.elements.bottom.addToStageButton.addEventListener(
+      'click',
+      this.binded.onAddToStageButtonClick,
       false
     );
     window.addEventListener('resize', this.binded.onWindowResize, false);
@@ -329,8 +357,7 @@ export class JaegerSearchModalContent {
       height: h,
       indicateTracesAlreadyInTheStage: true,
       indicateTracesOverlappingWithStage: true,
-      footerElement: this.elements.tracesTableFooter.container,
-      placeholderElement: this.elements.tracesTableFooterPlaceholder.container
+      placeholderElement: this.elements.tracesTablePlaceholder.container
     });
   }
 
@@ -439,7 +466,7 @@ export class JaegerSearchModalContent {
     this.traceResults = [];
     this.elements.searchByTraceId.button.disabled = true;
     this.tracesTable.toggleLoading(true);
-    this.elements.tracesTableFooterPlaceholder.container.style.display = 'none';
+    this.elements.tracesTablePlaceholder.container.style.display = 'none';
 
     try {
       const formEl = this.elements.searchByTraceId;
@@ -448,7 +475,7 @@ export class JaegerSearchModalContent {
       this.traceResults = traceSpans.map(spans => new Trace(spans));
       this.tracesTable.updateTraces(this.traceResults);
 
-      this.elements.tracesTableFooterPlaceholder.container.style.display = '';
+      this.elements.tracesTablePlaceholder.container.style.display = '';
     } catch (err) {
       new Noty({
         text: `Could not search: "${err.message}"`,
@@ -460,13 +487,13 @@ export class JaegerSearchModalContent {
     this.tracesTable.toggleLoading(false);
   }
 
-  private async onSearcFormSubmit(e: Event) {
+  private async onSearchFormSubmit(e: Event) {
     e.preventDefault();
 
     this.traceResults = [];
     this.elements.search.button.disabled = true;
     this.tracesTable.toggleLoading(true);
-    this.elements.tracesTableFooterPlaceholder.container.style.display = 'none';
+    this.elements.tracesTablePlaceholder.container.style.display = 'none';
 
     try {
       const formEl = this.elements.search;
@@ -512,7 +539,7 @@ export class JaegerSearchModalContent {
       this.traceResults = traceSpans.map(spans => new Trace(spans));
       this.tracesTable.updateTraces(this.traceResults);
 
-      this.elements.tracesTableFooterPlaceholder.container.style.display = '';
+      this.elements.tracesTablePlaceholder.container.style.display = '';
     } catch (err) {
       new Noty({
         text: err.message,
@@ -547,25 +574,32 @@ export class JaegerSearchModalContent {
   private async onTableSelectionUpdated(selectedTraces: TraceRowData[]) {
     // When we try to redraw tabulator while it's already redrawing,
     // it gives an error. So, we apply the most famous javascript workaround ever.
-    await new Promise(resolve => setTimeout(resolve, 0));
+    // await new Promise(resolve => setTimeout(resolve, 0));
     this.selectedTraceIds = selectedTraces.map(t => t.id);
 
     if (selectedTraces.length == 0) {
-      this.elements.tracesTableFooter.container.style.display = 'none';
-      this.tracesTable.redrawTable();
+      this.elements.bottom.addToStageButton.disabled = true;
+      this.elements.bottom.selectionText.textContent = 'No trace selected';
       return;
     }
 
-    this.elements.tracesTableFooter.container.style.display = '';
     let text = `${selectedTraces.length} traces`;
     if (selectedTraces.length == 1) {
       text = `1 trace`;
     }
-    this.elements.tracesTableFooter.text.innerHTML = `<strong>${text}</strong> selected`;
-    this.tracesTable.redrawTable();
+    this.elements.bottom.selectionText.innerHTML = `<strong>${text}</strong> selected`;
+    this.elements.bottom.addToStageButton.disabled = false;
   }
 
-  private onTableFooterButtonClick() {
+  private onCloseButtonClick() {
+    const modal = ModalManager.getSingleton().findModalFromElement(
+      this.elements.container
+    );
+    if (!modal) throw new Error(`Could not find modal instance`);
+    modal.close();
+  }
+
+  private onAddToStageButtonClick() {
     const traces = this.selectedTraceIds.map(traceId => {
       return find(this.traceResults, t => t.id == traceId);
     });
@@ -612,9 +646,14 @@ export class JaegerSearchModalContent {
       this.binded.onLookbackSelectChange,
       false
     );
-    this.elements.tracesTableFooter.button.removeEventListener(
+    this.elements.bottom.closeButton.removeEventListener(
       'click',
-      this.binded.onTableFooterButtonClick,
+      this.binded.onCloseButtonClick,
+      false
+    );
+    this.elements.bottom.addToStageButton.removeEventListener(
+      'click',
+      this.binded.onAddToStageButtonClick,
       false
     );
     window.removeEventListener('resize', this.binded.onWindowResize, false);

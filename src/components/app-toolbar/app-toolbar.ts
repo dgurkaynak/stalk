@@ -430,8 +430,6 @@ export class AppToolbar {
 
         const modal = new Modal({
           content: modalContent.getElement(),
-          shouldCloseOnEscPress: true,
-          shouldCloseOnOverlayClick: true,
           contentContainerClassName,
           onClose: this.binded.onJaegerSearchModalClosed
         });
@@ -587,7 +585,7 @@ export class AppToolbar {
     data: any
   ) {
     if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
-    if (data.action != 'addToStage') return;
+    if (data?.action != 'addToStage') return;
     (data.traces as Trace[]).forEach(t => this.stage.addTrace(undefined, t));
   }
 
