@@ -136,6 +136,7 @@ export class JaegerSearchModalContent {
       const { form, input, button } = this.elements.searchByTraceId;
       container.appendChild(form);
 
+      input.required = true;
       input.placeholder = 'Trace ID';
       form.appendChild(input);
 
