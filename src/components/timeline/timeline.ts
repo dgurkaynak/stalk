@@ -466,7 +466,7 @@ export class Timeline extends EventEmitter {
     this.layout(ctx);
     if (isSelectedSpanRemoved) {
       ctx.addTags({ isSelectedSpanRemoved });
-      this.selectSpan(null);
+      this.selectSpan(null, true);
     }
     return true;
   }

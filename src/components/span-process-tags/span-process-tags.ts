@@ -1,5 +1,5 @@
 import Fuse from 'fuse.js';
-import { Stage } from '../../model/stage';
+import { Stage, StageEvent } from '../../model/stage';
 import debounce from 'lodash/debounce';
 import { Timeline, TimelineEvent } from '../timeline/timeline';
 import {
@@ -42,7 +42,8 @@ export class SpanProcessTagsView {
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
     onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
-    onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this)
+    onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this),
+    onStageTraceRemoved: this.onStageTraceRemoved.bind(this)
   };
 
   constructor() {
@@ -108,6 +109,7 @@ export class SpanProcessTagsView {
       LogsTableViewEvent.LOG_SELECTED,
       this.binded.onLogsTableLogSelected
     );
+    this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
 
     // Initial render
     this.render();
@@ -204,6 +206,15 @@ export class SpanProcessTagsView {
     this.render();
   }
 
+  private onStageTraceRemoved() {
+    if (!this.selectedSpanId) return;
+    const doesStillExist = !!this.stage
+      .getMainSpanGroup()
+      .get(this.selectedSpanId);
+    if (doesStillExist) return;
+    this.updateSpan(null);
+  }
+
   mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }
@@ -230,6 +241,14 @@ export class SpanProcessTagsView {
     this.spansTable.removeListener(
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
+    );
+    this.logsTable.removeListener(
+      LogsTableViewEvent.LOG_SELECTED,
+      this.binded.onLogsTableLogSelected
+    );
+    this.stage.removeListener(
+      StageEvent.TRACE_REMOVED,
+      this.binded.onStageTraceRemoved
     );
   }
 }

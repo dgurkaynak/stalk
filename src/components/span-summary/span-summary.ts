@@ -1,5 +1,5 @@
 import find from 'lodash/find';
-import { Stage } from '../../model/stage';
+import { Stage, StageEvent } from '../../model/stage';
 import { Timeline, TimelineEvent } from '../timeline/timeline';
 import {
   SpansTableView,
@@ -26,7 +26,8 @@ export class SpanSummaryView {
   private binded = {
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
     onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
-    onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this)
+    onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this),
+    onStageTraceRemoved: this.onStageTraceRemoved.bind(this)
   };
 
   constructor() {
@@ -56,6 +57,7 @@ export class SpanSummaryView {
       LogsTableViewEvent.LOG_SELECTED,
       this.binded.onLogsTableLogSelected
     );
+    this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
 
     // Initial render
     this.render(
@@ -156,6 +158,15 @@ export class SpanSummaryView {
     </div>`;
   }
 
+  private onStageTraceRemoved() {
+    if (!this.selectedSpanId) return;
+    const doesStillExist = !!this.stage
+      .getMainSpanGroup()
+      .get(this.selectedSpanId);
+    if (doesStillExist) return;
+    this.render(null);
+  }
+
   mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }
@@ -177,6 +188,14 @@ export class SpanSummaryView {
     this.spansTable.removeListener(
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
+    );
+    this.logsTable.removeListener(
+      LogsTableViewEvent.LOG_SELECTED,
+      this.binded.onLogsTableLogSelected
+    );
+    this.stage.removeListener(
+      StageEvent.TRACE_REMOVED,
+      this.binded.onStageTraceRemoved
     );
   }
 }

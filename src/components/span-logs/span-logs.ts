@@ -1,5 +1,5 @@
 import Fuse from 'fuse.js';
-import { Stage } from '../../model/stage';
+import { Stage, StageEvent } from '../../model/stage';
 import debounce from 'lodash/debounce';
 import { Timeline, TimelineEvent } from '../timeline/timeline';
 import {
@@ -50,7 +50,8 @@ export class SpanLogsView {
     onCollapseAllClick: this.onCollapseAllClick.bind(this),
     onMouseMove: this.onMouseMove.bind(this),
     onMouseLeave: this.onMouseLeave.bind(this),
-    onScroll: this.onScroll.bind(this)
+    onScroll: this.onScroll.bind(this),
+    onStageTraceRemoved: this.onStageTraceRemoved.bind(this)
   };
 
   constructor() {
@@ -152,6 +153,7 @@ export class SpanLogsView {
       this.binded.onMouseLeave,
       false
     );
+    this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
 
     // Initial render
     this.render();
@@ -304,6 +306,15 @@ export class SpanLogsView {
     this.timeline.hideLogVerticalLine();
   }
 
+  private onStageTraceRemoved() {
+    if (!this.selectedSpanId) return;
+    const doesStillExist = !!this.stage
+      .getMainSpanGroup()
+      .get(this.selectedSpanId);
+    if (doesStillExist) return;
+    this.updateSpan(null);
+  }
+
   mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }
@@ -331,6 +342,10 @@ export class SpanLogsView {
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
     );
+    this.logsTable.removeListener(
+      LogsTableViewEvent.LOG_SELECTED,
+      this.binded.onLogsTableLogSelected
+    );
     this.elements.toolbarBtn.expandAll.removeEventListener(
       'click',
       this.binded.onExpandAllClick,
@@ -355,6 +370,10 @@ export class SpanLogsView {
       'scroll',
       this.binded.onScroll,
       false
+    );
+    this.stage.removeListener(
+      StageEvent.TRACE_REMOVED,
+      this.binded.onStageTraceRemoved
     );
   }
 }
