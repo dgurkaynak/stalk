@@ -408,19 +408,17 @@ export class App {
     this.dropZoneEl.style.display = 'none';
     const errorMessages = [] as string[];
 
-    for (let i = 0; i < e.dataTransfer.items.length; i++) {
+    const tasks = Array.from(e.dataTransfer.items).map(async item => {
       // If dropped items aren't files, reject them
-      const item = e.dataTransfer.items[i];
-
       if (item.kind != 'file') {
         errorMessages.push('Only files can be dropped');
-        continue;
+        return;
       }
 
       const file = item.getAsFile();
       if (file.type != 'application/json') {
         errorMessages.push(`${file.name}: Not a JSON file`);
-        continue;
+        return;
       }
 
       let fileContent = '';
@@ -430,7 +428,7 @@ export class App {
         errorMessages.push(
           `${file.name}: Could not read its content -- ${err.message}`
         );
-        continue;
+        return;
       }
 
       let parsedJson: any;
@@ -438,7 +436,7 @@ export class App {
         parsedJson = JSON.parse(fileContent);
       } catch (err) {
         errorMessages.push(`${file.name}: Invalid JSON`);
-        continue;
+        return;
       }
 
       const isJaeger = isJaegerJSON(parsedJson);
@@ -446,7 +444,7 @@ export class App {
 
       if (!isJaeger && !isZipkin) {
         errorMessages.push(`${file.name}: Unrecognized Jaeger/Zipkin JSON`);
-        continue;
+        return;
       }
 
       if (isJaeger) {
@@ -470,10 +468,11 @@ export class App {
           this.stage.addTrace(null, trace);
         } else {
           errorMessages.push(`${file.name}: Unrecognized Zipkin format`);
-          continue;
         }
       }
-    }
+    });
+
+    await Promise.all(tasks);
 
     if (errorMessages.length > 0) {
       const text = `Following errors occured while importing:
