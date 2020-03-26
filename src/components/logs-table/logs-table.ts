@@ -380,6 +380,21 @@ export class LogsTableView extends EventEmitter {
       });
     });
 
+    // There may be left-over columns in the table, which means that
+    // column is added when some trace is added in stage. However that trace
+    // removed now, and that column is not existing in future stage state.
+    // When that happens, there is no way to remove that columns.
+    currentColumns.forEach(col => {
+      if (!!find(items, item => item.text == col.title)) return;
+      items.push({
+        id: col.title,
+        text: col.title,
+        category:
+          col.title.indexOf(FIELD_ID_PREFIX) == 0 ? 'Log Fields' : undefined,
+        selected: true
+      });
+    });
+
     this.columnsMultiSelect.updateItems(items);
   }
 
