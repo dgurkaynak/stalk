@@ -1,6 +1,8 @@
 import { Span } from '../interfaces';
 import { Trace } from '../trace';
 import { SpanGroupingOptions } from './span-grouping';
+import omit from 'lodash/omit';
+import objectHash from 'object-hash';
 
 export default <SpanGroupingOptions>{
   key: 'process',
@@ -11,11 +13,9 @@ export default <SpanGroupingOptions>{
 
     // jaeger
     if (span.process) {
-      processId = span.process.id;
-      // processId is like `p1`, `p2`, `p3` and if multiple trace is added to
-      // stage, it can cause to misconfigure. So you need to identify them with
-      // also traceID and some-kind-of merge them if their data is matched
-      processName = `${processId}:${span.process.serviceName}`;
+      // Don't care jaeger's trace specific process ids like p1, p2...
+      processId = objectHash(omit(span.process, 'id'));
+      processName = span.process.serviceName;
     }
 
     // zipkin
