@@ -596,7 +596,7 @@ export class Timeline extends EventEmitter {
       if (!groupNameCounter[group.name]) groupNameCounter[group.name] = 0;
       groupNameCounter[group.name]++;
       if (groupNameCounter[group.name] > 1) {
-        groupLabel = `${group.name}-${groupNameCounter[group.name]}`;
+        groupLabel = `${group.name} ${groupNameCounter[group.name]}`;
       }
 
       const groupView = new GroupView(group, {
