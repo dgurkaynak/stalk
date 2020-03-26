@@ -36,6 +36,7 @@ export default class GroupView {
   options = {
     isCollapsed: false
   };
+  private label: string;
 
   private container = document.createElementNS(SVG_NS, 'g');
   private seperatorLine = document.createElementNS(SVG_NS, 'line');
@@ -55,10 +56,12 @@ export default class GroupView {
     options: {
       width: number;
       layoutType: GroupLayoutType;
+      label?: string;
     }
   ) {
     this.spanGroup = group;
     this.layoutType = options.layoutType;
+    this.label = options.label;
 
     this.seperatorLine.setAttribute('x1', '0');
     this.seperatorLine.setAttribute('x2', options.width + '');
@@ -71,7 +74,8 @@ export default class GroupView {
     );
 
     const prefixChar = this.options.isCollapsed ? '►' : '▼';
-    this.labelText.textContent = `${prefixChar} ${this.spanGroup.name}`;
+    this.labelText.textContent = `${prefixChar} ${this.label ||
+      this.spanGroup.name}`;
     this.labelText.style.cursor = 'pointer';
     this.labelText.setAttribute('fill', vc.groupLabelColor);
     this.labelText.setAttribute('x', '0');
@@ -128,7 +132,8 @@ export default class GroupView {
     this.options.isCollapsed = !this.options.isCollapsed;
 
     const prefixChar = this.options.isCollapsed ? '►' : '▼';
-    this.labelText.textContent = `${prefixChar} ${this.spanGroup.name}`;
+    this.labelText.textContent = `${prefixChar} ${this.label ||
+      this.spanGroup.name}`;
     // this.updateLabelTextDecoration();
 
     this.layout(ctx);

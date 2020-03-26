@@ -39,11 +39,19 @@ import { SpanTooltipContent } from '../span-tooltip/span-tooltip-content';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { Span } from '../../model/interfaces';
 import VerticalLineDecoration from './decorations/vertical-line';
-import { ContextMenuManager, ContextMenuEvent } from '../ui/context-menu/context-menu-manager';
+import {
+  ContextMenuManager,
+  ContextMenuEvent
+} from '../ui/context-menu/context-menu-manager';
 import { clipboard } from 'electron';
 import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
-import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
+import {
+  Stalk,
+  NewTrace,
+  ChildOf,
+  FollowsFrom
+} from '../../utils/self-tracing/trace-decorator';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -382,7 +390,10 @@ export class Timeline extends EventEmitter {
   }
 
   @Stalk({ handler: ChildOf })
-  updateGroupLayoutMode(ctx: opentracing.Span, groupLayoutType: GroupLayoutType) {
+  updateGroupLayoutMode(
+    ctx: opentracing.Span,
+    groupLayoutType: GroupLayoutType
+  ) {
     this.groupLayoutMode = groupLayoutType;
     this.groupViews.forEach(g => {
       g.setLayoutType(groupLayoutType);
@@ -394,7 +405,10 @@ export class Timeline extends EventEmitter {
   }
 
   @Stalk({ handler: ChildOf })
-  updateSpanGrouping(ctx: opentracing.Span, spanGroupingOptions: SpanGroupingOptions) {
+  updateSpanGrouping(
+    ctx: opentracing.Span,
+    spanGroupingOptions: SpanGroupingOptions
+  ) {
     // TODO: Dispose previous grouping maybe?
     this.spanGrouping = new SpanGrouping(spanGroupingOptions);
     this.traces.forEach(t =>
@@ -567,16 +581,28 @@ export class Timeline extends EventEmitter {
     );
 
     this.groupViews.forEach(v => v.dispose());
-    ctx.log({ message: `Disposed old group views`, groupViewCount: this.groupViews.length });
+    ctx.log({
+      message: `Disposed old group views`,
+      groupViewCount: this.groupViews.length
+    });
     this.groupViews = [];
 
     const groups = this.spanGrouping
       .getAllGroups()
       .sort((a, b) => a.startTimestamp - b.startTimestamp);
+    const groupNameCounter: { [key: string]: number } = {};
     groups.forEach(group => {
+      let groupLabel = group.name;
+      if (!groupNameCounter[group.name]) groupNameCounter[group.name] = 0;
+      groupNameCounter[group.name]++;
+      if (groupNameCounter[group.name] > 1) {
+        groupLabel = `${group.name}-${groupNameCounter[group.name]}`;
+      }
+
       const groupView = new GroupView(group, {
         width: this._width,
-        layoutType: this.groupLayoutMode
+        layoutType: this.groupLayoutMode,
+        label: groupLabel
       });
       groupView.init({
         groupNamePanel: this.groupNamePanel,
