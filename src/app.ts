@@ -356,29 +356,25 @@ export class App {
   }
 
   private onTimelineSpanSelected(spanId: string) {
-    if (this.widgets[AppWidgetType.SPANS_TABLE].isVisible) {
-      this.spansTable.selectSpan(spanId, true);
-      this.spansTable.focusSpan(spanId);
-    }
+    this.spansTable.selectSpan(spanId, true);
+    this.spansTable.focusSpan(spanId);
+
+    this.logsTable.selectLog(null, true);
   }
 
   private onSpansTableSpanSelected(spanId: string) {
-    if (this.widgets[AppWidgetType.TIMELINE].isVisible) {
-      this.timeline.timeline.selectSpan(spanId, true);
-      this.timeline.timeline.focusSpans([spanId]);
-    }
+    this.timeline.timeline.selectSpan(spanId, true);
+    this.timeline.timeline.focusSpans([spanId]);
+
+    this.logsTable.selectLog(null, true);
   }
 
   private onLogsTableLogSelected(logData: any) {
-    if (this.widgets[AppWidgetType.TIMELINE].isVisible) {
-      this.timeline.timeline.selectSpan(logData.span.id, true);
-      this.timeline.timeline.focusSpans([logData.span.id]);
-    }
+    this.timeline.timeline.selectSpan(logData.span.id, true);
+    this.timeline.timeline.focusSpans([logData.span.id]);
 
-    if (this.widgets[AppWidgetType.SPANS_TABLE].isVisible) {
-      this.spansTable.selectSpan(logData.span.id, true);
-      this.spansTable.focusSpan(logData.span.id);
-    }
+    this.spansTable.selectSpan(logData.span.id, true);
+    this.spansTable.focusSpan(logData.span.id);
   }
 
   private onWindowResize() {
