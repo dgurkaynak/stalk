@@ -16,8 +16,8 @@
   border-bottom-color: #ddd;
 }
 
-.spans-table-view .tabulator-col:last-of-type {
-  border-right: 0;
+.spans-table-view .tabulator-row .tabulator-cell:last-of-type {
+  border-right: 1px solid #ddd;
 }
 
 .spans-table-view .tabulator-col.tabulator-sortable[aria-sort="none"] .tabulator-arrow {
