@@ -509,12 +509,6 @@ export class LogsTableView extends EventEmitter {
         return 0;
       })
       .forEach(fieldKey => {
-        const hasSeperateColumn = !!find(
-          currentColumns,
-          col => col.field == getColumnFieldSelectorByFieldKey(fieldKey)
-        );
-        if (hasSeperateColumn) return;
-
         const value = logRowData.fields[fieldKey];
 
         // When adding/removing fields, tabulator adds a property

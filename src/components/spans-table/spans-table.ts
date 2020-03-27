@@ -519,12 +519,6 @@ export class SpansTableView extends EventEmitter {
         return 0;
       })
       .forEach(tag => {
-        const hasSeperateColumn = !!find(
-          currentColumns,
-          col => col.field == `span.tags.${tag}`
-        );
-        if (hasSeperateColumn) return;
-
         const value = spanRowData.span.tags[tag];
 
         // When adding/removing fields, tabulator adds a property
@@ -552,12 +546,6 @@ export class SpansTableView extends EventEmitter {
         return 0;
       })
       .forEach(tag => {
-        const hasSeperateColumn = !!find(
-          currentColumns,
-          col => col.field == `span.process.tags.${tag}`
-        );
-        if (hasSeperateColumn) return;
-
         const value = spanRowData.span.process.tags[tag];
 
         // When adding/removing fields, tabulator adds a property
