@@ -562,7 +562,7 @@ export class App {
 
   private async showSpanInTableView(spanId: string) {
     if (!spanId) return;
-    await this.spansTable.clearSearch();
+    await this.spansTable.removeFilter();
     this.spansTable.selectSpan(spanId, true);
     this.dockPanel.activateWidget(this.widgets[AppWidgetType.SPANS_TABLE]);
 

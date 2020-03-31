@@ -13,7 +13,6 @@ import { Span } from '../../model/interfaces';
 import find from 'lodash/find';
 import remove from 'lodash/remove';
 import sampleSize from 'lodash/sampleSize';
-import debounce from 'lodash/debounce';
 import { clipboard } from 'electron';
 import cloneDeep from 'lodash/cloneDeep';
 import EventEmitter from 'events';
@@ -29,8 +28,16 @@ import {
   ChildOf,
   FollowsFrom
 } from '../../utils/self-tracing/trace-decorator';
+import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
+import { ModalManager } from '../ui/modal/modal-manager';
+import {
+  SpanFilteringFormModalContent,
+  SpanFilteringRawOptions
+} from '../customization/span-filtering-form-modal-content';
+import Noty from 'noty';
 
-import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
+import SvgFilter from '!!raw-loader!@mdi/svg/svg/filter.svg';
+import SvgFilterRemove from '!!raw-loader!@mdi/svg/svg/filter-remove.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
 import '../ui/widget-toolbar/widget-toolbar.css';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -61,9 +68,10 @@ export class SpansTableView extends EventEmitter {
     container: document.createElement('div'),
     toolbar: document.createElement('div'),
     toolbarBtn: {
+      filter: document.createElement('div'),
+      removeFilter: document.createElement('div'),
       columns: document.createElement('div')
     },
-    searchInput: document.createElement('input'),
     tableContainer: document.createElement('div')
   };
   private viewPropertiesCache = {
@@ -79,11 +87,13 @@ export class SpansTableView extends EventEmitter {
     onColumnsMultiSelectSearchInput: this.onColumnsMultiSelectSearchInput.bind(
       this
     ),
+    onFilterButtonClick: this.onFilterButtonClick.bind(this),
+    onRemoveFilterButtonClick: this.onRemoveFilterButtonClick.bind(this),
+    onSpanFilteringModalClose: this.onSpanFilteringModalClose.bind(this),
     formatTimestamp: this.formatTimestamp.bind(this),
     formatDuration: this.formatDuration.bind(this),
     formatTags: this.formatTags.bind(this),
     formatProcessTags: this.formatProcessTags.bind(this),
-    onSearchInput: debounce(this.onSearchInput.bind(this), 100),
     onRowClick: this.onRowClick.bind(this),
     onRowContext: this.onRowContext.bind(this),
     onKeyDown: this.onKeyDown.bind(this)
@@ -151,6 +161,10 @@ export class SpansTableView extends EventEmitter {
     emptyMessage: 'No Spans'
   });
 
+  private spanFilteringFn: (span: Span) => boolean;
+  private spanFilteringFormModalContent: SpanFilteringFormModalContent;
+  private spanFilteringRawOptions: SpanFilteringRawOptions;
+
   constructor() {
     super();
 
@@ -180,14 +194,15 @@ export class SpansTableView extends EventEmitter {
     rightPane.classList.add('widget-toolbar-pane', 'right');
     toolbarEl.appendChild(rightPane);
 
-    // Search icon & input
-    const searchContainer = document.createElement('div');
-    searchContainer.classList.add('search-container');
-    leftPane.appendChild(searchContainer);
-    searchContainer.innerHTML = SvgMagnify;
-    this.elements.searchInput.type = 'search';
-    this.elements.searchInput.placeholder = 'Search...';
-    searchContainer.appendChild(this.elements.searchInput);
+    // Left buttons
+    btn.filter.classList.add('widget-toolbar-button');
+    btn.filter.innerHTML = SvgFilter;
+    leftPane.appendChild(btn.filter);
+
+    btn.removeFilter.classList.add('widget-toolbar-button');
+    btn.removeFilter.innerHTML = SvgFilterRemove;
+    btn.removeFilter.classList.add('disabled');
+    leftPane.appendChild(btn.removeFilter);
 
     // Right buttons
     btn.columns.classList.add('widget-toolbar-button');
@@ -207,9 +222,14 @@ export class SpansTableView extends EventEmitter {
     // Bind events
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onTraceRemoved);
-    this.elements.searchInput.addEventListener(
-      'input',
-      this.binded.onSearchInput,
+    this.elements.toolbarBtn.filter.addEventListener(
+      'click',
+      this.binded.onFilterButtonClick,
+      false
+    );
+    this.elements.toolbarBtn.removeFilter.addEventListener(
+      'click',
+      this.binded.onRemoveFilterButtonClick,
       false
     );
     this.elements.container.addEventListener(
@@ -254,6 +274,24 @@ export class SpansTableView extends EventEmitter {
   private initTooltips(ctx: opentracing.Span) {
     const tooltipManager = TooltipManager.getSingleton();
     const btn = this.elements.toolbarBtn;
+    tooltipManager.addToSingleton([
+      [
+        btn.filter,
+        {
+          content: 'Filter Spans',
+          multiple: true
+        }
+      ]
+    ]);
+    tooltipManager.addToSingleton([
+      [
+        btn.removeFilter,
+        {
+          content: 'Remove Span Filter',
+          multiple: true
+        }
+      ]
+    ]);
     tooltipManager.addToSingleton([
       [
         btn.columns,
@@ -560,13 +598,27 @@ export class SpansTableView extends EventEmitter {
   }
 
   private async updateTableData() {
-    const searchQuery = this.elements.searchInput.value.trim();
-    if (searchQuery) {
-      // Simple (case insensitive, contains like) search
-      const results = this.simpleSearch(searchQuery);
+    const filterFn = this.spanFilteringFn;
+    if (filterFn) {
+      try {
+        const results = this.spanRows.filter(spanRow => {
+          const s = spanRow.span;
+          return filterFn(spanRow.span);
+        });
 
-      await this.table.replaceData(results);
-      this.updateRowSelectionGracefully();
+        await this.table.replaceData(results);
+        this.updateRowSelectionGracefully();
+      } catch (err) {
+        console.error(err);
+        new Noty({
+          text:
+            `Unexpected error while filtering spans: "${err.message} <br /><br />"` +
+            `Please check your console for further details. Press Command+Option+I or Ctrl+Option+I to ` +
+            `open devtools.`,
+          type: 'error'
+        }).show();
+      }
+
       return;
     }
 
@@ -579,8 +631,62 @@ export class SpansTableView extends EventEmitter {
     this.selectSpan(this.selectedSpanId, true);
   }
 
-  async clearSearch() {
-    this.elements.searchInput.value = '';
+  private showFilterModal() {
+    this.spanFilteringFormModalContent = new SpanFilteringFormModalContent({
+      rawOptions: this.spanFilteringRawOptions
+    });
+    const modal = new Modal({
+      content: this.spanFilteringFormModalContent.getElement(),
+      onClose: this.binded.onSpanFilteringModalClose
+    });
+    ModalManager.getSingleton().show(modal);
+    this.spanFilteringFormModalContent.init(); // must be called after modal is rendered
+  }
+
+  private onFilterButtonClick() {
+    this.showFilterModal();
+  }
+
+  private async onSpanFilteringModalClose(
+    triggerType: ModalCloseTriggerType,
+    data: any
+  ) {
+    if (this.spanFilteringFormModalContent) {
+      this.spanFilteringFormModalContent.dispose();
+      this.spanFilteringFormModalContent = null;
+    }
+
+    if (
+      triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL ||
+      data.action != 'save'
+    ) {
+      return;
+    }
+
+    this.spanFilteringRawOptions = {
+      key: 'custom',
+      name: 'Custom',
+      rawCode: data.tsCode,
+      compiledCode: data.compiledJSCode
+    };
+    this.spanFilteringFn = data.filterBy;
+
+    this.elements.toolbarBtn.filter.classList.add('selected');
+    this.elements.toolbarBtn.removeFilter.classList.remove('disabled');
+
+    await this.updateTableData();
+  }
+
+  private async onRemoveFilterButtonClick() {
+    await this.removeFilter();
+  }
+
+  async removeFilter() {
+    this.spanFilteringFn = null;
+
+    this.elements.toolbarBtn.filter.classList.remove('selected');
+    this.elements.toolbarBtn.removeFilter.classList.add('disabled');
+
     await this.updateTableData();
   }
 
@@ -612,24 +718,6 @@ export class SpansTableView extends EventEmitter {
     this.table.scrollToRow(spanId);
   }
 
-  private simpleSearch(keyword: string) {
-    keyword = keyword.toLowerCase();
-    return this.spanRows.filter(spanRow => {
-      const s = spanRow.span;
-      if (s.id.toLowerCase().indexOf(keyword) > -1) return true;
-      if (s.traceId.toLowerCase().indexOf(keyword) > -1) return true;
-      if (s.operationName.toLowerCase().indexOf(keyword) > -1) return true;
-      if (spanRow.serviceName.toLowerCase().indexOf(keyword) > -1) return true;
-      const tagsStr = JSON.stringify(s.tags || {}).toLowerCase();
-      if (tagsStr.indexOf(keyword) > -1) return true;
-      const processTagsStr = JSON.stringify(
-        s.process ? s.process.tags || {} : {}
-      ).toLowerCase();
-      if (processTagsStr.indexOf(keyword) > -1) return true;
-      return false;
-    });
-  }
-
   redrawTable() {
     // Tabulator's layout mode `fitDataFill` is a little buggy
     // When the widget is not shown, a new trace is added
@@ -650,10 +738,6 @@ export class SpansTableView extends EventEmitter {
     }
 
     this.table.redraw(forceRerender);
-  }
-
-  private async onSearchInput(e: InputEvent) {
-    await this.updateTableData();
   }
 
   private onRowClick(e: any, row: Tabulator.RowComponent) {
@@ -710,7 +794,7 @@ export class SpansTableView extends EventEmitter {
 
     // CMD + F => Focus to search input elemen
     if (e.key == 'f' && (e.ctrlKey || e.metaKey)) {
-      this.elements.searchInput.focus();
+      this.showFilterModal();
       return;
     }
 
@@ -743,9 +827,14 @@ export class SpansTableView extends EventEmitter {
     this.table?.destroy();
     this.table = null;
 
-    this.elements.searchInput.removeEventListener(
-      'input',
-      this.binded.onSearchInput,
+    this.elements.toolbarBtn.filter.removeEventListener(
+      'click',
+      this.binded.onFilterButtonClick,
+      false
+    );
+    this.elements.toolbarBtn.removeFilter.removeEventListener(
+      'click',
+      this.binded.onRemoveFilterButtonClick,
       false
     );
     this.elements.container.removeEventListener(
