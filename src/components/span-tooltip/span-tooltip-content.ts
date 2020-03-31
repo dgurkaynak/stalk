@@ -3,7 +3,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import SpanView from '../timeline/span-view';
 import { formatMicroseconds } from '../../utils/format-microseconds';
 import Axis from '../timeline/axis';
-import Stage from '../../model/stage';
+import { Stage } from '../../model/stage';
 import { serviceNameOf } from '../../model/span-grouping/service-name';
 
 import './span-tooltip.css';

@@ -1,6 +1,6 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { TypeScriptManager } from './typescript-manager';
-import Stage from '../../model/stage';
+import { Stage } from '../../model/stage';
 import { Span } from '../../model/interfaces';
 import * as shortid from 'shortid';
 import {
