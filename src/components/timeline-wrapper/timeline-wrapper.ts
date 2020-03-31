@@ -37,7 +37,13 @@ import { Stage } from '../../model/stage';
 import { clipboard } from 'electron';
 import * as opentracing from 'opentracing';
 import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
-import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
+import {
+  Stalk,
+  NewTrace,
+  ChildOf,
+  FollowsFrom
+} from '../../utils/self-tracing/trace-decorator';
+import Noty from 'noty';
 
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
 import SvgFormatColorFill from '!!raw-loader!@mdi/svg/svg/format-color-fill.svg';
@@ -93,20 +99,33 @@ export class TimelineWrapper {
 
   private binded = {
     onSpanGroupingModeMenuItemClick: this.onSpanGroupingModeMenuItemClick.bind(
-      this, null
+      this,
+      null
     ),
     onCustomSpanGroupingModalClose: this.onCustomSpanGroupingModalClose.bind(
-      this, null
+      this,
+      null
     ),
-    onSpanLabellingMenuItemClick: this.onSpanLabellingMenuItemClick.bind(this, null),
+    onSpanLabellingMenuItemClick: this.onSpanLabellingMenuItemClick.bind(
+      this,
+      null
+    ),
     onCustomSpanLabellingModalClose: this.onCustomSpanLabellingModalClose.bind(
-      this, null
+      this,
+      null
     ),
-    onSpanColoringMenuItemClick: this.onSpanColoringMenuItemClick.bind(this, null),
+    onSpanColoringMenuItemClick: this.onSpanColoringMenuItemClick.bind(
+      this,
+      null
+    ),
     onCustomSpanColoringModalClose: this.onCustomSpanColoringModalClose.bind(
-      this, null
+      this,
+      null
     ),
-    onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(this, null),
+    onGroupLayoutMenuItemClick: this.onGroupLayoutMenuItemClick.bind(
+      this,
+      null
+    ),
     onMoveToolClick: this.onMoveToolClick.bind(this),
     onRulerToolClick: this.onRulerToolClick.bind(this),
     onSpanTooltipCustomizationMultiSelectSelect: this.onSpanTooltipCustomizationMultiSelectSelect.bind(
@@ -267,6 +286,8 @@ export class TimelineWrapper {
     rightPane.appendChild(btn.spanTooltipCustomization);
   }
 
+  // can throw
+  // - this.timeline.addTrace
   @Stalk({ handler: ChildOf })
   init(ctx: opentracing.Span, options: { width: number; height: number }) {
     this.timeline.init(ctx, {
@@ -304,7 +325,9 @@ export class TimelineWrapper {
     );
 
     // Initial data
-    this.stage.getAllTraces().forEach(trace => this.timeline.addTrace(ctx, trace));
+    this.stage
+      .getAllTraces()
+      .forEach(trace => this.timeline.addTrace(ctx, trace));
   }
 
   @Stalk({ handler: ChildOf })
@@ -509,11 +532,14 @@ export class TimelineWrapper {
   }
 
   @Stalk({ handler: NewTrace })
-  private onSpanGroupingModeMenuItemClick(ctx: opentracing.Span, item: WidgetToolbarSelectItem) {
+  private onSpanGroupingModeMenuItemClick(
+    ctx: opentracing.Span,
+    item: WidgetToolbarSelectItem
+  ) {
     ctx.addTags({
       itemType: item.type,
       itemId: (item as any).id,
-      itemText: (item as any).text,
+      itemText: (item as any).text
     });
     if (item.type == 'divider') return;
     this.dropdowns.groupingMode.hide();
@@ -542,14 +568,27 @@ export class TimelineWrapper {
       item.id
     );
     if (!spanGroupingOptions) {
-      // TODO: Show error
-      // message.error(`Unknown span grouping: "${item.id}"`);
+      new Noty({
+        text: `Unknown span grouping: "${item.id}"`,
+        type: 'error'
+      }).show();
       return;
     }
 
-    this.timeline.updateSpanGrouping(ctx, spanGroupingOptions);
-    this.spanGroupingMode = item.id;
-    this.spanGroupingModeMenu.select(item.id);
+    try {
+      this.timeline.updateSpanGrouping(ctx, spanGroupingOptions);
+      this.spanGroupingMode = item.id;
+      this.spanGroupingModeMenu.select(item.id);
+    } catch (err) {
+      console.error(err);
+      new Noty({
+        text:
+          `Unexpected error while grouping spans or layout: "${err.message} <br /><br />"` +
+          `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
+          `open devtools.`,
+        type: 'error'
+      }).show();
+    }
   }
 
   @Stalk({ handler: NewTrace })
@@ -558,7 +597,11 @@ export class TimelineWrapper {
     triggerType: ModalCloseTriggerType,
     data: any
   ) {
-    ctx.addTags({ triggerType, tsCode: data.tsCode, compiledJSCode: data.compiledJSCode });
+    ctx.addTags({
+      triggerType,
+      tsCode: data.tsCode,
+      compiledJSCode: data.compiledJSCode
+    });
 
     if (this.customSpanGroupingFormModalContent) {
       this.customSpanGroupingFormModalContent.dispose();
@@ -578,21 +621,36 @@ export class TimelineWrapper {
       rawCode: data.tsCode,
       compiledCode: data.compiledJSCode
     };
-    this.spanGroupingMode = 'custom';
-    this.spanGroupingModeMenu.select('custom');
-    this.timeline.updateSpanGrouping(ctx, {
-      key: 'custom',
-      name: 'Custom',
-      groupBy: data.groupBy
-    });
+
+    try {
+      this.timeline.updateSpanGrouping(ctx, {
+        key: 'custom',
+        name: 'Custom',
+        groupBy: data.groupBy
+      });
+      this.spanGroupingMode = 'custom';
+      this.spanGroupingModeMenu.select('custom');
+    } catch (err) {
+      console.error(err);
+      new Noty({
+        text:
+          `Unexpected error while grouping spans or layout: "${err.message} <br /><br />"` +
+          `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
+          `open devtools.`,
+        type: 'error'
+      }).show();
+    }
   }
 
   @Stalk({ handler: NewTrace })
-  private onSpanLabellingMenuItemClick(ctx: opentracing.Span, item: WidgetToolbarSelectItem) {
+  private onSpanLabellingMenuItemClick(
+    ctx: opentracing.Span,
+    item: WidgetToolbarSelectItem
+  ) {
     ctx.addTags({
       itemType: item.type,
       itemId: (item as any).id,
-      itemText: (item as any).text,
+      itemText: (item as any).text
     });
     if (item.type == 'divider') return;
     this.dropdowns.spanLabellingMode.hide();
@@ -625,9 +683,20 @@ export class TimelineWrapper {
       return;
     }
 
-    this.timeline.updateSpanLabelling(ctx, spanLabellingOptions);
-    this.spanLabellingMode = item.id;
-    this.spanLabellingModeMenu.select(item.id);
+    try {
+      this.timeline.updateSpanLabelling(ctx, spanLabellingOptions);
+      this.spanLabellingMode = item.id;
+      this.spanLabellingModeMenu.select(item.id);
+    } catch (err) {
+      console.error(err);
+      new Noty({
+        text:
+          `Unexpected error while labelling spans: "${err.message} <br /><br />"` +
+          `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
+          `open devtools.`,
+        type: 'error'
+      });
+    }
   }
 
   @Stalk({ handler: NewTrace })
@@ -636,7 +705,11 @@ export class TimelineWrapper {
     triggerType: ModalCloseTriggerType,
     data: any
   ) {
-    ctx.addTags({ triggerType, tsCode: data.tsCode, compiledJSCode: data.compiledJSCode });
+    ctx.addTags({
+      triggerType,
+      tsCode: data.tsCode,
+      compiledJSCode: data.compiledJSCode
+    });
 
     if (this.customSpanLabellingFormModalContent) {
       this.customSpanLabellingFormModalContent.dispose();
@@ -656,21 +729,36 @@ export class TimelineWrapper {
       rawCode: data.tsCode,
       compiledCode: data.compiledJSCode
     };
-    this.spanLabellingMode = 'custom';
-    this.spanLabellingModeMenu.select('custom');
-    this.timeline.updateSpanLabelling(ctx, {
-      key: 'custom',
-      name: 'Custom',
-      labelBy: data.labelBy
-    });
+
+    try {
+      this.timeline.updateSpanLabelling(ctx, {
+        key: 'custom',
+        name: 'Custom',
+        labelBy: data.labelBy
+      });
+      this.spanLabellingMode = 'custom';
+      this.spanLabellingModeMenu.select('custom');
+    } catch (err) {
+      console.error(err);
+      new Noty({
+        text:
+          `Unexpected error while labelling spans: "${err.message} <br /><br />"` +
+          `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
+          `open devtools.`,
+        type: 'error'
+      });
+    }
   }
 
   @Stalk({ handler: NewTrace })
-  private onSpanColoringMenuItemClick(ctx: opentracing.Span, item: WidgetToolbarSelectItem) {
+  private onSpanColoringMenuItemClick(
+    ctx: opentracing.Span,
+    item: WidgetToolbarSelectItem
+  ) {
     ctx.addTags({
       itemType: item.type,
       itemId: (item as any).id,
-      itemText: (item as any).text,
+      itemText: (item as any).text
     });
     if (item.type == 'divider') return;
     this.dropdowns.spanColoringMode.hide();
@@ -699,14 +787,27 @@ export class TimelineWrapper {
       item.id
     );
     if (!spanColoringOptions) {
-      // TODO:
-      // message.error(`Unknown span coloring: "${item.id}"`);
+      new Noty({
+        text:` Unknown span coloring: "${item.id}"`,
+        type: 'error'
+      });
       return;
     }
 
-    this.timeline.updateSpanColoring(ctx, spanColoringOptions);
-    this.spanColoringMode = item.id;
-    this.spanColoringModeMenu.select(item.id);
+    try {
+      this.timeline.updateSpanColoring(ctx, spanColoringOptions);
+      this.spanColoringMode = item.id;
+      this.spanColoringModeMenu.select(item.id);
+    } catch (err) {
+      console.error(err);
+      new Noty({
+        text:
+          `Unexpected error while coloring spans: "${err.message} <br /><br />"` +
+          `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
+          `open devtools.`,
+        type: 'error'
+      }).show();
+    }
   }
 
   @Stalk({ handler: NewTrace })
@@ -715,7 +816,11 @@ export class TimelineWrapper {
     triggerType: ModalCloseTriggerType,
     data: any
   ) {
-    ctx.addTags({ triggerType, tsCode: data.tsCode, compiledJSCode: data.compiledJSCode });
+    ctx.addTags({
+      triggerType,
+      tsCode: data.tsCode,
+      compiledJSCode: data.compiledJSCode
+    });
 
     if (this.customSpanColoringFormModalContent) {
       this.customSpanColoringFormModalContent.dispose();
@@ -735,17 +840,32 @@ export class TimelineWrapper {
       rawCode: data.tsCode,
       compiledCode: data.compiledJSCode
     };
-    this.spanColoringMode = 'custom';
-    this.spanColoringModeMenu.select('custom');
-    this.timeline.updateSpanColoring(ctx, {
-      key: 'custom',
-      name: 'Custom',
-      colorBy: data.colorBy
-    });
+
+    try {
+      this.timeline.updateSpanColoring(ctx, {
+        key: 'custom',
+        name: 'Custom',
+        colorBy: data.colorBy
+      });
+      this.spanColoringMode = 'custom';
+      this.spanColoringModeMenu.select('custom');
+    } catch (err) {
+      console.error(err);
+      new Noty({
+        text:
+          `Unexpected error while coloring spans: "${err.message} <br /><br />"` +
+          `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
+          `open devtools.`,
+        type: 'error'
+      }).show();
+    }
   }
 
   @Stalk({ handler: NewTrace })
-  private onGroupLayoutMenuItemClick(ctx: opentracing.Span, item: WidgetToolbarSelectItem) {
+  private onGroupLayoutMenuItemClick(
+    ctx: opentracing.Span,
+    item: WidgetToolbarSelectItem
+  ) {
     ctx.addTags({
       itemType: item.type,
       itemId: (item as any).id,
@@ -880,14 +1000,36 @@ export class TimelineWrapper {
 
   @Stalk({ handler: ChildOf })
   addTrace(ctx: opentracing.Span, trace: Trace) {
-    this.timeline.addTrace(ctx, trace);
-    this.updateSpanTooltipCustomizationMultiSelect(ctx);
+    try {
+      this.timeline.addTrace(ctx, trace);
+      this.updateSpanTooltipCustomizationMultiSelect(ctx);
+    } catch (err) {
+      console.error(err);
+      new Noty({
+        text:
+          `Unexpected error while adding trace: "${err.message} <br /><br />"` +
+          `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
+          `open devtools.`,
+        type: 'error'
+      }).show();
+    }
   }
 
   @Stalk({ handler: ChildOf })
   removeTrace(ctx: opentracing.Span, trace: Trace) {
-    this.timeline.removeTrace(ctx, trace);
-    this.updateSpanTooltipCustomizationMultiSelect(ctx);
+    try {
+      this.timeline.removeTrace(ctx, trace);
+      this.updateSpanTooltipCustomizationMultiSelect(ctx);
+    } catch (err) {
+      console.error(err);
+      new Noty({
+        text:
+          `Unexpected error while adding trace: "${err.message} <br /><br />"` +
+          `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
+          `open devtools.`,
+        type: 'error'
+      }).show();
+    }
   }
 
   mount(parentEl: HTMLElement) {
