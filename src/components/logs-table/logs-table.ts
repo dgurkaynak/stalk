@@ -30,8 +30,17 @@ import {
   FollowsFrom
 } from '../../utils/self-tracing/trace-decorator';
 import EventEmitter from 'events';
+import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
+import { ModalManager } from '../ui/modal/modal-manager';
+import {
+  LogFilteringFormModalContent,
+  LogFilteringRawOptions
+} from '../customization/log-filtering-form-modal-content';
+import Noty from 'noty';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
+import SvgFilter from '!!raw-loader!@mdi/svg/svg/filter.svg';
+import SvgFilterRemove from '!!raw-loader!@mdi/svg/svg/filter-remove.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
 import '../ui/widget-toolbar/widget-toolbar.css';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -64,9 +73,10 @@ export class LogsTableView extends EventEmitter {
     container: document.createElement('div'),
     toolbar: document.createElement('div'),
     toolbarBtn: {
+      filter: document.createElement('div'),
+      removeFilter: document.createElement('div'),
       columns: document.createElement('div')
     },
-    searchInput: document.createElement('input'),
     tableContainer: document.createElement('div')
   };
   private viewPropertiesCache = {
@@ -82,10 +92,12 @@ export class LogsTableView extends EventEmitter {
     onColumnsMultiSelectSearchInput: this.onColumnsMultiSelectSearchInput.bind(
       this
     ),
+    onFilterButtonClick: this.onFilterButtonClick.bind(this),
+    onRemoveFilterButtonClick: this.onRemoveFilterButtonClick.bind(this),
+    onLogFilteringModalClose: this.onLogFilteringModalClose.bind(this),
     formatTimestamp: this.formatTimestamp.bind(this),
     formatDuration: this.formatDuration.bind(this),
     formatFields: this.formatFields.bind(this),
-    onSearchInput: debounce(this.onSearchInput.bind(this), 100),
     onRowClick: this.onRowClick.bind(this),
     onRowContext: this.onRowContext.bind(this),
     onKeyDown: this.onKeyDown.bind(this)
@@ -140,6 +152,10 @@ export class LogsTableView extends EventEmitter {
     emptyMessage: 'No Logs'
   });
 
+  private logFilteringFn: (log: SpanLog, span: Span) => boolean;
+  private logFilteringFormModalContent: LogFilteringFormModalContent;
+  private logFilteringRawOptions: LogFilteringRawOptions;
+
   constructor() {
     super();
 
@@ -169,14 +185,15 @@ export class LogsTableView extends EventEmitter {
     rightPane.classList.add('widget-toolbar-pane', 'right');
     toolbarEl.appendChild(rightPane);
 
-    // Search icon & input
-    const searchContainer = document.createElement('div');
-    searchContainer.classList.add('search-container');
-    leftPane.appendChild(searchContainer);
-    searchContainer.innerHTML = SvgMagnify;
-    this.elements.searchInput.type = 'search';
-    this.elements.searchInput.placeholder = 'Search...';
-    searchContainer.appendChild(this.elements.searchInput);
+    // Left buttons
+    btn.filter.classList.add('widget-toolbar-button');
+    btn.filter.innerHTML = SvgFilter;
+    leftPane.appendChild(btn.filter);
+
+    btn.removeFilter.classList.add('widget-toolbar-button');
+    btn.removeFilter.innerHTML = SvgFilterRemove;
+    btn.removeFilter.classList.add('disabled');
+    leftPane.appendChild(btn.removeFilter);
 
     // Right buttons
     btn.columns.classList.add('widget-toolbar-button');
@@ -196,9 +213,14 @@ export class LogsTableView extends EventEmitter {
     // Bind events
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onTraceRemoved);
-    this.elements.searchInput.addEventListener(
-      'input',
-      this.binded.onSearchInput,
+    this.elements.toolbarBtn.filter.addEventListener(
+      'click',
+      this.binded.onFilterButtonClick,
+      false
+    );
+    this.elements.toolbarBtn.removeFilter.addEventListener(
+      'click',
+      this.binded.onRemoveFilterButtonClick,
       false
     );
     this.elements.container.addEventListener(
@@ -243,6 +265,24 @@ export class LogsTableView extends EventEmitter {
   private initTooltips(ctx: opentracing.Span) {
     const tooltipManager = TooltipManager.getSingleton();
     const btn = this.elements.toolbarBtn;
+    tooltipManager.addToSingleton([
+      [
+        btn.filter,
+        {
+          content: 'Filter Logs',
+          multiple: true
+        }
+      ]
+    ]);
+    tooltipManager.addToSingleton([
+      [
+        btn.removeFilter,
+        {
+          content: 'Remove Log Filter',
+          multiple: true
+        }
+      ]
+    ]);
     tooltipManager.addToSingleton([
       [
         btn.columns,
@@ -523,13 +563,26 @@ export class LogsTableView extends EventEmitter {
   }
 
   private async updateTableData() {
-    const searchQuery = this.elements.searchInput.value.trim();
-    if (searchQuery) {
-      // Simple (case insensitive, contains like) search
-      const results = this.simpleSearch(searchQuery);
+    const filterFn = this.logFilteringFn;
+    if (filterFn) {
+      try {
+        const results = this.logRows.filter(logRow => {
+          return filterFn(logRow, logRow.span);
+        });
 
-      await this.table.replaceData(results);
-      this.updateRowSelectionGracefully();
+        await this.table.replaceData(results);
+        this.updateRowSelectionGracefully();
+      } catch (err) {
+        console.error(err);
+        new Noty({
+          text:
+            `Unexpected error while filtering spans: "${err.message} <br /><br />"` +
+            `Please check your console for further details. Press Command+Option+I or Ctrl+Option+I to ` +
+            `open devtools.`,
+          type: 'error'
+        }).show();
+      }
+
       return;
     }
 
@@ -542,8 +595,62 @@ export class LogsTableView extends EventEmitter {
     this.selectLog(this.selectedLogId, true);
   }
 
-  async clearSearch() {
-    this.elements.searchInput.value = '';
+  private showFilterModal() {
+    this.logFilteringFormModalContent = new LogFilteringFormModalContent({
+      rawOptions: this.logFilteringRawOptions
+    });
+    const modal = new Modal({
+      content: this.logFilteringFormModalContent.getElement(),
+      onClose: this.binded.onLogFilteringModalClose
+    });
+    ModalManager.getSingleton().show(modal);
+    this.logFilteringFormModalContent.init(); // must be called after modal is rendered
+  }
+
+  private onFilterButtonClick() {
+    this.showFilterModal();
+  }
+
+  private async onLogFilteringModalClose(
+    triggerType: ModalCloseTriggerType,
+    data: any
+  ) {
+    if (this.logFilteringFormModalContent) {
+      this.logFilteringFormModalContent.dispose();
+      this.logFilteringFormModalContent = null;
+    }
+
+    if (
+      triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL ||
+      data.action != 'save'
+    ) {
+      return;
+    }
+
+    this.logFilteringRawOptions = {
+      key: 'custom',
+      name: 'Custom',
+      rawCode: data.tsCode,
+      compiledCode: data.compiledJSCode
+    };
+    this.logFilteringFn = data.filterBy;
+
+    this.elements.toolbarBtn.filter.classList.add('selected');
+    this.elements.toolbarBtn.removeFilter.classList.remove('disabled');
+
+    await this.updateTableData();
+  }
+
+  private async onRemoveFilterButtonClick() {
+    await this.removeFilter();
+  }
+
+  async removeFilter() {
+    this.logFilteringFn = null;
+
+    this.elements.toolbarBtn.filter.classList.remove('selected');
+    this.elements.toolbarBtn.removeFilter.classList.add('disabled');
+
     await this.updateTableData();
   }
 
@@ -577,20 +684,6 @@ export class LogsTableView extends EventEmitter {
     this.table.scrollToRow(logId);
   }
 
-  private simpleSearch(keyword: string) {
-    keyword = keyword.toLowerCase();
-    return this.logRows.filter(logRow => {
-      const s = logRow.span;
-      if (s.id.toLowerCase().indexOf(keyword) > -1) return true;
-      if (s.traceId.toLowerCase().indexOf(keyword) > -1) return true;
-      if (s.operationName.toLowerCase().indexOf(keyword) > -1) return true;
-      if (logRow.serviceName.toLowerCase().indexOf(keyword) > -1) return true;
-      const fieldsStr = JSON.stringify(logRow.fields || {}).toLowerCase();
-      if (fieldsStr.indexOf(keyword) > -1) return true;
-      return false;
-    });
-  }
-
   redrawTable() {
     // Tabulator's layout mode `fitDataFill` is a little buggy
     // When the widget is not shown, a new trace is added
@@ -611,10 +704,6 @@ export class LogsTableView extends EventEmitter {
     }
 
     this.table.redraw(forceRerender);
-  }
-
-  private async onSearchInput(e: InputEvent) {
-    await this.updateTableData();
   }
 
   private onRowClick(e: any, row: Tabulator.RowComponent) {
@@ -690,7 +779,7 @@ export class LogsTableView extends EventEmitter {
 
     // CMD + F => Focus to search input elemen
     if (e.key == 'f' && (e.ctrlKey || e.metaKey)) {
-      this.elements.searchInput.focus();
+      this.showFilterModal();
       return;
     }
 
@@ -721,9 +810,14 @@ export class LogsTableView extends EventEmitter {
     this.table?.destroy();
     this.table = null;
 
-    this.elements.searchInput.removeEventListener(
-      'input',
-      this.binded.onSearchInput,
+    this.elements.toolbarBtn.filter.removeEventListener(
+      'click',
+      this.binded.onFilterButtonClick,
+      false
+    );
+    this.elements.toolbarBtn.removeFilter.removeEventListener(
+      'click',
+      this.binded.onRemoveFilterButtonClick,
       false
     );
     this.elements.container.removeEventListener(

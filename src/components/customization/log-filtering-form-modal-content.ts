@@ -1,7 +1,7 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import { TypeScriptManager } from './typescript-manager';
 import { Stage } from '../../model/stage';
-import { Span } from '../../model/interfaces';
+import { Span, SpanLog } from '../../model/interfaces';
 import * as shortid from 'shortid';
 import throttle from 'lodash/throttle';
 import isBoolean from 'lodash/isBoolean';
@@ -14,25 +14,25 @@ import AlertCircleOutlineSvg from '!!raw-loader!@mdi/svg/svg/alert-circle-outlin
 import CloseCircleOutlineSvg from '!!raw-loader!@mdi/svg/svg/close-circle-outline.svg';
 import './form-modal-content.css';
 
-export interface SpanFilteringRawOptions {
+export interface LogFilteringRawOptions {
   key: string;
   name: string;
   rawCode: string;
   compiledCode: string;
 }
 
-export interface SpanFilteringOptions {
+export interface LogFilteringOptions {
   key: string;
   name: string;
-  filterBy: (span: Span) => boolean;
+  filterBy: (log: SpanLog, span: Span) => boolean;
 }
 
-export interface SpanFilteringFormModalContentOptions {
+export interface LogFilteringFormModalContentOptions {
   // showNameField?: boolean; // TODO: Implement it when you need it!
-  rawOptions?: SpanFilteringRawOptions;
+  rawOptions?: LogFilteringRawOptions;
 }
 
-export class SpanFilteringFormModalContent {
+export class LogFilteringFormModalContent {
   private elements = {
     container: document.createElement('div'),
     monacoContainer: document.createElement('div'),
@@ -57,7 +57,7 @@ export class SpanFilteringFormModalContent {
     )
   };
 
-  constructor(private options: SpanFilteringFormModalContentOptions) {
+  constructor(private options: LogFilteringFormModalContentOptions) {
     // Prepare DOM
     const els = this.elements;
     els.container.classList.add('customization-form-modal-content');
@@ -120,9 +120,9 @@ export class SpanFilteringFormModalContent {
   private initMonacoEditor() {
     const code = this.options.rawOptions
       ? this.options.rawOptions.rawCode
-      : `// Do something with "span" and return a boolean\n` +
-        `function filterBy(span: Span): boolean {\n` +
-        `    return (/keyword/ig).test(span.operationName);\n` +
+      : `// Do something with "log" and "span" and return a boolean\n` +
+        `function filterBy(log: SpanLog, span: Span): boolean {\n` +
+        `    return !!log.fields.error;\n` +
         `}\n`;
 
     this.model = monaco.editor.createModel(code, 'typescript');
@@ -172,7 +172,7 @@ export class SpanFilteringFormModalContent {
       const result = await this.test();
 
       this.elements.saveButton.disabled = false;
-      if (result.testedSpans.length == 0) {
+      if (result.testedLogs.length == 0) {
         this.showTestResult({
           type: 'warning',
           title: 'No spans in the stage to test',
@@ -185,15 +185,15 @@ export class SpanFilteringFormModalContent {
           type: 'success',
           title: 'Test successful',
           body: `Span filtering function seems OK. It's tested on ${
-            result.testedSpans.length
+            result.testedLogs.length
           } span(s) in
             the stage and here are some samples: <br />
             <ul>
-              ${sampleSize(result.testedSpans, 5)
+              ${sampleSize(result.testedLogs, 5)
                 .map(
                   test =>
                     `<li>
-                  ${test.span.operationName} => <pre>${test.rv}</pre>
+                  ${test.logSpan[1].operationName} => <pre>${test.rv}</pre>
                 </li>`
                 )
                 .join('')}
@@ -258,26 +258,27 @@ export class SpanFilteringFormModalContent {
       throw err;
     }
 
-    const spansToTest = this.stage.getAllSpans();
-    const testedSpans: { span: Span; rv: boolean }[] = [];
-    for (let span of spansToTest) {
-      const rv = filterByFn(span);
+    const logsSpansToTest = this.stage.getAllLogs();
+    const testedLogs: { logSpan: [SpanLog, Span]; rv: boolean }[] = [];
+    for (let [log, span] of logsSpansToTest) {
+      const rv = filterByFn(log, span);
       if (!isBoolean(rv)) {
         console.error(
-          `Return value of "filterBy" function must be a boolean, but recieved "${typeof rv}" for span`,
+          `Return value of "filterBy" function must be a boolean, but recieved "${typeof rv}" for log and span`,
+          log,
           span
         );
         const err = new Error(`Function returned not a boolean`);
         (err as any).description =
           `Return value of "filterBy" function has to be a string, but got "${typeof rv}" ` +
-          `for a span. Please check your console for further details. Press Command+Option+I or Ctrl+Option+I to ` +
+          `for log & span. Please check your console for further details. Press Command+Option+I or Ctrl+Option+I to ` +
           `open devtools.`;
         throw err;
       }
-      testedSpans.push({ span, rv });
+      testedLogs.push({ logSpan: [log, span], rv });
     }
 
-    return { tsCode, compiledJSCode, filterBy: filterByFn, testedSpans };
+    return { tsCode, compiledJSCode, filterBy: filterByFn, testedLogs };
   }
 
   dispose() {
