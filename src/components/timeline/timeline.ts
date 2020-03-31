@@ -404,6 +404,9 @@ export class Timeline extends EventEmitter {
     this.keepPanelTraslateYInScreen();
   }
 
+  // can throw
+  // - this.spanGrouping.addSpan
+  // - this.layout
   @Stalk({ handler: ChildOf })
   updateSpanGrouping(
     ctx: opentracing.Span,
@@ -418,6 +421,8 @@ export class Timeline extends EventEmitter {
     this.layout(ctx);
   }
 
+  // can throw
+  // - s.updateColors
   @Stalk({ handler: ChildOf })
   updateSpanColoring(ctx: opentracing.Span, options: SpanColoringOptions) {
     this.spanViewSharedOptions.colorFor = options.colorBy;
@@ -427,6 +432,8 @@ export class Timeline extends EventEmitter {
     });
   }
 
+  // can throw
+  // - s.updateLabelText
   @Stalk({ handler: ChildOf })
   updateSpanLabelling(ctx: opentracing.Span, options: SpanLabellingOptions) {
     this.spanViewSharedOptions.labelFor = options.labelBy;
@@ -444,6 +451,9 @@ export class Timeline extends EventEmitter {
     this._tool = tool;
   }
 
+  // can throw
+  // - this.spanGrouping.addSpan
+  // - this.layout
   @Stalk({ handler: ChildOf })
   addTrace(ctx: opentracing.Span, trace: Trace) {
     const idMatch = find(this.traces, t => t.id === trace.id);
@@ -460,6 +470,8 @@ export class Timeline extends EventEmitter {
     return true;
   }
 
+  // can throw
+  // - this.layout
   @Stalk({ handler: ChildOf })
   removeTrace(ctx: opentracing.Span, trace: Trace) {
     const removeds = remove(this.traces, t => t.id === trace.id);
@@ -566,6 +578,8 @@ export class Timeline extends EventEmitter {
     return acc;
   }
 
+  // can throw
+  // - groupView.init
   @Stalk({ handler: ChildOf })
   layout(ctx: opentracing.Span) {
     let startTimestamp = Infinity;

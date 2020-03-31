@@ -25,6 +25,9 @@ export class SpanGrouping {
     // Noop
   }
 
+  // can throw
+  // - invalid return type
+  // - this.options.groupBy
   addSpan(span: Span, trace: Trace) {
     if (this.spanIdToGroupId[span.id]) return;
 

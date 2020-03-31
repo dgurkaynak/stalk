@@ -88,6 +88,8 @@ export default class GroupView {
     this.labelText.setAttribute('data-group-id', this.spanGroup.id);
   }
 
+  // can throw
+  // - spanView.reuse
   init(options: {
     groupNamePanel: SVGGElement;
     timelinePanel: SVGGElement;

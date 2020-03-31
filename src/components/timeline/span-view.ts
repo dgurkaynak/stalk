@@ -89,6 +89,9 @@ export default class SpanView {
     parent2?.removeChild(this.clipPath);
   }
 
+  // can throw
+  // - this.sharedOptions.colorFor
+  // - this.updateLabelText
   reuse(span: Span) {
     this.span = span;
 
@@ -149,6 +152,8 @@ export default class SpanView {
     this.unmount();
   }
 
+  // Can throw
+  // - this.sharedOptions.labelFor
   updateLabelText() {
     this.labelText.textContent = this.sharedOptions.labelFor(this.span);
   }
@@ -226,6 +231,8 @@ export default class SpanView {
     this.labelText.setAttribute('display', width < 30 ? 'none' : '');
   }
 
+  // can throw
+  // - this.sharedOptions.colorFor
   updateColors() {
     const baseColor = this.sharedOptions.colorFor(this.span);
     this.viewPropertiesCache.barColorDefault = chroma(baseColor)
