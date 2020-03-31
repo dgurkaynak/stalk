@@ -208,7 +208,9 @@ export class LogsTableView extends EventEmitter {
     );
 
     // Prepare initial data
-    this.logRows = this.stage.getAllLogs().map(log => this.log2RowData(log));
+    this.logRows = this.stage
+      .getAllLogs()
+      .map(([log, span]) => this.log2RowData(log, span));
 
     // Init table
     this.table = new Tabulator(this.elements.tableContainer, {
@@ -279,11 +281,13 @@ export class LogsTableView extends EventEmitter {
     trace.spans.forEach(span => {
       span.logs.forEach(log => {
         if (log.fields.error) includesErrorField = true;
-        const rowData = this.log2RowData({
-          span,
-          timestamp: log.timestamp,
-          fields: cloneDeep(log.fields)
-        });
+        const rowData = this.log2RowData(
+          {
+            timestamp: log.timestamp,
+            fields: cloneDeep(log.fields)
+          },
+          span
+        );
         Object.keys(rowData.fields).forEach(fieldKey => {
           if (!fieldCounts[fieldKey]) fieldCounts[fieldKey] = 0;
           fieldCounts[fieldKey]++;
@@ -469,18 +473,14 @@ export class LogsTableView extends EventEmitter {
     this.dropdowns.columnsSelection.popperInstance.update();
   }
 
-  private log2RowData(log: {
-    span: Span;
-    timestamp: number;
-    fields: { [key: string]: string };
-  }) {
-    const spanTimestamp = log.timestamp - log.span.startTime;
-    const serviceName = serviceNameOf(log.span);
+  private log2RowData(log: SpanLog, span: Span) {
+    const spanTimestamp = log.timestamp - span.startTime;
+    const serviceName = serviceNameOf(span);
     const fieldsCopy = cloneDeep(log.fields);
 
     return {
       id: shortid.generate(),
-      span: log.span,
+      span: span,
       timestamp: log.timestamp,
       spanTimestamp,
       fields: fieldsCopy,
