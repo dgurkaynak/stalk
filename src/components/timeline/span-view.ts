@@ -135,8 +135,8 @@ export default class SpanView {
     this.logViews = this.span.logs.map(log => {
       const id = shortid.generate();
       const line = document.createElementNS(SVG_NS, 'line');
-      line.setAttribute('y1', '-3');
-      line.setAttribute('y2', spanBarHeight + 3 + '');
+      line.setAttribute('y1', '-4');
+      line.setAttribute('y2', spanBarHeight + 4 + '');
       line.setAttribute('stroke-width', '1');
       // line.setAttribute('clip-path', `url(#${this.clipPath.id})`);
 
