@@ -6,6 +6,7 @@
  *    - this kind of error is not explicity indicated with red
  * - any annotation value contains `error` keyword (not tag)
  *    - this is indicated with yellow mark (https://github.com/openzipkin/zipkin/issues/2138#issuecomment-405787230)
+ *    - TODO: This not a bad idea!
  *
  * Jaeger:
  * - https://github.com/opentracing/specification/blob/master/semantic_conventions.md
@@ -17,7 +18,7 @@
  * - log has `level` field, and its value is `error` (in hotrod demo)
  */
 
-import { Span } from './interfaces';
+import { Span, SpanLog } from './interfaces';
 
 export function checkSpan(span: Span) {
   return span.tags.hasOwnProperty('error');
@@ -25,6 +26,14 @@ export function checkSpan(span: Span) {
 
 export function checkTag(key: string, value: any) {
   if (key == 'error') return true;
+  return false;
+}
+
+export function checkLog(log: SpanLog) {
+  for (const key in log.fields) {
+    const value = log.fields[key];
+    if (checkLogField(key, value)) return true;
+  }
   return false;
 }
 

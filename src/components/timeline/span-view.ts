@@ -137,9 +137,14 @@ export default class SpanView {
       const line = document.createElementNS(SVG_NS, 'line');
       line.setAttribute('y1', '-3');
       line.setAttribute('y2', spanBarHeight + 3 + '');
-      line.setAttribute('stroke', 'rgba(0, 0, 0, 0.5)');
       line.setAttribute('stroke-width', '1');
       // line.setAttribute('clip-path', `url(#${this.clipPath.id})`);
+
+      if (ErrorDetection.checkLog(log)) {
+        line.setAttribute('stroke', 'rgba(176, 8, 13, 0.9)');
+      } else {
+        line.setAttribute('stroke', 'rgba(0, 0, 0, 0.5)');
+      }
 
       const logX = this.sharedOptions.axis.input2output(log.timestamp) - x;
       line.setAttribute('x1', logX + '');
