@@ -47,6 +47,7 @@ const TOOLBAR_HEIGHT = 27; // TODO: Sorry :(
 
 export interface SpanRowData {
   span: Span;
+  spanOriginal: Span;
   totalTime: number;
   selfTime: number;
   serviceName: string;
@@ -530,6 +531,7 @@ export class SpansTableView extends EventEmitter {
     return {
       id: span.id,
       span: spanCopy,
+      spanOriginal: span,
       totalTime,
       selfTime,
       serviceName
@@ -602,8 +604,9 @@ export class SpansTableView extends EventEmitter {
     if (filterFn) {
       try {
         const results = this.spanRows.filter(spanRow => {
-          const s = spanRow.span;
-          return filterFn(spanRow.span);
+          // Perform filtering on original span object
+          // `spanRow.span` can be modified depending on visible columns by tabulator
+          return filterFn(spanRow.spanOriginal);
         });
 
         await this.table.replaceData(results);
@@ -780,7 +783,7 @@ export class SpansTableView extends EventEmitter {
     if (!spanId) return;
     const spanRow = find(this.spanRows, row => row.span.id == spanId);
     if (!spanRow) return;
-    clipboard.writeText(JSON.stringify(spanRow.span, null, 4));
+    clipboard.writeText(JSON.stringify(spanRow.spanOriginal, null, 4));
   }
 
   getSelectedSpanId() {

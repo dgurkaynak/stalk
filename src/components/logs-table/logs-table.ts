@@ -13,7 +13,6 @@ import { Span, SpanLog } from '../../model/interfaces';
 import find from 'lodash/find';
 import remove from 'lodash/remove';
 import sampleSize from 'lodash/sampleSize';
-import debounce from 'lodash/debounce';
 import { clipboard } from 'electron';
 import cloneDeep from 'lodash/cloneDeep';
 import {
@@ -38,7 +37,6 @@ import {
 } from '../customization/log-filtering-form-modal-content';
 import Noty from 'noty';
 
-import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgFilter from '!!raw-loader!@mdi/svg/svg/filter.svg';
 import SvgFilterRemove from '!!raw-loader!@mdi/svg/svg/filter-remove.svg';
 import SvgViewColumn from '!!raw-loader!@mdi/svg/svg/view-column.svg';
@@ -51,10 +49,12 @@ const TOOLBAR_HEIGHT = 27; // TODO: Sorry :(
 export interface LogRowData {
   id: string;
   span: Span;
+  spanOriginal: Span;
   serviceName: string;
   timestamp: number;
   spanTimestamp: number;
   fields: { [key: string]: string };
+  fieldsOriginal: { [key: string]: string };
 }
 
 export enum LogsTableViewEvent {
@@ -516,14 +516,22 @@ export class LogsTableView extends EventEmitter {
   private log2RowData(log: SpanLog, span: Span) {
     const spanTimestamp = log.timestamp - span.startTime;
     const serviceName = serviceNameOf(span);
+
+    // When a custom `field` column added, tabulator defines a property
+    // in all of the log fields object, even if it's undefined. This is
+    // a mutation that we don't want now. As a workaround, clone the span & log fields.
+    // See spans-table for further detail.
+    const spanCopy = cloneDeep(span);
     const fieldsCopy = cloneDeep(log.fields);
 
     return {
       id: shortid.generate(),
-      span: span,
+      span: spanCopy,
+      spanOriginal: span,
       timestamp: log.timestamp,
       spanTimestamp,
       fields: fieldsCopy,
+      fieldsOriginal: log.fields,
       serviceName
     };
   }
@@ -567,7 +575,12 @@ export class LogsTableView extends EventEmitter {
     if (filterFn) {
       try {
         const results = this.logRows.filter(logRow => {
-          return filterFn(logRow, logRow.span);
+          // Perform filtering on original span object & log fields
+          // `log.fields` and `span` can be modified depending on visible columns by tabulator
+          return filterFn({
+            timestamp: logRow.timestamp,
+            fields: logRow.fieldsOriginal
+          }, logRow.spanOriginal);
         });
 
         await this.table.replaceData(results);
@@ -760,7 +773,7 @@ export class LogsTableView extends EventEmitter {
     const str = JSON.stringify(
       {
         timestamp: logRow.timestamp,
-        fields: logRow.fields
+        fields: logRow.fieldsOriginal
       },
       null,
       4
