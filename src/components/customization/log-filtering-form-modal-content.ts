@@ -122,7 +122,7 @@ export class LogFilteringFormModalContent {
       ? this.options.rawOptions.rawCode
       : `// Do something with "log" and "span" and return a boolean\n` +
         `function filterBy(log: SpanLog, span: Span): boolean {\n` +
-        `    return !!log.fields.error;\n` +
+        `    return log.fields.hasOwnProperty('error');\n` +
         `}\n`;
 
     this.model = monaco.editor.createModel(code, 'typescript');
