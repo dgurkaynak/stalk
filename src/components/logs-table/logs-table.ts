@@ -540,22 +540,17 @@ export class LogsTableView extends EventEmitter {
 
   private formatFields(cell: any) {
     const logRowData = cell.getRow().getData();
-    const currentColumns = this.table.getColumnDefinitions();
     let html = '';
 
     // TODO: Sort these with occurance frequency
-    Object.keys(logRowData.fields)
+    Object.keys(logRowData.fieldsOriginal)
       .sort((a, b) => {
         if (a > b) return 1;
         if (a < b) return -1;
         return 0;
       })
       .forEach(fieldKey => {
-        const value = logRowData.fields[fieldKey];
-
-        // When adding/removing fields, tabulator adds a property
-        // to object with `undefined` value. We're filtering that.
-        if (!value) return;
+        const value = logRowData.fieldsOriginal[fieldKey];
 
         html += `<span class="logs-table-tag">${fieldKey}:</span>
         <span class="logs-table-value">${value}</span>`;
