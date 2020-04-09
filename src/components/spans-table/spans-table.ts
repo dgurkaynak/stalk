@@ -548,22 +548,17 @@ export class SpansTableView extends EventEmitter {
 
   private formatTags(cell: any) {
     const spanRowData = cell.getRow().getData();
-    const currentColumns = this.table.getColumnDefinitions();
     let html = '';
 
     // TODO: Sort these with occurance frequency
-    Object.keys(spanRowData.span.tags)
+    Object.keys(spanRowData.spanOriginal.tags)
       .sort((a, b) => {
         if (a > b) return 1;
         if (a < b) return -1;
         return 0;
       })
       .forEach(tag => {
-        const value = spanRowData.span.tags[tag];
-
-        // When adding/removing fields, tabulator adds a property
-        // to object with `undefined` value. We're filtering that.
-        if (!value) return;
+        const value = spanRowData.spanOriginal.tags[tag];
 
         html += `<span class="spans-table-tag">${tag}:</span>
         <span class="spans-table-value">${value}</span>`;
@@ -574,11 +569,10 @@ export class SpansTableView extends EventEmitter {
 
   private formatProcessTags(cell: any) {
     const spanRowData = cell.getRow().getData();
-    const currentColumns = this.table.getColumnDefinitions();
     let html = '';
 
     Object.keys(
-      spanRowData.span.process ? spanRowData.span.process.tags || {} : {}
+      spanRowData.spanOriginal.process ? spanRowData.spanOriginal.process.tags || {} : {}
     )
       .sort((a, b) => {
         if (a > b) return 1;
@@ -586,11 +580,7 @@ export class SpansTableView extends EventEmitter {
         return 0;
       })
       .forEach(tag => {
-        const value = spanRowData.span.process.tags[tag];
-
-        // When adding/removing fields, tabulator adds a property
-        // to object with `undefined` value. We're filtering that.
-        if (!value) return;
+        const value = spanRowData.spanOriginal.process.tags[tag];
 
         html += `<span class="spans-table-tag">${tag}:</span>
         <span class="spans-table-value">${value}</span>`;
