@@ -321,13 +321,7 @@ export class LogsTableView extends EventEmitter {
     trace.spans.forEach(span => {
       span.logs.forEach(log => {
         if (log.fields.error) includesErrorField = true;
-        const rowData = this.log2RowData(
-          {
-            timestamp: log.timestamp,
-            fields: cloneDeep(log.fields)
-          },
-          span
-        );
+        const rowData = this.log2RowData(log, span);
         Object.keys(rowData.fields).forEach(fieldKey => {
           if (!fieldCounts[fieldKey]) fieldCounts[fieldKey] = 0;
           fieldCounts[fieldKey]++;
