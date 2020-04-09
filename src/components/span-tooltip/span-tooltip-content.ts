@@ -5,6 +5,7 @@ import { formatMicroseconds } from '../../utils/format-microseconds';
 import Axis from '../timeline/axis';
 import { Stage } from '../../model/stage';
 import { serviceNameOf } from '../../model/span-grouping/service-name';
+import * as ErrorDetection from '../../model/error-detection';
 
 import './span-tooltip.css';
 import CommentSvgText from '!!raw-loader!@mdi/svg/svg/comment-outline.svg';
@@ -141,7 +142,7 @@ export class SpanTooltipContent {
 
     els.headerTime.textContent = timeText;
     els.headerOperationName.innerHTML =
-      (span.tags.hasOwnProperty('error') ? `<span class="span-tooltip-error-icon">${AlertSvgText}</span>` : '') +
+      (ErrorDetection.checkSpan(span) ? `<span class="span-tooltip-error-icon">${AlertSvgText}</span>` : '') +
       span.operationName;
 
     // Handle tags & logs count
@@ -246,7 +247,7 @@ export class SpanTooltipContent {
       const logFields = Object.keys(log.logView.log.fields);
       logFields.forEach(key => {
         const value = log.logView.log.fields[key];
-        const extraClass = key.toLowerCase() == 'error' ? 'error' : '';
+        const extraClass = ErrorDetection.checkLogField(key, value) ? 'error' : '';
         if (!value) return;
         html +=
           `<span class="log-field-key ${extraClass}">${key}:</span>` +

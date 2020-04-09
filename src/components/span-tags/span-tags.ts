@@ -7,6 +7,7 @@ import {
   SpansTableViewEvent
 } from '../spans-table/spans-table';
 import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
+import * as ErrorDetection from '../../model/error-detection';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgCursorDefaultClick from '!!raw-loader!@mdi/svg/svg/cursor-default-click-outline.svg';
@@ -155,7 +156,7 @@ export class SpanTagsView {
   private renderTagItems(tagItems: SpanTagItem[]) {
     this.elements.contentContainer.innerHTML = tagItems
       .map(({ key, value }) => {
-        const errorClass = key.toLowerCase() == 'error' ? 'error' : '';
+        const errorClass = ErrorDetection.checkTag(key, value) ? 'error' : '';
         return `<div class="key-value-row ${errorClass}">
         <div class="key">${key}:</div>
         <div class="value bold">${value}</div>

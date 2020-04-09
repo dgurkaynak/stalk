@@ -320,7 +320,7 @@ export class LogsTableView extends EventEmitter {
     // Scan the added spans, prepare the log data
     trace.spans.forEach(span => {
       span.logs.forEach(log => {
-        if (log.fields.error) includesErrorField = true;
+        if (log.fields.hasOwnProperty('error')) includesErrorField = true;
         const rowData = this.log2RowData(log, span);
         Object.keys(rowData.fields).forEach(fieldKey => {
           if (!fieldCounts[fieldKey]) fieldCounts[fieldKey] = 0;

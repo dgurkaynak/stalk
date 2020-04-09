@@ -9,6 +9,7 @@ import {
 } from './interaction';
 import Axis from './axis';
 import chroma from 'chroma-js';
+import * as ErrorDetection from '../../model/error-detection';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -113,7 +114,7 @@ export default class SpanView {
     this.updateLabelText();
     this.hideLabel();
 
-    if (span.tags.hasOwnProperty('error')) {
+    if (ErrorDetection.checkSpan(span)) {
       this.container.appendChild(this.errorTriangle);
     } else if (this.errorTriangle.parentElement) {
       this.errorTriangle.parentElement.removeChild(this.errorTriangle);

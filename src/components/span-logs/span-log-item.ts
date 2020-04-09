@@ -2,6 +2,7 @@ import defaults from 'lodash/defaults';
 import { SpanLog } from '../../model/interfaces';
 import { formatMicroseconds } from '../../utils/format-microseconds';
 import { Stage } from '../../model/stage';
+import * as ErrorDetection from '../../model/error-detection';
 
 import './span-log-item.css';
 import AlertSvgText from '!!raw-loader!@mdi/svg/svg/alert.svg';
@@ -113,8 +114,8 @@ export class SpanLogItemView {
         return 0;
       })
       .map(key => {
-        if (key.toLowerCase() == 'error') hasError = true;
         const value = this.options.log.fields[key];
+        if (ErrorDetection.checkLogField(key, value)) hasError = true;
         return `<span class="key">${key}:</span>
           <span class="value">${value}</span>`;
       })
@@ -141,8 +142,8 @@ export class SpanLogItemView {
         return 0;
       })
       .map(key => {
-        if (key.toLowerCase() == 'error') hasError = true;
         const value = this.options.log.fields[key];
+        if (ErrorDetection.checkLogField(key, value)) hasError = true;
         return `<div class="body-row">
           <span class="key">${key}:</span>
           <span class="value">${value}</span>

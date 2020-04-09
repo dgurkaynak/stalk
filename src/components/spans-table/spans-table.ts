@@ -325,7 +325,7 @@ export class SpansTableView extends EventEmitter {
   private async onTraceAdded(ctx: opentracing.Span, trace: Trace) {
     let includesErrorTag = false;
     trace.spans.forEach(span => {
-      if (span.tags.error) includesErrorTag = true;
+      if (span.tags.hasOwnProperty('error')) includesErrorTag = true;
       this.spanRows.push(this.span2RowData(span));
     });
     ctx.log({ message: `Spans processed & added` });
