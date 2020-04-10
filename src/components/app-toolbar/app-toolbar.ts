@@ -628,8 +628,7 @@ export class AppToolbar {
     if (traces.length == 0) {
       new Noty({
         text: 'No traces in the stage',
-        type: 'warning',
-        timeout: 1500
+        type: 'warning'
       }).show();
       return;
     }

@@ -437,9 +437,11 @@ export class App {
 
       const isJaeger = isJaegerJSON(parsedJson);
       const isZipkin = isZipkinJSON(parsedJson);
+      const isStalk =
+        isObject(parsedJson) && (parsedJson as any).kind == 'stalk-studio/v1';
 
-      if (!isJaeger && !isZipkin) {
-        errorMessages.push(`${file.name}: Unrecognized Jaeger/Zipkin JSON`);
+      if (!isJaeger && !isZipkin && !isStalk) {
+        errorMessages.push(`${file.name}: Unrecognized JSON file`);
         return;
       }
 
@@ -464,6 +466,19 @@ export class App {
           this.stage.addTrace(null, trace);
         } else {
           errorMessages.push(`${file.name}: Unrecognized Zipkin format`);
+        }
+      }
+
+      if (isStalk) {
+        if (isArray(parsedJson.traces)) {
+          parsedJson.traces.forEach((spans: any) => {
+            const trace = new Trace(spans);
+            this.stage.addTrace(null, trace);
+          });
+        } else {
+          errorMessages.push(
+            `${file.name}: Broken Stalk JSON - "traces" field does not exist`
+          );
         }
       }
     });
@@ -509,10 +524,12 @@ export class App {
 
       const isJaeger = isJaegerJSON(parsedJson);
       const isZipkin = isZipkinJSON(parsedJson);
+      const isStalk =
+        isObject(parsedJson) && (parsedJson as any).kind == 'stalk-studio/v1';
 
-      if (!isJaeger && !isZipkin) {
-        errorMessages.push(`${file.name}: Unrecognized Jaeger/Zipkin JSON`);
-        continue;
+      if (!isJaeger && !isZipkin && !isStalk) {
+        errorMessages.push(`${file.name}: Unrecognized JSON file`);
+        return;
       }
 
       if (isJaeger) {
@@ -537,6 +554,19 @@ export class App {
         } else {
           errorMessages.push(`${file.name}: Unrecognized Zipkin format`);
           continue;
+        }
+      }
+
+      if (isStalk) {
+        if (isArray(parsedJson.traces)) {
+          parsedJson.traces.forEach((spans: any) => {
+            const trace = new Trace(spans);
+            this.stage.addTrace(null, trace);
+          });
+        } else {
+          errorMessages.push(
+            `${file.name}: Broken Stalk JSON - "traces" field does not exist`
+          );
         }
       }
     }
