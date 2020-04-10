@@ -21,12 +21,17 @@ import { ModalManager } from '../ui/modal/modal-manager';
 import { DataSourceFormModalContent } from '../datasource/datasource-form-modal-content';
 import shortid from 'shortid';
 import { JaegerSearchModalContent } from '../search/jaeger-search-modal-content';
+import Noty from 'noty';
+import { remote } from 'electron';
+import * as fs from 'fs';
+import * as path from 'path';
+import format from 'date-fns/format';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgSourceBranch from '!!raw-loader!@mdi/svg/svg/source-branch.svg';
-import SvgSettings from '!!raw-loader!@mdi/svg/svg/settings.svg';
+import SvgExport from '!!raw-loader!@mdi/svg/svg/export.svg';
 import './app-toolbar.css';
 
 export interface AppToolbarOptions {}
@@ -36,7 +41,7 @@ export type AppToolbarButtonType =
   | 'search'
   | 'traces'
   | 'widgets'
-  | 'settings';
+  | 'export';
 
 export type AppToolbarButtonState = 'selected' | 'disabled';
 
@@ -48,7 +53,7 @@ export class AppToolbar {
       dataSources: document.createElement('div'),
       newDataSource: document.createElement('div'),
       traces: document.createElement('div'),
-      settings: document.createElement('div')
+      export: document.createElement('div')
     },
     tracesBadgeCount: document.createElement('div'),
     tracesMenuListEmpty: document.createElement('div'),
@@ -87,7 +92,8 @@ export class AppToolbar {
     onDataSourceRemovePopConfirmButtonClick: this.onDataSourceRemovePopConfirmButtonClick.bind(
       this
     ),
-    onJaegerSearchModalClosed: this.onJaegerSearchModalClosed.bind(this)
+    onJaegerSearchModalClosed: this.onJaegerSearchModalClosed.bind(this),
+    onExportButtonClick: this.onExportButtonClick.bind(this)
   };
 
   private stage = Stage.getSingleton();
@@ -138,9 +144,9 @@ export class AppToolbar {
     leftPane.appendChild(btn.traces);
 
     // Right buttons
-    btn.settings.classList.add('app-toolbar-button');
-    btn.settings.innerHTML = SvgSettings;
-    rightPane.appendChild(btn.settings);
+    btn.export.classList.add('app-toolbar-button');
+    btn.export.innerHTML = SvgExport;
+    rightPane.appendChild(btn.export);
   }
 
   @Stalk({ handler: ChildOf })
@@ -232,7 +238,7 @@ export class AppToolbar {
           multiple: true
         }
       ],
-      [this.elements.btn.settings, { content: 'Settings' }]
+      [this.elements.btn.export, { content: 'Export Current Stage' }]
     ]);
   }
 
@@ -361,6 +367,11 @@ export class AppToolbar {
     );
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
+    btn.export.addEventListener(
+      'click',
+      this.binded.onExportButtonClick,
+      false
+    );
   }
 
   private unbindEvents() {
@@ -393,6 +404,11 @@ export class AppToolbar {
     this.elements.dataSourceMenuList.removePopConfirmButton.removeEventListener(
       'click',
       this.binded.onDataSourceRemovePopConfirmButtonClick,
+      false
+    );
+    btn.export.removeEventListener(
+      'click',
+      this.binded.onExportButtonClick,
       false
     );
   }
@@ -607,12 +623,56 @@ export class AppToolbar {
     (data.traces as Trace[]).forEach(t => this.stage.addTrace(undefined, t));
   }
 
+  private async onExportButtonClick() {
+    const traces = this.stage.getAllTraces();
+    if (traces.length == 0) {
+      new Noty({
+        text: 'No traces in the stage',
+        type: 'warning',
+        timeout: 1500
+      }).show();
+      return;
+    }
+
+    const downloadsFolder = remote.app.getPath('downloads');
+    const fileName = `stalk-stage-${format(
+      new Date(),
+      'yyyy-MM-dd--HH-mm-ss'
+    )}.json`;
+    const { canceled, filePath } = await remote.dialog.showSaveDialog({
+      defaultPath: path.join(downloadsFolder, fileName)
+    });
+    if (canceled) return;
+
+    const fileContent = JSON.stringify(
+      {
+        kind: 'stalk-studio/v1',
+        traces: traces.map(t => t.spans)
+      },
+      null,
+      2
+    );
+
+    fs.writeFile(filePath, fileContent, err => {
+      if (err) {
+        new Noty({
+          text: err.message,
+          type: 'error',
+          timeout: 2500
+        }).show();
+        return;
+      }
+
+      // Exported, no need to additonal notification
+    });
+  }
+
   dispose() {
     const tooltipManager = TooltipManager.getSingleton();
     tooltipManager.removeFromSingleton([
       this.elements.btn.dataSources,
       this.elements.btn.traces,
-      this.elements.btn.settings
+      this.elements.btn.export
     ]);
     for (let tippy of Object.values(this.tippyInstaces)) {
       tippy.destroy();
