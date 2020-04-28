@@ -57,7 +57,8 @@ export class TracesTableView extends EventEmitter {
     formatServices: this.formatServices.bind(this),
     rowSelectionChanged: this.rowSelectionChanged.bind(this),
     rowFormatter: this.rowFormatter.bind(this),
-    selectableCheck: this.selectableCheck.bind(this)
+    selectableCheck: this.selectableCheck.bind(this),
+    onKeyDown: this.onKeyDown.bind(this)
   };
 
   private columnDefinitions = {
@@ -129,6 +130,13 @@ export class TracesTableView extends EventEmitter {
       height: options.height
     };
 
+    // Bind events
+    this.elements.container.addEventListener(
+      'keydown',
+      this.binded.onKeyDown,
+      false
+    );
+
     // Init table
     this.table = new Tabulator(this.elements.tableContainer, {
       autoResize: false, // This causes to lose focus when widget is hidden
@@ -152,6 +160,7 @@ export class TracesTableView extends EventEmitter {
       rowFormatter: this.binded.rowFormatter,
       selectableCheck: this.binded.selectableCheck,
       rowSelectionChanged: this.binded.rowSelectionChanged,
+      selectableRangeMode: 'click',
       keybindings: false,
       footerElement: this.options.footerElement,
       placeholder: this.options.placeholderElement
@@ -258,6 +267,23 @@ export class TracesTableView extends EventEmitter {
     return true;
   }
 
+  private onKeyDown(e: KeyboardEvent) {
+    // If user is typing on any kind of input element which is
+    // child of this component, we don't want to trigger shortcuts
+    if (e.target instanceof HTMLInputElement) return;
+
+    // CMD + A => Select all
+    if (e.key == 'a' && (e.ctrlKey || e.metaKey)) {
+      this.table.deselectRow();
+      this.table.getRows().forEach((row) => {
+        if (this.selectableCheck(row)) {
+          this.table.selectRow(row.getIndex());
+        }
+      });
+      return;
+    }
+  }
+
   toggleLoading(shouldShow: boolean) {
     if (shouldShow) {
       this.elements.loadingContainer.style.display = '';
@@ -313,6 +339,12 @@ export class TracesTableView extends EventEmitter {
   dispose() {
     this.table?.destroy();
     this.table = null;
+
+    this.elements.container.removeEventListener(
+      'keydown',
+      this.binded.onKeyDown,
+      false
+    );
   }
 }
 
