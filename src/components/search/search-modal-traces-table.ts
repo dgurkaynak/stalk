@@ -9,9 +9,9 @@ import EventEmitter from 'events';
 import format from 'date-fns/format';
 
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import './traces-table.css';
+import './search-modal-traces-table.css';
 
-export interface TraceRowData {
+export interface SearchModalTraceRowData {
   id: string;
   startTime: number;
   finishTime: number;
@@ -22,7 +22,7 @@ export interface TraceRowData {
   services: { [key: string]: number };
 }
 
-export interface TracesTableOptions {
+export interface SearchModalTracesTableOptions {
   width: number;
   height: number;
   indicateTracesAlreadyInTheStage?: boolean;
@@ -31,15 +31,15 @@ export interface TracesTableOptions {
   placeholderElement?: HTMLElement;
 }
 
-export enum TracesTableViewEvent {
+export enum SearchModalTracesTableViewEvent {
   SELECTIONS_UPDATED = 'selections_updated'
 }
 
-export class TracesTableView extends EventEmitter {
+export class SearchModalTracesTableView extends EventEmitter {
   private stage = Stage.getSingleton();
-  private options: TracesTableOptions;
+  private options: SearchModalTracesTableOptions;
   private table: Tabulator;
-  private traceRows: TraceRowData[] = [];
+  private traceRows: SearchModalTraceRowData[] = [];
 
   private elements = {
     container: document.createElement('div'),
@@ -100,7 +100,7 @@ export class TracesTableView extends EventEmitter {
     super();
 
     const { container, tableContainer, loadingContainer } = this.elements;
-    container.classList.add('traces-table-view');
+    container.classList.add('search-modal-traces-table-view');
     container.appendChild(tableContainer);
 
     loadingContainer.classList.add('loading-container');
@@ -123,7 +123,7 @@ export class TracesTableView extends EventEmitter {
     container.appendChild(loadingContainer);
   }
 
-  init(options: TracesTableOptions) {
+  init(options: SearchModalTracesTableOptions) {
     this.options = options;
     this.viewPropertiesCache = {
       width: options.width,
@@ -173,7 +173,7 @@ export class TracesTableView extends EventEmitter {
   }
 
   private rowSelectionChanged(data: any, rows: any) {
-    this.emit(TracesTableViewEvent.SELECTIONS_UPDATED, data);
+    this.emit(SearchModalTracesTableViewEvent.SELECTIONS_UPDATED, data);
   }
 
   private trace2RowData(trace: Trace) {

@@ -10,10 +10,10 @@ import Noty from 'noty';
 import { JaegerAPI, JaegerAPISearchQuery } from '../../model/jaeger';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
-  TracesTableView,
-  TracesTableViewEvent,
-  TraceRowData
-} from '../traces-table/traces-table';
+  SearchModalTracesTableView,
+  SearchModalTracesTableViewEvent,
+  SearchModalTraceRowData
+} from './search-modal-traces-table';
 import parseDuration from 'parse-duration';
 import throttle from 'lodash/throttle';
 import find from 'lodash/find';
@@ -45,7 +45,7 @@ const DATE_RANGE_SEPERATOR = ' - ';
 export class JaegerSearchModalContent {
   private dsManager = DataSourceManager.getSingleton();
   private api: JaegerAPI;
-  private tracesTable = new TracesTableView();
+  private tracesTable = new SearchModalTracesTableView();
   private traceResults: Trace[] = [];
   private selectedTraceIds: string[] = [];
   private customLookbackFlatpickr: flatpickr.Instance;
@@ -293,7 +293,7 @@ export class JaegerSearchModalContent {
       this.binded.onDataSourceManagerUpdate
     );
     this.tracesTable.on(
-      TracesTableViewEvent.SELECTIONS_UPDATED,
+      SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
     );
     this.elements.searchByTraceId.form.addEventListener(
@@ -571,7 +571,7 @@ export class JaegerSearchModalContent {
     this.tracesTable.resize(w, h);
   }
 
-  private async onTableSelectionUpdated(selectedTraces: TraceRowData[]) {
+  private async onTableSelectionUpdated(selectedTraces: SearchModalTraceRowData[]) {
     // When we try to redraw tabulator while it's already redrawing,
     // it gives an error. So, we apply the most famous javascript workaround ever.
     // await new Promise(resolve => setTimeout(resolve, 0));
@@ -623,7 +623,7 @@ export class JaegerSearchModalContent {
       this.binded.onDataSourceManagerUpdate
     );
     this.tracesTable.removeListener(
-      TracesTableViewEvent.SELECTIONS_UPDATED,
+      SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
     );
     this.elements.searchByTraceId.form.removeEventListener(

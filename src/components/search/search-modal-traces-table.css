@@ -1,45 +1,45 @@
-.traces-table-view {
+.search-modal-traces-table-view {
   width: 100%;
   height: 100%;
   position: relative;
 }
 
-.traces-table-view .tabulator {
+.search-modal-traces-table-view .tabulator {
   font-size: inherit;
 }
 
-.traces-table-view .tabulator-col-title {
+.search-modal-traces-table-view .tabulator-col-title {
   color: #000;
   line-height: 1.5;
 }
 
-.traces-table-view .tabulator-header {
+.search-modal-traces-table-view .tabulator-header {
   border-bottom-color: #ddd;
 }
 
-.traces-table-view .tabulator-col:last-of-type {
+.search-modal-traces-table-view .tabulator-col:last-of-type {
   border-right: 0;
 }
 
-.traces-table-view .tabulator-col.tabulator-sortable[aria-sort="none"] .tabulator-arrow {
+.search-modal-traces-table-view .tabulator-col.tabulator-sortable[aria-sort="none"] .tabulator-arrow {
   display: none;
 }
 
-.traces-table-view .tabulator-col.tabulator-sortable[aria-sort="asc"] .tabulator-col-title,
-.traces-table-view .tabulator-col.tabulator-sortable[aria-sort="desc"] .tabulator-col-title {
+.search-modal-traces-table-view .tabulator-col.tabulator-sortable[aria-sort="asc"] .tabulator-col-title,
+.search-modal-traces-table-view .tabulator-col.tabulator-sortable[aria-sort="desc"] .tabulator-col-title {
   text-decoration: underline;
 }
 
-.traces-table-view .tabulator .tabulator-tableHolder .tabulator-table {
+.search-modal-traces-table-view .tabulator .tabulator-tableHolder .tabulator-table {
   color: #777;
 }
 
-.traces-table-view .tabulator-row.tabulator-selectable:hover {
+.search-modal-traces-table-view .tabulator-row.tabulator-selectable:hover {
   background: #f3f3f3;
 }
 
-.traces-table-view .tabulator-row.tabulator-selected,
-.traces-table-view .tabulator-row.tabulator-selected:hover {
+.search-modal-traces-table-view .tabulator-row.tabulator-selected,
+.search-modal-traces-table-view .tabulator-row.tabulator-selected:hover {
   background: #e5f0ff;
 }
 
@@ -60,7 +60,7 @@
 
 }
 
-.traces-table-view .loading-container {
+.search-modal-traces-table-view .loading-container {
   z-index: 1;
   position: absolute;
   top: 0;
@@ -74,7 +74,7 @@
 }
 
 /* Borrowed from https://tobiasahlin.com/spinkit/ */
-.traces-table-view .loading-container .sk-circle {
+.search-modal-traces-table-view .loading-container .sk-circle {
   width: 40px;
   height: 40px;
   position: relative;
