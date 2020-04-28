@@ -7,7 +7,6 @@ import sampleSize from 'lodash/sampleSize';
 import cloneDeep from 'lodash/cloneDeep';
 import EventEmitter from 'events';
 import format from 'date-fns/format';
-import areIntervalsOverlapping from 'date-fns/areIntervalsOverlapping';
 
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import './traces-table.css';
@@ -315,4 +314,11 @@ export class TracesTableView extends EventEmitter {
     this.table?.destroy();
     this.table = null;
   }
+}
+
+function areIntervalsOverlapping(
+  a: { start: number, end: number },
+  b: { start: number, end: number }
+) {
+  return a.start <= b.end && b.start <= a.end;
 }
