@@ -395,6 +395,9 @@ export class JaegerSearchModalContent {
   }
 
   onShow() {
+    const { offsetWidth: w, offsetHeight: h } = this.elements.rightContainer;
+    this.tracesTable.resize(w, h);
+
     this.testApiAndUpdateStatus();
     this.updateServicesSelect();
     this.tracesTable.redrawTable(true);
