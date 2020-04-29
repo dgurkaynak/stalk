@@ -9,14 +9,6 @@ import {
   TimelineInteractableElementAttribute,
   TimelineInteractableElementType
 } from './interaction';
-import * as opentracing from 'opentracing';
-import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
-import {
-  Stalk,
-  NewTrace,
-  ChildOf,
-  FollowsFrom
-} from '../../utils/self-tracing/trace-decorator';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -26,7 +18,6 @@ export enum GroupLayoutType {
   WATERFALL = 'waterfall'
 }
 
-@OperationNamePrefix('group-view.')
 export default class GroupView {
   readonly spanGroup: SpanGroup;
   private spanViews: { [key: string]: SpanView } = {};
@@ -129,8 +120,7 @@ export default class GroupView {
     this.spanIdToRowIndex = {};
   }
 
-  @Stalk({ handler: ChildOf })
-  toggleView(ctx: opentracing.Span) {
+  toggleView() {
     this.options.isCollapsed = !this.options.isCollapsed;
 
     const prefixChar = this.options.isCollapsed ? '►' : '▼';
@@ -138,7 +128,7 @@ export default class GroupView {
       this.spanGroup.name}`;
     // this.updateLabelTextDecoration();
 
-    this.layout(ctx);
+    this.layout();
 
     return !this.options.isCollapsed;
   }
@@ -193,8 +183,7 @@ export default class GroupView {
     // TODO: Call .layout() maybe?
   }
 
-  @Stalk({ handler: ChildOf })
-  layout(ctx: opentracing.Span) {
+  layout() {
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
     const { spanGroup: group, spanViews, container } = this;
@@ -206,22 +195,12 @@ export default class GroupView {
       const spanB = group.get(b.spanId);
       return spanA.startTime - spanB.startTime;
     });
-    ctx.log({ message: 'Sorted root and orphan nodes' });
 
     const allSpans = group.getAll();
-    ctx.addTags({
-      groupId: this.spanGroup.id,
-      groupName: this.spanGroup.name,
-      layoutType: this.layoutType,
-      spansCount: allSpans.length,
-      rootSpansCount: group.rootNodes.length,
-      orphanSpansCount: group.orphanNodes.length
-    });
 
     // If collapsed, hide all the spans
     if (this.options.isCollapsed) {
       forEach(spanViews, v => v.unmount());
-      ctx.log({ message: 'Unmounted span views, because view is collapsed' });
 
       this.rowsAndSpanIntervals = [];
       this.spanIdToRowIndex = {};

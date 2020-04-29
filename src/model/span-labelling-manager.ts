@@ -5,9 +5,6 @@ import EventEmitter from 'events';
 import { Span } from './interfaces';
 import db from './db';
 import { TypeScriptManager } from './../components/customization/typescript-manager';
-import * as opentracing from 'opentracing';
-import { OperationNamePrefix } from '../utils/self-tracing/opname-prefix-decorator';
-import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../utils/self-tracing/trace-decorator';
 
 export enum SpanLabellingManagerEvent {
   ADDED = 'slm_added',
@@ -29,7 +26,6 @@ export interface SpanLabellingOptions {
 
 let singletonIns: SpanLabellingManager;
 
-@OperationNamePrefix('slmanager')
 export class SpanLabellingManager extends EventEmitter {
   private builtInOptions: SpanLabellingOptions[] = [
     operationLabellingOptions,
@@ -42,21 +38,14 @@ export class SpanLabellingManager extends EventEmitter {
     return singletonIns;
   }
 
-  @Stalk({ handler: ChildOf })
-  async init(ctx: opentracing.Span) {
+  async init() {
     await db.open();
-    ctx.log({ message: 'DB opened successfully' });
-
     const rawOptions = await db.spanLabellings.toArray();
-    ctx.log({ message: `Got ${rawOptions.length} span labelling(s), adding them` });
-
-    await Promise.all(rawOptions.map(raw => this.add(ctx, raw, true)));
+    await Promise.all(rawOptions.map(raw => this.add(raw, true)));
   }
 
-  @Stalk({ handler: ChildOf })
-  async add(ctx: opentracing.Span, raw: SpanLabellingRawOptions, doNotPersistToDatabase = false) {
+  async add(raw: SpanLabellingRawOptions, doNotPersistToDatabase = false) {
     const allOptions = [...this.builtInOptions, ...this.customOptions];
-    ctx.addTags({ ...raw, doNotPersistToDatabase });
 
     const options: SpanLabellingOptions = {
       key: raw.key,
@@ -66,9 +55,6 @@ export class SpanLabellingManager extends EventEmitter {
 
     const keyMatch = find(allOptions, c => c.key === options.key);
     if (keyMatch) {
-      ctx.log({
-        message: `There is already a span labelling with key "${options.key}"`
-      });
       return false;
     }
 

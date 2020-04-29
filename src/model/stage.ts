@@ -4,9 +4,6 @@ import EventEmitter from 'events';
 import { SpanGroup } from './span-group/span-group';
 import flatMap from 'lodash/flatMap';
 import { union } from '../utils/interval-helper';
-import * as opentracing from 'opentracing';
-import { OperationNamePrefix } from '../utils/self-tracing/opname-prefix-decorator';
-import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../utils/self-tracing/trace-decorator';
 
 export enum StageEvent {
   TRACE_ADDED = 'trace_added',
@@ -15,7 +12,6 @@ export enum StageEvent {
 
 let _singletonIns: Stage;
 
-@OperationNamePrefix('stage.')
 export class Stage extends EventEmitter {
   private traces: { [key: string]: Trace } = {};
   private mainSpanGroup = new SpanGroup('main', '');
@@ -38,16 +34,8 @@ export class Stage extends EventEmitter {
     return Object.values(this.traces);
   }
 
-  @Stalk({ handler: NewTrace })
-  addTrace(ctx: opentracing.Span, trace: Trace) {
-    ctx.addTags({
-      traceId: trace.id,
-      traceName: trace.name,
-      spanCount: trace.spans.length
-    });
-
+  addTrace(trace: Trace) {
     if (this.traces[trace.id]) {
-      ctx.log({ message: `Trace already added to stage` });
       return false;
     }
     this.traces[trace.id] = trace;
@@ -78,7 +66,6 @@ export class Stage extends EventEmitter {
         }
       }
     });
-    ctx.log({ message: `Initial processing completed` });
 
     // Span self time
     // We cant do this within previous loop, we need to wait until
@@ -94,16 +81,12 @@ export class Stage extends EventEmitter {
       const selfTime = span.finishTime - span.startTime - childrenTime;
       this.spanSelfTimes[span.id] = selfTime;
     });
-    ctx.log({ message: `Calculated span self times` });
 
-    this.emit(StageEvent.TRACE_ADDED, ctx, trace);
+    this.emit(StageEvent.TRACE_ADDED, trace);
   }
 
-  @Stalk({ handler: NewTrace })
-  removeTrace(ctx: opentracing.Span, traceId: string) {
-    ctx.addTags({ traceId });
+  removeTrace(traceId: string) {
     if (!this.traces[traceId]) {
-      ctx.log({ message: `Trace is not in the stage, noop` });
       return false;
     }
     const trace = this.traces[traceId];
@@ -139,10 +122,9 @@ export class Stage extends EventEmitter {
       // Span self time
       delete this.spanSelfTimes[span.id];
     });
-    ctx.log({ message: `Removal process completed` });
 
     delete this.traces[traceId];
-    this.emit(StageEvent.TRACE_REMOVED, ctx, trace);
+    this.emit(StageEvent.TRACE_REMOVED, trace);
   }
 
   isTraceAdded(traceId: string) {

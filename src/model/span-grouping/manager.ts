@@ -7,9 +7,6 @@ import ProcessGrouping from './process';
 import ServiceNameGrouping from './service-name';
 import db from '../db';
 import { TypeScriptManager } from '../../components/customization/typescript-manager';
-import * as opentracing from 'opentracing';
-import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
-import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 
 export enum SpanGroupingManagerEvent {
   ADDED = 'sgm_added',
@@ -18,7 +15,6 @@ export enum SpanGroupingManagerEvent {
 
 let singletonIns: SpanGroupingManager;
 
-@OperationNamePrefix('sgmanager.')
 export class SpanGroupingManager extends EventEmitter {
   private builtInSpanGroupings: SpanGroupingOptions[] = [
     TraceGrouping,
@@ -32,29 +28,17 @@ export class SpanGroupingManager extends EventEmitter {
     return singletonIns;
   }
 
-  @Stalk({ handler: ChildOf })
-  async init(ctx: opentracing.Span) {
+  async init() {
     await db.open();
-    ctx.log({ message: 'DB opened successfully' });
-
     const rawOptions = await db.spanGroupings.toArray();
-    ctx.log({ message: `Got ${rawOptions.length} span group(s), adding them` });
-
-    await Promise.all(rawOptions.map(raw => this.add(ctx, raw, true)));
+    await Promise.all(rawOptions.map(raw => this.add(raw, true)));
   }
 
-  @Stalk({ handler: ChildOf })
-  async add(
-    ctx: opentracing.Span,
-    raw: SpanGroupingRawOptions,
-    doNotPersistToDatabase = false
-  ) {
+  async add(raw: SpanGroupingRawOptions, doNotPersistToDatabase = false) {
     const allGroupingClasses = [
       ...this.builtInSpanGroupings,
       ...this.customSpanGroupings
     ];
-    ctx.addTags({ ...raw, doNotPersistToDatabase });
-
     const options: SpanGroupingOptions = {
       key: raw.key,
       name: raw.name,
@@ -63,9 +47,6 @@ export class SpanGroupingManager extends EventEmitter {
 
     const keyMatch = find(allGroupingClasses, c => c.key === options.key);
     if (keyMatch) {
-      ctx.log({
-        message: `There is already a span grouping with key "${options.key}"`
-      });
       return false;
     }
 

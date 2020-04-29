@@ -8,14 +8,6 @@ import { DataSourceType, DataSource } from '../../model/datasource/interfaces';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
-import * as opentracing from 'opentracing';
-import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
-import {
-  Stalk,
-  NewTrace,
-  ChildOf,
-  FollowsFrom
-} from '../../utils/self-tracing/trace-decorator';
 import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
 import { ModalManager } from '../ui/modal/modal-manager';
 import { DataSourceFormModalContent } from '../datasource/datasource-form-modal-content';
@@ -45,7 +37,6 @@ export type AppToolbarButtonType =
 
 export type AppToolbarButtonState = 'selected' | 'disabled';
 
-@OperationNamePrefix('app-toolbar.')
 export class AppToolbar {
   private elements = {
     container: document.createElement('div'),
@@ -144,10 +135,9 @@ export class AppToolbar {
     rightPane.appendChild(btn.export);
   }
 
-  @Stalk({ handler: ChildOf })
-  init(ctx: opentracing.Span) {
-    this.initTooltips(ctx);
-    this.initTippyInstances(ctx);
+  init() {
+    this.initTooltips();
+    this.initTippyInstances();
     this.initTracesBadgeCount();
 
     // Prepare dataSource menu list header
@@ -192,7 +182,7 @@ export class AppToolbar {
     );
 
     // Prepare datasource lists
-    this.updateDataSourceList(ctx);
+    this.updateDataSourceList();
 
     // Bind events
     this.bindEvents();
@@ -207,8 +197,7 @@ export class AppToolbar {
     el.parentElement?.removeChild(el);
   }
 
-  @Stalk({ handler: ChildOf })
-  private initTooltips(ctx: opentracing.Span) {
+  private initTooltips() {
     const tooltipManager = TooltipManager.getSingleton();
     tooltipManager.addToSingleton([
       [
@@ -229,8 +218,7 @@ export class AppToolbar {
     ]);
   }
 
-  @Stalk({ handler: ChildOf })
-  private initTippyInstances(ctx: opentracing.Span) {
+  private initTippyInstances() {
     this.tippyInstaces = {
       dataSources: tippy(this.elements.btn.dataSources, {
         content: this.dataSourcesMenuList.element,
@@ -284,11 +272,9 @@ export class AppToolbar {
   //////////// VIEW UPDATES ////////////
   //////////////////////////////////////
 
-  @Stalk({ handler: ChildOf })
-  private updateDataSourceList(ctx: opentracing.Span) {
+  private updateDataSourceList() {
     this.dataSourcesMenuList.removeAllItems();
     const dataSources = this.dsManager.getAll();
-    ctx.addTags({ dsCount: dataSources.length });
     dataSources.forEach(ds => {
       this.dataSourcesMenuList.addItem({
         text: ds.name,
@@ -501,41 +487,27 @@ export class AppToolbar {
 
   private onDataSourceRemovePopConfirmButtonClick(e: MouseEvent) {
     const dsId = (e.target as any).getAttribute('data-datasource-id');
-    this.dsManager.remove(undefined, dsId);
+    this.dsManager.remove(dsId);
     this.tippyInstaces.dataSourceRemovePopConfirm.hide();
   }
 
-  @Stalk({ handler: FollowsFrom })
-  private onDataSourceManagerAdded(
-    ctx: opentracing.Span,
-    dataSource: DataSource
-  ) {
-    this.updateDataSourceList(ctx);
+  private onDataSourceManagerAdded(dataSource: DataSource) {
+    this.updateDataSourceList();
   }
 
-  @Stalk({ handler: FollowsFrom })
-  private onDataSourceManagerUpdated(
-    ctx: opentracing.Span,
-    dataSource: DataSource
-  ) {
-    this.updateDataSourceList(ctx);
+  private onDataSourceManagerUpdated(dataSource: DataSource) {
+    this.updateDataSourceList();
   }
 
-  @Stalk({ handler: FollowsFrom })
-  private onDataSourceManagerRemoved(
-    ctx: opentracing.Span,
-    dataSource: DataSource
-  ) {
-    this.updateDataSourceList(ctx);
+  private onDataSourceManagerRemoved(dataSource: DataSource) {
+    this.updateDataSourceList();
   }
 
-  @Stalk({ handler: FollowsFrom })
-  private onStageTraceAdded(ctx: opentracing.Span, trace: Trace) {
+  private onStageTraceAdded(trace: Trace) {
     this.updateTracesBadgeCount(this.stage.getAllTraces().length);
   }
 
-  @Stalk({ handler: FollowsFrom })
-  private onStageTraceRemoved(ctx: opentracing.Span, trace: Trace) {
+  private onStageTraceRemoved(trace: Trace) {
     this.updateTracesBadgeCount(this.stage.getAllTraces().length);
   }
 
@@ -558,7 +530,7 @@ export class AppToolbar {
     if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
     if (data?.action != 'removeFromStage') return;
     (data.traceIds as string[]).forEach(id =>
-      this.stage.removeTrace(undefined, id)
+      this.stage.removeTrace(id)
     );
   }
 
@@ -593,11 +565,11 @@ export class AppToolbar {
 
     if (data.dataSource.id) {
       // Editing already existing ds
-      await this.dsManager.update(undefined, data.dataSource);
+      await this.dsManager.update(data.dataSource);
     } else {
       // Creating a new ds
       data.dataSource.id = shortid.generate();
-      await this.dsManager.add(undefined, data.dataSource);
+      await this.dsManager.add(data.dataSource);
     }
   }
 
@@ -607,7 +579,7 @@ export class AppToolbar {
   ) {
     if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
     if (data?.action != 'addToStage') return;
-    (data.traces as Trace[]).forEach(t => this.stage.addTrace(undefined, t));
+    (data.traces as Trace[]).forEach(t => this.stage.addTrace(t));
   }
 
   private async onExportButtonClick() {

@@ -457,7 +457,7 @@ export class JaegerSearchModalContent {
     }
   }
 
-  private onDataSourceManagerUpdate(ctx: any, ds: DataSource) {
+  private onDataSourceManagerUpdate(ds: DataSource) {
     if (ds.id != this.options.dataSource.id) return;
     this.options.dataSource = ds;
     this.api = this.dsManager.apiFor(ds) as JaegerAPI;

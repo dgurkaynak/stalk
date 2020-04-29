@@ -239,7 +239,7 @@ export class SpanGroupingFormModalContent {
     if (!this.model) throw new Error('Monaco text model is not ready');
     if (!this.editor) throw new Error('Monaco editor is not ready');
     const tsCode = this.editor.getValue();
-    const compiledJSCode = await this.tsManager.compile(null, this.model.uri);
+    const compiledJSCode = await this.tsManager.compile(this.model.uri);
 
     let groupByFn: Function | undefined = undefined;
     try {

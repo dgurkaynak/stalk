@@ -20,14 +20,6 @@ import {
   ContextMenuEvent
 } from '../ui/context-menu/context-menu-manager';
 import * as shortid from 'shortid';
-import * as opentracing from 'opentracing';
-import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
-import {
-  Stalk,
-  NewTrace,
-  ChildOf,
-  FollowsFrom
-} from '../../utils/self-tracing/trace-decorator';
 import EventEmitter from 'events';
 import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
 import { ModalManager } from '../ui/modal/modal-manager';
@@ -61,7 +53,6 @@ export enum LogsTableViewEvent {
   LOG_SELECTED = 'log_selected'
 }
 
-@OperationNamePrefix('logs-table.')
 export class LogsTableView extends EventEmitter {
   private stage = Stage.getSingleton();
   private contextMenuManager = ContextMenuManager.getSingleton();
@@ -201,14 +192,13 @@ export class LogsTableView extends EventEmitter {
     rightPane.appendChild(btn.columns);
   }
 
-  @Stalk({ handler: ChildOf })
-  init(ctx: opentracing.Span, options: { width: number; height: number }) {
+  init(options: { width: number; height: number }) {
     this.viewPropertiesCache = {
       width: options.width,
       height: options.height
     };
-    this.initTooltips(ctx);
-    this.initDropdowns(ctx);
+    this.initTooltips();
+    this.initDropdowns();
 
     // Bind events
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onTraceAdded);
@@ -258,11 +248,10 @@ export class LogsTableView extends EventEmitter {
     });
 
     // Init column picker
-    this.updateColumnsMultiSelectItems(ctx);
+    this.updateColumnsMultiSelectItems();
   }
 
-  @Stalk({ handler: ChildOf })
-  private initTooltips(ctx: opentracing.Span) {
+  private initTooltips() {
     const tooltipManager = TooltipManager.getSingleton();
     const btn = this.elements.toolbarBtn;
     tooltipManager.addToSingleton([
@@ -294,8 +283,7 @@ export class LogsTableView extends EventEmitter {
     ]);
   }
 
-  @Stalk({ handler: ChildOf })
-  private initDropdowns(ctx: opentracing.Span) {
+  private initDropdowns() {
     this.dropdowns = {
       columnsSelection: tippy(this.elements.toolbarBtn.columns, {
         content: this.columnsMultiSelect.element,
@@ -311,8 +299,7 @@ export class LogsTableView extends EventEmitter {
     };
   }
 
-  @Stalk({ handler: FollowsFrom })
-  private async onTraceAdded(ctx: opentracing.Span, trace: Trace) {
+  private async onTraceAdded(trace: Trace) {
     let includesErrorField = false;
     let totalLogCount = 0;
     const fieldCounts: { [key: string]: number } = {};
@@ -330,8 +317,6 @@ export class LogsTableView extends EventEmitter {
         totalLogCount++;
       });
     });
-    ctx.addTags({ logCount: totalLogCount });
-    ctx.log({ message: `Spans processed & logs added` });
 
     // If any field has more than %90 occurance rate, add the column (if not already added!)
     Object.keys(fieldCounts).forEach(fieldKey => {
@@ -357,7 +342,6 @@ export class LogsTableView extends EventEmitter {
         });
       }
     });
-    ctx.log({ message: `Log fields analyzed for auto-column display` });
 
     // If any span includes `error` tag, add error column (if not already added!)
     if (includesErrorField) {
@@ -380,22 +364,20 @@ export class LogsTableView extends EventEmitter {
       }
     }
 
-    this.updateColumnsMultiSelectItems(ctx);
+    this.updateColumnsMultiSelectItems();
     await this.updateTableData();
   }
 
-  @Stalk({ handler: FollowsFrom })
-  private async onTraceRemoved(ctx: opentracing.Span, trace: Trace) {
+  private async onTraceRemoved(trace: Trace) {
     trace.spans.forEach(span =>
       remove(this.logRows, logRow => logRow.span.id == span.id)
     );
 
-    this.updateColumnsMultiSelectItems(ctx);
+    this.updateColumnsMultiSelectItems();
     await this.updateTableData();
   }
 
-  @Stalk({ handler: ChildOf })
-  private updateColumnsMultiSelectItems(ctx: opentracing.Span) {
+  private updateColumnsMultiSelectItems() {
     const currentColumns = this.table.getColumnDefinitions();
     const items: WidgetToolbarMultiSelectItem[] = Object.keys(
       this.columnDefinitions

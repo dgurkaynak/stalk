@@ -6,9 +6,6 @@ import MPN65ColorAssigner from '../components/ui/color-assigner-mpn65';
 import { Span } from './interfaces';
 import db from './db';
 import { TypeScriptManager } from './../components/customization/typescript-manager';
-import * as opentracing from 'opentracing';
-import { OperationNamePrefix } from '../utils/self-tracing/opname-prefix-decorator';
-import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../utils/self-tracing/trace-decorator';
 
 export enum SpanColoringManagerEvent {
   ADDED = 'scm_added',
@@ -30,7 +27,6 @@ export interface SpanColoringOptions {
 
 let singletonIns: SpanColoringManager;
 
-@OperationNamePrefix('scmanager.')
 export class SpanColoringManager extends EventEmitter {
   private builtInOptions: SpanColoringOptions[] = [
     operationColoringOptions,
@@ -43,21 +39,14 @@ export class SpanColoringManager extends EventEmitter {
     return singletonIns;
   }
 
-  @Stalk({ handler: ChildOf })
-  async init(ctx: opentracing.Span) {
+  async init() {
     await db.open();
-    ctx.log({ message: 'DB opened successfully' });
-
     const rawOptions = await db.spanColorings.toArray();
-    ctx.log({ message: `Got ${rawOptions.length} span coloring(s), adding them` });
-
-    await Promise.all(rawOptions.map(raw => this.add(ctx, raw, true)));
+    await Promise.all(rawOptions.map(raw => this.add(raw, true)));
   }
 
-  @Stalk({ handler: ChildOf })
-  async add(ctx: opentracing.Span, raw: SpanColoringRawOptions, doNotPersistToDatabase = false) {
+  async add(raw: SpanColoringRawOptions, doNotPersistToDatabase = false) {
     const allOptions = [...this.builtInOptions, ...this.customOptions];
-    ctx.addTags({ ...raw, doNotPersistToDatabase });
 
     const options: SpanColoringOptions = {
       key: raw.key,
@@ -67,9 +56,6 @@ export class SpanColoringManager extends EventEmitter {
 
     const keyMatch = find(allOptions, c => c.key === options.key);
     if (keyMatch) {
-      ctx.log({
-        message: `There is already a span coloring with key "${options.key}"`
-      });
       return false;
     }
 

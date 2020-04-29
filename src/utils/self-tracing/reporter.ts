@@ -77,7 +77,7 @@ export class StalkStudioReporter extends BaseReporter {
   importTraces() {
     const traces = this.getTraces();
     this.clear();
-    traces.forEach(t => this.stage.addTrace(undefined, t));
+    traces.forEach(t => this.stage.addTrace(t));
   }
 }
 

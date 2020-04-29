@@ -1,13 +1,9 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as languageFeatures from 'monaco-editor/esm/vs/language/typescript/languageFeatures';
 import DefaultInterfacesRawText from '!!raw-loader!../../model/interfaces.ts';
-import * as opentracing from 'opentracing';
-import { OperationNamePrefix } from '../../utils/self-tracing/opname-prefix-decorator';
-import { Stalk, NewTrace, ChildOf, FollowsFrom } from '../../utils/self-tracing/trace-decorator';
 
 let _singletonIns: TypeScriptManager;
 
-@OperationNamePrefix('tsmanager.')
 export class TypeScriptManager {
   private defaultInterfacesDisposable?: monaco.IDisposable;
 
@@ -16,8 +12,7 @@ export class TypeScriptManager {
     return _singletonIns;
   }
 
-  @Stalk({ handler: ChildOf })
-  async init(ctx: opentracing.Span) {
+  async init() {
     // TypeScriptManager.patchMonacoTypescriptToIgnoreDiagnostics();
 
     // monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
@@ -35,14 +30,12 @@ export class TypeScriptManager {
     );
   }
 
-  @Stalk({ handler: NewTrace })
-  async compile(ctx: opentracing.Span, uri: monaco.Uri) {
+  async compile(uri: monaco.Uri) {
     const worker = await monaco.languages.typescript.getTypeScriptWorker();
     const client = await worker(uri);
     const input = uri.toString();
     const result = await client.getEmitOutput(input);
     const output = result.outputFiles[0].text;
-    ctx.addTags({ input, output });
     return output;
   }
 
