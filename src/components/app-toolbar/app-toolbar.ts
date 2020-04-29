@@ -26,10 +26,10 @@ import { remote } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import format from 'date-fns/format';
+import { StageTracesModalContent } from '../stage-traces/stage-traces-modal-content';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
-import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgSourceBranch from '!!raw-loader!@mdi/svg/svg/source-branch.svg';
 import SvgExport from '!!raw-loader!@mdi/svg/svg/export.svg';
 import './app-toolbar.css';
@@ -56,7 +56,6 @@ export class AppToolbar {
       export: document.createElement('div')
     },
     tracesBadgeCount: document.createElement('div'),
-    tracesMenuListEmpty: document.createElement('div'),
     dataSourceMenuList: {
       header: document.createElement('div'),
       empty: document.createElement('div'),
@@ -66,13 +65,13 @@ export class AppToolbar {
   };
   private tippyInstaces: {
     dataSources: TippyInstance;
-    traces: TippyInstance;
     dataSourceRemovePopConfirm: TippyInstance;
   };
   private dataSourceFormModalContent: DataSourceFormModalContent;
   private jaegerSearchModalContents: {
     [key: string]: JaegerSearchModalContent;
   } = {};
+  private stageTracesModalContent = new StageTracesModalContent();
 
   private binded = {
     onDataSourceManagerAdded: this.onDataSourceManagerAdded.bind(this),
@@ -86,14 +85,15 @@ export class AppToolbar {
     ),
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
-    onTracesMenuListButtonClick: this.onTracesMenuListButtonClick.bind(this),
+    onStageTracesButtonClick: this.onStageTracesButtonClick.bind(this),
     onNewDataSourceButtonClick: this.onNewDataSourceButtonClick.bind(this),
     onNewDataSourceModalClose: this.onNewDataSourceModalClose.bind(this),
     onDataSourceRemovePopConfirmButtonClick: this.onDataSourceRemovePopConfirmButtonClick.bind(
       this
     ),
     onJaegerSearchModalClosed: this.onJaegerSearchModalClosed.bind(this),
-    onExportButtonClick: this.onExportButtonClick.bind(this)
+    onExportButtonClick: this.onExportButtonClick.bind(this),
+    onStageTracesModalClose: this.onStageTracesModalClose.bind(this)
   };
 
   private stage = Stage.getSingleton();
@@ -105,11 +105,6 @@ export class AppToolbar {
     items: [],
     onButtonClick: this.binded.onDataSourceMenuListButtonClick,
     onTextClick: this.binded.onDataSourceMenuListTextClick
-  });
-  private tracesMenuList = new ToolbarMenuList({
-    emptyEl: this.elements.tracesMenuListEmpty,
-    items: [],
-    onButtonClick: this.binded.onTracesMenuListButtonClick
   });
 
   constructor(private options: AppToolbarOptions) {
@@ -181,14 +176,6 @@ export class AppToolbar {
     this.elements.dataSourceMenuList.empty.innerHTML = `<span class="heading">No Data Sources</span>
       <span class="description">Click ${SvgPlus} button on the top right to add a data source.</span>`;
 
-    // Prepare traces menu list empty
-    this.elements.tracesMenuListEmpty.classList.add(
-      'toolbar-traces-menu-empty'
-    );
-    this.elements.tracesMenuListEmpty.innerHTML = `<span class="heading">No Traces in the Stage</span>
-      <span class="description">You can search and add traces by clicking ${SvgMagnify} button of a data source,
-      or you can drag & drop Jaeger or Zipkin traces in JSON format.</span>`;
-
     // Data source remove pop confirm
     const {
       removePopConfirmContainer,
@@ -256,17 +243,6 @@ export class AppToolbar {
         trigger: 'click',
         interactive: true
       }),
-      traces: tippy(this.elements.btn.traces, {
-        content: this.tracesMenuList.element,
-        multiple: true,
-        appendTo: document.body,
-        placement: 'bottom',
-        duration: 0,
-        updateDuration: 0,
-        theme: 'app-toolbar-menu-list',
-        trigger: 'click',
-        interactive: true
-      }),
       dataSourceRemovePopConfirm: tippy(document.body, {
         lazy: false,
         duration: 0,
@@ -325,18 +301,6 @@ export class AppToolbar {
     });
   }
 
-  private updateTracesList() {
-    this.tracesMenuList.removeAllItems();
-    const traces = this.stage.getAllTraces();
-    traces.forEach(trace => {
-      this.tracesMenuList.addItem({
-        text: trace.name,
-        buttons: [{ id: 'remove', icon: 'close' }]
-      });
-    });
-    this.updateTracesBadgeCount(traces.length);
-  }
-
   updateTracesBadgeCount(count: number) {
     const el = this.elements.tracesBadgeCount;
     if (count > 0) {
@@ -370,6 +334,11 @@ export class AppToolbar {
     btn.export.addEventListener(
       'click',
       this.binded.onExportButtonClick,
+      false
+    );
+    this.elements.btn.traces.addEventListener(
+      'click',
+      this.binded.onStageTracesButtonClick,
       false
     );
   }
@@ -409,6 +378,11 @@ export class AppToolbar {
     btn.export.removeEventListener(
       'click',
       this.binded.onExportButtonClick,
+      false
+    );
+    this.elements.btn.traces.removeEventListener(
+      'click',
+      this.binded.onStageTracesButtonClick,
       false
     );
   }
@@ -557,22 +531,35 @@ export class AppToolbar {
 
   @Stalk({ handler: FollowsFrom })
   private onStageTraceAdded(ctx: opentracing.Span, trace: Trace) {
-    this.updateTracesList();
+    this.updateTracesBadgeCount(this.stage.getAllTraces().length);
   }
 
   @Stalk({ handler: FollowsFrom })
   private onStageTraceRemoved(ctx: opentracing.Span, trace: Trace) {
-    this.updateTracesList();
+    this.updateTracesBadgeCount(this.stage.getAllTraces().length);
   }
 
-  private onTracesMenuListButtonClick(
-    item: ToolbarMenuListOptions,
-    index: number
+  private onStageTracesButtonClick() {
+    const modal = new Modal({
+      content: this.stageTracesModalContent.getElement(),
+      contentContainerClassName: 'stage-traces-modal-container',
+      onClose: this.binded.onStageTracesModalClose
+    });
+    ModalManager.getSingleton().show(modal);
+    if (!this.stageTracesModalContent.inited)
+      this.stageTracesModalContent.init();
+    this.stageTracesModalContent.onShow();
+  }
+
+  private onStageTracesModalClose(
+    triggerType: ModalCloseTriggerType,
+    data: any
   ) {
-    const trace = this.stage.getAllTraces()[index];
-    if (!trace) return;
-    this.stage.removeTrace(null, trace.id);
-    this.tippyInstaces.traces.hide();
+    if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
+    if (data?.action != 'removeFromStage') return;
+    (data.traceIds as string[]).forEach(id =>
+      this.stage.removeTrace(undefined, id)
+    );
   }
 
   private onNewDataSourceButtonClick() {
