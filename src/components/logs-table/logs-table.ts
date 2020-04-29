@@ -327,7 +327,7 @@ export class LogsTableView extends EventEmitter {
       const currentColumns = this.table.getColumnDefinitions();
       const isAdded = !!find(
         currentColumns,
-        col => col.field == getColumnIdByFieldKey(fieldKey)
+        col => col.field == getColumnFieldSelectorByFieldKey(fieldKey)
       );
       if (!isAdded) {
         this.addColumnGracefullyBeforeFieldsColumn({
@@ -348,7 +348,7 @@ export class LogsTableView extends EventEmitter {
       const currentColumns = this.table.getColumnDefinitions();
       const isAdded = !!find(
         currentColumns,
-        col => col.field == getColumnIdByFieldKey('error')
+        col => col.field == getColumnFieldSelectorByFieldKey('error')
       );
       if (!isAdded) {
         this.addColumnGracefullyBeforeFieldsColumn({
