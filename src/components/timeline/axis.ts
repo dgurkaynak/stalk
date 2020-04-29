@@ -29,6 +29,11 @@ export default class Axis {
    * updating all.
    */
   reset(inputRange: [number, number], outputRange: [number, number]) {
+    // Input range cannot be zero
+    if (inputRange[1] - inputRange[0] <= 0) {
+      inputRange[1] = inputRange[0] + 1;
+    }
+
     this.inputRange = inputRange;
     this.outputRange = outputRange;
 
