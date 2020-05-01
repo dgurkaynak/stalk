@@ -5,25 +5,70 @@ import isArray from 'lodash/isArray';
 import { Span } from './interfaces';
 import urlJoin from 'url-join';
 
-// const ZIPKIN_API_MAX_LIMIT = 250;
-
+/**
+ * Main documentation: https://zipkin.io/zipkin-api/#/default/get_traces
+ */
 export interface ZipkinAPISearchQuery {
-  serviceName: string;
-  operationName?: string;
-  startTime: number;
-  finishTime: number;
-  tags: (string | { [key: string]: string })[];
+  /**
+   * According to documentation, the only required field is `serviceName`.
+   * However, it can work without it. It returns all the services.
+   */
+  serviceName?: string;
+
+  /**
+   * Span name, or operation name.
+   */
+  spanName?: string;
+
+  /**
+   * Ex. `http.uri=/foo and retried` - If key/value (has an =),
+   * constrains against Span.tags entres. If just a word, constrains
+   * against Span.annotations[].value or Span.tags[].key. Any values are
+   * AND against each other. This means a span in the trace must match
+   * all of these.
+   *
+   * These whole string must be encoded with `encodeURIComponent()`.
+   * So `http.uri=/foo and retried` should be sent as `http.uri%3D%2Ffoo%20and%20retried`.
+   * However, `this.request()` handles this.
+   *
+   * Multiple queries should be combined with `and` keyword. If not, zipkin returns
+   * no results.
+   *
+   * In Zipkin UI, these field displayed as `tags`.
+   */
+  annotationQuery?: string;
+
+  /**
+   * This field must be in ****milliseconds****. Defaults to current time.
+   */
+  endTs?: number;
+
+  /**
+   * This field must be in ****milliseconds****. Defaults to `endTs`.
+   */
+  lookback?: number;
+
+  /**
+   * These fields must be in ****microseconds****.
+   */
   minDuration?: number;
   maxDuration?: number;
-  limit: number;
-  offset?: number;
+
+  /**
+   * Defaults to 10. When you passed `0` or any negative number.
+   * It returns an error.
+   *
+   * However it seems there is no upper limit. When I pass even 100000,
+   * there was no error. There were 1146 traces in zipkin, I was able
+   * to get it all.
+   */
+  limit?: number;
 }
 
 // https://zipkin.io/zipkin-api/
 export class ZipkinAPI {
   private baseUrl: string;
   private headers: { [key: string]: string } = {};
-  private servicesAndOperationsCache: { [key: string]: string[] } = {};
 
   constructor(options: {
     baseUrl: string;
@@ -44,131 +89,43 @@ export class ZipkinAPI {
     }
   }
 
-  /**
-   * https://zipkin.io/zipkin-api/#/default/get_traces
-   */
   async search(query: ZipkinAPISearchQuery) {
-    const queryParams: any = {};
-
-    /**
-     * `serviceName` => Ex favstar (required) - Lower-case label of a node in the service
-     * graph. The /services endpoint enumerates possible input values.
-     */
-    if (query.serviceName) queryParams.serviceName = query.serviceName;
-
-    /**
-     * `spanName` => Ex get - name of a span in a trace. Only return traces that contains
-     * spans with this name.
-     */
-    if (query.operationName) queryParams.spanName = query.operationName;
-
-    /**
-     * `annotationQuery` => Ex. `http.uri=/foo and retried` - If key/value (has an =),
-     * constrains against Span.tags entres. If just a word, constrains
-     * against Span.annotations[].value or Span.tags[].key. Any values are
-     * AND against eachother. This means a span in the trace must match all of these.
-     *
-     * Self notes:
-     * - When passed just a word (not containing `=`), api will get traces that some spans
-     * contains that tag/annotation.
-     * - Tag names and values are case sensitive, so `component=player` and `Component=Player` not working
-     * - `and` is necessary and it's also case sensitive => `AND` is not working.
-     * So, this is not working: `component=Player error=true`.
-     * The valid form: `component=Player and error=true`
-     */
-    if (isArray(query.tags) && query.tags.length > 0) {
-      queryParams.annotationQuery = query.tags
-        .map(data => {
-          if (isString(data)) {
-            return data;
-          }
-
-          if (isObject(data)) {
-            const keys = Object.keys(data);
-            if (keys.length === 0)
-              throw new Error(`Tag object must contain one key/value pair`);
-            const name = keys[0];
-            return `${name}=${data[name]}`; // TODO: Quote or not quote?
-          }
-
-          throw new Error(
-            `Unsupported tag, it must be string or an object that contains one key/value pair`
-          );
-        })
-        .join(' and ');
+    // If `query.limit` is Inifinity, set it high enough
+    if (query.limit == Infinity) {
+      query.limit = 10000;
     }
 
-    /**
-     * `minDuration` => Ex. 100000 (for 100ms). Only return traces whose Span.duration is
-     * greater than or equal to minDuration microseconds.
-     */
-    if (isNumber(query.minDuration))
-      queryParams.minDuration = String(query.minDuration * 1000);
-
-    /**
-     * `maxDuration` => Only return traces whose Span.duration is less than or equal to
-     * maxDuration microseconds. Only valid with minDuration.
-     */
-    if (isNumber(query.maxDuration))
-      queryParams.maxDuration = String(query.maxDuration * 1000);
-
-    /**
-     * `endTs` => Only return traces where all Span.timestamp are at or before this
-     * time in epoch milliseconds. Defaults to current time.
-     */
-    if (query.finishTime) queryParams.endTs = String(query.finishTime);
-
-    /**
-     * `lookback` => Only return traces where all Span.timestamp are at or after (endTs
-     * lookback) in milliseconds. Defaults to endTs, limited to a
-     * system parameter QUERY_LOOKBACK
-     */
-    queryParams.lookback = String(query.finishTime - query.startTime);
-
-    /**
-     * `limit` => Maximum number of traces to return. Defaults to 10
-     */
-    if (query.limit) queryParams.limit = String(query.limit);
-
-    const response = await this.get('/traces', queryParams);
-    if (!isArray(response))
+    const response = await this.get('/traces', query as any);
+    if (!isArray(response)) {
       throw new Error('Expected zipkin response must be array');
-    return {
-      query,
-      data: response.map(rawTrace => convertFromZipkinTrace(rawTrace))
-    };
+    }
+    return response.map(rawTrace => convertFromZipkinTrace(rawTrace));
   }
 
   async test() {
     await this.getServices();
   }
 
-  async updateServicesAndOperationsCache() {
-    const servicesAndOperations: { [key: string]: string[] } = {};
-    const services = await this.getServices();
-    const tasks = services.map((service: string) => this.getSpans(service));
-    const operationsArr = await Promise.all(tasks);
-    services.forEach((service: string, index: number) => {
-      servicesAndOperations[service] = operationsArr[index] as string[];
-    });
-    this.servicesAndOperationsCache = servicesAndOperations;
-    return servicesAndOperations;
-  }
-
-  getServicesAndOperations() {
-    return this.servicesAndOperationsCache;
-  }
-
-  private async getServices() {
+  async getServices() {
     return this.get('/services');
   }
 
-  private async getSpans(serviceName: string) {
+  async getSpans(serviceName: string) {
     return this.get('/spans', { serviceName });
   }
 
-  private async getRemoteServices(serviceName: string) {
+  async getRemoteServices(serviceName: string) {
     return this.get('/remoteServices', { serviceName });
+  }
+
+  async getTrace(traceId: string) {
+    const rawSpans = await this.get(`/trace/${traceId}`);
+    if (!isArray(rawSpans)) {
+      console.error(rawSpans);
+      throw new Error(`Unexpected response from Zipkin, expected an array`);
+    }
+
+    return convertFromZipkinTrace(rawSpans);
   }
 
   private async get(path: string, queryParams: { [key: string]: string } = {}) {

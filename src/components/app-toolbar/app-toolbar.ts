@@ -13,6 +13,7 @@ import { ModalManager } from '../ui/modal/modal-manager';
 import { DataSourceFormModalContent } from '../datasource/datasource-form-modal-content';
 import shortid from 'shortid';
 import { JaegerSearchModalContent } from '../search/jaeger-search-modal-content';
+import { ZipkinSearchModalContent } from '../search/zipkin-search-modal-content';
 import Noty from 'noty';
 import { remote } from 'electron';
 import * as fs from 'fs';
@@ -61,6 +62,9 @@ export class AppToolbar {
   private dataSourceFormModalContent: DataSourceFormModalContent;
   private jaegerSearchModalContents: {
     [key: string]: JaegerSearchModalContent;
+  } = {};
+  private zipkinSearchModalContents: {
+    [key: string]: ZipkinSearchModalContent;
   } = {};
   private stageTracesModalContent = new StageTracesModalContent();
 
@@ -451,7 +455,7 @@ export class AppToolbar {
       return;
     }
 
-    let modalContent: JaegerSearchModalContent; // TODO: Or can be zipkin modal content
+    let modalContent: JaegerSearchModalContent | ZipkinSearchModalContent;
     let contentContainerClassName = '';
     let shouldInitModalContent = false;
 
@@ -466,7 +470,15 @@ export class AppToolbar {
         this.jaegerSearchModalContents[ds.id] = modalContent;
       }
     } else if (ds.type == DataSourceType.ZIPKIN) {
-      // TODO
+      contentContainerClassName = 'zipkin-search-modal-container';
+      modalContent = this.zipkinSearchModalContents[ds.id];
+      if (!modalContent) {
+        modalContent = new ZipkinSearchModalContent({
+          dataSource: ds
+        });
+        shouldInitModalContent = true;
+        this.zipkinSearchModalContents[ds.id] = modalContent;
+      }
     } else {
       console.error(
         `Unknown/unsupported data source type to search: "${ds.type}"`
@@ -639,6 +651,8 @@ export class AppToolbar {
 
     Object.values(this.jaegerSearchModalContents).forEach(c => c.dispose);
     this.jaegerSearchModalContents = {};
+    Object.values(this.zipkinSearchModalContents).forEach(c => c.dispose);
+    this.zipkinSearchModalContents = {};
 
     this.unbindEvents();
     this.elements = null;

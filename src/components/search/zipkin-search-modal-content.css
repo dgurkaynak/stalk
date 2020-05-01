@@ -1,0 +1,132 @@
+.zipkin-search-modal-container {
+  width: 90%;
+  height: 80%;
+  overflow: hidden;
+}
+
+.zipkin-search-modal-content {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.zipkin-search-modal-content > .top {
+  display: flex;
+  align-items: stretch;
+  flex-grow: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 3em; /* must be the same with height of the bottom */
+}
+
+.zipkin-search-modal-content > .bottom {
+  display: flex;
+  height: 3em;
+  border-top: 1px solid #ccc;
+  padding: 0 1em;
+  background: #eee;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.zipkin-search-modal-content > .bottom .left {
+  display: flex;
+  align-items: center;
+}
+
+.zipkin-search-modal-content > .bottom .right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.zipkin-search-modal-content > .bottom .right > div {
+  margin-right: 1em;
+}
+
+.zipkin-search-modal-content > .top > .left {
+  width: 22em;
+  min-width: 22em;
+  border-right: 1px solid #ccc;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.zipkin-search-modal-content > .top > .right {
+  flex-grow: 2;
+  overflow-y: auto;
+}
+
+.zipkin-search-modal-content > .top > .left .header {
+  font-size: 2.5em;
+  font-weight: 600;
+  margin: 0.1em 0 0.5em;
+}
+
+.zipkin-search-modal-content > .top > .left .status {
+  margin-left: 0.1em;
+}
+
+.zipkin-search-modal-content > .top > .left .status svg {
+  width: 0.6em;
+  height: 0.6em;
+}
+
+.zipkin-search-modal-content > .top > .left .status.success svg {
+  fill: #52c41a;
+}
+
+.zipkin-search-modal-content > .top > .left .status.error svg {
+  fill: #f5222d;
+}
+
+.zipkin-search-modal-content > .top > .left .search-widget {
+  border-radius: 0.3em;
+  border: 1px solid #eee;
+}
+
+.zipkin-search-modal-content > .top > .left .search-widget .title {
+  font-weight: 600;
+  font-size: 1em;
+  background: #eee;
+  padding: 0.4em;
+}
+
+.zipkin-search-modal-content > .top > .left .search-widget form {
+  padding: 0.4em;
+}
+
+.zipkin-search-modal-content > .top > .left .search-by-trace-id form {
+  display: flex;
+}
+
+.zipkin-search-modal-content > .top > .left .search-by-trace-id form input {
+  flex-grow: 1;
+}
+
+.zipkin-search-modal-content > .top > .left .search-widget.search {
+  margin-top: 1em;
+}
+
+.zipkin-search-modal-content > .top > .left .search-widget.search form .field {
+  margin-bottom: 1em;
+}
+
+.zipkin-search-modal-content > .top > .left .search-widget.search form .field-title {
+  font-weight: 500;
+}
+
+.zipkin-search-modal-content > .top > .left .search-widget.search form .field input,
+.zipkin-search-modal-content > .top > .left .search-widget.search form .field select {
+  width: 100%;
+  box-sizing: border-box;
+}
