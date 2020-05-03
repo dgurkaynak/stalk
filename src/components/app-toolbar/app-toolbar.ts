@@ -20,23 +20,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import format from 'date-fns/format';
 import { StageTracesModalContent } from '../stage-traces/stage-traces-modal-content';
+import { LiveCollectorModalContent } from '../live-collector/live-collector-modal-content';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
 import SvgSourceBranch from '!!raw-loader!@mdi/svg/svg/source-branch.svg';
 import SvgExport from '!!raw-loader!@mdi/svg/svg/export.svg';
+import SvgSatellite from '!!raw-loader!@mdi/svg/svg/satellite-uplink.svg';
 import './app-toolbar.css';
-
-export interface AppToolbarOptions {}
-
-export type AppToolbarButtonType =
-  | 'dataSources'
-  | 'search'
-  | 'traces'
-  | 'widgets'
-  | 'export';
-
-export type AppToolbarButtonState = 'selected' | 'disabled';
 
 export class AppToolbar {
   private elements = {
@@ -44,6 +35,7 @@ export class AppToolbar {
     btn: {
       dataSources: document.createElement('div'),
       newDataSource: document.createElement('div'),
+      liveCollector: document.createElement('div'),
       traces: document.createElement('div'),
       export: document.createElement('div')
     },
@@ -67,6 +59,7 @@ export class AppToolbar {
     [key: string]: ZipkinSearchModalContent;
   } = {};
   private stageTracesModalContent = new StageTracesModalContent();
+  private liveCollectorModalContent = new LiveCollectorModalContent();
 
   private binded = {
     onDataSourceManagerAdded: this.onDataSourceManagerAdded.bind(this),
@@ -81,6 +74,7 @@ export class AppToolbar {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
     onStageTracesButtonClick: this.onStageTracesButtonClick.bind(this),
+    onLiveCollectorButtonClick: this.onLiveCollectorButtonClick.bind(this),
     onNewDataSourceButtonClick: this.onNewDataSourceButtonClick.bind(this),
     onNewDataSourceModalClose: this.onNewDataSourceModalClose.bind(this),
     onDataSourceRemovePopConfirmButtonClick: this.onDataSourceRemovePopConfirmButtonClick.bind(
@@ -88,7 +82,8 @@ export class AppToolbar {
     ),
     onJaegerSearchModalClosed: this.onJaegerSearchModalClosed.bind(this),
     onExportButtonClick: this.onExportButtonClick.bind(this),
-    onStageTracesModalClose: this.onStageTracesModalClose.bind(this)
+    onStageTracesModalClose: this.onStageTracesModalClose.bind(this),
+    onLiveCollectorModalClose: this.onLiveCollectorModalClose.bind(this)
   };
 
   private stage = Stage.getSingleton();
@@ -102,7 +97,7 @@ export class AppToolbar {
     onTextClick: this.binded.onDataSourceMenuListTextClick
   });
 
-  constructor(private options: AppToolbarOptions) {
+  constructor() {
     const { container: el, btn } = this.elements;
     el.id = 'app-toolbar';
     el.classList.add('app-toolbar');
@@ -129,9 +124,13 @@ export class AppToolbar {
     btn.dataSources.innerHTML = SvgDatabase;
     leftPane.appendChild(btn.dataSources);
 
+    btn.liveCollector.classList.add('app-toolbar-button', 'live-collector');
+    btn.liveCollector.innerHTML = SvgSatellite;
+    leftPane.appendChild(btn.liveCollector);
+
     btn.traces.classList.add('app-toolbar-button', 'traces');
     btn.traces.innerHTML = SvgSourceBranch;
-    leftPane.appendChild(btn.traces);
+    rightPane.appendChild(btn.traces);
 
     // Right buttons
     btn.export.classList.add('app-toolbar-button');
@@ -208,6 +207,13 @@ export class AppToolbar {
         this.elements.btn.dataSources,
         {
           content: 'Data Sources',
+          multiple: true
+        }
+      ],
+      [
+        this.elements.btn.liveCollector,
+        {
+          content: 'Live Collector',
           multiple: true
         }
       ],
@@ -331,6 +337,11 @@ export class AppToolbar {
       this.binded.onStageTracesButtonClick,
       false
     );
+    this.elements.btn.liveCollector.addEventListener(
+      'click',
+      this.binded.onLiveCollectorButtonClick,
+      false
+    );
   }
 
   private unbindEvents() {
@@ -373,6 +384,11 @@ export class AppToolbar {
     this.elements.btn.traces.removeEventListener(
       'click',
       this.binded.onStageTracesButtonClick,
+      false
+    );
+    this.elements.btn.liveCollector.removeEventListener(
+      'click',
+      this.binded.onLiveCollectorButtonClick,
       false
     );
   }
@@ -546,6 +562,29 @@ export class AppToolbar {
     );
   }
 
+  private onLiveCollectorButtonClick() {
+    const modal = new Modal({
+      content: this.liveCollectorModalContent.getElement(),
+      contentContainerClassName: 'live-collector-modal-container',
+      onClose: this.binded.onStageTracesModalClose
+    });
+    ModalManager.getSingleton().show(modal);
+    if (!this.liveCollectorModalContent.inited)
+      this.liveCollectorModalContent.init();
+    this.liveCollectorModalContent.onShow();
+  }
+
+  private onLiveCollectorModalClose(
+    triggerType: ModalCloseTriggerType,
+    data: any
+  ) {
+    if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
+    if (data?.action != 'removeFromStage') return;
+    (data.traceIds as string[]).forEach(id =>
+      this.stage.removeTrace(id)
+    );
+  }
+
   private onNewDataSourceButtonClick() {
     this.dataSourceFormModalContent = new DataSourceFormModalContent({
       type: 'new'
@@ -656,6 +695,5 @@ export class AppToolbar {
 
     this.unbindEvents();
     this.elements = null;
-    this.options = null;
   }
 }

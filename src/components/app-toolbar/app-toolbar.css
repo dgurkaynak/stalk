@@ -54,7 +54,6 @@
 .app-toolbar-button.fix-stroke:hover svg { stroke: #fff; }
 
 /* App toolbar button fine-tuning */
-.app-toolbar-button.search svg { height: 1.9em; position: relative; top: 1px; }
 .app-toolbar-button.traces { position: relative; }
 .app-toolbar-button.traces svg { height: 1.6em; }
 

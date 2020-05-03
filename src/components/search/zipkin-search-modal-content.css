@@ -96,13 +96,16 @@
 
 .zipkin-search-modal-content > .top > .left .search-widget .title {
   font-weight: 600;
-  font-size: 1em;
-  background: #eee;
+  font-size: 1.15em;
+  background: #f7f7f7;
   padding: 0.4em;
+  height: 24px;
+  display: flex;
+  align-items: center;
 }
 
 .zipkin-search-modal-content > .top > .left .search-widget form {
-  padding: 0.4em;
+  padding: 0.5em;
 }
 
 .zipkin-search-modal-content > .top > .left .search-by-trace-id form {
@@ -114,7 +117,7 @@
 }
 
 .zipkin-search-modal-content > .top > .left .search-widget.search {
-  margin-top: 1em;
+  margin-top: 1.3em;
 }
 
 .zipkin-search-modal-content > .top > .left .search-widget.search form .field {
@@ -122,7 +125,7 @@
 }
 
 .zipkin-search-modal-content > .top > .left .search-widget.search form .field-title {
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .zipkin-search-modal-content > .top > .left .search-widget.search form .field input,
