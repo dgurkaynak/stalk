@@ -36,7 +36,14 @@ export class Stage extends EventEmitter {
 
   addTrace(trace: Trace) {
     if (this.traces[trace.id]) {
-      return false;
+      const currentTrace = this.traces[trace.id];
+      const newTrace = trace;
+
+      if (newTrace.spanCount == currentTrace.spanCount) {
+        return false;
+      } else {
+        this.removeTrace(currentTrace.id);
+      }
     }
     this.traces[trace.id] = trace;
 
