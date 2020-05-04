@@ -233,3 +233,203 @@ export function convertFromJaegerTrace(rawTrace: any) {
 
   return spans;
 }
+
+export function convertFromJaegerBatchThrift(batch: any) {
+  if (!isObject(batch)) throw new Error(`Batch must be an object`);
+  const batchAny = batch as any;
+  if (!isObject(batchAny.process))
+    throw new Error(`"process" must be an object`);
+  if (!isString(batchAny.process.serviceName))
+    throw new Error(`"process.serviceName" must be a string`);
+  const process = {
+    serviceName: batchAny.process.serviceName,
+    id: '',
+    tags: {} as { [key: string]: any }
+  };
+
+  if (isArray(batchAny.process.tags)) {
+    process.tags = parseJaegerThriftTags(batchAny.process.tags);
+  }
+
+  const spans: Span[] = [];
+
+  if (isArray(batchAny.spans)) {
+    batchAny.spans.forEach((rawSpan: any) => {
+      // Trace ID => Parse `traceIdLow` field.
+      // Ignoring `traceIdHigh` field, its currently all zeros
+      if (
+        !isObject(rawSpan.traceIdLow) ||
+        !isObject(rawSpan.traceIdLow.buffer)
+      ) {
+        console.log(rawSpan);
+        throw new Error(`Unexpected "span.traceIdLow" field`);
+      }
+      const traceId = byteArray2number(rawSpan.traceIdLow.buffer).toString(16);
+
+      // Span id
+      if (!isObject(rawSpan.spanId) || !isObject(rawSpan.spanId.buffer)) {
+        console.log(rawSpan);
+        throw new Error(`Unexpected "span.spanId" field`);
+      }
+      const id = byteArray2number(rawSpan.spanId.buffer).toString(16);
+
+      // Ignoring `parentSpanId` field, it is redundant.
+
+      // Operation name
+      const operationName = rawSpan.operationName;
+
+      // References
+      if (!isArray(rawSpan.references)) {
+        console.log(rawSpan);
+        throw new Error(
+          `Unexpected "span.references" field, it must be an array`
+        );
+      }
+      const references: any[] = [];
+      rawSpan.references.map((rawRef: any) => {
+        // Reference type
+        if (rawRef.refType != 0 && rawRef.refType != 1) {
+          console.log(rawSpan);
+          throw new Error(
+            `Unexpected "span.references.refType", it must be 0 or 1`
+          );
+        }
+
+        // Parse `traceIdLow`
+        // Ignoring `traceIdHigh` field, its currently all zeros
+        if (
+          !isObject(rawRef.traceIdLow) ||
+          !isObject(rawRef.traceIdLow.buffer)
+        ) {
+          console.log(rawSpan);
+          throw new Error(`Unexpected "span.references.traceIdLow" field`);
+        }
+        const traceId = byteArray2number(rawRef.traceIdLow.buffer).toString(16);
+
+        // Parse span id
+        if (!isObject(rawRef.spanId) || !isObject(rawRef.spanId.buffer)) {
+          console.log(rawSpan);
+          throw new Error(`Unexpected "span.references.spanId" field`);
+        }
+        const spanId = byteArray2number(rawRef.spanId.buffer).toString(16);
+
+        // When recieving over our custom jaeger-collector-like http server
+        // from jaegertracing/example-hotrod:1.17.1 app, sometimes root span has
+        // a `childOf` reference, which `spanId` and `traceId` is zero. Filter those.
+        if (traceId == '0' && spanId == '0') {
+          return;
+        }
+
+        references.push({
+          type: rawRef.refType == 0 ? 'childOf' : 'followsFrom',
+          spanId,
+          traceId
+        });
+      });
+
+      // Start Time
+      if (!isObject(rawSpan.startTime) || !isObject(rawSpan.startTime.buffer)) {
+        console.log(rawSpan);
+        throw new Error(`Unexpected "span.startTime" field`);
+      }
+      const startTime = byteArray2number(rawSpan.startTime.buffer);
+
+      // Finish Time
+      if (!isObject(rawSpan.duration) || !isObject(rawSpan.duration.buffer)) {
+        console.log(rawSpan);
+        throw new Error(`Unexpected "span.duration" field`);
+      }
+      const duration = byteArray2number(rawSpan.duration.buffer);
+      const finishTime = startTime + duration;
+
+      // Tags
+      const tags = isArray(rawSpan.tags)
+        ? parseJaegerThriftTags(rawSpan.tags)
+        : {};
+
+      // Logs
+      const logs = !isArray(rawSpan.logs)
+        ? []
+        : rawSpan.logs.map((rawLog: any) => {
+            if (
+              !isObject(rawLog.timestamp) ||
+              !isObject(rawLog.timestamp.buffer)
+            ) {
+              console.log(rawSpan);
+              throw new Error(`Unexpected "span.logs.timestamp" field`);
+            }
+
+            return {
+              timestamp: byteArray2number(rawLog.timestamp.buffer),
+              fields: parseJaegerThriftTags(rawLog.fields)
+            };
+          });
+
+      const span: Span = {
+        id,
+        traceId,
+        operationName,
+        startTime,
+        finishTime,
+        references,
+        tags,
+        logs,
+        process
+      };
+
+      spans.push(span);
+    });
+  }
+
+  return spans;
+}
+
+function parseJaegerThriftTags(
+  rawTags: {
+    key: string;
+    vType: number; // enum TagType { STRING, DOUBLE, BOOL, LONG, BINARY }
+    vStr?: string;
+    vDouble?: number;
+    vBool?: boolean;
+    vLong?: number;
+    vBinary?: any;
+  }[]
+) {
+  const acc: { [key: string]: any } = {};
+
+  rawTags.forEach((tagObject: any) => {
+    switch (tagObject.vType) {
+      case 0: // string
+        acc[tagObject.key] = tagObject.vStr;
+        break;
+      case 1: // double
+        acc[tagObject.key] = tagObject.vDouble;
+        break;
+      case 2: // boolean
+        acc[tagObject.key] = tagObject.vBool;
+        break;
+      case 3: // long
+        acc[tagObject.key] = byteArray2number(tagObject.vLong.buffer);
+        break;
+      case 4: // binary
+        acc[tagObject.key] = tagObject.vBinary;
+        break;
+      default: {
+        console.log(rawTags);
+        throw new Error(
+          `Unexpected jaeger thrift tag type: "${tagObject.vType}"`
+        );
+      }
+    }
+  });
+
+  return acc;
+}
+
+export function byteArray2number(arr: number[]) {
+  let num = 0;
+  arr.forEach((byteNum, i) => {
+    num += byteNum * Math.pow(256, arr.length - i - 1);
+  });
+  return num;
+}

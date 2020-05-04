@@ -10,11 +10,15 @@ import {
 } from '../search/search-modal-traces-table';
 import parseDuration from 'parse-duration';
 import throttle from 'lodash/throttle';
-import find from 'lodash/find';
-// import * as dgram from 'dgram';
-// import * as http from 'http';
-// import * as thrift from '../../vendor/thrift';
-// import * as JaegerTypes from '../../vendor/jaeger/gen-nodejs/jaeger_types';
+import groupBy from 'lodash/groupBy';
+import {
+  JaegerAgentUDPServer,
+  JaegerAgentUDPServerState
+} from './jaeger-agent-udp-server';
+import {
+  JaegerCollectorHTTPServer,
+  JaegerCollectorHTTPServerState
+} from './jaeger-collector-http-server';
 
 import SvgCircleMedium from '!!raw-loader!@mdi/svg/svg/circle-small.svg';
 import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
@@ -23,7 +27,7 @@ import './live-collector-modal-content.css';
 
 export class LiveCollectorModalContent {
   private tracesTable = new SearchModalTracesTableView();
-  private traceResults: Trace[] = [];
+  private spansDB: Span[] = [];
   private selectedTraceIds: string[] = [];
   private elements = {
     container: document.createElement('div'),
@@ -57,11 +61,33 @@ export class LiveCollectorModalContent {
   private tippyInstaces: {};
   inited = false;
 
+  private jaegerAgentUDPServer = new JaegerAgentUDPServer();
+  private jaegerCollectorHTTPServer = new JaegerCollectorHTTPServer();
+
   private binded = {
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
     onCloseButtonClick: this.onCloseButtonClick.bind(this),
-    onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this)
+    onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this),
+    updateTraces: throttle(this.updateTraces.bind(this), 1000),
+    onJaegerAgentServerStateChange: this.onJaegerAgentServerStateChange.bind(
+      this
+    ),
+    onJaegerAgentServerSpansRecieve: this.onJaegerAgentServerSpansRecieve.bind(
+      this
+    ),
+    onJaegerAgentPortInput: this.onJaegerAgentPortInput.bind(this),
+    onJaegerAgentCheckboxChanged: this.onJaegerAgentCheckboxChanged.bind(this),
+    onJaegerCollectorServerStateChange: this.onJaegerCollectorServerStateChange.bind(
+      this
+    ),
+    onJaegerCollectorServerSpansRecieve: this.onJaegerCollectorServerSpansRecieve.bind(
+      this
+    ),
+    onJaegerCollectorPortInput: this.onJaegerCollectorPortInput.bind(this),
+    onJaegerCollectorCheckboxChanged: this.onJaegerCollectorCheckboxChanged.bind(
+      this
+    )
   };
 
   constructor() {
@@ -149,6 +175,11 @@ export class LiveCollectorModalContent {
       els.jaegerAgent.port.value = '6831';
       els.jaegerAgent.port.min = '1';
       els.jaegerAgent.port.max = '65535';
+      els.jaegerAgent.port.addEventListener(
+        'input',
+        this.binded.onJaegerAgentPortInput,
+        false
+      );
       portInputContainer.appendChild(els.jaegerAgent.port);
     }
 
@@ -218,6 +249,11 @@ export class LiveCollectorModalContent {
       els.jaegerCollector.port.value = '14268';
       els.jaegerCollector.port.min = '1';
       els.jaegerCollector.port.max = '65535';
+      els.jaegerCollector.port.addEventListener(
+        'input',
+        this.binded.onJaegerCollectorPortInput,
+        false
+      );
       portInputContainer.appendChild(els.jaegerCollector.port);
     }
 
@@ -309,6 +345,12 @@ export class LiveCollectorModalContent {
       els.bottom.addToStageButton.disabled = true;
       rightContainer.appendChild(els.bottom.addToStageButton);
     }
+
+    // Bind live collector server events
+    this.jaegerAgentUDPServer.onStateChange = this.binded.onJaegerAgentServerStateChange;
+    this.jaegerAgentUDPServer.onSpansRecieve = this.binded.onJaegerAgentServerSpansRecieve;
+    this.jaegerCollectorHTTPServer.onStateChange = this.binded.onJaegerCollectorServerStateChange;
+    this.jaegerCollectorHTTPServer.onSpansRecieve = this.binded.onJaegerCollectorServerSpansRecieve;
   }
 
   init() {
@@ -330,6 +372,16 @@ export class LiveCollectorModalContent {
       false
     );
     window.addEventListener('resize', this.binded.onWindowResize, false);
+    this.elements.jaegerAgent.checkbox.addEventListener(
+      'change',
+      this.binded.onJaegerAgentCheckboxChanged,
+      false
+    );
+    this.elements.jaegerCollector.checkbox.addEventListener(
+      'change',
+      this.binded.onJaegerCollectorCheckboxChanged,
+      false
+    );
 
     // Traces table
     // In order to get offsetWidth and height, the dom must be rendered
@@ -397,8 +449,14 @@ export class LiveCollectorModalContent {
   }
 
   private onAddToStageButtonClick() {
-    const traces = this.selectedTraceIds.map(traceId => {
-      return find(this.traceResults, t => t.id == traceId);
+    const traces: Trace[] = [];
+
+    this.selectedTraceIds.forEach(traceId => {
+      const traceSpans = this.spansDB.filter(span => {
+        return span.traceId == traceId;
+      });
+      const trace = new Trace(traceSpans);
+      traces.push(trace);
     });
 
     const modal = ModalManager.getSingleton().findModalFromElement(
@@ -408,6 +466,132 @@ export class LiveCollectorModalContent {
     modal.close({ data: { action: 'addToStage', traces } });
 
     this.tracesTable.deselectAll();
+  }
+
+  private updateTraces() {
+    const tracesObj = groupBy(this.spansDB, span => span.traceId);
+    const traces: Trace[] = [];
+    for (const traceId in tracesObj) {
+      const spans = tracesObj[traceId];
+      const trace = new Trace(spans);
+      traces.push(trace);
+    }
+
+    this.tracesTable.updateTraces(traces);
+  }
+
+  private onJaegerAgentPortInput() {
+    const port = parseInt(this.elements.jaegerAgent.port.value, 10);
+    if (isNaN(port)) {
+      this.elements.jaegerAgent.port.value =
+        this.jaegerAgentUDPServer.getPort() + '';
+      return;
+    }
+
+    const isChanged = this.jaegerAgentUDPServer.setPort(port);
+    if (!isChanged) {
+      this.elements.jaegerAgent.port.value =
+        this.jaegerAgentUDPServer.getPort() + '';
+      return;
+    }
+  }
+
+  private onJaegerAgentServerStateChange(state: JaegerAgentUDPServerState) {
+    this.elements.jaegerAgent.port.disabled =
+      state != JaegerAgentUDPServerState.STOPPED;
+    this.elements.jaegerAgent.checkbox.checked =
+      state != JaegerAgentUDPServerState.STOPPED;
+  }
+
+  private async onJaegerAgentCheckboxChanged() {
+    if (this.elements.jaegerAgent.checkbox.checked) {
+      /**
+       * Start the server
+       */
+      try {
+        await this.jaegerAgentUDPServer.start();
+      } catch (err) {
+        new Noty({
+          text: `Jaeger Agent UDP Server could not started: "${err.message}"`,
+          type: 'error'
+        }).show();
+      }
+    } else {
+      /**
+       * Stop the server
+       */
+      try {
+        await this.jaegerAgentUDPServer.stop();
+      } catch (err) {
+        new Noty({
+          text: `Jaeger Agent UDP Server could not stopped: "${err.message}"`,
+          type: 'error'
+        }).show();
+      }
+    }
+  }
+
+  private onJaegerAgentServerSpansRecieve(spans: Span[]) {
+    this.spansDB.push(...spans);
+    this.binded.updateTraces();
+  }
+
+  private onJaegerCollectorPortInput() {
+    const port = parseInt(this.elements.jaegerCollector.port.value, 10);
+    if (isNaN(port)) {
+      this.elements.jaegerCollector.port.value =
+        this.jaegerCollectorHTTPServer.getPort() + '';
+      return;
+    }
+
+    const isChanged = this.jaegerCollectorHTTPServer.setPort(port);
+    if (!isChanged) {
+      this.elements.jaegerCollector.port.value =
+        this.jaegerCollectorHTTPServer.getPort() + '';
+      return;
+    }
+  }
+
+  private onJaegerCollectorServerStateChange(
+    state: JaegerCollectorHTTPServerState
+  ) {
+    this.elements.jaegerCollector.port.disabled =
+      state != JaegerCollectorHTTPServerState.STOPPED;
+    this.elements.jaegerCollector.checkbox.checked =
+      state != JaegerCollectorHTTPServerState.STOPPED;
+  }
+
+  private async onJaegerCollectorCheckboxChanged() {
+    if (this.elements.jaegerCollector.checkbox.checked) {
+      /**
+       * Start the server
+       */
+      try {
+        await this.jaegerCollectorHTTPServer.start();
+      } catch (err) {
+        new Noty({
+          text: `Jaeger Collector HTTP Server could not started: "${err.message}"`,
+          type: 'error'
+        }).show();
+      }
+    } else {
+      /**
+       * Stop the server
+       */
+      try {
+        await this.jaegerCollectorHTTPServer.stop();
+      } catch (err) {
+        new Noty({
+          text: `Jaeger Collector HTTP Server could not stopped: "${err.message}"`,
+          type: 'error'
+        }).show();
+      }
+    }
+  }
+
+  private onJaegerCollectorServerSpansRecieve(spans: Span[]) {
+    this.spansDB.push(...spans);
+    this.binded.updateTraces();
   }
 
   getElement() {
@@ -430,6 +614,26 @@ export class LiveCollectorModalContent {
       false
     );
     window.removeEventListener('resize', this.binded.onWindowResize, false);
+    this.elements.jaegerAgent.checkbox.removeEventListener(
+      'change',
+      this.binded.onJaegerAgentCheckboxChanged,
+      false
+    );
+    this.elements.jaegerAgent.port.removeEventListener(
+      'input',
+      this.binded.onJaegerAgentPortInput,
+      false
+    );
+    this.elements.jaegerCollector.checkbox.removeEventListener(
+      'change',
+      this.binded.onJaegerCollectorCheckboxChanged,
+      false
+    );
+    this.elements.jaegerCollector.port.removeEventListener(
+      'input',
+      this.binded.onJaegerCollectorPortInput,
+      false
+    );
 
     // Object.values(this.tippyInstaces).forEach(t => t.destroy());
     this.tracesTable.dispose();

@@ -80,7 +80,9 @@ export class AppToolbar {
     onDataSourceRemovePopConfirmButtonClick: this.onDataSourceRemovePopConfirmButtonClick.bind(
       this
     ),
-    onJaegerSearchModalClosed: this.onJaegerSearchModalClosed.bind(this),
+    onDataSourceSearchModalClosed: this.onDataSourceSearchModalClosed.bind(
+      this
+    ),
     onExportButtonClick: this.onExportButtonClick.bind(this),
     onStageTracesModalClose: this.onStageTracesModalClose.bind(this),
     onLiveCollectorModalClose: this.onLiveCollectorModalClose.bind(this)
@@ -505,7 +507,7 @@ export class AppToolbar {
     const modal = new Modal({
       content: modalContent.getElement(),
       contentContainerClassName,
-      onClose: this.binded.onJaegerSearchModalClosed
+      onClose: this.binded.onDataSourceSearchModalClosed
     });
     ModalManager.getSingleton().show(modal);
     shouldInitModalContent && modalContent.init(); // must be inited after render
@@ -557,16 +559,14 @@ export class AppToolbar {
   ) {
     if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
     if (data?.action != 'removeFromStage') return;
-    (data.traceIds as string[]).forEach(id =>
-      this.stage.removeTrace(id)
-    );
+    (data.traceIds as string[]).forEach(id => this.stage.removeTrace(id));
   }
 
   private onLiveCollectorButtonClick() {
     const modal = new Modal({
       content: this.liveCollectorModalContent.getElement(),
       contentContainerClassName: 'live-collector-modal-container',
-      onClose: this.binded.onStageTracesModalClose
+      onClose: this.binded.onLiveCollectorModalClose
     });
     ModalManager.getSingleton().show(modal);
     if (!this.liveCollectorModalContent.inited)
@@ -579,10 +579,8 @@ export class AppToolbar {
     data: any
   ) {
     if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
-    if (data?.action != 'removeFromStage') return;
-    (data.traceIds as string[]).forEach(id =>
-      this.stage.removeTrace(id)
-    );
+    if (data?.action != 'addToStage') return;
+    (data.traces as Trace[]).forEach(t => this.stage.addTrace(t));
   }
 
   private onNewDataSourceButtonClick() {
@@ -624,7 +622,7 @@ export class AppToolbar {
     }
   }
 
-  private onJaegerSearchModalClosed(
+  private onDataSourceSearchModalClosed(
     triggerType: ModalCloseTriggerType,
     data: any
   ) {
