@@ -16,10 +16,19 @@ export class Trace implements ITrace {
   constructor(spans: Span[]) {
     this.spans = spans;
     this.spanCount = spans.length;
+    let traceId = null;
 
     for (let span of spans) {
       this.startTime = Math.min(this.startTime, span.startTime);
       this.finishTime = Math.max(this.finishTime, span.finishTime);
+
+      if (!traceId) {
+        traceId = span.traceId;
+      } else {
+        if (span.traceId != traceId) {
+          throw new Error(`All the spans' "traceId" must be equal`);
+        }
+      }
 
       if (span.references.length === 0) {
         this.rootSpan = span;
@@ -42,9 +51,13 @@ export class Trace implements ITrace {
     }
 
     this.duration = this.finishTime - this.startTime;
-    if (!this.rootSpan) throw new Error(`Trace should contain a root span`);
-    this.name = this.rootSpan.operationName;
-    this.id = this.rootSpan.traceId;
+    if (this.rootSpan) {
+      this.name = this.rootSpan.operationName;
+      this.id = this.rootSpan.traceId;
+    } else {
+      this.name = '<no-root-span>';
+      this.id = traceId;
+    }
   }
 }
 
