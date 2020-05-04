@@ -355,7 +355,7 @@ export class JaegerSearchModalContent {
     this.tracesTable.init({
       width: w,
       height: h,
-      indicateTracesAlreadyInTheStage: true,
+      showInStageColumn: true,
       indicateTracesOverlappingWithStage: true,
       placeholderElement: this.elements.tracesTablePlaceholder.container
     });

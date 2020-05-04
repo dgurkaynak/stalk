@@ -356,7 +356,7 @@ export class ZipkinSearchModalContent {
     this.tracesTable.init({
       width: w,
       height: h,
-      indicateTracesAlreadyInTheStage: true,
+      showInStageColumn: true,
       indicateTracesOverlappingWithStage: true,
       placeholderElement: this.elements.tracesTablePlaceholder.container
     });

@@ -73,6 +73,29 @@
   background: rgba(255, 255, 255, 0.5);
 }
 
+.search-modal-traces-table-view .tabulator-cell[tabulator-field="inStage"] {
+  padding: 0;
+}
+
+.search-modal-traces-table-view .in-stage-cell {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-modal-traces-table-view .in-stage-cell svg {
+  height: 1.4em;
+}
+
+.search-modal-traces-table-view .in-stage-cell.check svg {
+  fill: #5eb662;
+}
+
+.search-modal-traces-table-view .in-stage-cell.alert svg {
+  fill: #ff833e;
+}
+
 /* Borrowed from https://tobiasahlin.com/spinkit/ */
 .search-modal-traces-table-view .loading-container .sk-circle {
   width: 40px;

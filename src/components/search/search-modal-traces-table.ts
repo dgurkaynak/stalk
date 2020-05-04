@@ -8,6 +8,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import EventEmitter from 'events';
 import format from 'date-fns/format';
 
+import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
+import SvgAlert from '!!raw-loader!@mdi/svg/svg/alert.svg';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import './search-modal-traces-table.css';
 
@@ -25,7 +27,7 @@ export interface SearchModalTraceRowData {
 export interface SearchModalTracesTableOptions {
   width: number;
   height: number;
-  indicateTracesAlreadyInTheStage?: boolean;
+  showInStageColumn?: boolean;
   indicateTracesOverlappingWithStage?: boolean;
   footerElement?: HTMLElement;
   placeholderElement?: HTMLElement;
@@ -55,13 +57,19 @@ export class SearchModalTracesTableView extends EventEmitter {
     formatTimestamp: this.formatTimestamp.bind(this),
     formatDuration: this.formatDuration.bind(this),
     formatServices: this.formatServices.bind(this),
+    formatInStage: this.formatInStage.bind(this),
     rowSelectionChanged: this.rowSelectionChanged.bind(this),
     rowFormatter: this.rowFormatter.bind(this),
-    selectableCheck: this.selectableCheck.bind(this),
     onKeyDown: this.onKeyDown.bind(this)
   };
 
   private columnDefinitions = {
+    inStage: {
+      title: '',
+      field: 'inStage',
+      formatter: this.binded.formatInStage,
+      headerSort: false
+    } as Tabulator.ColumnDefinition,
     id: {
       title: 'Id',
       field: 'id'
@@ -137,6 +145,22 @@ export class SearchModalTracesTableView extends EventEmitter {
       false
     );
 
+    const columns: Tabulator.ColumnDefinition[] = [];
+    if (this.options.showInStageColumn) {
+      columns.push(this.columnDefinitions.inStage);
+    }
+    columns.push(
+      ...[
+        this.columnDefinitions.startTime,
+        // this.columnDefinitions.id,
+        this.columnDefinitions.name,
+        this.columnDefinitions.duration,
+        this.columnDefinitions.spanCount,
+        this.columnDefinitions.errorCount,
+        this.columnDefinitions.services
+      ]
+    );
+
     // Init table
     this.table = new Tabulator(this.elements.tableContainer, {
       autoResize: false, // This causes to lose focus when widget is hidden
@@ -145,20 +169,11 @@ export class SearchModalTracesTableView extends EventEmitter {
       layout: 'fitDataFill',
       movableColumns: true,
       selectable: true,
-      columns: [
-        this.columnDefinitions.startTime,
-        // this.columnDefinitions.id,
-        this.columnDefinitions.name,
-        this.columnDefinitions.duration,
-        this.columnDefinitions.spanCount,
-        this.columnDefinitions.errorCount,
-        this.columnDefinitions.services
-      ],
+      columns,
       initialSort: [
         { column: this.columnDefinitions.startTime.field, dir: 'desc' }
       ],
       rowFormatter: this.binded.rowFormatter,
-      selectableCheck: this.binded.selectableCheck,
       rowSelectionChanged: this.binded.rowSelectionChanged,
       selectableRangeMode: 'click',
       keybindings: false,
@@ -218,22 +233,31 @@ export class SearchModalTracesTableView extends EventEmitter {
     return html;
   }
 
+  private formatInStage(cell: any) {
+    const traceRowData = cell.getRow().getData();
+    let html = '';
+
+    const traceInStage = find(
+      this.stage.getAllTraces(),
+      t => t.id == traceRowData.id
+    );
+
+    if (!traceInStage) {
+      return html;
+    }
+
+    if (traceInStage.spanCount == traceRowData.spanCount) {
+      html = `<div class="in-stage-cell check">${SvgCheckCircle}</div>`;
+    } else {
+      html = `<div class="in-stage-cell alert">${SvgAlert}</div>`;
+    }
+
+    return html;
+  }
+
   private rowFormatter(row: any) {
     const trace = row.getData();
     const rowEl = row.getElement();
-
-    if (this.options.indicateTracesAlreadyInTheStage) {
-      const inStage = !!find(this.stage.getAllTraces(), t => t.id == trace.id);
-
-      if (inStage) {
-        rowEl.style.backgroundColor = '#ddf5e1';
-        rowEl.style.cursor = 'default';
-      } else {
-        // For row re-using, clear the styles
-        rowEl.style.backgroundColor = '';
-        rowEl.style.cursor = '';
-      }
-    }
 
     if (this.options.indicateTracesOverlappingWithStage) {
       if (this.stage.getAllTraces().length > 0) {
@@ -254,19 +278,6 @@ export class SearchModalTracesTableView extends EventEmitter {
     }
   }
 
-  private selectableCheck(row: any) {
-    const trace = row.getData();
-
-    if (this.options.indicateTracesAlreadyInTheStage) {
-      const inStage = !!find(this.stage.getAllTraces(), t => t.id == trace.id);
-      if (inStage) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   private onKeyDown(e: KeyboardEvent) {
     // If user is typing on any kind of input element which is
     // child of this component, we don't want to trigger shortcuts
@@ -274,12 +285,7 @@ export class SearchModalTracesTableView extends EventEmitter {
 
     // CMD + A => Select all
     if (e.key == 'a' && (e.ctrlKey || e.metaKey)) {
-      this.table.deselectRow();
-      this.table.getRows().forEach((row) => {
-        if (this.selectableCheck(row)) {
-          this.table.selectRow(row.getIndex());
-        }
-      });
+      this.table.selectRow();
       return;
     }
   }
@@ -349,8 +355,8 @@ export class SearchModalTracesTableView extends EventEmitter {
 }
 
 function areIntervalsOverlapping(
-  a: { start: number, end: number },
-  b: { start: number, end: number }
+  a: { start: number; end: number },
+  b: { start: number; end: number }
 ) {
   return a.start <= b.end && b.start <= a.end;
 }

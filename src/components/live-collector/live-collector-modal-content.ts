@@ -69,7 +69,7 @@ export class LiveCollectorModalContent {
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
     onCloseButtonClick: this.onCloseButtonClick.bind(this),
     onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this),
-    updateTraces: throttle(this.updateTraces.bind(this), 1000),
+    updateTraces: throttle(this.updateTraces.bind(this), 5000),
     onJaegerAgentServerStateChange: this.onJaegerAgentServerStateChange.bind(
       this
     ),
@@ -391,7 +391,7 @@ export class LiveCollectorModalContent {
     this.tracesTable.init({
       width: w,
       height: h,
-      indicateTracesAlreadyInTheStage: true,
+      showInStageColumn: true,
       indicateTracesOverlappingWithStage: true,
       placeholderElement: this.elements.tracesTablePlaceholder.container
     });
