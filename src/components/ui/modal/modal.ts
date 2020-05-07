@@ -24,10 +24,12 @@ export class Modal extends EventEmitter {
   readonly container = document.createElement('div');
   private overlayContainer = document.createElement('div');
   private contentContainer = document.createElement('div');
+  private lastElementBlurTimeStamp = 0;
 
   private binded = {
     onOverlayClick: this.onOverlayClick.bind(this),
-    onContentContainerKeyDown: this.onContentContainerKeyDown.bind(this)
+    onContentContainerKeyDown: this.onContentContainerKeyDown.bind(this),
+    onBlur: this.onBlur.bind(this)
   };
 
   constructor(readonly options: ModalOptions) {
@@ -69,6 +71,9 @@ export class Modal extends EventEmitter {
         this.binded.onOverlayClick,
         false
       );
+      this.contentContainer.addEventListener('blur', this.binded.onBlur, {
+        capture: true
+      });
     }
 
     if (this.options.shouldCloseOnEscPress) {
@@ -119,9 +124,23 @@ export class Modal extends EventEmitter {
 
   private onOverlayClick(e: MouseEvent) {
     if (!this.options.shouldCloseOnOverlayClick) return;
+
+    // When a user is focused on an element in the
+    // modal content like input or select, the overlay can
+    // be clicked for unfocusing purposes. We want to prevent
+    // that. According to my trials, a `click` event is
+    // dispatched ~100ms after `blur` event.
+    if (e.timeStamp - this.lastElementBlurTimeStamp < 200) {
+      return;
+    }
+
     this.close({
       triggerType: ModalCloseTriggerType.OVERLAY_CLICK
     });
+  }
+
+  private onBlur(e: FocusEvent) {
+    this.lastElementBlurTimeStamp = e.timeStamp;
   }
 
   close(options?: { triggerType?: ModalCloseTriggerType; data?: any }) {
@@ -142,6 +161,9 @@ export class Modal extends EventEmitter {
       this.binded.onOverlayClick,
       false
     );
+    this.contentContainer.removeEventListener('blur', this.binded.onBlur, {
+      capture: true
+    });
     this.contentContainer.removeEventListener(
       'keydown',
       this.binded.onContentContainerKeyDown,
