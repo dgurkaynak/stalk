@@ -26,7 +26,8 @@ export class Modal extends EventEmitter {
 
   private binded = {
     onContainerClick: this.onContainerClick.bind(this),
-    onContentContainerClick: this.onContentContainerClick.bind(this)
+    onContentContainerClick: this.onContentContainerClick.bind(this),
+    onContentContainerKeyDown: this.onContentContainerKeyDown.bind(this)
   };
 
   constructor(readonly options: ModalOptions) {
@@ -66,6 +67,14 @@ export class Modal extends EventEmitter {
         false
       );
     }
+
+    if (this.options.shouldCloseOnEscPress) {
+      this.contentContainer.addEventListener(
+        'keydown',
+        this.binded.onContentContainerKeyDown,
+        false
+      );
+    }
   }
 
   mount() {
@@ -88,6 +97,18 @@ export class Modal extends EventEmitter {
     this.close({
       triggerType: ModalCloseTriggerType.ESC_KEY
     });
+  }
+
+  private onContentContainerKeyDown(e: KeyboardEvent) {
+    // Handle just ESC
+    if (e.which != 27) return;
+
+    // If user is focused on input element, stop propagation
+    // so that modal manager would not catch for closeing predure
+    if (e.target instanceof HTMLInputElement) {
+      e.stopPropagation();
+      return;
+    }
   }
 
   private onContentContainerClick(e: MouseEvent) {
@@ -116,6 +137,11 @@ export class Modal extends EventEmitter {
     this.container.removeEventListener(
       'click',
       this.binded.onContainerClick,
+      false
+    );
+    this.contentContainer.removeEventListener(
+      'keydown',
+      this.binded.onContentContainerKeyDown,
       false
     );
     this.removeAllListeners();

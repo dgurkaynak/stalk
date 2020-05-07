@@ -23,6 +23,7 @@ export class ModalManager {
   }
 
   private onKeyDown(e: KeyboardEvent) {
+    // Handle just ESC
     if (e.which != 27) return;
     const activeModal = this.modals[this.modals.length - 1];
     if (!activeModal) return;
