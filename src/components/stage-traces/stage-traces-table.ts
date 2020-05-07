@@ -210,6 +210,15 @@ export class StageTracesTableView extends EventEmitter {
       this.table.selectRow();
       return;
     }
+
+    // ESC key => deselect all
+    if (e.which == 27) {
+      const selectedRows = this.table.getSelectedRows();
+      if (selectedRows.length == 0) return;
+      this.deselectAll();
+      e.stopPropagation(); // for modal closing
+      return;
+    }
   }
 
   private onStageTraceAdded(trace: Trace) {
