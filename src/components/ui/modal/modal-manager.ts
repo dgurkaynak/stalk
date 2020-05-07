@@ -42,9 +42,11 @@ export class ModalManager {
     this.modal = modal;
     modal.on(ModalEvent.CLOSE, this.onModalClose.bind(this, modal));
     modal.mount();
+    modal.setupFocusTrap();
   }
 
   private onModalClose(modal: Modal) {
+    modal.removeFocusTrap();
     modal.unmount();
     modal.dispose(); // this will take care of unbinding `CLOSE` event
     this.modal = null;

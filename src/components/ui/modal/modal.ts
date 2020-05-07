@@ -1,5 +1,6 @@
 import * as shortid from 'shortid';
 import EventEmitter from 'events';
+import focusTrap, { FocusTrap } from 'focus-trap';
 
 export interface ModalOptions {
   content: HTMLElement;
@@ -25,6 +26,7 @@ export class Modal extends EventEmitter {
   private overlayContainer = document.createElement('div');
   private contentContainer = document.createElement('div');
   private lastElementBlurTimeStamp = 0;
+  private focusTrap: FocusTrap;
 
   private binded = {
     onOverlayClick: this.onOverlayClick.bind(this),
@@ -100,6 +102,36 @@ export class Modal extends EventEmitter {
     });
   }
 
+  setupFocusTrap() {
+    // FocusTrap needs to have at least one focusable element.
+    // If there is none, it will throw an error.
+    // https://github.com/davidtheclark/focus-trap/tree/2a03f59996f2d60c98d8e437ca817f71e4815ec9#your-trap-should-include-a-tabbable-element-or-a-focusable-container
+    try {
+      this.focusTrap = focusTrap(this.options.content, {
+        escapeDeactivates: false,
+        allowOutsideClick: () => true
+      });
+      this.focusTrap.activate();
+
+      // Trap successfull, so there must be some focusable elements,
+      // remove `tabindex` attr if it's previously set by this method again.
+      this.options.content.removeAttribute('tabindex');
+    } catch (err) {
+      this.options.content.setAttribute('tabindex', '-1');
+      this.focusTrap = focusTrap(this.options.content, {
+        escapeDeactivates: false,
+        allowOutsideClick: () => true,
+        initialFocus: this.options.content
+      });
+      this.focusTrap.activate();
+    }
+  }
+
+  removeFocusTrap() {
+    this.focusTrap?.deactivate();
+    this.focusTrap = null;
+  }
+
   private onContentContainerKeyDown(e: KeyboardEvent) {
     // Handle just ESC
     if (e.which != 27) return;
@@ -166,6 +198,7 @@ export class Modal extends EventEmitter {
   }
 
   dispose() {
+    this.removeFocusTrap();
     this.overlayContainer.removeEventListener(
       'click',
       this.binded.onOverlayClick,
