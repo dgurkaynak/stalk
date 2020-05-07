@@ -39,7 +39,6 @@ export class LiveCollectorModalContent {
     },
     bottom: {
       container: document.createElement('div'),
-      closeButton: document.createElement('button'),
       selectionText: document.createElement('div'),
       addToStageButton: document.createElement('button')
     },
@@ -68,7 +67,6 @@ export class LiveCollectorModalContent {
   private binded = {
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
-    onCloseButtonClick: this.onCloseButtonClick.bind(this),
     onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this),
     updateTraces: throttle(this.updateTraces.bind(this), 5000),
     onJaegerAgentServerStateChange: this.onJaegerAgentServerStateChange.bind(
@@ -351,9 +349,6 @@ export class LiveCollectorModalContent {
       rightContainer.classList.add('right');
       els.bottom.container.appendChild(rightContainer);
 
-      els.bottom.closeButton.textContent = 'Close';
-      leftContainer.appendChild(els.bottom.closeButton);
-
       els.bottom.selectionText.innerHTML = 'No trace selected';
       rightContainer.appendChild(els.bottom.selectionText);
 
@@ -378,11 +373,6 @@ export class LiveCollectorModalContent {
     this.tracesTable.on(
       SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
-    );
-    this.elements.bottom.closeButton.addEventListener(
-      'click',
-      this.binded.onCloseButtonClick,
-      false
     );
     this.elements.bottom.addToStageButton.addEventListener(
       'click',
@@ -461,14 +451,6 @@ export class LiveCollectorModalContent {
     }
     this.elements.bottom.selectionText.innerHTML = `<strong>${text}</strong> selected`;
     this.elements.bottom.addToStageButton.disabled = false;
-  }
-
-  private onCloseButtonClick() {
-    const modal = ModalManager.getSingleton().findModalFromElement(
-      this.elements.container
-    );
-    if (!modal) throw new Error(`Could not find modal instance`);
-    modal.close();
   }
 
   private onAddToStageButtonClick() {
@@ -683,11 +665,6 @@ export class LiveCollectorModalContent {
     this.tracesTable.removeListener(
       SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
-    );
-    this.elements.bottom.closeButton.removeEventListener(
-      'click',
-      this.binded.onCloseButtonClick,
-      false
     );
     this.elements.bottom.addToStageButton.removeEventListener(
       'click',

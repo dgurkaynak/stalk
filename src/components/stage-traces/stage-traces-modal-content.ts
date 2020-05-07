@@ -20,7 +20,6 @@ export class StageTracesModalContent {
     },
     bottom: {
       container: document.createElement('div'),
-      closeButton: document.createElement('button'),
       selectionText: document.createElement('div'),
       removeFromStageButton: document.createElement('button')
     }
@@ -30,7 +29,6 @@ export class StageTracesModalContent {
   private binded = {
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
-    onCloseButtonClick: this.onCloseButtonClick.bind(this),
     onRemoveFromStageButtonClick: this.onRemoveFromStageButtonClick.bind(this)
   };
 
@@ -61,9 +59,6 @@ export class StageTracesModalContent {
       rightContainer.classList.add('right');
       els.bottom.container.appendChild(rightContainer);
 
-      els.bottom.closeButton.textContent = 'Close';
-      leftContainer.appendChild(els.bottom.closeButton);
-
       els.bottom.selectionText.innerHTML = 'No trace selected';
       rightContainer.appendChild(els.bottom.selectionText);
 
@@ -78,11 +73,6 @@ export class StageTracesModalContent {
     this.tracesTable.on(
       StageTracesTableViewEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
-    );
-    this.elements.bottom.closeButton.addEventListener(
-      'click',
-      this.binded.onCloseButtonClick,
-      false
     );
     this.elements.bottom.removeFromStageButton.addEventListener(
       'click',
@@ -135,14 +125,6 @@ export class StageTracesModalContent {
     this.elements.bottom.removeFromStageButton.disabled = false;
   }
 
-  private onCloseButtonClick() {
-    const modal = ModalManager.getSingleton().findModalFromElement(
-      this.elements.container
-    );
-    if (!modal) throw new Error(`Could not find modal instance`);
-    modal.close();
-  }
-
   private onRemoveFromStageButtonClick() {
     const modal = ModalManager.getSingleton().findModalFromElement(
       this.elements.container
@@ -163,11 +145,6 @@ export class StageTracesModalContent {
     this.tracesTable.removeListener(
       StageTracesTableViewEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
-    );
-    this.elements.bottom.closeButton.removeEventListener(
-      'click',
-      this.binded.onCloseButtonClick,
-      false
     );
     this.elements.bottom.removeFromStageButton.removeEventListener(
       'click',

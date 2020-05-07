@@ -545,7 +545,9 @@ export class AppToolbar {
     const modal = new Modal({
       content: this.stageTracesModalContent.getElement(),
       contentContainerClassName: 'stage-traces-modal-container',
-      onClose: this.binded.onStageTracesModalClose
+      onClose: this.binded.onStageTracesModalClose,
+      shouldCloseOnEscPress: true,
+      shouldCloseOnOverlayClick: true
     });
     ModalManager.getSingleton().show(modal);
     if (!this.stageTracesModalContent.inited)
@@ -566,7 +568,9 @@ export class AppToolbar {
     const modal = new Modal({
       content: this.liveCollectorModalContent.getElement(),
       contentContainerClassName: 'live-collector-modal-container',
-      onClose: this.binded.onLiveCollectorModalClose
+      onClose: this.binded.onLiveCollectorModalClose,
+      shouldCloseOnEscPress: true,
+      shouldCloseOnOverlayClick: true
     });
     ModalManager.getSingleton().show(modal);
     if (!this.liveCollectorModalContent.inited)
