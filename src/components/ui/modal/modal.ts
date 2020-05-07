@@ -22,11 +22,11 @@ export enum ModalEvent {
 export class Modal extends EventEmitter {
   readonly id = shortid.generate();
   readonly container = document.createElement('div');
+  private overlayContainer = document.createElement('div');
   private contentContainer = document.createElement('div');
 
   private binded = {
-    onContainerClick: this.onContainerClick.bind(this),
-    onContentContainerClick: this.onContentContainerClick.bind(this),
+    onOverlayClick: this.onOverlayClick.bind(this),
     onContentContainerKeyDown: this.onContentContainerKeyDown.bind(this)
   };
 
@@ -45,9 +45,17 @@ export class Modal extends EventEmitter {
     this.container.style.alignItems = 'center';
     this.container.setAttribute('data-modal-id', this.id);
 
+    this.overlayContainer.style.position = 'absolute';
+    this.overlayContainer.style.top = '0';
+    this.overlayContainer.style.left = '0';
+    this.overlayContainer.style.right = '0';
+    this.overlayContainer.style.bottom = '0';
+    this.container.appendChild(this.overlayContainer);
+
     // Content container
     this.contentContainer.style.background = '#fff';
     this.contentContainer.style.borderRadius = '4px';
+    this.contentContainer.style.zIndex = '1';
     if (options.contentContainerClassName) {
       this.contentContainer.classList.add(options.contentContainerClassName);
     }
@@ -56,14 +64,9 @@ export class Modal extends EventEmitter {
 
     // Bind click event if necessary
     if (this.options.shouldCloseOnOverlayClick) {
-      this.contentContainer.addEventListener(
+      this.overlayContainer.addEventListener(
         'click',
-        this.binded.onContentContainerClick,
-        false
-      );
-      this.container.addEventListener(
-        'click',
-        this.binded.onContainerClick,
+        this.binded.onOverlayClick,
         false
       );
     }
@@ -85,13 +88,6 @@ export class Modal extends EventEmitter {
     document.body.removeChild(this.container);
   }
 
-  private onContainerClick(e: MouseEvent) {
-    if (!this.options.shouldCloseOnOverlayClick) return;
-    this.close({
-      triggerType: ModalCloseTriggerType.OVERLAY_CLICK
-    });
-  }
-
   handleEscKeyPress() {
     if (!this.options.shouldCloseOnEscPress) return;
     this.close({
@@ -111,9 +107,11 @@ export class Modal extends EventEmitter {
     }
   }
 
-  private onContentContainerClick(e: MouseEvent) {
-    // If clicked on content, stop propagation, so that
-    e.stopPropagation();
+  private onOverlayClick(e: MouseEvent) {
+    if (!this.options.shouldCloseOnOverlayClick) return;
+    this.close({
+      triggerType: ModalCloseTriggerType.OVERLAY_CLICK
+    });
   }
 
   close(options?: { triggerType?: ModalCloseTriggerType; data?: any }) {
@@ -129,14 +127,9 @@ export class Modal extends EventEmitter {
   }
 
   dispose() {
-    this.contentContainer.removeEventListener(
+    this.overlayContainer.removeEventListener(
       'click',
-      this.binded.onContentContainerClick,
-      false
-    );
-    this.container.removeEventListener(
-      'click',
-      this.binded.onContainerClick,
+      this.binded.onOverlayClick,
       false
     );
     this.contentContainer.removeEventListener(
