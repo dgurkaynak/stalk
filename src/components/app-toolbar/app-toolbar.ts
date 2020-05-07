@@ -507,7 +507,9 @@ export class AppToolbar {
     const modal = new Modal({
       content: modalContent.getElement(),
       contentContainerClassName,
-      onClose: this.binded.onDataSourceSearchModalClosed
+      onClose: this.binded.onDataSourceSearchModalClosed,
+      shouldCloseOnEscPress: true,
+      shouldCloseOnOverlayClick: true
     });
     ModalManager.getSingleton().show(modal);
     shouldInitModalContent && modalContent.init(); // must be inited after render

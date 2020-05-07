@@ -61,7 +61,6 @@ export class JaegerSearchModalContent {
     },
     bottom: {
       container: document.createElement('div'),
-      closeButton: document.createElement('button'),
       selectionText: document.createElement('div'),
       addToStageButton: document.createElement('button')
     },
@@ -94,7 +93,6 @@ export class JaegerSearchModalContent {
     onLookbackSelectChange: this.onLookbackSelectChange.bind(this),
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
-    onCloseButtonClick: this.onCloseButtonClick.bind(this),
     onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this)
   };
 
@@ -272,9 +270,6 @@ export class JaegerSearchModalContent {
       rightContainer.classList.add('right');
       els.bottom.container.appendChild(rightContainer);
 
-      els.bottom.closeButton.textContent = 'Close';
-      leftContainer.appendChild(els.bottom.closeButton);
-
       els.bottom.selectionText.innerHTML = 'No trace selected';
       rightContainer.appendChild(els.bottom.selectionText);
 
@@ -314,11 +309,6 @@ export class JaegerSearchModalContent {
     this.elements.search.lookbackSelect.addEventListener(
       'change',
       this.binded.onLookbackSelectChange,
-      false
-    );
-    this.elements.bottom.closeButton.addEventListener(
-      'click',
-      this.binded.onCloseButtonClick,
       false
     );
     this.elements.bottom.addToStageButton.addEventListener(
@@ -594,14 +584,6 @@ export class JaegerSearchModalContent {
     this.elements.bottom.addToStageButton.disabled = false;
   }
 
-  private onCloseButtonClick() {
-    const modal = ModalManager.getSingleton().findModalFromElement(
-      this.elements.container
-    );
-    if (!modal) throw new Error(`Could not find modal instance`);
-    modal.close();
-  }
-
   private onAddToStageButtonClick() {
     const traces = this.selectedTraceIds.map(traceId => {
       return find(this.traceResults, t => t.id == traceId);
@@ -647,11 +629,6 @@ export class JaegerSearchModalContent {
     this.elements.search.lookbackSelect.removeEventListener(
       'change',
       this.binded.onLookbackSelectChange,
-      false
-    );
-    this.elements.bottom.closeButton.removeEventListener(
-      'click',
-      this.binded.onCloseButtonClick,
       false
     );
     this.elements.bottom.addToStageButton.removeEventListener(
