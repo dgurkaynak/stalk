@@ -9,6 +9,7 @@
 
 .customization-form-modal-content .buttons {
   display: flex;
+  margin-top: 0.5em;
 }
 
 .customization-form-modal-content .buttons .left {
