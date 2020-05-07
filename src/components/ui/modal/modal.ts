@@ -101,8 +101,18 @@ export class Modal extends EventEmitter {
 
     // If user is focused on input element, stop propagation
     // so that modal manager would not catch for closeing predure
-    if (e.target instanceof HTMLInputElement) {
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLSelectElement ||
+      e.target instanceof HTMLButtonElement
+    ) {
+      // This prevents modal-manager to catch
       e.stopPropagation();
+
+      // Unfocus current item, so that user can pressed
+      // ESC again to close modal.
+      e.target.blur();
+
       return;
     }
   }
