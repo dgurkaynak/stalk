@@ -140,7 +140,17 @@ export class Modal extends EventEmitter {
   }
 
   private onBlur(e: FocusEvent) {
-    this.lastElementBlurTimeStamp = e.timeStamp;
+    // Anything can be focused & blurred when has `tabIndex`
+    // attribute over zero. We want to prevent closing just for
+    // visually-indicated elements. Which are currently just
+    // os-default outlined form elements.
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLSelectElement ||
+      e.target instanceof HTMLButtonElement
+    ) {
+      this.lastElementBlurTimeStamp = e.timeStamp;
+    }
   }
 
   close(options?: { triggerType?: ModalCloseTriggerType; data?: any }) {
