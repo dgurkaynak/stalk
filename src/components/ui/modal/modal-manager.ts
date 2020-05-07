@@ -3,7 +3,7 @@ import { Modal, ModalEvent } from './modal';
 let _singletonIns: ModalManager;
 
 export class ModalManager {
-  private modals: Modal[] = [];
+  private modal: Modal;
 
   private binded = {
     onKeyDown: this.onKeyDown.bind(this)
@@ -25,30 +25,28 @@ export class ModalManager {
   private onKeyDown(e: KeyboardEvent) {
     // Handle just ESC
     if (e.which != 27) return;
-    const activeModal = this.modals[this.modals.length - 1];
-    if (!activeModal) return;
-    activeModal.handleEscKeyPress();
+    if (!this.modal) return;
+    this.modal.handleEscKeyPress();
   }
 
   findModalFromElement(el: HTMLElement) {
     const modalEl = el.closest('[data-modal-id]');
     if (!modalEl) return;
     const id = modalEl.getAttribute('data-modal-id');
-    for (let modal of this.modals) {
-      if (modal.id == id) return modal;
-    }
+    if (!this.modal || this.modal.id != id) return;
+    return this.modal;
   }
 
   show(modal: Modal) {
-    this.modals.push(modal);
+    if (this.modal) throw new Error(`Showing already a modal`);
+    this.modal = modal;
     modal.on(ModalEvent.CLOSE, this.onModalClose.bind(this, modal));
     modal.mount();
   }
 
   private onModalClose(modal: Modal) {
     modal.unmount();
-    const i = this.modals.indexOf(modal);
-    if (i > -1) this.modals.splice(i, 1);
     modal.dispose(); // this will take care of unbinding `CLOSE` event
+    this.modal = null;
   }
 }
