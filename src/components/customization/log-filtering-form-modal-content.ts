@@ -131,6 +131,16 @@ export class LogFilteringFormModalContent {
     });
     this.editor.setModel(this.model);
 
+    // https://github.com/Microsoft/monaco-editor/issues/1017#issuecomment-414615634
+    this.editor.addCommand(
+      monaco.KeyCode.Escape,
+      () => {
+        if (document.activeElement) (document.activeElement as any).blur();
+      },
+      '!findWidgetVisible && !inReferenceSearchEditor && !editorHasSelection'
+    );
+    this.editor.focus();
+
     this.editorContentChangeListener = this.model.onDidChangeContent(
       this.binded.onMonacoEditorContentChange
     );
