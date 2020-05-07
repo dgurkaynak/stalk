@@ -8,7 +8,6 @@ import {
   SearchModalTracesTableViewEvent,
   SearchModalTraceRowData
 } from '../search/search-modal-traces-table';
-import parseDuration from 'parse-duration';
 import throttle from 'lodash/throttle';
 import groupBy from 'lodash/groupBy';
 import {
@@ -19,10 +18,11 @@ import {
   JaegerCollectorHTTPServer,
   JaegerCollectorHTTPServerState
 } from './jaeger-collector-http-server';
+import {
+  ZipkinCollectorHTTPServer,
+  ZipkinCollectorHTTPServerState
+} from './zipkin-collector-http-server';
 
-import SvgCircleMedium from '!!raw-loader!@mdi/svg/svg/circle-small.svg';
-import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
-import SvgAlertCircle from '!!raw-loader!@mdi/svg/svg/alert-circle.svg';
 import './live-collector-modal-content.css';
 
 export class LiveCollectorModalContent {
@@ -63,6 +63,7 @@ export class LiveCollectorModalContent {
 
   private jaegerAgentUDPServer = new JaegerAgentUDPServer();
   private jaegerCollectorHTTPServer = new JaegerCollectorHTTPServer();
+  private zipkinCollectorHTTPServer = new ZipkinCollectorHTTPServer();
 
   private binded = {
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
@@ -86,6 +87,16 @@ export class LiveCollectorModalContent {
     ),
     onJaegerCollectorPortInput: this.onJaegerCollectorPortInput.bind(this),
     onJaegerCollectorCheckboxChanged: this.onJaegerCollectorCheckboxChanged.bind(
+      this
+    ),
+    onZipkinCollectorServerStateChange: this.onZipkinCollectorServerStateChange.bind(
+      this
+    ),
+    onZipkinCollectorServerSpansRecieve: this.onZipkinCollectorServerSpansRecieve.bind(
+      this
+    ),
+    onZipkinCollectorPortInput: this.onZipkinCollectorPortInput.bind(this),
+    onZipkinCollectorCheckboxChanged: this.onZipkinCollectorCheckboxChanged.bind(
       this
     )
   };
@@ -316,6 +327,11 @@ export class LiveCollectorModalContent {
       els.zipkinCollector.port.value = '9411';
       els.zipkinCollector.port.min = '1';
       els.zipkinCollector.port.max = '65535';
+      els.zipkinCollector.port.addEventListener(
+        'input',
+        this.binded.onZipkinCollectorPortInput,
+        false
+      );
       portInputContainer.appendChild(els.zipkinCollector.port);
     }
 
@@ -351,6 +367,8 @@ export class LiveCollectorModalContent {
     this.jaegerAgentUDPServer.onSpansRecieve = this.binded.onJaegerAgentServerSpansRecieve;
     this.jaegerCollectorHTTPServer.onStateChange = this.binded.onJaegerCollectorServerStateChange;
     this.jaegerCollectorHTTPServer.onSpansRecieve = this.binded.onJaegerCollectorServerSpansRecieve;
+    this.zipkinCollectorHTTPServer.onStateChange = this.binded.onZipkinCollectorServerStateChange;
+    this.zipkinCollectorHTTPServer.onSpansRecieve = this.binded.onZipkinCollectorServerSpansRecieve;
   }
 
   init() {
@@ -380,6 +398,11 @@ export class LiveCollectorModalContent {
     this.elements.jaegerCollector.checkbox.addEventListener(
       'change',
       this.binded.onJaegerCollectorCheckboxChanged,
+      false
+    );
+    this.elements.zipkinCollector.checkbox.addEventListener(
+      'change',
+      this.binded.onZipkinCollectorCheckboxChanged,
       false
     );
 
@@ -594,6 +617,64 @@ export class LiveCollectorModalContent {
     this.binded.updateTraces();
   }
 
+  private onZipkinCollectorPortInput() {
+    const port = parseInt(this.elements.zipkinCollector.port.value, 10);
+    if (isNaN(port)) {
+      this.elements.zipkinCollector.port.value =
+        this.zipkinCollectorHTTPServer.getPort() + '';
+      return;
+    }
+
+    const isChanged = this.zipkinCollectorHTTPServer.setPort(port);
+    if (!isChanged) {
+      this.elements.zipkinCollector.port.value =
+        this.zipkinCollectorHTTPServer.getPort() + '';
+      return;
+    }
+  }
+
+  private onZipkinCollectorServerStateChange(
+    state: ZipkinCollectorHTTPServerState
+  ) {
+    this.elements.zipkinCollector.port.disabled =
+      state != ZipkinCollectorHTTPServerState.STOPPED;
+    this.elements.zipkinCollector.checkbox.checked =
+      state != ZipkinCollectorHTTPServerState.STOPPED;
+  }
+
+  private async onZipkinCollectorCheckboxChanged() {
+    if (this.elements.zipkinCollector.checkbox.checked) {
+      /**
+       * Start the server
+       */
+      try {
+        await this.zipkinCollectorHTTPServer.start();
+      } catch (err) {
+        new Noty({
+          text: `Zipkin Collector HTTP Server could not started: "${err.message}"`,
+          type: 'error'
+        }).show();
+      }
+    } else {
+      /**
+       * Stop the server
+       */
+      try {
+        await this.zipkinCollectorHTTPServer.stop();
+      } catch (err) {
+        new Noty({
+          text: `Zipkin Collector HTTP Server could not stopped: "${err.message}"`,
+          type: 'error'
+        }).show();
+      }
+    }
+  }
+
+  private onZipkinCollectorServerSpansRecieve(spans: Span[]) {
+    this.spansDB.push(...spans);
+    this.binded.updateTraces();
+  }
+
   getElement() {
     return this.elements.container;
   }
@@ -632,6 +713,16 @@ export class LiveCollectorModalContent {
     this.elements.jaegerCollector.port.removeEventListener(
       'input',
       this.binded.onJaegerCollectorPortInput,
+      false
+    );
+    this.elements.zipkinCollector.checkbox.removeEventListener(
+      'change',
+      this.binded.onZipkinCollectorCheckboxChanged,
+      false
+    );
+    this.elements.zipkinCollector.port.removeEventListener(
+      'input',
+      this.binded.onZipkinCollectorPortInput,
       false
     );
 
