@@ -2,6 +2,11 @@ import defaults from 'lodash/defaults';
 import BaseDecoration from './base';
 import SpanView from '../span-view';
 import GroupView from '../group-view';
+import {
+  TimelineInteractableElementAttribute,
+  TimelineInteractableElementType
+} from '../interaction';
+import * as shortid from 'shortid';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -12,16 +17,21 @@ export interface SpanConnectionDecorationSettings {
   strokeColor?: string;
   strokeDasharray?: string;
   barHeight?: number;
+  hoverStrokeWidth?: number;
+  hoverStrokeColor?: string;
 }
 
 export class SpanConnectionDecoration extends BaseDecoration {
+  readonly id = shortid.generate();
   private settings: SpanConnectionDecorationSettings = {
     spanId1: '',
     spanId2: '',
     strokeWidth: 1,
-    strokeColor: '#000',
+    strokeColor: 'rgba(0, 0, 0, 0.5)',
     strokeDasharray: '0',
-    barHeight: 18
+    barHeight: 18,
+    hoverStrokeWidth: 1,
+    hoverStrokeColor: 'rgba(0, 0, 0, 1)'
   };
   private container = document.createElementNS(SVG_NS, 'g');
   private spanView1: SpanView;
@@ -59,8 +69,17 @@ export class SpanConnectionDecoration extends BaseDecoration {
     this.path.setAttribute('stroke', settings.strokeColor);
     this.path.setAttribute('marker-end', `url(#arrow-head)`);
     this.path.setAttribute('stroke-dasharray', settings.strokeDasharray);
-    this.container.appendChild(this.path);
+    this.path.setAttribute('cursor', `default`);
 
+    this.path.setAttribute(
+      TimelineInteractableElementAttribute,
+      TimelineInteractableElementType.SPAN_CONNECTION
+    );
+    this.path.setAttribute('data-span-connection-id', this.id);
+    this.path.setAttribute('data-from-span-id', spanView1.span.id);
+    this.path.setAttribute('data-to-span-id', spanView2.span.id);
+
+    this.container.appendChild(this.path);
     this.overlayElements = [this.container];
   }
 
@@ -74,7 +93,8 @@ export class SpanConnectionDecoration extends BaseDecoration {
     const groupView2Props = this.groupView2.getViewPropertiesCache();
     const halfBarHeight = this.settings.barHeight / 2;
     const arrowHeadOffsetLeft = -3;
-    const shouldHide = this.groupView1.options.isCollapsed &&
+    const shouldHide =
+      this.groupView1.options.isCollapsed &&
       this.groupView2.options.isCollapsed; // Do not show if both groups are collapsed
 
     let fromX = Math.min(
@@ -143,5 +163,29 @@ export class SpanConnectionDecoration extends BaseDecoration {
       'd',
       `M ${fromX} ${fromY} C ${fromControlX} ${fromControlY}, ${toControlX}  ${toControlY}, ${toX} ${toY}`
     );
+  }
+
+  updateStyle(style: 'normal' | 'hover') {
+    if (style == 'normal') {
+      this.path.setAttribute('stroke-width', this.settings.strokeWidth + '');
+      this.path.setAttribute('stroke', this.settings.strokeColor);
+      this.path.setAttribute('cursor', `default`);
+      return;
+    } else if (style == 'hover') {
+      this.path.setAttribute(
+        'stroke-width',
+        this.settings.hoverStrokeWidth + ''
+      );
+      this.path.setAttribute('stroke', this.settings.hoverStrokeColor);
+      this.path.setAttribute('cursor', `pointer`);
+    }
+  }
+
+  static getPropsFromPathElement(el: Element) {
+    return {
+      id: el.getAttribute('data-span-connection-id'),
+      fromSpanId: el.getAttribute('data-from-span-id'),
+      toSpanId: el.getAttribute('data-to-span-id')
+    };
   }
 }

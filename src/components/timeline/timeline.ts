@@ -862,6 +862,20 @@ export class Timeline extends EventEmitter {
           this.decorations.hoveredSpanConnections.forEach(d => d.unmount());
           return;
         }
+
+        case TimelineInteractableElementType.SPAN_CONNECTION: {
+          const {
+            id: spanConnectionId
+          } = SpanConnectionDecoration.getPropsFromPathElement(element);
+          if (!spanConnectionId) return;
+          const spanConnection = find(
+            this.decorations.selectedSpanConnections,
+            d => d.id == spanConnectionId
+          );
+          if (!spanConnection) return;
+          spanConnection.updateStyle('normal');
+          return;
+        }
       }
     });
 
@@ -911,6 +925,33 @@ export class Timeline extends EventEmitter {
           spanView.showLogs();
           this.showHoveredSpanConnections(spanId);
 
+          return;
+        }
+
+        case TimelineInteractableElementType.SPAN_CONNECTION: {
+          // If there is no span selected, no hover
+          if (!this.selectedSpanId) return;
+          const {
+            id: spanConnectionId,
+            fromSpanId,
+            toSpanId
+          } = SpanConnectionDecoration.getPropsFromPathElement(element);
+          if (!spanConnectionId) return;
+
+          // If span connection is nothing to do with current selected span, no hover
+          if (
+            this.selectedSpanId != fromSpanId &&
+            this.selectedSpanId != toSpanId
+          ) {
+            return;
+          }
+
+          const spanConnection = find(
+            this.decorations.selectedSpanConnections,
+            d => d.id == spanConnectionId
+          );
+          if (!spanConnection) return;
+          spanConnection.updateStyle('hover');
           return;
         }
       }
@@ -977,6 +1018,7 @@ export class Timeline extends EventEmitter {
 
     let clickedSpanId: string | null = null;
     let clickedGroupLabelId: string | null = null;
+    let clickedSpanConnectionTargetSpanId: string | null = null;
 
     forEach(matches, ({ type, element }) => {
       switch (type) {
@@ -993,6 +1035,29 @@ export class Timeline extends EventEmitter {
           clickedGroupLabelId = groupId;
           return;
         }
+
+        case TimelineInteractableElementType.SPAN_CONNECTION: {
+          // If there is no span selected, no click
+          if (!this.selectedSpanId) return;
+          const {
+            id: spanConnectionId,
+            fromSpanId,
+            toSpanId
+          } = SpanConnectionDecoration.getPropsFromPathElement(element);
+          if (!spanConnectionId) return;
+
+          // If span connection is nothing to do with current selected span, no click
+          if (
+            this.selectedSpanId != fromSpanId &&
+            this.selectedSpanId != toSpanId
+          ) {
+            return;
+          }
+
+          clickedSpanConnectionTargetSpanId =
+            fromSpanId == this.selectedSpanId ? toSpanId : fromSpanId;
+          return;
+        }
       }
     });
 
@@ -1006,6 +1071,12 @@ export class Timeline extends EventEmitter {
         this.keepPanelTraslateYInScreen();
         this.updateAllDecorations();
 
+        return; // Early terminate so that selection does not lost
+      }
+
+      if (clickedSpanConnectionTargetSpanId) {
+        this.selectSpan(clickedSpanConnectionTargetSpanId);
+        // TODO: If selected span is not in the viewport, focus it
         return; // Early terminate so that selection does not lost
       }
 
@@ -1125,7 +1196,6 @@ export class Timeline extends EventEmitter {
     if (!groupView || !spanView) return;
     const span = spanView.span;
     const that = this;
-    const strokeColor = 'rgba(0, 0, 0, 0.5)';
 
     // Clean-up
     this.decorations.selectedSpanConnections.forEach(d => d.unmount());
@@ -1148,7 +1218,6 @@ export class Timeline extends EventEmitter {
       decoration.prepare({
         spanId1: refSpanView.span.id,
         spanId2: span.id,
-        strokeColor,
         strokeDasharray: parentRef.type == 'followsFrom' ? '2' : '0'
       });
       decoration.update();
@@ -1170,7 +1239,6 @@ export class Timeline extends EventEmitter {
       decoration.prepare({
         spanId1: span.id,
         spanId2: refSpanView.span.id,
-        strokeColor,
         strokeDasharray: ref.type == 'followsFrom' ? '2' : '0'
       });
       decoration.update();
@@ -1185,7 +1253,6 @@ export class Timeline extends EventEmitter {
     const [groupView, spanView] = this.findSpanView(spanId);
     if (!groupView || !spanView) return;
     const span = spanView.span;
-    const strokeColor = 'rgba(0, 0, 0, 0.5)';
 
     // Clean-up
     this.decorations.hoveredSpanConnections.forEach(d => d.unmount());
@@ -1201,7 +1268,6 @@ export class Timeline extends EventEmitter {
       decoration.prepare({
         spanId1: refSpanView.span.id,
         spanId2: span.id,
-        strokeColor,
         strokeDasharray: ref.type == 'followsFrom' ? '2' : '0'
       });
       decoration.update();
@@ -1222,8 +1288,7 @@ export class Timeline extends EventEmitter {
       decoration.prepare({
         spanId1: span.id,
         spanId2: refSpanView.span.id,
-        strokeDasharray: ref.type == 'followsFrom' ? '2' : '0',
-        strokeColor
+        strokeDasharray: ref.type == 'followsFrom' ? '2' : '0'
       });
       decoration.update();
       decoration.mount();
