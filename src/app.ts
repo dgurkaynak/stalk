@@ -80,7 +80,8 @@ export class App {
     onDragOver: this.onDragOver.bind(this),
     onDragLeave: this.onDragLeave.bind(this),
     showSpanInTableView: this.showSpanInTableView.bind(this),
-    showSpanInTimelineView: this.showSpanInTimelineView.bind(this)
+    showSpanInTimelineView: this.showSpanInTimelineView.bind(this),
+    onKeyDown: this.onKeyDown.bind(this)
   };
 
   constructor(private options: AppOptions) {
@@ -189,6 +190,7 @@ export class App {
       ContextMenuEvent.SHOW_SPAN_IN_TIMELINE_VIEW,
       this.binded.showSpanInTimelineView
     );
+    document.addEventListener('keydown', this.binded.onKeyDown, false);
 
     // Listen for electron's full-screen events
     ipcRenderer.on('enter-full-screen', () =>
@@ -590,6 +592,21 @@ export class App {
     this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE]);
   }
 
+  private onKeyDown(e: KeyboardEvent) {
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
+
+    // CMD + A => Prevent selection all the selected texts
+    if (e.key == 'a' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      return;
+    }
+  }
+
   dispose() {
     window.removeEventListener('resize', this.binded.onWindowResize, false);
     this.options.element.removeEventListener('drop', this.binded.onDrop, false);
@@ -611,6 +628,7 @@ export class App {
       ContextMenuEvent.SHOW_SPAN_IN_TIMELINE_VIEW,
       this.binded.showSpanInTimelineView
     );
+    document.removeEventListener('keydown', this.binded.onKeyDown, false);
 
     this.toolbar.dispose();
     this.toolbar = null;
