@@ -8,6 +8,10 @@ import {
 import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
 import { serviceNameOf } from '../../model/span-grouping/service-name';
 import { formatMicroseconds } from '../../utils/format-microseconds';
+import {
+  ContextMenuManager,
+  ContextMenuEvent
+} from '../ui/context-menu/context-menu-manager';
 
 import SvgAlert from '!!raw-loader!@mdi/svg/svg/alert.svg';
 import SvgAlertCircle from '!!raw-loader!@mdi/svg/svg/alert-circle-outline.svg';
@@ -19,6 +23,7 @@ export class SpanSummaryView {
   private timeline: Timeline;
   private spansTable: SpansTableView;
   private logsTable: LogsTableView;
+  private contextMenuManager = ContextMenuManager.getSingleton();
   private elements = {
     container: document.createElement('div')
   };
@@ -28,7 +33,8 @@ export class SpanSummaryView {
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
     onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
     onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this),
-    onStageTraceRemoved: this.onStageTraceRemoved.bind(this)
+    onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
+    onContextMenu: this.onContextMenu.bind(this)
   };
 
   constructor() {
@@ -59,6 +65,11 @@ export class SpanSummaryView {
       this.binded.onLogsTableLogSelected
     );
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
+    this.elements.container.addEventListener(
+      'contextmenu',
+      this.binded.onContextMenu,
+      false
+    );
 
     // Initial render
     this.render(
@@ -118,7 +129,7 @@ export class SpanSummaryView {
             <div class="value bold alert" title="Span not found">${ref.spanId} ${SvgAlert}</div>
           </div>`;
           }
-          return `<div class="key-value-row" data-span-reference-id="${ref.spanId}">
+          return `<div class="key-value-row" data-ref-span-id="${ref.spanId}">
           <div class="key">${ref.type}:</div>
           <div class="value bold">${refSpan.operationName}</div>
         </div>`;
@@ -179,6 +190,42 @@ export class SpanSummaryView {
     this.render(null);
   }
 
+  private onContextMenu(e: MouseEvent) {
+    const el = (e.target as HTMLElement).closest('[data-ref-span-id]');
+    if (!el) return;
+    e.preventDefault();
+    const refSpanId = el.getAttribute('data-ref-span-id');
+
+    this.contextMenuManager.show({
+      x: e.clientX,
+      y: e.clientY,
+      menuItems: [
+        {
+          selectItem: {
+            type: 'item',
+            text: 'Show Span in Timeline View',
+            id: 'showInTimelineView'
+          },
+          emitEvent: {
+            event: ContextMenuEvent.SHOW_SPAN_IN_TIMELINE_VIEW,
+            data: refSpanId
+          }
+        },
+        {
+          selectItem: {
+            type: 'item',
+            text: 'Show Span in Table View',
+            id: 'showInTableView'
+          },
+          emitEvent: {
+            event: ContextMenuEvent.SHOW_SPAN_IN_TABLE_VIEW,
+            data: refSpanId
+          }
+        }
+      ]
+    });
+  }
+
   mount(parentEl: HTMLElement) {
     parentEl.appendChild(this.elements.container);
   }
@@ -208,6 +255,11 @@ export class SpanSummaryView {
     this.stage.removeListener(
       StageEvent.TRACE_REMOVED,
       this.binded.onStageTraceRemoved
+    );
+    this.elements.container.removeEventListener(
+      'contextmenu',
+      this.binded.onContextMenu,
+      false
     );
   }
 }

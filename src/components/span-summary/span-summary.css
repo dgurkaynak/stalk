@@ -78,3 +78,8 @@
   margin-left: 0.2em;
   fill: rgba(255, 26, 26, 0.85);
 }
+
+.span-summary-content .key-value-row[data-ref-span-id] .value {
+  user-select: none;
+  cursor: context-menu;
+}
