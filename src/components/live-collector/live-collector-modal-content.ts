@@ -22,6 +22,7 @@ import {
   ZipkinCollectorHTTPServer,
   ZipkinCollectorHTTPServerState
 } from './zipkin-collector-http-server';
+import remove from 'lodash/remove';
 
 import './live-collector-modal-content.css';
 
@@ -40,7 +41,8 @@ export class LiveCollectorModalContent {
     bottom: {
       container: document.createElement('div'),
       selectionText: document.createElement('div'),
-      addToStageButton: document.createElement('button')
+      addToStageButton: document.createElement('button'),
+      deleteFromCollectorButton: document.createElement('button')
     },
     jaegerAgent: {
       checkbox: document.createElement('input'),
@@ -68,6 +70,9 @@ export class LiveCollectorModalContent {
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
     onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this),
+    onDeleteFromCollectorButtonClick: this.onDeleteFromCollectorButtonClick.bind(
+      this
+    ),
     updateTraces: throttle(this.updateTraces.bind(this), 5000),
     onJaegerAgentServerStateChange: this.onJaegerAgentServerStateChange.bind(
       this
@@ -355,6 +360,11 @@ export class LiveCollectorModalContent {
       els.bottom.addToStageButton.textContent = 'Add to Stage';
       els.bottom.addToStageButton.disabled = true;
       rightContainer.appendChild(els.bottom.addToStageButton);
+
+      els.bottom.deleteFromCollectorButton.textContent =
+        'Delete from Collector';
+      els.bottom.deleteFromCollectorButton.disabled = true;
+      leftContainer.appendChild(els.bottom.deleteFromCollectorButton);
     }
 
     // Bind live collector server events
@@ -377,6 +387,11 @@ export class LiveCollectorModalContent {
     this.elements.bottom.addToStageButton.addEventListener(
       'click',
       this.binded.onAddToStageButtonClick,
+      false
+    );
+    this.elements.bottom.deleteFromCollectorButton.addEventListener(
+      'click',
+      this.binded.onDeleteFromCollectorButtonClick,
       false
     );
     window.addEventListener('resize', this.binded.onWindowResize, false);
@@ -441,6 +456,7 @@ export class LiveCollectorModalContent {
 
     if (selectedTraces.length == 0) {
       this.elements.bottom.addToStageButton.disabled = true;
+      this.elements.bottom.deleteFromCollectorButton.disabled = true;
       this.elements.bottom.selectionText.textContent = 'No trace selected';
       return;
     }
@@ -451,6 +467,7 @@ export class LiveCollectorModalContent {
     }
     this.elements.bottom.selectionText.innerHTML = `<strong>${text}</strong> selected`;
     this.elements.bottom.addToStageButton.disabled = false;
+    this.elements.bottom.deleteFromCollectorButton.disabled = false;
   }
 
   private onAddToStageButtonClick() {
@@ -471,6 +488,14 @@ export class LiveCollectorModalContent {
     modal.close({ data: { action: 'addToStage', traces } });
 
     this.tracesTable.deselectAll();
+  }
+
+  private onDeleteFromCollectorButtonClick() {
+    remove(this.spansDB, span => {
+      return this.selectedTraceIds.indexOf(span.traceId) > -1;
+    });
+    this.tracesTable.deselectAll();
+    this.updateTraces();
   }
 
   private updateTraces() {
@@ -669,6 +694,11 @@ export class LiveCollectorModalContent {
     this.elements.bottom.addToStageButton.removeEventListener(
       'click',
       this.binded.onAddToStageButtonClick,
+      false
+    );
+    this.elements.bottom.deleteFromCollectorButton.removeEventListener(
+      'click',
+      this.binded.onDeleteFromCollectorButtonClick,
       false
     );
     window.removeEventListener('resize', this.binded.onWindowResize, false);
