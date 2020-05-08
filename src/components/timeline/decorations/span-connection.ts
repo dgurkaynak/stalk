@@ -160,10 +160,10 @@ export class SpanConnectionDecoration extends BaseDecoration {
       // If there is two sequential bars on the same row
       // and they're like snapped to each other, handle it
       const distanceX = toX - fromX;
-      if (fromY == toY && distanceX < 50) {
-        fromX -= 15;
+      if (fromY == toY && distanceX < 10) {
+        fromX = Math.max(fromX - 15, spanView1Props.x);
         fromY -= halfBarHeight;
-        toX += 15
+        toX = Math.min(toX + 15, spanView2Props.x + spanView2Props.width);
         toY -= halfBarHeight - arrowHeadOffsetLeft;
 
         fromControlX = fromX;
