@@ -114,12 +114,6 @@ export default class SpanView {
     this.updateLabelText();
     this.hideLabel();
 
-    if (ErrorDetection.checkSpan(span)) {
-      this.container.appendChild(this.errorTriangle);
-    } else if (this.errorTriangle.parentElement) {
-      this.errorTriangle.parentElement.removeChild(this.errorTriangle);
-    }
-
     this.container.setAttribute(
       TimelineInteractableElementAttribute,
       TimelineInteractableElementType.SPAN_VIEW_CONTAINER
@@ -127,6 +121,14 @@ export default class SpanView {
     this.container.setAttribute('data-span-id', span.id);
     this.clipPath.id = `clip-path-span-${span.id}`;
     this.labelText.setAttribute('clip-path', `url(#${this.clipPath.id})`);
+
+    if (ErrorDetection.checkSpan(span)) {
+      this.errorTriangle.setAttribute('clip-path', `url(#${this.clipPath.id})`);
+      this.container.appendChild(this.errorTriangle);
+    } else if (this.errorTriangle.parentElement) {
+      this.errorTriangle.removeAttribute('clip-path');
+      this.errorTriangle.parentElement.removeChild(this.errorTriangle);
+    }
 
     const { spanBarHeight } = vc;
     const { x } = this.viewPropertiesCache;
@@ -148,7 +150,10 @@ export default class SpanView {
         logAdjustmentX = -1;
       }
 
-      const logX = this.sharedOptions.axis.input2output(log.timestamp) - x + logAdjustmentX;
+      const logX =
+        this.sharedOptions.axis.input2output(log.timestamp) -
+        x +
+        logAdjustmentX;
       line.setAttribute('x1', logX + '');
       line.setAttribute('x2', logX + '');
 
