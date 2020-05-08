@@ -9,6 +9,7 @@ import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
 import { serviceNameOf } from '../../model/span-grouping/service-name';
 import { formatMicroseconds } from '../../utils/format-microseconds';
 
+import SvgAlert from '!!raw-loader!@mdi/svg/svg/alert.svg';
 import SvgAlertCircle from '!!raw-loader!@mdi/svg/svg/alert-circle-outline.svg';
 import SvgCursorDefaultClick from '!!raw-loader!@mdi/svg/svg/cursor-default-click-outline.svg';
 import './span-summary.css';
@@ -101,21 +102,29 @@ export class SpanSummaryView {
       return;
     }
 
-    // TODO: Show outgoing/incoming references
-    // const node = mainSpanGroup.nodeOf(span);
-    // const outgoingReferences = span.references.map(ref => {
-    //   const refSpan = mainSpanGroup.get(ref.spanId);
-    //   return { type: ref.type, spanId: ref.spanId, span: refSpan };
-    // });
-    // const incomingReferences = node.children.map(childNode => {
-    //   const refSpan = mainSpanGroup.get(childNode.spanId);
-    //   const ref = find(refSpan.references, r => r.spanId == span.id);
-    //   return {
-    //     type: ref && ref.type,
-    //     spanId: childNode.spanId,
-    //     span: refSpan
-    //   };
-    // });
+    // References
+    let referencesBody = ``;
+    if (span.references.length == 0) {
+      referencesBody = `<span class="no-references">
+        This span has no references, it's a root span.
+      </span>`;
+    } else {
+      referencesBody = span.references
+        .map(ref => {
+          const refSpan = mainSpanGroup.get(ref.spanId);
+          if (!refSpan) {
+            return `<div class="key-value-row">
+            <div class="key">${ref.type}:</div>
+            <div class="value bold alert" title="Span not found">${ref.spanId} ${SvgAlert}</div>
+          </div>`;
+          }
+          return `<div class="key-value-row" data-span-reference-id="${ref.spanId}">
+          <div class="key">${ref.type}:</div>
+          <div class="value bold">${refSpan.operationName}</div>
+        </div>`;
+        })
+        .join('');
+    }
 
     this.elements.container.innerHTML = `<div class="span-summary-content">
       <div class="operation-name">${span.operationName}</div>
@@ -155,6 +164,9 @@ export class SpanSummaryView {
         <div class="key">Trace ID:</div>
         <div class="value">${span.traceId}</div>
       </div>
+
+      <div class="references-title">References</div>
+      ${referencesBody}
     </div>`;
   }
 

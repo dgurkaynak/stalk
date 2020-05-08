@@ -59,3 +59,22 @@
 .span-summary-content .key-value-row .bold {
   font-weight: 600;
 }
+
+.span-summary-content .references-title {
+  font-size: 1.25em;
+  font-weight: 500;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.3em;
+  margin-bottom: 0.3em;
+  margin-top: 1em;
+  user-select: text;
+  word-break: break-all;
+}
+
+.span-summary-content .key-value-row .value.alert svg {
+  height: 1.4em;
+  position: relative;
+  top: 0.3em;
+  margin-left: 0.2em;
+  fill: rgba(255, 26, 26, 0.85);
+}

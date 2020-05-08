@@ -27,12 +27,11 @@
 }
 
 .span-log-item-header svg {
-  width: 1.1em;
-  height: 1.1em;
+  height: 1.4em;
   position: relative;
   left: 0.05em;
-  top: 0.15em;
-  fill: rgba(255, 0, 0, 0.85);
+  top: 0.25em;
+  fill: rgba(255, 26, 26, 0.85);
 }
 
 .span-log-item .curly {
