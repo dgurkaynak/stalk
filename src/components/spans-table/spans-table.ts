@@ -768,7 +768,12 @@ export class SpansTableView extends EventEmitter {
   private onKeyDown(e: KeyboardEvent) {
     // If user is typing on any kind of input element which is
     // child of this component, we don't want to trigger shortcuts
-    if (e.target instanceof HTMLInputElement) return;
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
 
     // CMD + F => Focus to search input elemen
     if (e.key == 'f' && (e.ctrlKey || e.metaKey)) {

@@ -548,10 +548,13 @@ export class LogsTableView extends EventEmitter {
         const results = this.logRows.filter(logRow => {
           // Perform filtering on original span object & log fields
           // `log.fields` and `span` can be modified depending on visible columns by tabulator
-          return filterFn({
-            timestamp: logRow.timestamp,
-            fields: logRow.fieldsOriginal
-          }, logRow.spanOriginal);
+          return filterFn(
+            {
+              timestamp: logRow.timestamp,
+              fields: logRow.fieldsOriginal
+            },
+            logRow.spanOriginal
+          );
         });
 
         await this.table.replaceData(results);
@@ -759,7 +762,12 @@ export class LogsTableView extends EventEmitter {
   private onKeyDown(e: KeyboardEvent) {
     // If user is typing on any kind of input element which is
     // child of this component, we don't want to trigger shortcuts
-    if (e.target instanceof HTMLInputElement) return;
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
 
     // CMD + F => Focus to search input elemen
     if (e.key == 'f' && (e.ctrlKey || e.metaKey)) {

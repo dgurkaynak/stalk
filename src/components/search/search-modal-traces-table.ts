@@ -281,7 +281,12 @@ export class SearchModalTracesTableView extends EventEmitter {
   private onKeyDown(e: KeyboardEvent) {
     // If user is typing on any kind of input element which is
     // child of this component, we don't want to trigger shortcuts
-    if (e.target instanceof HTMLInputElement) return;
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
 
     // CMD + A => Select all
     if (e.key == 'a' && (e.ctrlKey || e.metaKey)) {

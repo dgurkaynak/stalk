@@ -141,7 +141,8 @@ export class Modal extends EventEmitter {
     if (
       e.target instanceof HTMLInputElement ||
       e.target instanceof HTMLSelectElement ||
-      e.target instanceof HTMLButtonElement
+      e.target instanceof HTMLButtonElement ||
+      e.target instanceof HTMLTextAreaElement
     ) {
       // This prevents modal-manager to catch
       e.stopPropagation();
