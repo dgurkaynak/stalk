@@ -156,6 +156,21 @@ export class SpanConnectionDecoration extends BaseDecoration {
       fromControlY = fromY;
       toControlX = toX - 50;
       toControlY = toY;
+
+      // If there is two sequential bars on the same row
+      // and they're like snapped to each other, handle it
+      const distanceX = toX - fromX;
+      if (fromY == toY && distanceX < 50) {
+        fromX -= 15;
+        fromY -= halfBarHeight;
+        toX += 15
+        toY -= halfBarHeight - arrowHeadOffsetLeft;
+
+        fromControlX = fromX;
+        fromControlY = fromY - 15;
+        toControlX = toX;
+        toControlY = toY - 15;
+      }
     }
 
     this.path.setAttribute('opacity', shouldHide ? '0' : '1');
