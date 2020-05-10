@@ -68,7 +68,8 @@ export class TimelineWrapper {
     timelineContainer: document.createElement('div'),
     emptyMessage: {
       container: document.createElement('div'),
-      loadSampleTraceButton: document.createElement('span')
+      sampleTraceButtonHotrod: document.createElement('span'),
+      sampleTraceButtonRaftConsensus: document.createElement('span')
     }
   };
   private dropdowns: {
@@ -124,7 +125,8 @@ export class TimelineWrapper {
     ),
     onKeyDown: this.onKeyDown.bind(this),
     onKeyUp: this.onKeyUp.bind(this),
-    onLoadSampleTraceButtonClick: this.onLoadSampleTraceButtonClick.bind(this)
+    onSampleTraceButtonHotrodClick: this.onSampleTraceButtonHotrodClick.bind(this),
+    onSampleTraceButtonRaftConcensusClick: this.onSampleTraceButtonRaftConcensusClick.bind(this)
   };
 
   private spanGroupingModeMenu = new WidgetToolbarSelect({
@@ -240,20 +242,28 @@ export class TimelineWrapper {
 
     const sampleTraceText = document.createElement('div');
     sampleTraceText.classList.add('sample-trace-text');
-    sampleTraceText.appendChild(document.createTextNode('• Load '));
+    sampleTraceText.appendChild(document.createTextNode('• Load some example traces to get started easily: '));
 
-    emptyMessage.loadSampleTraceButton.classList.add('add-sample-trace-button');
-    emptyMessage.loadSampleTraceButton.textContent = 'a sample trace';
-    emptyMessage.loadSampleTraceButton.addEventListener(
+    emptyMessage.sampleTraceButtonHotrod.classList.add('add-sample-trace-button');
+    emptyMessage.sampleTraceButtonHotrod.textContent = 'jaeger/hotrod';
+    emptyMessage.sampleTraceButtonHotrod.addEventListener(
       'click',
-      this.binded.onLoadSampleTraceButtonClick,
+      this.binded.onSampleTraceButtonHotrodClick,
       false
     );
+    sampleTraceText.appendChild(emptyMessage.sampleTraceButtonHotrod);
 
-    sampleTraceText.appendChild(emptyMessage.loadSampleTraceButton);
-    sampleTraceText.appendChild(
-      document.createTextNode(' to easily get started.')
+    sampleTraceText.appendChild(document.createTextNode(', '));
+
+    emptyMessage.sampleTraceButtonRaftConsensus.classList.add('add-sample-trace-button');
+    emptyMessage.sampleTraceButtonRaftConsensus.textContent = 'raft-consensus';
+    emptyMessage.sampleTraceButtonRaftConsensus.addEventListener(
+      'click',
+      this.binded.onSampleTraceButtonRaftConcensusClick,
+      false
     );
+    sampleTraceText.appendChild(emptyMessage.sampleTraceButtonRaftConsensus);
+
     innerContainer.appendChild(sampleTraceText);
 
     timelineContainer.appendChild(emptyMessage.container);
@@ -958,13 +968,23 @@ export class TimelineWrapper {
     this.spanTooltipCustomizationMultiSelect.updateItems(items);
   }
 
-  private async onLoadSampleTraceButtonClick(e: MouseEvent) {
+  private async onSampleTraceButtonHotrodClick(e: MouseEvent) {
     const hotrod = await import(
       /* webpackChunkName: "hotrod" */ '../../../mock/jaeger-hotrod.json'
     );
     const spans = convertFromJaegerTrace(hotrod.default.data[0]);
     const trace = new Trace(spans);
     this.stage.addTrace(trace);
+  }
+
+  private async onSampleTraceButtonRaftConcensusClick(e: MouseEvent) {
+    const raftConsensus = await import(
+      /* webpackChunkName: "raft-consensus" */ '../../../mock/stalk-stage-2020-05-10--12-48-55.json'
+    );
+    raftConsensus.default.traces.forEach((spans: any) => {
+      const trace = new Trace(spans);
+      this.stage.addTrace(trace);
+    });
   }
 
   addTrace(trace: Trace) {
@@ -1028,6 +1048,7 @@ export class TimelineWrapper {
       btn.groupLayoutMode,
       btn.spanTooltipCustomization
     ]);
+    const { emptyMessage } = this.elements;
 
     for (let tippy of Object.values(this.dropdowns)) {
       tippy.destroy();
@@ -1055,9 +1076,14 @@ export class TimelineWrapper {
       this.binded.onRulerToolClick,
       false
     );
-    this.elements.emptyMessage.loadSampleTraceButton.removeEventListener(
+    emptyMessage.sampleTraceButtonHotrod.removeEventListener(
       'click',
-      this.binded.onLoadSampleTraceButtonClick,
+      this.binded.onSampleTraceButtonHotrodClick,
+      false
+    );
+    emptyMessage.sampleTraceButtonRaftConsensus.removeEventListener(
+      'click',
+      this.binded.onSampleTraceButtonRaftConcensusClick,
       false
     );
 
@@ -1065,7 +1091,5 @@ export class TimelineWrapper {
     this.groupLayoutModeMenu.dispose();
     this.spanColoringModeMenu.dispose();
     this.spanLabellingModeMenu.dispose();
-
-    // TODO
   }
 }
