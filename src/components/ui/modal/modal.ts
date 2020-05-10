@@ -7,6 +7,7 @@ export interface ModalOptions {
   shouldCloseOnOverlayClick?: boolean;
   shouldCloseOnEscPress?: boolean;
   contentContainerClassName?: string;
+  shouldAutoFocusFirstElement?: boolean;
   onClose?: (triggerType: ModalCloseTriggerType, data: any) => void;
 }
 
@@ -107,6 +108,10 @@ export class Modal extends EventEmitter {
     // If there is none, it will throw an error.
     // https://github.com/davidtheclark/focus-trap/tree/2a03f59996f2d60c98d8e437ca817f71e4815ec9#your-trap-should-include-a-tabbable-element-or-a-focusable-container
     try {
+      if (!this.options.shouldAutoFocusFirstElement) {
+        throw new Error(`Oops`);
+      }
+
       this.focusTrap = focusTrap(this.options.content, {
         escapeDeactivates: false,
         allowOutsideClick: () => true

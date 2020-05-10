@@ -615,7 +615,8 @@ export class SpansTableView extends EventEmitter {
     });
     const modal = new Modal({
       content: this.spanFilteringFormModalContent.getElement(),
-      onClose: this.binded.onSpanFilteringModalClose
+      onClose: this.binded.onSpanFilteringModalClose,
+      shouldAutoFocusFirstElement: true
     });
     ModalManager.getSingleton().show(modal);
     this.spanFilteringFormModalContent.init(); // must be called after modal is rendered

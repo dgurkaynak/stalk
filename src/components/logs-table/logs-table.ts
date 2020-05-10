@@ -588,7 +588,8 @@ export class LogsTableView extends EventEmitter {
     });
     const modal = new Modal({
       content: this.logFilteringFormModalContent.getElement(),
-      onClose: this.binded.onLogFilteringModalClose
+      onClose: this.binded.onLogFilteringModalClose,
+      shouldAutoFocusFirstElement: true
     });
     ModalManager.getSingleton().show(modal);
     this.logFilteringFormModalContent.init(); // must be called after modal is rendered

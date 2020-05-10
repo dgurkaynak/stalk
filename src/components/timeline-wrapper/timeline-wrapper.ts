@@ -584,7 +584,8 @@ export class TimelineWrapper {
       );
       const modal = new Modal({
         content: this.customSpanGroupingFormModalContent.getElement(),
-        onClose: this.binded.onCustomSpanGroupingModalClose
+        onClose: this.binded.onCustomSpanGroupingModalClose,
+        shouldAutoFocusFirstElement: true
       });
       ModalManager.getSingleton().show(modal);
       this.customSpanGroupingFormModalContent.init(); // must be called after modal is rendered
@@ -678,7 +679,8 @@ export class TimelineWrapper {
       );
       const modal = new Modal({
         content: this.customSpanLabellingFormModalContent.getElement(),
-        onClose: this.binded.onCustomSpanLabellingModalClose
+        onClose: this.binded.onCustomSpanLabellingModalClose,
+        shouldAutoFocusFirstElement: true
       });
       ModalManager.getSingleton().show(modal);
       this.customSpanLabellingFormModalContent.init(); // must be called after modal is rendered
@@ -769,7 +771,8 @@ export class TimelineWrapper {
       );
       const modal = new Modal({
         content: this.customSpanColoringFormModalContent.getElement(),
-        onClose: this.binded.onCustomSpanColoringModalClose
+        onClose: this.binded.onCustomSpanColoringModalClose,
+        shouldAutoFocusFirstElement: true
       });
       ModalManager.getSingleton().show(modal);
       this.customSpanColoringFormModalContent.init(); // must be called after modal is rendered

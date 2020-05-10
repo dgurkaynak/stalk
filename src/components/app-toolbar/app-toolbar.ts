@@ -418,7 +418,8 @@ export class AppToolbar {
         });
         const modal = new Modal({
           content: this.dataSourceFormModalContent.getElement(),
-          onClose: this.binded.onNewDataSourceModalClose
+          onClose: this.binded.onNewDataSourceModalClose,
+          shouldAutoFocusFirstElement: true
         });
         this.dataSourceFormModalContent.init();
         ModalManager.getSingleton().show(modal);
@@ -595,7 +596,8 @@ export class AppToolbar {
     });
     const modal = new Modal({
       content: this.dataSourceFormModalContent.getElement(),
-      onClose: this.binded.onNewDataSourceModalClose
+      onClose: this.binded.onNewDataSourceModalClose,
+      shouldAutoFocusFirstElement: true
     });
     this.dataSourceFormModalContent.init();
     ModalManager.getSingleton().show(modal);
