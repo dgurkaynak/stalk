@@ -580,6 +580,8 @@ export class LiveCollectorModalContent {
         this.jaegerCollectorHTTPServer.getPort() + '';
       return;
     }
+
+    this.elements.jaegerCollector.urlAdress.textContent = `http://localhost:${port}/api/traces`;
   }
 
   private onJaegerCollectorServerStateChange(
@@ -638,6 +640,8 @@ export class LiveCollectorModalContent {
         this.zipkinCollectorHTTPServer.getPort() + '';
       return;
     }
+
+    this.elements.zipkinCollector.urlAdress.textContent = `http://localhost:${port}/api/traces`;
   }
 
   private onZipkinCollectorServerStateChange(
