@@ -56,7 +56,7 @@ export interface AppOptions {
 export class App {
   private stage = Stage.getSingleton();
   private contextMenuManager = ContextMenuManager.getSingleton();
-  private toolbar = new AppToolbar({});
+  private toolbar = new AppToolbar();
   private timeline = new TimelineWrapper();
   private spanSummary = new SpanSummaryView();
   private spanTags = new SpanTagsView();
