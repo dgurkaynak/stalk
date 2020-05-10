@@ -5,10 +5,12 @@ import {
   StageTraceRowData
 } from './stage-traces-table';
 import throttle from 'lodash/throttle';
+import { Stage, StageEvent } from '../../model/stage';
 
 import './stage-traces-modal-content.css';
 
 export class StageTracesModalContent {
+  private stage = Stage.getSingleton();
   private tracesTable = new StageTracesTableView();
   private selectedTraceIds: string[] = [];
   private elements = {
@@ -21,7 +23,8 @@ export class StageTracesModalContent {
     bottom: {
       container: document.createElement('div'),
       selectionText: document.createElement('div'),
-      removeFromStageButton: document.createElement('button')
+      removeFromStageButton: document.createElement('button'),
+      removeAllButton: document.createElement('button')
     }
   };
   inited = false;
@@ -29,7 +32,10 @@ export class StageTracesModalContent {
   private binded = {
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
-    onRemoveFromStageButtonClick: this.onRemoveFromStageButtonClick.bind(this)
+    onRemoveFromStageButtonClick: this.onRemoveFromStageButtonClick.bind(this),
+    onRemoveAllButtonClick: this.onRemoveAllButtonClick.bind(this),
+    onTraceAdded: this.onTraceAdded.bind(this),
+    onTraceRemoved: this.onTraceRemoved.bind(this)
   };
 
   constructor() {
@@ -65,6 +71,11 @@ export class StageTracesModalContent {
       els.bottom.removeFromStageButton.textContent = 'Remove from Stage';
       els.bottom.removeFromStageButton.disabled = true;
       rightContainer.appendChild(els.bottom.removeFromStageButton);
+
+      els.bottom.removeAllButton.textContent = 'Clear the Stage';
+      els.bottom.removeAllButton.disabled =
+        this.stage.getAllTraces().length == 0;
+      leftContainer.appendChild(els.bottom.removeAllButton);
     }
   }
 
@@ -79,6 +90,13 @@ export class StageTracesModalContent {
       this.binded.onRemoveFromStageButtonClick,
       false
     );
+    this.elements.bottom.removeAllButton.addEventListener(
+      'click',
+      this.binded.onRemoveAllButtonClick,
+      false
+    );
+    this.stage.on(StageEvent.TRACE_ADDED, this.binded.onTraceAdded);
+    this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onTraceRemoved);
     window.addEventListener('resize', this.binded.onWindowResize, false);
 
     // Traces table
@@ -137,6 +155,20 @@ export class StageTracesModalContent {
     this.tracesTable.deselectAll();
   }
 
+  private onTraceAdded() {
+    this.elements.bottom.removeAllButton.disabled =
+      this.stage.getAllTraces().length == 0;
+  }
+
+  private onTraceRemoved() {
+    this.elements.bottom.removeAllButton.disabled =
+      this.stage.getAllTraces().length == 0;
+  }
+
+  private onRemoveAllButtonClick() {
+    this.stage.getAllTraces().forEach(t => this.stage.removeTrace(t.id));
+  }
+
   getElement() {
     return this.elements.container;
   }
@@ -150,6 +182,16 @@ export class StageTracesModalContent {
       'click',
       this.binded.onRemoveFromStageButtonClick,
       false
+    );
+    this.elements.bottom.removeAllButton.removeEventListener(
+      'click',
+      this.binded.onRemoveAllButtonClick,
+      false
+    );
+    this.stage.removeListener(StageEvent.TRACE_ADDED, this.binded.onTraceAdded);
+    this.stage.removeListener(
+      StageEvent.TRACE_REMOVED,
+      this.binded.onTraceRemoved
     );
     window.removeEventListener('resize', this.binded.onWindowResize, false);
 
