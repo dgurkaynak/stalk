@@ -1,7 +1,7 @@
 // https://github.com/nayunhwan/Electron-CRA-TypeScript
 
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
@@ -56,8 +56,12 @@ function createWindow() {
   });
 
   // Delegate full-screen events
-  mainWindow.on('enter-full-screen', () => mainWindow.webContents.send('enter-full-screen'));
-  mainWindow.on('leave-full-screen', () => mainWindow.webContents.send('leave-full-screen'));
+  mainWindow.on('enter-full-screen', () =>
+    mainWindow.webContents.send('enter-full-screen')
+  );
+  mainWindow.on('leave-full-screen', () =>
+    mainWindow.webContents.send('leave-full-screen')
+  );
 }
 
 // Handle open-file events for following cases:
@@ -79,16 +83,22 @@ app.on('open-file', async (event, filePath) => {
     openFilePathBuffer.push(filePath);
   }
 });
-ipcMain.once('app-initalized', async (event) => {
+ipcMain.once('app-initalized', async event => {
   isAppInitalized = true;
   event.reply('app-initalized-response', {
-    openFiles: await Promise.all(openFilePathBuffer.map(filePath => readFileContent(filePath)))
+    openFiles: await Promise.all(
+      openFilePathBuffer.map(filePath => readFileContent(filePath))
+    )
   });
 });
 function readFileContent(filePath) {
-  return new Promise((resolve) => {
-    fs.readFile(filePath, { encoding: 'utf8'}, (err, data) => {
-      if (err) return resolve({ name: path.basename(filePath), error: `Could not read file: ${err.message}` });
+  return new Promise(resolve => {
+    fs.readFile(filePath, { encoding: 'utf8' }, (err, data) => {
+      if (err)
+        return resolve({
+          name: path.basename(filePath),
+          error: `Could not read file: ${err.message}`
+        });
       resolve({ name: path.basename(filePath), content: data });
     });
   });
@@ -112,5 +122,17 @@ app.on('activate', function() {
   }
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+// Application menu
+const template = [
+  {
+    label: app.name,
+    submenu: [
+      { role: 'about' },
+      { type: 'separator' },
+      { role: 'quit' }
+    ]
+  }
+];
+
+const menu = Menu.buildFromTemplate(template);
+Menu.setApplicationMenu(menu);
