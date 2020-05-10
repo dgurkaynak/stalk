@@ -99,6 +99,10 @@ export class StageTracesModalContent {
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onTraceRemoved);
     window.addEventListener('resize', this.binded.onWindowResize, false);
 
+    // Update remove all button
+    this.elements.bottom.removeAllButton.disabled =
+      this.stage.getAllTraces().length == 0;
+
     // Traces table
     // In order to get offsetWidth and height, the dom must be rendered
     // So before calling this `init()` method, ensure that dom is rendered.
@@ -166,7 +170,16 @@ export class StageTracesModalContent {
   }
 
   private onRemoveAllButtonClick() {
-    this.stage.getAllTraces().forEach(t => this.stage.removeTrace(t.id));
+    const modal = ModalManager.getSingleton().findModalFromElement(
+      this.elements.container
+    );
+    if (!modal) throw new Error(`Could not find modal instance`);
+    modal.close({
+      data: {
+        action: 'removeFromStage',
+        traceIds: this.stage.getAllTraces().map(t => t.id)
+      }
+    });
   }
 
   getElement() {
