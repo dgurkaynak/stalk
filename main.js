@@ -1,7 +1,14 @@
 // https://github.com/nayunhwan/Electron-CRA-TypeScript
 
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain, Menu, globalShortcut } = require('electron');
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  globalShortcut,
+  shell
+} = require('electron');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
@@ -126,13 +133,78 @@ app.on('activate', function() {
 });
 
 // Application menu
+const isMac = process.platform === 'darwin';
 const template = [
+  isMac
+    ? {
+        label: app.name,
+        submenu: [
+          { role: 'about' },
+          { type: 'separator' },
+          { role: 'services' },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideothers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' }
+        ]
+      }
+    : {},
   {
-    label: app.name,
+    label: 'File',
+    submenu: [{ role: 'quit' }]
+  },
+  {
+    label: 'Edit',
     submenu: [
-      { role: 'about' },
+      { role: 'undo' },
+      { role: 'redo' },
       { type: 'separator' },
-      { role: 'quit' }
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      ...(isMac
+        ? [
+            { role: 'pasteAndMatchStyle' },
+            { role: 'delete' },
+            { role: 'selectAll' },
+            { type: 'separator' },
+            {
+              label: 'Speech',
+              submenu: [{ role: 'startspeaking' }, { role: 'stopspeaking' }]
+            }
+          ]
+        : [{ role: 'delete' }, { type: 'separator' }, { role: 'selectAll' }])
+    ]
+  },
+  {
+    label: 'Window',
+    submenu: [
+      { role: 'minimize' },
+      { role: 'zoom' },
+      ...(isMac
+        ? [{ type: 'separator' }, { role: 'front' }]
+        : [{ role: 'close' }])
+    ]
+  },
+  {
+    role: 'help',
+    submenu: [
+      {
+        label: 'GitHub Repo',
+        click: async () =>
+          await shell.openExternal(
+            'https://github.com/dgurkaynak/stalk-studio/'
+          )
+      },
+      {
+        label: 'Report Issue',
+        click: async () =>
+          await shell.openExternal(
+            'https://github.com/dgurkaynak/stalk-studio/issues/new'
+          )
+      }
     ]
   }
 ];
