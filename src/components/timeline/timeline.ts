@@ -799,6 +799,51 @@ export class Timeline extends EventEmitter {
     }
   }
 
+  // Changes just the translation, not zoom factor
+  translateToSpanIfNotInViewport(spanId: string) {
+    const [groupView, spanView] = this.findSpanView(spanId);
+    if (!groupView || !spanView) return;
+    const span = spanView.span;
+    const spanYTop =
+      groupView.getViewPropertiesCache().y +
+      spanView.getViewPropertiesCache().y;
+    const spanYBottom = spanYTop + vc.rowHeight;
+
+    // Handle translate y
+    const bodyHeight = this._height - vc.timeHeaderHeight; // viewport height
+    // if content is already smaller than viewport, noop
+    if (this._contentHeight > bodyHeight) {
+      const viewportTopY = -this.panelTranslateY;
+      const viewportBottomY = -this.panelTranslateY + bodyHeight;
+
+      if (spanYBottom > viewportBottomY) {
+        const newTranslateY =
+          this.panelTranslateY - (spanYBottom - viewportBottomY);
+        this.setPanelTranslateY(newTranslateY);
+      } else if (spanYTop < viewportTopY) {
+        const newTranslateY =
+          this.panelTranslateY + (viewportTopY - spanYTop + 10);
+        this.setPanelTranslateY(newTranslateY);
+      } else {
+        // in viewport, noop
+      }
+    }
+
+    // Handle translate x
+    const spanXLeft = this.axis.input2output(span.startTime);
+    const spanXRight = this.axis.input2output(span.finishTime);
+    const [viewportLeftX, viewportRightX] = this.axis.getOutputRange();
+    if (spanXRight < viewportLeftX) {
+      const delta = viewportLeftX - spanXRight + 50;
+      this.translateX(delta);
+    } else if (spanXLeft > viewportRightX) {
+      const delta = viewportRightX - spanXLeft - 50;
+      this.translateX(delta);
+    } else {
+      // in viewport, noop
+    }
+  }
+
   showLogVerticalLine(timestamp: number) {
     this.decorations.logVerticalLine.prepare({
       timestamp,
@@ -1080,7 +1125,7 @@ export class Timeline extends EventEmitter {
 
       if (clickedSpanConnectionTargetSpanId) {
         this.selectSpan(clickedSpanConnectionTargetSpanId);
-        // TODO: If selected span is not in the viewport, focus it
+        this.translateToSpanIfNotInViewport(clickedSpanConnectionTargetSpanId);
         return; // Early terminate so that selection does not lost
       }
 
@@ -1266,7 +1311,6 @@ export class Timeline extends EventEmitter {
     span.references.forEach(ref => {
       const [refGroupView, refSpanView] = this.findSpanView(ref.spanId);
       if (!refGroupView || !refSpanView) return;
-      // TODO: Indicate when span could not found
 
       const decoration = new SpanConnectionDecoration(this);
       decoration.prepare({
