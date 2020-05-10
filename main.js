@@ -1,7 +1,7 @@
 // https://github.com/nayunhwan/Electron-CRA-TypeScript
 
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, globalShortcut } = require('electron');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
@@ -45,7 +45,10 @@ function createWindow() {
   mainWindow.loadURL(startUrl);
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  globalShortcut.register(
+    process.platform === 'darwin' ? 'Alt+Cmd+I' : 'Ctrl+Shift+I',
+    () => mainWindow.webContents.toggleDevTools()
+  );
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function() {
