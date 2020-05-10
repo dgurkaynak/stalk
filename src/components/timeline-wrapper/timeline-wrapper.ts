@@ -36,6 +36,7 @@ import { Trace } from '../../model/trace';
 import { Stage } from '../../model/stage';
 import { clipboard } from 'electron';
 import Noty from 'noty';
+import { convertFromJaegerTrace } from '../../model/jaeger';
 
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
 import SvgFormatColorFill from '!!raw-loader!@mdi/svg/svg/format-color-fill.svg';
@@ -43,6 +44,8 @@ import SvgSort from '!!raw-loader!@mdi/svg/svg/sort.svg';
 import SvgCursorMove from '!!raw-loader!@mdi/svg/svg/cursor-move.svg';
 import SvgRuler from '!!raw-loader!@mdi/svg/svg/ruler-square.svg';
 import SvgTooltipEdit from '!!raw-loader!@mdi/svg/svg/tooltip-edit.svg';
+import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
+import SvgSatellite from '!!raw-loader!@mdi/svg/svg/satellite-uplink.svg';
 import './timeline-wrapper.css';
 
 const TOOLBAR_HEIGHT = 30; // TODO: Sorry :(
@@ -62,7 +65,11 @@ export class TimelineWrapper {
       groupLayoutMode: document.createElement('div'),
       spanTooltipCustomization: document.createElement('div')
     },
-    timelineContainer: document.createElement('div')
+    timelineContainer: document.createElement('div'),
+    emptyMessage: {
+      container: document.createElement('div'),
+      loadSampleTraceButton: document.createElement('span')
+    }
   };
   private dropdowns: {
     groupingMode: TippyInstance;
@@ -116,7 +123,8 @@ export class TimelineWrapper {
       this
     ),
     onKeyDown: this.onKeyDown.bind(this),
-    onKeyUp: this.onKeyUp.bind(this)
+    onKeyUp: this.onKeyUp.bind(this),
+    onLoadSampleTraceButtonClick: this.onLoadSampleTraceButtonClick.bind(this)
   };
 
   private spanGroupingModeMenu = new WidgetToolbarSelect({
@@ -201,9 +209,54 @@ export class TimelineWrapper {
     container.classList.add('timeline-wrapper');
     container.setAttribute('tabindex', '-1');
     container.appendChild(toolbar);
+    timelineContainer.classList.add('timeline-container');
     container.appendChild(timelineContainer);
     this.prepareToolbar();
+    this.prepareEmptyMessage();
     this.timeline.mount(timelineContainer);
+  }
+
+  private prepareEmptyMessage() {
+    const { timelineContainer, emptyMessage } = this.elements;
+    emptyMessage.container.classList.add('empty-message-container');
+
+    const innerContainer = document.createElement('div');
+    emptyMessage.container.appendChild(innerContainer);
+
+    const dragDropText = document.createElement('div');
+    dragDropText.classList.add('drag-drop-text');
+    dragDropText.innerHTML = `• Drag & drop JSON files exported from Jaeger, Zipkin, or Stalk Studio.`;
+    innerContainer.appendChild(dragDropText);
+
+    const dataSourcesText = document.createElement('div');
+    dataSourcesText.classList.add('data-sources-text');
+    dataSourcesText.innerHTML = `• Use Data Sources ${SvgDatabase} menu to search traces in Jaeger and Zipkin servers.`;
+    innerContainer.appendChild(dataSourcesText);
+
+    const liveCollectorText = document.createElement('div');
+    liveCollectorText.classList.add('live-collector-text');
+    liveCollectorText.innerHTML = `• Use Live Collector ${SvgSatellite} menu to collect traces directly from Jaeger and Zipkin instrumentations.`;
+    innerContainer.appendChild(liveCollectorText);
+
+    const sampleTraceText = document.createElement('div');
+    sampleTraceText.classList.add('sample-trace-text');
+    sampleTraceText.appendChild(document.createTextNode('• Load '));
+
+    emptyMessage.loadSampleTraceButton.classList.add('add-sample-trace-button');
+    emptyMessage.loadSampleTraceButton.textContent = 'a sample trace';
+    emptyMessage.loadSampleTraceButton.addEventListener(
+      'click',
+      this.binded.onLoadSampleTraceButtonClick,
+      false
+    );
+
+    sampleTraceText.appendChild(emptyMessage.loadSampleTraceButton);
+    sampleTraceText.appendChild(
+      document.createTextNode(' to easily get started.')
+    );
+    innerContainer.appendChild(sampleTraceText);
+
+    timelineContainer.appendChild(emptyMessage.container);
   }
 
   private prepareToolbar() {
@@ -302,7 +355,7 @@ export class TimelineWrapper {
     );
 
     // Initial data
-    this.stage.getAllTraces().forEach(trace => this.timeline.addTrace(trace));
+    this.stage.getAllTraces().forEach(trace => this.addTrace(trace));
   }
 
   private initTooltips() {
@@ -905,10 +958,21 @@ export class TimelineWrapper {
     this.spanTooltipCustomizationMultiSelect.updateItems(items);
   }
 
+  private async onLoadSampleTraceButtonClick(e: MouseEvent) {
+    const hotrod = await import(
+      /* webpackChunkName: "hotrod" */ '../../../mock/jaeger-hotrod.json'
+    );
+    const spans = convertFromJaegerTrace(hotrod.default.data[0]);
+    const trace = new Trace(spans);
+    this.stage.addTrace(trace);
+  }
+
   addTrace(trace: Trace) {
     try {
       this.timeline.addTrace(trace);
       this.updateSpanTooltipCustomizationMultiSelect();
+      this.elements.emptyMessage.container.style.display =
+        this.timeline.getTraces().length > 0 ? 'none' : '';
     } catch (err) {
       console.error(err);
       new Noty({
@@ -925,6 +989,8 @@ export class TimelineWrapper {
     try {
       this.timeline.removeTrace(trace);
       this.updateSpanTooltipCustomizationMultiSelect();
+      this.elements.emptyMessage.container.style.display =
+        this.timeline.getTraces().length > 0 ? 'none' : '';
     } catch (err) {
       console.error(err);
       new Noty({
@@ -987,6 +1053,11 @@ export class TimelineWrapper {
     btn.rulerTool.removeEventListener(
       'click',
       this.binded.onRulerToolClick,
+      false
+    );
+    this.elements.emptyMessage.loadSampleTraceButton.removeEventListener(
+      'click',
+      this.binded.onLoadSampleTraceButtonClick,
       false
     );
 

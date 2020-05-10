@@ -379,7 +379,7 @@ export class App {
     // https://stackoverflow.com/questions/20958176/why-is-dragleave-event-firing-unexpectedly
     // That's why we seperate border and overlay text
     this.dropZoneEl.innerHTML = `<div class="border"></div>
-      <div class="overlay-text">Drop Jaeger or Zipkin trace(s) here</div>`;
+      <div class="overlay-text">Drop JSON trace file(s) here</div>`;
     this.options.element.appendChild(this.dropZoneEl);
   }
 

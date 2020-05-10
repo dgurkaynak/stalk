@@ -428,6 +428,10 @@ export class Timeline extends EventEmitter {
     this._tool = tool;
   }
 
+  getTraces() {
+    return this.traces;
+  }
+
   // can throw
   // - this.spanGrouping.addSpan
   // - this.layout

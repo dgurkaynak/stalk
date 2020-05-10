@@ -9,3 +9,45 @@
   top: 0.2em;
 }
 .timeline-toolbar-button.group-layout svg { height: 1.4em; }
+
+.timeline-container {
+  position: relative;
+}
+
+.timeline-container .empty-message-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  color: #999;
+  font-weight: 500;
+}
+
+.empty-message-container .data-sources-text {
+  margin-top: 0.7em;
+  margin-bottom: 0.7em;
+}
+
+.empty-message-container .sample-trace-text {
+  margin-top: 1.9em;
+}
+
+.empty-message-container .sample-trace-text .add-sample-trace-button {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.empty-message-container svg {
+  border: 1px solid #ccc;
+  line-height: 1em;
+  height: 1.5em;
+  position: relative;
+  fill: #999;
+  padding: 0.3em 0;
+  top: 0.7em;
+}
