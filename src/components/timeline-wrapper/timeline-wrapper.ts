@@ -230,12 +230,12 @@ export class TimelineWrapper {
 
     const dataSourcesText = document.createElement('div');
     dataSourcesText.classList.add('data-sources-text');
-    dataSourcesText.innerHTML = `• Use Data Sources ${SvgDatabase} menu to search traces in Jaeger and Zipkin servers.`;
+    dataSourcesText.innerHTML = `• Use Data Sources ${SvgDatabase} to search traces in Jaeger and Zipkin servers.`;
     innerContainer.appendChild(dataSourcesText);
 
     const liveCollectorText = document.createElement('div');
     liveCollectorText.classList.add('live-collector-text');
-    liveCollectorText.innerHTML = `• Use Live Collector ${SvgSatellite} menu to collect traces directly from Jaeger and Zipkin instrumentations.`;
+    liveCollectorText.innerHTML = `• Use Live Collector ${SvgSatellite} to collect traces directly from Jaeger and Zipkin instrumentations.`;
     innerContainer.appendChild(liveCollectorText);
 
     const sampleTraceText = document.createElement('div');
