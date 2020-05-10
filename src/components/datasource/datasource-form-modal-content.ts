@@ -65,8 +65,6 @@ export class DataSourceFormModalContent {
       this.binded.onFormSubmit,
       false
     );
-
-    // TODO: Fill the form
   }
 
   getElement() {
@@ -85,8 +83,6 @@ export class DataSourceFormModalContent {
 
   private async onFormSubmit(e: Event) {
     e.preventDefault();
-
-    // TODO: Form validation
 
     const modal = ModalManager.getSingleton().findModalFromElement(
       this.elements.container
@@ -109,8 +105,6 @@ export class DataSourceFormModalContent {
   private async onTestButtonClick(e: Event) {
     e.preventDefault();
 
-    // TODO: Form validation
-
     try {
       await this.test();
       new Noty({
@@ -120,7 +114,7 @@ export class DataSourceFormModalContent {
       }).show();
     } catch (err) {
       new Noty({
-        text: `Error: ${err.message || ''}`, // TODO
+        text: `Error: ${err.message || ''}`,
         type: 'error',
         timeout: 2500
       }).show();

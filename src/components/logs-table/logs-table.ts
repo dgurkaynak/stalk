@@ -36,7 +36,7 @@ import '../ui/widget-toolbar/widget-toolbar.css';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import './logs-table.css';
 
-const TOOLBAR_HEIGHT = 27; // TODO: Sorry :(
+const TOOLBAR_HEIGHT = 27;
 
 export interface LogRowData {
   id: string;
@@ -524,7 +524,7 @@ export class LogsTableView extends EventEmitter {
     const logRowData = cell.getRow().getData();
     let html = '';
 
-    // TODO: Sort these with occurance frequency
+    // TODO: Sort these with occurance frequency maybe?
     Object.keys(logRowData.fieldsOriginal)
       .sort((a, b) => {
         if (a > b) return 1;

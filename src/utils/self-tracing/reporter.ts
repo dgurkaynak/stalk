@@ -54,7 +54,6 @@ export class StalkStudioReporter extends BaseReporter {
       logs: data.logs.map(log => ({ ...log, timestamp: log.timestamp * 1000 })),
       process: this.process
     };
-    // TODO: Add `process`
     this.spans.push(span as any);
   }
 

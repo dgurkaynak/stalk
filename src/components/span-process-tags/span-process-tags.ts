@@ -225,7 +225,7 @@ export class SpanProcessTagsView {
   }
 
   resize(width: number, height: number) {
-    // TODO
+    // NOOP
   }
 
   dispose() {

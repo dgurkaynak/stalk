@@ -236,7 +236,7 @@ export class SpanSummaryView {
   }
 
   resize(width: number, height: number) {
-    // TODO
+    // NOOP
   }
 
   dispose() {

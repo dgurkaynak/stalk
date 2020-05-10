@@ -325,7 +325,7 @@ export class SpanLogsView {
   }
 
   resize(width: number, height: number) {
-    // TODO
+    // NOOP
   }
 
   dispose() {

@@ -225,7 +225,7 @@ export class SpanTagsView {
   }
 
   resize(width: number, height: number) {
-    // TODO
+    // NOOP
   }
 
   dispose() {

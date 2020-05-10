@@ -48,7 +48,7 @@ import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
 import SvgSatellite from '!!raw-loader!@mdi/svg/svg/satellite-uplink.svg';
 import './timeline-wrapper.css';
 
-const TOOLBAR_HEIGHT = 30; // TODO: Sorry :(
+const TOOLBAR_HEIGHT = 30;
 
 export class TimelineWrapper {
   readonly timeline = new Timeline();

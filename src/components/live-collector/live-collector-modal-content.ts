@@ -2,7 +2,6 @@ import { Span } from '../../model/interfaces';
 import { Trace } from '../../model/trace';
 import { ModalManager } from '../ui/modal/modal-manager';
 import Noty from 'noty';
-import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
   SearchModalTracesTableView,
   SearchModalTracesTableViewEvent,
@@ -59,7 +58,6 @@ export class LiveCollectorModalContent {
       urlAdress: document.createElement('span')
     }
   };
-  private tippyInstaces: {};
   inited = false;
 
   private jaegerAgentUDPServer = new JaegerAgentUDPServer();
@@ -377,8 +375,6 @@ export class LiveCollectorModalContent {
   }
 
   init() {
-    this.initTippyInstances();
-
     // Bind events
     this.tracesTable.on(
       SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
@@ -427,16 +423,9 @@ export class LiveCollectorModalContent {
     this.inited = true;
   }
 
-  private initTippyInstances() {
-    // TODO: Maybe ?!
-    this.tippyInstaces = {};
-  }
-
   onShow() {
     const { offsetWidth: w, offsetHeight: h } = this.elements.rightContainer;
     this.tracesTable.resize(w, h);
-
-    // TODO
 
     this.tracesTable.redrawTable(true);
   }

@@ -35,7 +35,7 @@ import '../ui/widget-toolbar/widget-toolbar.css';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import './spans-table.css';
 
-const TOOLBAR_HEIGHT = 27; // TODO: Sorry :(
+const TOOLBAR_HEIGHT = 27;
 
 export interface SpanRowData {
   span: Span;
