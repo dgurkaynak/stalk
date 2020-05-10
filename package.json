@@ -83,6 +83,7 @@
     "xstate": "^4.7.0-rc5"
   },
   "build": {
+    "productName": "Stalk Studio",
     "appId": "com.dgurkaynak.stalk-studio",
     "files": [
       "main.js",
