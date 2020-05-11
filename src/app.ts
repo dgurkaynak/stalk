@@ -209,10 +209,10 @@ export class App {
 
     // Listen for electron's `open-file` events
     ipcRenderer.on('open-file', (event, arg) => {
-      this.openFiles([arg]);
+      this.openRawText([arg]);
     });
     ipcRenderer.once('app-initalized-response', (event, arg) => {
-      this.openFiles(arg.openFiles);
+      this.openRawText(arg.openFiles);
     });
 
     // Application menu
@@ -398,6 +398,9 @@ export class App {
     this.dropZoneEl.style.display = 'none';
     const errorMessages = [] as string[];
 
+    // You have to perform async (reading file) task in parallel,
+    // if not `e.dataTransfer` will be released from memory on next
+    // iteration, you can't access it.
     const tasks = Array.from(e.dataTransfer.items).map(async item => {
       // If dropped items aren't files, reject them
       if (item.kind != 'file') {
@@ -429,51 +432,10 @@ export class App {
         return;
       }
 
-      const isJaeger = isJaegerJSON(parsedJson);
-      const isZipkin = isZipkinJSON(parsedJson);
-      const isStalk =
-        isObject(parsedJson) && (parsedJson as any).kind == 'stalk-studio/v1';
-
-      if (!isJaeger && !isZipkin && !isStalk) {
-        errorMessages.push(`${file.name}: Unrecognized JSON file`);
-        return;
-      }
-
-      if (isJaeger) {
-        parsedJson.data.forEach((rawTrace: any) => {
-          const spans = convertFromJaegerTrace(rawTrace);
-          const trace = new Trace(spans);
-          this.stage.addTrace(trace);
-        });
-      }
-
-      if (isZipkin) {
-        if (isArray(parsedJson[0])) {
-          parsedJson.forEach((rawTrace: any) => {
-            const spans = convertFromZipkinTrace(rawTrace);
-            const trace = new Trace(spans);
-            this.stage.addTrace(trace);
-          });
-        } else if (isObject(parsedJson[0])) {
-          const spans = convertFromZipkinTrace(parsedJson);
-          const trace = new Trace(spans);
-          this.stage.addTrace(trace);
-        } else {
-          errorMessages.push(`${file.name}: Unrecognized Zipkin format`);
-        }
-      }
-
-      if (isStalk) {
-        if (isArray(parsedJson.traces)) {
-          parsedJson.traces.forEach((spans: any) => {
-            const trace = new Trace(spans);
-            this.stage.addTrace(trace);
-          });
-        } else {
-          errorMessages.push(
-            `${file.name}: Broken Stalk JSON - "traces" field does not exist`
-          );
-        }
+      try {
+        this.openParsedJSON(parsedJson);
+      } catch (err) {
+        errorMessages.push(`${file.name}: ${err.message}`);
       }
     });
 
@@ -489,8 +451,17 @@ export class App {
     }
   }
 
+  private onDragOver(e: DragEvent) {
+    e.preventDefault();
+    this.dropZoneEl.style.display = 'block';
+  }
+
+  private onDragLeave(e: DragEvent) {
+    this.dropZoneEl.style.display = 'none';
+  }
+
   // Sorry for the partial duplication of `onDrop()` method
-  private openFiles(
+  private openRawText(
     files: { name: string; content?: string; error?: string }[]
   ) {
     const errorMessages = [] as string[];
@@ -516,52 +487,10 @@ export class App {
         continue;
       }
 
-      const isJaeger = isJaegerJSON(parsedJson);
-      const isZipkin = isZipkinJSON(parsedJson);
-      const isStalk =
-        isObject(parsedJson) && (parsedJson as any).kind == 'stalk-studio/v1';
-
-      if (!isJaeger && !isZipkin && !isStalk) {
-        errorMessages.push(`${file.name}: Unrecognized JSON file`);
-        return;
-      }
-
-      if (isJaeger) {
-        parsedJson.data.forEach((rawTrace: any) => {
-          const spans = convertFromJaegerTrace(rawTrace);
-          const trace = new Trace(spans);
-          this.stage.addTrace(trace);
-        });
-      }
-
-      if (isZipkin) {
-        if (isArray(parsedJson[0])) {
-          parsedJson.forEach((rawTrace: any) => {
-            const spans = convertFromZipkinTrace(rawTrace);
-            const trace = new Trace(spans);
-            this.stage.addTrace(trace);
-          });
-        } else if (isObject(parsedJson[0])) {
-          const spans = convertFromZipkinTrace(parsedJson);
-          const trace = new Trace(spans);
-          this.stage.addTrace(trace);
-        } else {
-          errorMessages.push(`${file.name}: Unrecognized Zipkin format`);
-          continue;
-        }
-      }
-
-      if (isStalk) {
-        if (isArray(parsedJson.traces)) {
-          parsedJson.traces.forEach((spans: any) => {
-            const trace = new Trace(spans);
-            this.stage.addTrace(trace);
-          });
-        } else {
-          errorMessages.push(
-            `${file.name}: Broken Stalk JSON - "traces" field does not exist`
-          );
-        }
+      try {
+        this.openParsedJSON(parsedJson);
+      } catch (err) {
+        errorMessages.push(`${file.name}: ${err.message}`);
       }
     }
 
@@ -575,13 +504,50 @@ export class App {
     }
   }
 
-  private onDragOver(e: DragEvent) {
-    e.preventDefault();
-    this.dropZoneEl.style.display = 'block';
-  }
+  private openParsedJSON(parsedJson: any) {
+    if (isJaegerJSON(parsedJson)) {
+      parsedJson.data.forEach((rawTrace: any) => {
+        const spans = convertFromJaegerTrace(rawTrace);
+        const trace = new Trace(spans);
+        this.stage.addTrace(trace);
+      });
 
-  private onDragLeave(e: DragEvent) {
-    this.dropZoneEl.style.display = 'none';
+      return;
+    }
+
+    if (isZipkinJSON(parsedJson)) {
+      if (isArray(parsedJson[0])) {
+        parsedJson.forEach((rawTrace: any) => {
+          const spans = convertFromZipkinTrace(rawTrace);
+          const trace = new Trace(spans);
+          this.stage.addTrace(trace);
+        });
+        return;
+      }
+
+      if (isObject(parsedJson[0])) {
+        const spans = convertFromZipkinTrace(parsedJson);
+        const trace = new Trace(spans);
+        this.stage.addTrace(trace);
+        return;
+      }
+
+      throw new Error(`Unrecognized Zipkin format`);
+    }
+
+    if (isObject(parsedJson) && (parsedJson as any).kind == 'stalk-studio/v1') {
+      if (isArray((parsedJson as any).traces)) {
+        (parsedJson as any).traces.forEach((spans: any) => {
+          const trace = new Trace(spans);
+          this.stage.addTrace(trace);
+        });
+        return;
+      }
+
+      throw new Error(`Broken Stalk JSON - "traces" field does not exist`);
+    }
+
+    throw new Error(`Unrecognized JSON file`);
   }
 
   private async showSpanInTableView(spanId: string) {
