@@ -100,7 +100,10 @@ export class ZipkinCollectorHTTPServer {
     request: http.IncomingMessage,
     response: http.ServerResponse
   ) {
-    if (request.url.indexOf('/api/v2/spans') == -1) {
+    if (
+      request.url.indexOf('/api/v2/spans') == -1 ||
+      request.method.toLowerCase() != 'post'
+    ) {
       response.writeHead(501, 'Not Implemented');
       response.end();
       return;

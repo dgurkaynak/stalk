@@ -105,7 +105,10 @@ export class JaegerCollectorHTTPServer {
     request: http.IncomingMessage,
     response: http.ServerResponse
   ) {
-    if (request.url.indexOf('/api/traces') == -1) {
+    if (
+      request.url.indexOf('/api/traces') == -1 ||
+      request.method.toLowerCase() != 'post'
+    ) {
       response.writeHead(501, 'Not Implemented');
       response.end();
       return;
