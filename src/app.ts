@@ -87,7 +87,7 @@ export class App {
     showSpanInTableView: this.showSpanInTableView.bind(this),
     showSpanInTimelineView: this.showSpanInTimelineView.bind(this),
     onKeyDown: this.onKeyDown.bind(this),
-    onOpenMenuClick: this.onOpenMenuClick.bind(this),
+    onImportMenuClick: this.onImportMenuClick.bind(this),
     onExportMenuClick: this.onExportMenuClick.bind(this)
   };
 
@@ -613,8 +613,8 @@ export class App {
         label: 'File',
         submenu: [
           {
-            label: 'Open...',
-            click: this.binded.onOpenMenuClick
+            label: 'Import Trace(s)',
+            click: this.binded.onImportMenuClick
           },
           {
             label: 'Export Stage',
@@ -683,7 +683,7 @@ export class App {
     Menu.setApplicationMenu(menu);
   }
 
-  private async onOpenMenuClick() {
+  private async onImportMenuClick() {
     const { canceled, filePaths } = await remote.dialog.showOpenDialog({
       properties: ['openFile', 'multiSelections'],
       filters: [{ name: 'JSON', extensions: ['json'] }]
