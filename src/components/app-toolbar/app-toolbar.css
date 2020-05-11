@@ -4,6 +4,9 @@
   display: flex;
   justify-content: space-between;
   align-items: stretch;
+}
+
+.darwin:not(.full-screen) #app-toolbar {
   -webkit-app-region: drag;
   padding-left: 75px;
 }
@@ -16,9 +19,8 @@
   opacity: 0.25;
 }
 
-/* Full-screen adjustments */
-.full-screen #app-toolbar { padding-left: 0; }
-.full-screen .app-toolbar-divider:first-of-type { display: none; }
+.app-toolbar-divider:first-of-type { display: none; }
+.darwin:not(.full-screen) .app-toolbar-divider:first-of-type { display: inline-block; }
 
 /* Traces badge count */
 .toolbar-traces-badge-count {

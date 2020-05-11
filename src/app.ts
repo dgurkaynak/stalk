@@ -192,6 +192,9 @@ export class App {
     );
     document.addEventListener('keydown', this.binded.onKeyDown, false);
 
+    // Add a class named as current platform to body
+    document.body.classList.add(process.platform);
+
     // Listen for electron's full-screen events
     ipcRenderer.on('enter-full-screen', () =>
       document.body.classList.add('full-screen')
