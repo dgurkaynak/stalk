@@ -51,10 +51,14 @@ function createWindow() {
     });
   mainWindow.loadURL(startUrl);
 
-  // Open the DevTools.
+  // Secret shortcuts.
   globalShortcut.register(
     process.platform === 'darwin' ? 'Alt+Cmd+I' : 'Ctrl+Shift+I',
     () => mainWindow.webContents.toggleDevTools()
+  );
+  globalShortcut.register(
+    process.platform === 'darwin' ? 'Cmd+Shift+R' : 'Ctrl+Shift+R',
+    () => mainWindow.webContents.reloadIgnoringCache()
   );
 
   // Emitted when the window is closed.
