@@ -6,7 +6,6 @@ const {
   BrowserWindow,
   ipcMain,
   Menu,
-  globalShortcut,
   shell
 } = require('electron');
 const url = require('url');
@@ -50,16 +49,6 @@ function createWindow() {
       slashes: true
     });
   mainWindow.loadURL(startUrl);
-
-  // Secret shortcuts.
-  globalShortcut.register(
-    process.platform === 'darwin' ? 'Alt+Cmd+I' : 'Ctrl+Shift+I',
-    () => mainWindow.webContents.toggleDevTools()
-  );
-  globalShortcut.register(
-    process.platform === 'darwin' ? 'Cmd+Shift+R' : 'Ctrl+Shift+R',
-    () => mainWindow.webContents.reloadIgnoringCache()
-  );
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function() {
@@ -139,22 +128,24 @@ app.on('activate', function() {
 // Application menu
 const isMac = process.platform === 'darwin';
 const template = [
-  isMac
-    ? {
-        label: app.name,
-        submenu: [
-          { role: 'about' },
-          { type: 'separator' },
-          { role: 'services' },
-          { type: 'separator' },
-          { role: 'hide' },
-          { role: 'hideothers' },
-          { role: 'unhide' },
-          { type: 'separator' },
-          { role: 'quit' }
-        ]
-      }
-    : {},
+  ...(isMac
+    ? [
+        {
+          label: app.name,
+          submenu: [
+            { role: 'about' },
+            { type: 'separator' },
+            { role: 'services' },
+            { type: 'separator' },
+            { role: 'hide' },
+            { role: 'hideothers' },
+            { role: 'unhide' },
+            { type: 'separator' },
+            { role: 'quit' }
+          ]
+        }
+      ]
+    : []),
   {
     label: 'File',
     submenu: [{ role: 'quit' }]
@@ -208,7 +199,11 @@ const template = [
           await shell.openExternal(
             'https://github.com/dgurkaynak/stalk-studio/issues/new'
           )
-      }
+      },
+      { type: 'separator' },
+      { role: 'reload' },
+      { role: 'forcereload' },
+      { role: 'toggledevtools' }
     ]
   }
 ];
