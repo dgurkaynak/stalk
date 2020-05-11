@@ -33,6 +33,8 @@ import {
   ContextMenuManager,
   ContextMenuEvent
 } from './components/ui/context-menu/context-menu-manager';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -83,7 +85,8 @@ export class App {
     onDragLeave: this.onDragLeave.bind(this),
     showSpanInTableView: this.showSpanInTableView.bind(this),
     showSpanInTimelineView: this.showSpanInTimelineView.bind(this),
-    onKeyDown: this.onKeyDown.bind(this)
+    onKeyDown: this.onKeyDown.bind(this),
+    onOpenMenuClicked: this.onOpenMenuClicked.bind(this)
   };
 
   constructor(private options: AppOptions) {
@@ -209,10 +212,10 @@ export class App {
 
     // Listen for electron's `open-file` events
     ipcRenderer.on('open-file', (event, arg) => {
-      this.openRawText([arg]);
+      this.openRawTexts([arg]);
     });
     ipcRenderer.once('app-initalized-response', (event, arg) => {
-      this.openRawText(arg.openFiles);
+      this.openRawTexts(arg.openFiles);
     });
 
     // Application menu
@@ -461,7 +464,7 @@ export class App {
   }
 
   // Sorry for the partial duplication of `onDrop()` method
-  private openRawText(
+  private openRawTexts(
     files: { name: string; content?: string; error?: string }[]
   ) {
     const errorMessages = [] as string[];
@@ -606,7 +609,14 @@ export class App {
         : []),
       {
         label: 'File',
-        submenu: [{ role: 'quit' }]
+        submenu: [
+          {
+            label: 'Open...',
+            click: this.binded.onOpenMenuClicked
+          },
+          { type: 'separator' },
+          { role: 'quit' }
+        ]
       },
       {
         label: 'Edit',
@@ -628,7 +638,11 @@ export class App {
                   submenu: [{ role: 'startspeaking' }, { role: 'stopspeaking' }]
                 }
               ]
-            : [{ role: 'delete' }, { type: 'separator' }, { role: 'selectAll' }])
+            : [
+                { role: 'delete' },
+                { type: 'separator' },
+                { role: 'selectAll' }
+              ])
         ]
       },
       {
@@ -668,6 +682,38 @@ export class App {
 
     const menu = Menu.buildFromTemplate(template as any);
     Menu.setApplicationMenu(menu);
+  }
+
+  private async onOpenMenuClicked() {
+    const { canceled, filePaths } = await remote.dialog.showOpenDialog({
+      properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'JSON', extensions: ['json'] }]
+    });
+    if (canceled) return;
+
+    const readFiles: { name: string; content: string }[] = [];
+    const tasks = filePaths.map(filePath => {
+      const fileName = path.basename(filePath);
+      return new Promise(resolve => {
+        fs.readFile(filePath, 'utf8', (err, data) => {
+          if (err) {
+            new Noty({
+              text: `${fileName}: Could not read its content -- ${err.message}`,
+              type: 'error'
+            }).show();
+          } else {
+            readFiles.push({
+              name: path.basename(filePath),
+              content: data
+            });
+          }
+          resolve();
+        });
+      });
+    });
+    await Promise.all(tasks);
+
+    this.openRawTexts(readFiles);
   }
 
   dispose() {
