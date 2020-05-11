@@ -89,7 +89,8 @@
       "main.js",
       "build/**/*",
       "!build/**/*.js.map",
-      "!build/report.html"
+      "!build/report.html",
+      "build/app.js.map"
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
