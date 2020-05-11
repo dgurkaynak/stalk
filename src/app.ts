@@ -614,8 +614,7 @@ export class App {
             label: 'Open...',
             click: this.binded.onOpenMenuClicked
           },
-          { type: 'separator' },
-          { role: 'quit' }
+          ...(!isMac ? [{ type: 'separator' }, { role: 'quit' }] : [])
         ]
       },
       {
@@ -649,10 +648,7 @@ export class App {
         label: 'Window',
         submenu: [
           { role: 'minimize' },
-          { role: 'zoom' },
-          ...(isMac
-            ? [{ type: 'separator' }, { role: 'front' }]
-            : [{ role: 'close' }])
+          { role: 'zoom' }
         ]
       },
       {
