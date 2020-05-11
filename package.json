@@ -104,7 +104,11 @@
           "role": "Viewer"
         }
       ]
-    }
+    },
+    "linux": {
+      "category": "Development"
+    },
+    "win": {}
   },
   "config": {
     "commitizen": {
