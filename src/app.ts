@@ -16,7 +16,7 @@ import Noty from 'noty';
 import { isJaegerJSON, convertFromJaegerTrace } from './model/jaeger';
 import { isZipkinJSON, convertFromZipkinTrace } from './model/zipkin';
 import { TypeScriptManager } from './components/customization/typescript-manager';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote, shell } from 'electron';
 import { SpanSummaryView } from './components/span-summary/span-summary';
 import { SpanTagsView } from './components/span-tags/span-tags';
 import { SpanProcessTagsView } from './components/span-process-tags/span-process-tags';
@@ -38,6 +38,8 @@ import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
 import 'flatpickr/dist/flatpickr.min.css';
 import './app.css';
+
+const { Menu } = remote;
 
 export enum AppWidgetType {
   TIMELINE = 'timeline-view',
@@ -193,6 +195,8 @@ export class App {
     document.addEventListener('keydown', this.binded.onKeyDown, false);
 
     // Add a class named as current platform to body
+    // This is mainlu used for app-toolbar styling just for macOS
+    // Check `app-toolbar.css` for details
     document.body.classList.add(process.platform);
 
     // Listen for electron's full-screen events
@@ -210,6 +214,9 @@ export class App {
     ipcRenderer.once('app-initalized-response', (event, arg) => {
       this.openFiles(arg.openFiles);
     });
+
+    // Application menu
+    this.setupApplicationMenu();
 
     // Hide initial loading
     const loadingEl = document.getElementById(
@@ -608,6 +615,93 @@ export class App {
       e.preventDefault();
       return;
     }
+  }
+
+  private setupApplicationMenu() {
+    const isMac = process.platform === 'darwin';
+    const template = [
+      ...(isMac
+        ? [
+            {
+              label: `Stalk Studio`,
+              submenu: [
+                { role: 'about' },
+                { type: 'separator' },
+                { role: 'services' },
+                { type: 'separator' },
+                { role: 'hide' },
+                { role: 'hideothers' },
+                { role: 'unhide' },
+                { type: 'separator' },
+                { role: 'quit' }
+              ]
+            }
+          ]
+        : []),
+      {
+        label: 'File',
+        submenu: [{ role: 'quit' }]
+      },
+      {
+        label: 'Edit',
+        submenu: [
+          { role: 'undo' },
+          { role: 'redo' },
+          { type: 'separator' },
+          { role: 'cut' },
+          { role: 'copy' },
+          { role: 'paste' },
+          ...(isMac
+            ? [
+                { role: 'pasteAndMatchStyle' },
+                { role: 'delete' },
+                { role: 'selectAll' },
+                { type: 'separator' },
+                {
+                  label: 'Speech',
+                  submenu: [{ role: 'startspeaking' }, { role: 'stopspeaking' }]
+                }
+              ]
+            : [{ role: 'delete' }, { type: 'separator' }, { role: 'selectAll' }])
+        ]
+      },
+      {
+        label: 'Window',
+        submenu: [
+          { role: 'minimize' },
+          { role: 'zoom' },
+          ...(isMac
+            ? [{ type: 'separator' }, { role: 'front' }]
+            : [{ role: 'close' }])
+        ]
+      },
+      {
+        role: 'help',
+        submenu: [
+          {
+            label: 'GitHub Repo',
+            click: async () =>
+              await shell.openExternal(
+                'https://github.com/dgurkaynak/stalk-studio/'
+              )
+          },
+          {
+            label: 'Report Issue',
+            click: async () =>
+              await shell.openExternal(
+                'https://github.com/dgurkaynak/stalk-studio/issues/new'
+              )
+          },
+          { type: 'separator' },
+          { role: 'reload' },
+          { role: 'forcereload' },
+          { role: 'toggledevtools' }
+        ]
+      }
+    ];
+
+    const menu = Menu.buildFromTemplate(template as any);
+    Menu.setApplicationMenu(menu);
   }
 
   dispose() {

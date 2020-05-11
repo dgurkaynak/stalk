@@ -5,8 +5,7 @@ const {
   app,
   BrowserWindow,
   ipcMain,
-  Menu,
-  shell
+  Menu
 } = require('electron');
 const url = require('url');
 const path = require('path');
@@ -125,88 +124,5 @@ app.on('activate', function() {
   }
 });
 
-// Application menu
-const isMac = process.platform === 'darwin';
-const template = [
-  ...(isMac
-    ? [
-        {
-          label: app.name,
-          submenu: [
-            { role: 'about' },
-            { type: 'separator' },
-            { role: 'services' },
-            { type: 'separator' },
-            { role: 'hide' },
-            { role: 'hideothers' },
-            { role: 'unhide' },
-            { type: 'separator' },
-            { role: 'quit' }
-          ]
-        }
-      ]
-    : []),
-  {
-    label: 'File',
-    submenu: [{ role: 'quit' }]
-  },
-  {
-    label: 'Edit',
-    submenu: [
-      { role: 'undo' },
-      { role: 'redo' },
-      { type: 'separator' },
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-      ...(isMac
-        ? [
-            { role: 'pasteAndMatchStyle' },
-            { role: 'delete' },
-            { role: 'selectAll' },
-            { type: 'separator' },
-            {
-              label: 'Speech',
-              submenu: [{ role: 'startspeaking' }, { role: 'stopspeaking' }]
-            }
-          ]
-        : [{ role: 'delete' }, { type: 'separator' }, { role: 'selectAll' }])
-    ]
-  },
-  {
-    label: 'Window',
-    submenu: [
-      { role: 'minimize' },
-      { role: 'zoom' },
-      ...(isMac
-        ? [{ type: 'separator' }, { role: 'front' }]
-        : [{ role: 'close' }])
-    ]
-  },
-  {
-    role: 'help',
-    submenu: [
-      {
-        label: 'GitHub Repo',
-        click: async () =>
-          await shell.openExternal(
-            'https://github.com/dgurkaynak/stalk-studio/'
-          )
-      },
-      {
-        label: 'Report Issue',
-        click: async () =>
-          await shell.openExternal(
-            'https://github.com/dgurkaynak/stalk-studio/issues/new'
-          )
-      },
-      { type: 'separator' },
-      { role: 'reload' },
-      { role: 'forcereload' },
-      { role: 'toggledevtools' }
-    ]
-  }
-];
-
-const menu = Menu.buildFromTemplate(template);
-Menu.setApplicationMenu(menu);
+// Clear all the menu, app will handle it
+Menu.setApplicationMenu(null);
