@@ -14,18 +14,12 @@ import { DataSourceFormModalContent } from '../datasource/datasource-form-modal-
 import shortid from 'shortid';
 import { JaegerSearchModalContent } from '../search/jaeger-search-modal-content';
 import { ZipkinSearchModalContent } from '../search/zipkin-search-modal-content';
-import Noty from 'noty';
-import { remote } from 'electron';
-import * as fs from 'fs';
-import * as path from 'path';
-import format from 'date-fns/format';
 import { StageTracesModalContent } from '../stage-traces/stage-traces-modal-content';
 import { LiveCollectorModalContent } from '../live-collector/live-collector-modal-content';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
 import SvgSourceBranch from '!!raw-loader!@mdi/svg/svg/source-branch.svg';
-import SvgExport from '!!raw-loader!@mdi/svg/svg/export.svg';
 import SvgSatellite from '!!raw-loader!@mdi/svg/svg/satellite-uplink.svg';
 import './app-toolbar.css';
 
@@ -36,8 +30,7 @@ export class AppToolbar {
       dataSources: document.createElement('div'),
       newDataSource: document.createElement('div'),
       liveCollector: document.createElement('div'),
-      traces: document.createElement('div'),
-      export: document.createElement('div')
+      traces: document.createElement('div')
     },
     tracesBadgeCount: document.createElement('div'),
     dataSourceMenuList: {
@@ -83,7 +76,6 @@ export class AppToolbar {
     onDataSourceSearchModalClosed: this.onDataSourceSearchModalClosed.bind(
       this
     ),
-    onExportButtonClick: this.onExportButtonClick.bind(this),
     onStageTracesModalClose: this.onStageTracesModalClose.bind(this),
     onLiveCollectorModalClose: this.onLiveCollectorModalClose.bind(this)
   };
@@ -130,14 +122,10 @@ export class AppToolbar {
     btn.liveCollector.innerHTML = SvgSatellite;
     leftPane.appendChild(btn.liveCollector);
 
+    // Right buttons
     btn.traces.classList.add('app-toolbar-button', 'traces');
     btn.traces.innerHTML = SvgSourceBranch;
     rightPane.appendChild(btn.traces);
-
-    // Right buttons
-    btn.export.classList.add('app-toolbar-button');
-    btn.export.innerHTML = SvgExport;
-    rightPane.appendChild(btn.export);
   }
 
   init() {
@@ -225,8 +213,7 @@ export class AppToolbar {
           content: 'Traces in the Stage',
           multiple: true
         }
-      ],
-      [this.elements.btn.export, { content: 'Export Current Stage' }]
+      ]
     ]);
   }
 
@@ -329,11 +316,6 @@ export class AppToolbar {
     );
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
-    btn.export.addEventListener(
-      'click',
-      this.binded.onExportButtonClick,
-      false
-    );
     this.elements.btn.traces.addEventListener(
       'click',
       this.binded.onStageTracesButtonClick,
@@ -376,11 +358,6 @@ export class AppToolbar {
     this.elements.dataSourceMenuList.removePopConfirmButton.removeEventListener(
       'click',
       this.binded.onDataSourceRemovePopConfirmButtonClick,
-      false
-    );
-    btn.export.removeEventListener(
-      'click',
-      this.binded.onExportButtonClick,
       false
     );
     this.elements.btn.traces.removeEventListener(
@@ -639,55 +616,11 @@ export class AppToolbar {
     (data.traces as Trace[]).forEach(t => this.stage.addTrace(t));
   }
 
-  private async onExportButtonClick() {
-    const traces = this.stage.getAllTraces();
-    if (traces.length == 0) {
-      new Noty({
-        text: 'No traces in the stage',
-        type: 'warning'
-      }).show();
-      return;
-    }
-
-    const downloadsFolder = remote.app.getPath('downloads');
-    const fileName = `stalk-stage-${format(
-      new Date(),
-      'yyyy-MM-dd--HH-mm-ss'
-    )}.json`;
-    const { canceled, filePath } = await remote.dialog.showSaveDialog({
-      defaultPath: path.join(downloadsFolder, fileName)
-    });
-    if (canceled) return;
-
-    const fileContent = JSON.stringify(
-      {
-        kind: 'stalk-studio/v1',
-        traces: traces.map(t => t.spans)
-      },
-      null,
-      2
-    );
-
-    fs.writeFile(filePath, fileContent, err => {
-      if (err) {
-        new Noty({
-          text: err.message,
-          type: 'error',
-          timeout: 2500
-        }).show();
-        return;
-      }
-
-      // Exported, no need to additonal notification
-    });
-  }
-
   dispose() {
     const tooltipManager = TooltipManager.getSingleton();
     tooltipManager.removeFromSingleton([
       this.elements.btn.dataSources,
-      this.elements.btn.traces,
-      this.elements.btn.export
+      this.elements.btn.traces
     ]);
     for (let tippy of Object.values(this.tippyInstaces)) {
       tippy.destroy();

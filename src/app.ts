@@ -35,6 +35,7 @@ import {
 } from './components/ui/context-menu/context-menu-manager';
 import * as fs from 'fs';
 import * as path from 'path';
+import format from 'date-fns/format';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -86,7 +87,8 @@ export class App {
     showSpanInTableView: this.showSpanInTableView.bind(this),
     showSpanInTimelineView: this.showSpanInTimelineView.bind(this),
     onKeyDown: this.onKeyDown.bind(this),
-    onOpenMenuClicked: this.onOpenMenuClicked.bind(this)
+    onOpenMenuClick: this.onOpenMenuClick.bind(this),
+    onExportMenuClick: this.onExportMenuClick.bind(this)
   };
 
   constructor(private options: AppOptions) {
@@ -612,7 +614,11 @@ export class App {
         submenu: [
           {
             label: 'Open...',
-            click: this.binded.onOpenMenuClicked
+            click: this.binded.onOpenMenuClick
+          },
+          {
+            label: 'Export Stage',
+            click: this.binded.onExportMenuClick
           },
           ...(!isMac ? [{ type: 'separator' }, { role: 'quit' }] : [])
         ]
@@ -646,10 +652,7 @@ export class App {
       },
       {
         label: 'Window',
-        submenu: [
-          { role: 'minimize' },
-          { role: 'zoom' }
-        ]
+        submenu: [{ role: 'minimize' }, { role: 'zoom' }]
       },
       {
         role: 'help',
@@ -680,7 +683,7 @@ export class App {
     Menu.setApplicationMenu(menu);
   }
 
-  private async onOpenMenuClicked() {
+  private async onOpenMenuClick() {
     const { canceled, filePaths } = await remote.dialog.showOpenDialog({
       properties: ['openFile', 'multiSelections'],
       filters: [{ name: 'JSON', extensions: ['json'] }]
@@ -710,6 +713,49 @@ export class App {
     await Promise.all(tasks);
 
     this.openRawTexts(readFiles);
+  }
+
+  private async onExportMenuClick() {
+    const traces = this.stage.getAllTraces();
+    if (traces.length == 0) {
+      new Noty({
+        text: 'No traces in the stage',
+        type: 'warning'
+      }).show();
+      return;
+    }
+
+    const downloadsFolder = remote.app.getPath('downloads');
+    const fileName = `stalk-stage-${format(
+      new Date(),
+      'yyyy-MM-dd--HH-mm-ss'
+    )}.json`;
+    const { canceled, filePath } = await remote.dialog.showSaveDialog({
+      defaultPath: path.join(downloadsFolder, fileName)
+    });
+    if (canceled) return;
+
+    const fileContent = JSON.stringify(
+      {
+        kind: 'stalk-studio/v1',
+        traces: traces.map(t => t.spans)
+      },
+      null,
+      2
+    );
+
+    fs.writeFile(filePath, fileContent, err => {
+      if (err) {
+        new Noty({
+          text: err.message,
+          type: 'error',
+          timeout: 2500
+        }).show();
+        return;
+      }
+
+      // Exported, no need to additonal notification
+    });
   }
 
   dispose() {
