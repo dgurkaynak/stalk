@@ -1,6 +1,4 @@
 class ViewConstants {
-  readonly cursorLineColor = '#ccc';
-
   readonly timeHeaderHeight = 20;
   readonly tickLength = 200; // in px
   readonly tickLineColor = '#eeeeee';
@@ -39,8 +37,6 @@ class ViewConstants {
   readonly selectionBackgroundColor = 'rgba(58, 122, 217, 0.25)';
   readonly selectionTextColor = '#3E7CD6';
   readonly selectionTextSize = 10;
-
-  readonly bottomPaneHeight = 200;
 }
 
 export default new ViewConstants();
