@@ -1,0 +1,528 @@
+<!--
+  Run in a modern browser (Chrome 81, at the time of writing this)
+  Serve with a proper webserver, not going to work under `file://` protocol.
+ -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Stalk Studio Logo Generator</title>
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #visualization {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      #visualization .row {
+        position: relative;
+      }
+      #visualization .row .segment {
+        position: absolute;
+        top: 0;
+        box-sizing: border-box;
+      }
+      #visualization .row .segment.value-0 {
+        background: #fff;
+      }
+      #visualization .row .segment.value-1 {
+      }
+
+      /* https://uigradients.com/#Scooter */
+      #visualization.scooter {
+        background: #36d1dc;
+        background: -webkit-linear-gradient(to bottom, #5b86e5, #36d1dc);
+        background: linear-gradient(to bottom, #5b86e5, #36d1dc);
+      }
+      /* https://uigradients.com/#MoonlitAsteroid */
+      #visualization.moonlit-asteroid {
+        background: #0f2027;
+        background: -webkit-linear-gradient(to top, #2c5364, #203a43, #0f2027);
+        background: linear-gradient(to top, #2c5364, #203a43, #0f2027);
+      }
+      /* https://uigradients.com/#Quepal */
+      #visualization.quepal {
+        background: #11998e;
+        background: -webkit-linear-gradient(to top, #38ef7d, #11998e);
+        background: linear-gradient(to top, #38ef7d, #11998e);
+      }
+      /* https://uigradients.com/#CrimsonTide */
+      #visualization.crimson-tide {
+        background: #642b73;
+        background: -webkit-linear-gradient(to top, #c6426e, #642b73);
+        background: linear-gradient(to top, #c6426e, #642b73);
+      }
+      /* https://uigradients.com/#KimobyIsTheNewBlue */
+      #visualization.kimoby-is-the-new-blue {
+        background: #396afc;
+        background: -webkit-linear-gradient(to top, #2948ff, #396afc);
+        background: linear-gradient(to top, #2948ff, #396afc);
+      }
+      /* https://uigradients.com/#Socialive */
+      #visualization.socialive {
+        background: #06beb6;
+        background: -webkit-linear-gradient(to top, #48b1bf, #06beb6);
+        background: linear-gradient(to top, #48b1bf, #06beb6);
+      }
+      /* https://uigradients.com/#EasyMed */
+      #visualization.easy-med {
+        background: #dce35b;
+        background: -webkit-linear-gradient(to top, #45b649, #dce35b);
+        background: linear-gradient(to top, #45b649, #dce35b);
+      }
+      /* https://uigradients.com/#Royal */
+      #visualization.royal {
+        background: #141e30;
+        background: -webkit-linear-gradient(to top, #243b55, #141e30);
+        background: linear-gradient(to top, #243b55, #141e30);
+      }
+      /* https://uigradients.com/#SolidVault */
+      #visualization.solid-vault {
+        background: #3a7bd5;
+        background: -webkit-linear-gradient(to top, #3a6073, #3a7bd5);
+        background: linear-gradient(to top, #3a6073, #3a7bd5);
+      }
+      /* https://uigradients.com/#Joomla */
+      #visualization.joomla {
+        background: #1e3c72;
+        background: -webkit-linear-gradient(to top, #2a5298, #1e3c72);
+        background: linear-gradient(to top, #2a5298, #1e3c72);
+      }
+      /* https://uigradients.com/#Inbox */
+      #visualization.inbox {
+        background: #457fca;
+        background: -webkit-linear-gradient(to top, #5691c8, #457fca);
+        background: linear-gradient(to top, #5691c8, #457fca);
+      }
+      /* https://uigradients.com/#Reef */
+      #visualization.reef {
+        background: #00d2ff;
+        background: -webkit-linear-gradient(to top, #3a7bd5, #00d2ff);
+        background: linear-gradient(to top, #3a7bd5, #00d2ff);
+      }
+      /* https://uigradients.com/#Bourbon */
+      #visualization.bourbon {
+        background: #ec6f66;
+        background: -webkit-linear-gradient(to top, #f3a183, #ec6f66);
+        background: linear-gradient(to top, #f3a183, #ec6f66);
+      }
+      /* https://uigradients.com/#Stellar */
+      #visualization.stellar {
+        background: #7474bf;
+        background: -webkit-linear-gradient(to top, #348ac7, #7474bf);
+        background: linear-gradient(to top, #348ac7, #7474bf);
+      }
+      /* https://uigradients.com/#Mantle */
+      #visualization.mantle {
+        background: #24c6dc;
+        background: -webkit-linear-gradient(to top, #514a9d, #24c6dc);
+        background: linear-gradient(to top, #514a9d, #24c6dc);
+      }
+      /* https://uigradients.com/#Mirage */
+      #visualization.mirage {
+        background: #16222a;
+        background: -webkit-linear-gradient(to top, #3a6073, #16222a);
+        background: linear-gradient(to top, #3a6073, #16222a);
+      }
+    </style>
+  </head>
+
+  <body>
+    <script src="https://unpkg.com/dat.gui@0.6.5/build/dat.gui.min.js"></script>
+
+    <script>
+      const fontImageUrls = [
+        '01-inlanders.png',
+        '02-play-pretend.png',
+        '03-nau-sea.png',
+        '04-robot-crush.png',
+        '04-robot-crush-italic.png',
+        '05-name-smile.png',
+        '06-cold-warm.png',
+        '07-yay-usa.png',
+        '07-yay-usa-expanded.png',
+        '07-yay-usa-italic.png',
+        '08-agero.png',
+        '09-air-strike.png',
+        '10-equalize.png',
+        '11-chopsic.png',
+        '12-uniform.png',
+        '12-uniform-bold.png',
+        '13-viafont.png',
+        '14-al-valenciaga.png'
+      ];
+      const containerBackgroundClasses = [
+        'scooter',
+        'moonlit-asteroid',
+        'quepal',
+        'crimson-tide',
+        'kimoby-is-the-new-blue',
+        'socialive',
+        'easy-med',
+        'royal',
+        'solid-vault',
+        'joomla',
+        'inbox',
+        'reef',
+        'bourbon',
+        'stellar',
+        'mantle',
+        'mirage'
+      ];
+      let images = [];
+      let imageData;
+      let lineSegmentsByRow = [];
+      let randomlySplittedLineSegmentsByRow = [];
+
+      const Settings = class {
+        zoom = 1;
+        fontImageUrl = fontImageUrls[11];
+        verticalResolution = 10;
+        horizontalResolution = 100;
+        minSplitWidth = 0.2;
+        splitChance = 0.75;
+        splitOffset = 0.3;
+        randomizeHorizontalSplits = () => {
+          randomlySplittedLineSegmentsByRow = randomlySplitLineSegments(
+            randomlySplitLineSegments(lineSegmentsByRow)
+          );
+          render(randomlySplittedLineSegmentsByRow);
+        };
+        randomizeOpacity = () => render(randomlySplittedLineSegmentsByRow);
+        containerSize = 512;
+        containerBorderRadius = 100;
+        containerBackground = containerBackgroundClasses[1];
+        horizontalFillPercentage = 0.75;
+        barVerticalMargin = 3;
+        barHeight = 20;
+        barBorderRadius = 5;
+      };
+      const settings = new Settings();
+
+      const container = document.createElement('div');
+      container.id = 'visualization';
+      container.style.width = `${settings.containerSize}px`;
+      container.style.height = `${settings.containerSize}px`;
+      container.style.borderRadius = `${settings.containerBorderRadius}px`;
+      onContainerBackgroundChange();
+      document.body.appendChild(container);
+
+      const gui = new dat.GUI();
+      let guiControllers = {
+        fontImageUrl: gui.add(settings, 'fontImageUrl', fontImageUrls),
+        verticalResolution: gui
+          .add(settings, 'verticalResolution')
+          .min(5)
+          .max(30)
+          .step(1),
+        // horizontalResolution: gui.add(settings, 'horizontalResolution').min(5).max(200).step(1),
+        zoom: gui
+          .add(settings, 'zoom')
+          .min(0.1)
+          .max(2)
+          .step(0.01),
+        splitFolder: gui.addFolder('Horizontal Split')
+      };
+      guiControllers = {
+        ...guiControllers,
+        minSplitWidth: guiControllers.splitFolder
+          .add(settings, 'minSplitWidth')
+          .min(0)
+          .max(1)
+          .step(0.01),
+        splitChance: guiControllers.splitFolder
+          .add(settings, 'splitChance')
+          .min(0)
+          .max(1)
+          .step(0.01),
+        splitOffset: guiControllers.splitFolder
+          .add(settings, 'splitOffset')
+          .min(0)
+          .max(0.5)
+          .step(0.01),
+        randomizeHorizontalSplits: guiControllers.splitFolder.add(
+          settings,
+          'randomizeHorizontalSplits'
+        ),
+        stylingFolder: gui.addFolder('Styling')
+      };
+      guiControllers = {
+        ...guiControllers,
+        containerSize: guiControllers.stylingFolder
+          .add(settings, 'containerSize')
+          .min(256)
+          .max(1024)
+          .step(1),
+        containerBorderRadius: guiControllers.stylingFolder
+          .add(settings, 'containerBorderRadius')
+          .min(0)
+          .max(512)
+          .step(1),
+        containerBackground: guiControllers.stylingFolder.add(
+          settings,
+          'containerBackground',
+          containerBackgroundClasses
+        ),
+        horizontalFillPercentage: guiControllers.stylingFolder
+          .add(settings, 'horizontalFillPercentage')
+          .min(0)
+          .max(1)
+          .step(0.01),
+        barVerticalMargin: guiControllers.stylingFolder
+          .add(settings, 'barVerticalMargin')
+          .min(0)
+          .max(50)
+          .step(1),
+        barHeight: guiControllers.stylingFolder
+          .add(settings, 'barHeight')
+          .min(0)
+          .max(100)
+          .step(1),
+        barBorderRadius: guiControllers.stylingFolder
+          .add(settings, 'barBorderRadius')
+          .min(0)
+          .max(50)
+          .step(1),
+        randomizeOpacity: guiControllers.stylingFolder.add(
+          settings,
+          'randomizeOpacity'
+        )
+      };
+      guiControllers.zoom.onChange(onZoomChange);
+      guiControllers.fontImageUrl.onChange(onFontImageOrResolutionChange);
+      guiControllers.verticalResolution.onChange(onFontImageOrResolutionChange);
+      // guiControllers.horizontalResolution.onChange(onFontImageOrResolutionChange);
+      guiControllers.containerSize.onChange(onContainerStyleChange);
+      guiControllers.minSplitWidth.onChange(onHorizontalSplitChange);
+      guiControllers.splitChance.onChange(onHorizontalSplitChange);
+      guiControllers.splitOffset.onChange(onHorizontalSplitChange);
+      guiControllers.containerBorderRadius.onChange(onContainerStyleChange);
+      guiControllers.containerBackground.onChange(onContainerBackgroundChange);
+      guiControllers.horizontalFillPercentage.onChange(onRowStyleChange);
+      guiControllers.barVerticalMargin.onChange(onRowStyleChange);
+      guiControllers.barHeight.onChange(onBarStyleChange);
+      guiControllers.barBorderRadius.onChange(onBarStyleChange);
+
+      const getCurrentImage = () =>
+        images[fontImageUrls.indexOf(settings.fontImageUrl)];
+
+      async function main() {
+        images = await Promise.all(fontImageUrls.map((fileName) => {
+          return readImage(`./font-images/${fileName}`);
+        }));
+
+        // Initial run
+        onFontImageOrResolutionChange();
+      }
+
+      function onZoomChange() {
+        container.style.zoom = `${settings.zoom}`;
+      }
+
+      function onFontImageOrResolutionChange() {
+        imageData = readImageData(
+          getCurrentImage(),
+          settings.horizontalResolution,
+          settings.verticalResolution
+        );
+        lineSegmentsByRow = imageData2LineSegmentsByRow(imageData);
+        onHorizontalSplitChange();
+      }
+
+      function onHorizontalSplitChange() {
+        randomlySplittedLineSegmentsByRow = randomlySplitLineSegments(
+          randomlySplitLineSegments(lineSegmentsByRow)
+        );
+        render(randomlySplittedLineSegmentsByRow);
+      }
+
+      function onContainerStyleChange() {
+        container.style.width = `${settings.containerSize}px`;
+        container.style.height = `${settings.containerSize}px`;
+        container.style.borderRadius = `${settings.containerBorderRadius}px`;
+      }
+
+      function onContainerBackgroundChange() {
+        container.classList.remove(...containerBackgroundClasses);
+        container.classList.add(settings.containerBackground);
+      }
+
+      function onRowStyleChange() {
+        Array.from(document.querySelectorAll('.row')).forEach(el => {
+          el.style.width = `${settings.horizontalFillPercentage * 100}%`;
+          el.style.margin = `${settings.barVerticalMargin}px 0`;
+        });
+      }
+
+      function onBarStyleChange() {
+        Array.from(document.querySelectorAll('.row')).forEach(el => {
+          el.style.height = `${settings.barHeight}px`;
+        });
+        Array.from(document.querySelectorAll('.segment')).forEach(el => {
+          el.style.height = `${settings.barHeight}px`;
+          el.style.borderRadius = `${settings.barBorderRadius}px`;
+        });
+      }
+
+      async function readImage(src) {
+        const img = new Image();
+        return new Promise((resolve, reject) => {
+          img.onerror = () => reject();
+          img.onload = () => resolve(img);
+          img.src = src;
+        });
+      }
+
+      function readImageData(img, width, height) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        const imageData = ctx.getImageData(0, 0, width, height);
+        return imageData;
+      }
+
+      function imageData2LineSegmentsByRow(imageData) {
+        const width = imageData.width;
+        const height = imageData.height;
+        const byteNumberInRow = width * 4;
+        const lineSegmentsByRow = [];
+
+        for (let y = 1; y <= height; y++) {
+          const lineSegments = [];
+
+          for (let x = 1; x <= width; x++) {
+            const i = (x - 1) * 4 + (y - 1) * byteNumberInRow;
+            const [r, g, b, a] = [
+              imageData.data[i + 0],
+              imageData.data[i + 1],
+              imageData.data[i + 2],
+              imageData.data[i + 3]
+            ];
+            const value = pixelToBinary([r, g, b, a]);
+
+            const lastLineSegment = last(lineSegments);
+            if (!lastLineSegment) {
+              lineSegments.push({
+                x: (x - 1) / width,
+                width: 1 / width,
+                value
+              });
+              continue;
+            }
+
+            if (value == lastLineSegment.value) {
+              lastLineSegment.width += 1 / width;
+              continue;
+            }
+
+            lineSegments.push({ x: (x - 1) / width, width: 1 / width, value });
+          }
+
+          lineSegmentsByRow.push(lineSegments);
+        }
+
+        return lineSegmentsByRow;
+      }
+
+      function pixelToBinary([r, g, b, a]) {
+        const avg = (r + g + b) / 3;
+        return avg < 128 ? 0 : 1;
+      }
+
+      function last(arr) {
+        return arr[arr.length - 1];
+      }
+
+      function randomlySplitLineSegments(lineSegmentsByRow) {
+        const rv = [];
+        lineSegmentsByRow.forEach(lineSegments => {
+          const newRow = [];
+          rv.push(newRow);
+
+          lineSegments.forEach(lineSegment => {
+            if (
+              lineSegment.value != 0 ||
+              lineSegment.width < settings.minSplitWidth
+            ) {
+              newRow.push(lineSegment);
+              return;
+            }
+
+            const shouldSplit = Math.random() < settings.splitChance;
+            if (!shouldSplit) {
+              newRow.push(lineSegment);
+              return;
+            }
+
+            // From the center, go for +- 0.25 width
+            const splitWidth =
+              lineSegment.width / 2 +
+              (Math.random() - 0.5) *
+                (lineSegment.width * settings.splitOffset);
+            newRow.push({
+              x: lineSegment.x,
+              width: splitWidth,
+              value: lineSegment.value
+            });
+            newRow.push({
+              x: lineSegment.x + splitWidth,
+              width: lineSegment.width - splitWidth,
+              value: lineSegment.value
+            });
+          });
+        });
+        return rv;
+      }
+
+      function render(lineSegmentsByRow) {
+        while (container.firstChild) {
+          container.firstChild.remove();
+        }
+
+        lineSegmentsByRow.forEach((lineSegments, i) => {
+          const row = document.createElement('div');
+          row.classList.add('row');
+          row.style.width = `${settings.horizontalFillPercentage * 100}%`;
+          row.style.margin = `${settings.barVerticalMargin}px 0`;
+          row.style.height = `${settings.barHeight}px`;
+
+          lineSegments.forEach((lineSegment, j) => {
+            const isLast = j == lineSegments.length - 1;
+            const el = document.createElement('div');
+            el.classList.add('segment', `value-${lineSegment.value}`);
+            el.style.height = `${settings.barHeight}px`;
+            el.style.borderRadius = `${settings.barBorderRadius}px`;
+            el.style.left = `${lineSegment.x * 100}%`;
+            el.style.width = isLast
+              ? `calc(${lineSegment.width * 100}% - 0px)`
+              : `calc(${lineSegment.width * 100}% - 5px)`;
+
+            if (lineSegment.value == 0) {
+              el.style.opacity = 0.5 + Math.random() * 0.5;
+            }
+
+            row.appendChild(el);
+          });
+
+          container.appendChild(row);
+        });
+      }
+
+      main();
+    </script>
+  </body>
+</html>

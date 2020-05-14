@@ -87,12 +87,14 @@
     "appId": "com.dgurkaynak.stalk-studio",
     "files": [
       "main.js",
+      "assets/**/*",
       "build/**/*",
       "!build/**/*.js.map",
       "!build/report.html",
       "build/app.js.map"
     ],
     "mac": {
+      "icon": "./assets/logo.icns",
       "category": "public.app-category.developer-tools",
       "type": "distribution",
       "fileAssociations": [
@@ -107,9 +109,12 @@
       ]
     },
     "linux": {
+      "icon": "./assets/logo/",
       "category": "Development"
     },
-    "win": {}
+    "win": {
+      "icon": "./assets/logo/logo-512.png"
+    }
   },
   "config": {
     "commitizen": {
