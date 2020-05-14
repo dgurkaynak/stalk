@@ -1,5 +1,6 @@
 import { AppToolbar } from './components/app-toolbar/app-toolbar';
 import throttle from 'lodash/throttle';
+import debounce from 'lodash/debounce';
 import isArray from 'lodash/isArray';
 import isObject from 'lodash/isObject';
 import { DataSourceManager } from './model/datasource/manager';
@@ -36,6 +37,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import format from 'date-fns/format';
+import { SettingsManager, SettingsKey } from './model/settings-manager';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -63,6 +65,7 @@ export interface AppOptions {
 export class App {
   private stage = Stage.getSingleton();
   private contextMenuManager = ContextMenuManager.getSingleton();
+  private settingsManager = SettingsManager.getSingleton();
   private toolbar = new AppToolbar();
   private timeline = new TimelineWrapper();
   private spanSummary = new SpanSummaryView();
@@ -90,7 +93,11 @@ export class App {
     showSpanInTimelineView: this.showSpanInTimelineView.bind(this),
     onKeyDown: this.onKeyDown.bind(this),
     onImportMenuClick: this.onImportMenuClick.bind(this),
-    onExportMenuClick: this.onExportMenuClick.bind(this)
+    onExportMenuClick: this.onExportMenuClick.bind(this),
+    onDockPanelLayoutChange: debounce(
+      this.onDockPanelLayoutChange.bind(this),
+      2500
+    )
   };
 
   constructor(private options: AppOptions) {
@@ -100,6 +107,7 @@ export class App {
   async init() {
     // Init managers related with db
     await Promise.all([
+      SettingsManager.getSingleton().init(),
       DataSourceManager.getSingleton().init(),
       SpanGroupingManager.getSingleton().init(),
       SpanColoringManager.getSingleton().init(),
@@ -306,9 +314,12 @@ export class App {
     });
 
     const layout = this.deserializeDockPanelLayout(
-      this.getDefaultDockPanelLayout()
+      this.settingsManager.get(SettingsKey.DOCK_LAYOUT) ||
+        this.getDefaultDockPanelLayout(),
+      true
     );
     this.dockPanel.restoreLayout(layout);
+    this.dockPanel.layoutModified.connect(this.binded.onDockPanelLayoutChange);
     DockPanel.attach(this.dockPanel, this.options.element);
   }
 
@@ -720,6 +731,11 @@ export class App {
     });
   }
 
+  private async onDockPanelLayoutChange() {
+    const layout = this.serializeDockPanelLayout();
+    await this.settingsManager.set(SettingsKey.DOCK_LAYOUT, layout);
+  }
+
   private serializeDockPanelLayout(layout = this.dockPanel.saveLayout()) {
     const recursiveReplaceWidgets: any = (obj: { [key: string]: any }) => {
       // If we find target object
@@ -751,11 +767,15 @@ export class App {
     return layout;
   }
 
-  private deserializeDockPanelLayout(layout: any) {
+  private deserializeDockPanelLayout(layout: any, resetTabIndex = false) {
     const recursiveReplaceWidgets: any = (obj: { [key: string]: any }) => {
       // If we find target object
       if (obj.widgets && isArray(obj.widgets)) {
         const widgetNames = obj.widgets;
+
+        if (resetTabIndex) {
+          obj.currentIndex = 0;
+        }
 
         // Mutate
         obj.widgets = widgetNames.map(widgetName => {
@@ -849,6 +869,9 @@ export class App {
       this.binded.showSpanInTimelineView
     );
     document.removeEventListener('keydown', this.binded.onKeyDown, false);
+    this.dockPanel.layoutModified.disconnect(
+      this.binded.onDockPanelLayoutChange
+    );
 
     this.toolbar.dispose();
     this.toolbar = null;
