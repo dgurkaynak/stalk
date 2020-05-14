@@ -44,6 +44,8 @@ import './app.css';
 
 const { Menu } = remote;
 
+// DO NOT change these string, they're used for
+// remembering & saving dock layout!
 export enum AppWidgetType {
   TIMELINE = 'timeline-view',
   SPANS_TABLE = 'spans-table',
@@ -303,50 +305,10 @@ export class App {
       closable: false
     });
 
-    this.dockPanel.restoreLayout({
-      main: {
-        children: [
-          {
-            type: 'tab-area',
-            currentIndex: 0,
-            widgets: [
-              this.widgets[AppWidgetType.TIMELINE],
-              this.widgets[AppWidgetType.SPANS_TABLE],
-              this.widgets[AppWidgetType.LOGS_TABLE]
-            ]
-          },
-          {
-            type: 'split-area',
-            orientation: 'horizontal',
-            sizes: [0.33, 0.33, 0.33],
-            children: [
-              {
-                type: 'tab-area',
-                currentIndex: 0,
-                widgets: [this.widgets[AppWidgetType.SPAN_SUMMARY]]
-              },
-              {
-                type: 'tab-area',
-                currentIndex: 0,
-                widgets: [
-                  this.widgets[AppWidgetType.SPAN_TAGS],
-                  this.widgets[AppWidgetType.SPAN_PROCESS_TAGS]
-                ]
-              },
-              {
-                type: 'tab-area',
-                currentIndex: 0,
-                widgets: [this.widgets[AppWidgetType.SPAN_LOGS]]
-              }
-            ]
-          }
-        ],
-        orientation: 'vertical',
-        sizes: [0.7, 0.3],
-        type: 'split-area'
-      }
-    });
-
+    const layout = this.deserializeDockPanelLayout(
+      this.getDefaultDockPanelLayout()
+    );
+    this.dockPanel.restoreLayout(layout);
     DockPanel.attach(this.dockPanel, this.options.element);
   }
 
@@ -756,6 +718,113 @@ export class App {
 
       // Exported, no need to additonal notification
     });
+  }
+
+  private serializeDockPanelLayout(layout = this.dockPanel.saveLayout()) {
+    const recursiveReplaceWidgets: any = (obj: { [key: string]: any }) => {
+      // If we find target object
+      if (obj.widgets && isArray(obj.widgets)) {
+        const widgets = obj.widgets;
+
+        // Mutate
+        obj.widgets = widgets.map(widget => {
+          for (const widgetName in this.widgets) {
+            if (this.widgets[widgetName] == widget) {
+              return widgetName;
+            }
+          }
+
+          console.error(`Cannot serialize dock layout, unknown widget`, widget);
+          throw new Error(`Cannot serialize dock layout, unknown widget`);
+        });
+
+        return;
+      }
+
+      if (obj.children && isArray(obj.children)) {
+        obj.children.forEach(recursiveReplaceWidgets);
+        return;
+      }
+    };
+
+    recursiveReplaceWidgets(layout.main);
+    return layout;
+  }
+
+  private deserializeDockPanelLayout(layout: any) {
+    const recursiveReplaceWidgets: any = (obj: { [key: string]: any }) => {
+      // If we find target object
+      if (obj.widgets && isArray(obj.widgets)) {
+        const widgetNames = obj.widgets;
+
+        // Mutate
+        obj.widgets = widgetNames.map(widgetName => {
+          const widget = this.widgets[widgetName];
+          if (!widget) {
+            throw new Error(
+              `Cannot deserialize dock layout, unknown widget: "${widgetName}"`
+            );
+          }
+          return widget;
+        });
+
+        return;
+      }
+
+      if (obj.children && isArray(obj.children)) {
+        obj.children.forEach(recursiveReplaceWidgets);
+        return;
+      }
+    };
+
+    recursiveReplaceWidgets(layout.main);
+    return layout;
+  }
+
+  private getDefaultDockPanelLayout() {
+    return {
+      main: {
+        children: [
+          {
+            type: 'tab-area',
+            currentIndex: 0,
+            widgets: [
+              AppWidgetType.TIMELINE,
+              AppWidgetType.SPANS_TABLE,
+              AppWidgetType.LOGS_TABLE
+            ]
+          },
+          {
+            type: 'split-area',
+            orientation: 'horizontal',
+            sizes: [0.33, 0.33, 0.33],
+            children: [
+              {
+                type: 'tab-area',
+                currentIndex: 0,
+                widgets: [AppWidgetType.SPAN_SUMMARY]
+              },
+              {
+                type: 'tab-area',
+                currentIndex: 0,
+                widgets: [
+                  AppWidgetType.SPAN_TAGS,
+                  AppWidgetType.SPAN_PROCESS_TAGS
+                ]
+              },
+              {
+                type: 'tab-area',
+                currentIndex: 0,
+                widgets: [AppWidgetType.SPAN_LOGS]
+              }
+            ]
+          }
+        ],
+        orientation: 'vertical',
+        sizes: [0.7, 0.3],
+        type: 'split-area'
+      }
+    };
   }
 
   dispose() {
