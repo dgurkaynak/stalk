@@ -45,8 +45,10 @@
     "cz-conventional-changelog": "^3.1.0",
     "date-fns": "^2.11.0",
     "dexie": "^2.0.4",
+    "dotenv": "^8.2.0",
     "electron": "^6.0.12",
     "electron-builder": "^21.2.0",
+    "electron-notarize": "^0.3.0",
     "events": "^3.0.0",
     "flatpickr": "^4.6.3",
     "focus-trap": "^5.1.0",
@@ -84,7 +86,7 @@
   },
   "build": {
     "productName": "Stalk Studio",
-    "appId": "com.dgurkaynak.stalk-studio",
+    "appId": "com.denizgurkaynak.stalk-studio",
     "files": [
       "main.js",
       "assets/**/*",
@@ -93,6 +95,7 @@
       "!build/report.html",
       "build/app.js.map"
     ],
+    "afterSign": "scripts/electron-notarize.js",
     "mac": {
       "icon": "./assets/logo.icns",
       "category": "public.app-category.developer-tools",
@@ -106,7 +109,11 @@
           "description": "JSON files",
           "role": "Viewer"
         }
-      ]
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist"
     },
     "linux": {
       "icon": "./assets/logo/",
