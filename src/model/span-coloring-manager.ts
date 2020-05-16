@@ -6,6 +6,8 @@ import MPN65ColorAssigner from '../components/ui/color-assigner-mpn65';
 import { Span } from './interfaces';
 import db from './db';
 import { TypeScriptManager } from './../components/customization/typescript-manager';
+import * as chroma from 'chroma-js';
+import { Stage } from './stage';
 
 export enum SpanColoringManagerEvent {
   ADDED = 'scm_added',
@@ -30,7 +32,8 @@ let singletonIns: SpanColoringManager;
 export class SpanColoringManager extends EventEmitter {
   private builtInOptions: SpanColoringOptions[] = [
     operationColoringOptions,
-    serviceColoringOptions
+    serviceColoringOptions,
+    selfTimeColoringOptions
   ];
   private customOptions: SpanColoringOptions[] = [];
 
@@ -104,5 +107,24 @@ export const serviceColoringOptions: SpanColoringOptions = {
     }
 
     return serviceColorAssigner.colorFor(serviceName);
+  }
+};
+
+export const selfTimeColoringScale = chroma.scale('RdYlBu');
+export const selfTimeColoringOptions: SpanColoringOptions = {
+  key: 'selfTime',
+  name: 'Self Time',
+  colorBy: span => {
+    const stage = Stage.getSingleton();
+    const selfTime = stage.getSpanSelfTime(span.id);
+    const selfTimeStats = stage.getSpanSelfTimeStats();
+
+    if (!selfTime || !selfTimeStats) {
+      return selfTimeColoringScale(0.5).hex();
+    }
+
+    const ratio =
+      (selfTime - selfTimeStats.min) / (selfTimeStats.max - selfTimeStats.min);
+    return selfTimeColoringScale(1 - ratio).hex();
   }
 };

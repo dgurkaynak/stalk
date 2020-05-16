@@ -15,7 +15,8 @@ import {
   SpanColoringManager,
   SpanColoringRawOptions,
   operationColoringOptions,
-  serviceColoringOptions
+  serviceColoringOptions,
+  selfTimeColoringOptions
 } from '../../model/span-coloring-manager';
 import {
   SpanLabellingManager,
@@ -173,6 +174,7 @@ export class TimelineWrapper {
     items: [
       { type: 'item', text: 'Operation', id: operationColoringOptions.key },
       { type: 'item', text: 'Service', id: serviceColoringOptions.key },
+      { type: 'item', text: 'Self Time', id: selfTimeColoringOptions.key },
       { type: 'divider' },
       { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' }
       // {
