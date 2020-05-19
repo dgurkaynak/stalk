@@ -234,7 +234,7 @@ export class TimelineWrapper {
 
     const dataSourcesText = document.createElement('div');
     dataSourcesText.classList.add('data-sources-text');
-    dataSourcesText.innerHTML = `• Use Data Sources ${SvgDatabase} to search traces in Jaeger and Zipkin servers.`;
+    dataSourcesText.innerHTML = `• Use Data Sources ${SvgDatabase} to search traces in Jaeger and Zipkin services.`;
     innerContainer.appendChild(dataSourcesText);
 
     const liveCollectorText = document.createElement('div');
