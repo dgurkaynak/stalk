@@ -1,44 +1,164 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+<h1 align="center">
+  <img width="96" height="96" src="./assets/logo/128x128.png"> <br/>
+  Stalk Studio
+</h1>
 
-## Available Scripts
+![Demo](./demo.png)
 
-In the project directory, you can run:
+**Stalk Studio** is a highly flexible trace analysis tool for Jaeger and Zipkin.
+- Search & import traces directly from Jaeger and Zipkin services
+- Drag & drop JSON trace files exported from Jaeger and Zipkin
+- Intuitive UI for extracting useful information from complex traces
+- Supports viewing & inspecting multiple traces on the same stage to give you a bigger perspective
+- *and more...*
 
-### `npm start`
+# Main Features
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+<img align="left" width="447" height="auto" src="./docs/images/tabular-view-3.mp4.gif">
+<div>
+  <h3>:book: Tabular Perspective</h3>
+  In addition to the timeline view, Stalk Studio provides table views for spans and logs to
+  pinpoint interesting spans & logs quickly.
+  <br />
+  <br />
+  <div>
+    • <strong>Customizable columns</strong>: add/remove columns for span tags, process tags, log fields
+  </div>
+  <div>
+    • <strong>Sortable columns</strong>: sort spans by total time, self time, operation name, or any visible column<br />
+  </div>
+  <div>
+    • <strong>Filter spans & logs</strong>
+  </div>
+  <div>
+    • <strong>Flexible panes</strong>: split views can be handy
+  </div>
+  <br />
+</div>
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+<hr/>
 
-### `npm test`
+<img align="right" width="447" height="auto" src="./docs/images/built-in-customization.mp4.gif">
+<div>
+  <h3>:gear: High Customizability</h3>
+  Stalk Studio is built for being as flexible as possible to cover your changing needs when analyzing different traces.
+  You can customize the timeline in the following ways:
+  <br />
+  <br />
+  <div>
+    • <strong>Span Grouping</strong>: The spans in the same group are drawn vertically together.
+    You may think like horizontal lanes separated from each other. Uninteresting groups can be
+    collapsed to prevent visual clutter. Built-in options: Process <em>[default]</em>,
+    Service, Trace.
+  </div>
+  <div>
+    • <strong>Span Coloring</strong>: Change timeline span colors. You can color the spans by:
+    Operation Name <em>[default]</em>, Service Name, Self Time Heatmap.
+  </div>
+  <div>
+    • <strong>Draw Layout</strong>: Change where spans should be rendered vertically.
+    <div>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      • Fill: A span is rendered to the first possible lane in its group without overlapping.
+      All the span references are ignored.
+    </div>
+    <div>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      • Compact: <em>[default]</em> A span is rendered to the first possible lane again,
+      but it should be higher than its referencing (childOf or followsFrom) span, if they
+      are in the same group.
+    </div>
+    <div>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      • Waterfall: Only a single span is rendered to a lane.
+    </div>
+  </div>
+  <div>
+    • <strong>Span Labelling</strong>: Change the text rendered on a span bar, if it has enough width to display.
+    Built-in options: "Operation Name" <em>[default]</em>, "Service + Operation" <em>(operation name prefixed
+    with its service name)</em>.
+  </div>
+  <div>
+    • <strong>Tooltip Contents</strong>: Change the contents of the tooltip displayed when you hover a span bar.
+    By default, total time, self time, operation name, and the counts of tags & logs are shown along with the logs
+    near the cursor position. You can add/remove interested span tags and process tags.
+  </div>
+</div>
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+<hr/>
 
-### `npm run build`
+<img align="left" width="447" height="auto" src="./docs/images/code-customization.mp4.gif">
+<div>
+  <h3>:woman_technologist: Built for developers in mind</h3>
+  If the built-in customization options don't fill your needs, you can always write your own
+  custom JavaScript / TypeScript code to do the following:
+  <br />
+  <br />
+  <div>
+    • Change span grouping
+  </div>
+  <div>
+    • Change span labeling
+  </div>
+  <div>
+    • Change span coloring
+  </div>
+  <div>
+    • Filter spans & logs in table views
+  </div>
+  <br />
+  <br />
+  <br />
+</div>
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+<hr/>
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+<img align="right" width="447" height="auto" src="./docs/images/live-collector.mp4.gif">
+<div>
+  <h3>:satellite: Live Collector</h3>
+  In addition to its analysis capabilities, Stalk Studio has <em>live collector</em> servers built-in
+  that mimicks Jaeger and Zipkin collector interface. So if you have services that already instrumented
+  with Jaeger and Zipkin, you can quickly capture & inspect low-volume traces just by changing
+  the reporting URL of your instrumentations. It can be useful for debugging and development purposes.
+  <br />
+  <br />
+  <div>
+    • <strong>Jaeger Agent</strong>: accepts jaeger.thrift in compact Thrift protocol over UDP.
+  </div>
+  <div>
+    • <strong>Jaeger Collector</strong>: accepts jaeger.thrift in binary Thrift protocol over HTTP.
+  </div>
+  <div>
+    • <strong>Zipkin Collector</strong>: accepts spans in JSON format over HTTP.
+  </div>
+</div>
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+<!-- <hr/> -->
 
-### `npm run eject`
+# Download
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+Go to [releases page](https://github.com/dgurkaynak/stalk-studio/releases).
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Building & Development
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Development
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+You must have node.js >= 12 installed on your machine.
 
-## Learn More
+- Clone the repo
+- Install dependencies: `npm i`
+- Get started with webpack-dev-server w/ live-reload: `npm start`
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Building
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Build the project in production mode: `npm run build`
+- Package the electron project into an executable: `npm run package`
+- Check out `/dist` folder for output
+
+### Distribution
+
+- Build the project in production mode: `npm run build`
+- Make distribution files (*.dmg, *.AppImage, *-setup.exe)
+  - Generates distribution files for your platform: `npm run distribute`
+  - Generate distribution files for Windows and Linux in Docker: `node ./scripts/electron-build-win-and-linux-on-docker.sh`
+- Check out `/dist` folder for outputs
