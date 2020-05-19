@@ -105,6 +105,16 @@ export class JaegerCollectorHTTPServer {
     request: http.IncomingMessage,
     response: http.ServerResponse
   ) {
+    // Enable CORS
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+
+    if (request.method.toLowerCase() == 'options') {
+      response.writeHead(200);
+      response.end();
+      return;
+    }
+
     if (
       request.url.indexOf('/api/traces') == -1 ||
       request.method.toLowerCase() != 'post'
