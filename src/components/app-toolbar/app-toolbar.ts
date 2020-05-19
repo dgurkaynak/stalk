@@ -16,6 +16,7 @@ import { JaegerSearchModalContent } from '../search/jaeger-search-modal-content'
 import { ZipkinSearchModalContent } from '../search/zipkin-search-modal-content';
 import { StageTracesModalContent } from '../stage-traces/stage-traces-modal-content';
 import { LiveCollectorModalContent } from '../live-collector/live-collector-modal-content';
+import { remote } from 'electron';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
@@ -77,7 +78,8 @@ export class AppToolbar {
       this
     ),
     onStageTracesModalClose: this.onStageTracesModalClose.bind(this),
-    onLiveCollectorModalClose: this.onLiveCollectorModalClose.bind(this)
+    onLiveCollectorModalClose: this.onLiveCollectorModalClose.bind(this),
+    onContainerDoubleClick: this.onContainerDoubleClick.bind(this)
   };
 
   private stage = Stage.getSingleton();
@@ -301,7 +303,14 @@ export class AppToolbar {
   ///////////////////////////////////////////////
 
   private bindEvents() {
-    const { btn } = this.elements;
+    const isMac = process.platform === 'darwin';
+    if (isMac) {
+      this.elements.container.addEventListener(
+        'dblclick',
+        this.binded.onContainerDoubleClick,
+        false
+      );
+    }
     this.dsManager.on(
       DataSourceManagerEvent.ADDED,
       this.binded.onDataSourceManagerAdded
@@ -330,6 +339,11 @@ export class AppToolbar {
 
   private unbindEvents() {
     const { btn } = this.elements;
+    this.elements.container.removeEventListener(
+      'dblclick',
+      this.binded.onContainerDoubleClick,
+      false
+    );
     this.dsManager.removeListener(
       DataSourceManagerEvent.ADDED,
       this.binded.onDataSourceManagerAdded
@@ -614,6 +628,15 @@ export class AppToolbar {
     if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
     if (data?.action != 'addToStage') return;
     (data.traces as Trace[]).forEach(t => this.stage.addTrace(t));
+  }
+
+  private onContainerDoubleClick() {
+    const win = remote.getCurrentWindow();
+    if (win.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win.maximize();
+    }
   }
 
   dispose() {
