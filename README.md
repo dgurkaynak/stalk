@@ -3,7 +3,7 @@
   Stalk Studio
 </h1>
 
-![Demo](./demo.png)
+![Demo](./docs/readme-images/screenshot.png)
 
 **Stalk Studio** is a highly flexible trace analysis tool for Jaeger and Zipkin.
 - Search & import traces directly from Jaeger and Zipkin services
@@ -14,7 +14,7 @@
 
 # Main Features
 
-<img align="left" width="447" height="auto" src="./docs/images/tabular-view-3.mp4.gif">
+<img align="left" width="447" height="auto" src="./docs/readme-images/tabular-view-3.mp4.gif">
 <div>
   <h3>:book: Tabular Perspective</h3>
   In addition to the timeline view, Stalk Studio provides table views for spans and logs to
@@ -38,7 +38,7 @@
 
 <hr/>
 
-<img align="right" width="447" height="auto" src="./docs/images/built-in-customization.mp4.gif">
+<img align="right" width="447" height="auto" src="./docs/readme-images/built-in-customization.mp4.gif">
 <div>
   <h3>:gear: High Customizability</h3>
   Stalk Studio is built for being as flexible as possible to cover your changing needs when analyzing different traces.
@@ -87,7 +87,7 @@
 
 <hr/>
 
-<img align="left" width="447" height="auto" src="./docs/images/code-customization.mp4.gif">
+<img align="left" width="447" height="auto" src="./docs/readme-images/code-customization.mp4.gif">
 <div>
   <h3>:woman_technologist: Built for developers in mind</h3>
   If the built-in customization options don't fill your needs, you can always write your own
@@ -113,7 +113,7 @@
 
 <hr/>
 
-<img align="right" width="447" height="auto" src="./docs/images/live-collector.mp4.gif">
+<img align="right" width="447" height="auto" src="./docs/readme-images/live-collector.mp4.gif">
 <div>
   <h3>:satellite: Live Collector</h3>
   In addition to its analysis capabilities, Stalk Studio has <em>live collector</em> servers built-in
