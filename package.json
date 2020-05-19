@@ -1,7 +1,7 @@
 {
   "name": "stalk-studio",
   "version": "0.1.0",
-  "description": "An inspection tool for OpenTracing-compatible traces",
+  "description": "Highly flexible trace analysis tool for Jaeger and Zipkin",
   "homepage": "https://github.com/dgurkaynak/stalk-studio",
   "repository": "github:dgurkaynak/stalk-studio",
   "private": true,
