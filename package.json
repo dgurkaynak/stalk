@@ -95,9 +95,11 @@
       "!build/report.html",
       "build/app.js.map"
     ],
+    "directories": {
+      "buildResources": "assets"
+    },
     "afterSign": "scripts/electron-notarize.js",
     "mac": {
-      "icon": "./assets/logo.icns",
       "category": "public.app-category.developer-tools",
       "type": "distribution",
       "fileAssociations": [
@@ -116,12 +118,9 @@
       "entitlementsInherit": "assets/entitlements.mac.plist"
     },
     "linux": {
-      "icon": "./assets/logo/",
       "category": "Development"
     },
-    "win": {
-      "icon": "./assets/logo/logo-512.png"
-    }
+    "win": {}
   },
   "config": {
     "commitizen": {

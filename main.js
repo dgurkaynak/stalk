@@ -33,7 +33,10 @@ function createWindow() {
     webPreferences: {
       webSecurity: false,
       nodeIntegration: true
-    }
+    },
+    // this is for motherfucking linux:
+    // https://github.com/electron-userland/electron-builder/issues/748#issuecomment-406786917
+    icon: path.join(__dirname, 'assets/icon.png')
   });
 
   // Bind window events & persist
