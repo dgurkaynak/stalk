@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img width="96" height="96" src="./assets/logo/128x128.png"> <br/>
+  <img width="96" height="96" src="./assets/icons/128x128.png"> <br/>
   Stalk Studio
 </h1>
 
