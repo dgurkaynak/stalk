@@ -1,12 +1,7 @@
 // https://github.com/nayunhwan/Electron-CRA-TypeScript
 
 // Modules to control application life and create native browser window
-const {
-  app,
-  BrowserWindow,
-  ipcMain,
-  Menu
-} = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const url = require('url');
 const path = require('path');
 const fs = require('fs');
@@ -36,7 +31,10 @@ function createWindow() {
     },
     // this is for motherfucking linux:
     // https://github.com/electron-userland/electron-builder/issues/748#issuecomment-406786917
-    icon: path.join(__dirname, 'assets/icon.png')
+    icon:
+      ['darwin', 'win32'].indexOf(process.platform) > -1
+        ? undefined
+        : path.join(__dirname, 'assets/icons/64x64.png')
   });
 
   // Bind window events & persist
