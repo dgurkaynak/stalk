@@ -247,9 +247,9 @@ export class SearchModalTracesTableView extends EventEmitter {
     }
 
     if (traceInStage.spanCount == traceRowData.spanCount) {
-      html = `<div class="in-stage-cell check">${SvgCheckCircle}</div>`;
+      html = `<div class="in-stage-cell check" title="Trace is already in the stage">${SvgCheckCircle}</div>`;
     } else {
-      html = `<div class="in-stage-cell alert">${SvgAlert}</div>`;
+      html = `<div class="in-stage-cell alert" title="Trace has been updated since it was added to stage">${SvgAlert}</div>`;
     }
 
     return html;

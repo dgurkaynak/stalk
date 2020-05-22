@@ -126,7 +126,7 @@ export class SpanSummaryView {
           if (!refSpan) {
             return `<div class="key-value-row">
             <div class="key">${ref.type}:</div>
-            <div class="value bold alert" title="Span not found">${ref.spanId} ${SvgAlert}</div>
+            <div class="value bold alert" title="Span not found in the stage">${ref.spanId} ${SvgAlert}</div>
           </div>`;
           }
           return `<div class="key-value-row" data-ref-span-id="${ref.spanId}">
