@@ -704,16 +704,23 @@ export class SpansTableView extends EventEmitter {
     // the first cell's width of some random rows are equal or not
     // If they'are not equal, force re-render the table.
     let forceRerender = false;
-    const firstCells = this.elements.tableContainer.querySelectorAll(
-      '.tabulator-table > .tabulator-row .tabulator-cell:first-child'
-    );
-    const randomCells = sampleSize(firstCells, 10) as HTMLElement[];
-    if (randomCells.length > 2) {
-      const widthOfFirstCell = randomCells[0].offsetWidth;
-      const areEqual = randomCells.every(
-        el => el.offsetWidth === widthOfFirstCell
+
+    const columnCount = this.table.getColumnDefinitions().length;
+    for (let columnNo = 1; columnNo <= columnCount; columnNo++) {
+      const cells = this.elements.tableContainer.querySelectorAll(
+        `.tabulator-table > .tabulator-row .tabulator-cell:nth-child(${columnNo})`
       );
-      if (!areEqual) forceRerender = true;
+      const randomCells = sampleSize(cells, 5) as HTMLElement[];
+      if (randomCells.length > 2) {
+        const widthOfFirstCell = randomCells[0].offsetWidth;
+        const areEqual = randomCells.every(
+          el => el.offsetWidth === widthOfFirstCell
+        );
+        if (!areEqual) {
+          forceRerender = true;
+          break;
+        }
+      }
     }
 
     this.table.redraw(forceRerender);
