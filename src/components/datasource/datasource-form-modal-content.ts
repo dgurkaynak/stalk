@@ -246,10 +246,12 @@ export class DataSourceFormModalContent {
     buttonsContainer.appendChild(rightButtons);
 
     formEl.cancelButton.classList.add('cancel');
+    formEl.cancelButton.type = 'button';
     formEl.cancelButton.textContent = 'Cancel';
     leftButtons.appendChild(formEl.cancelButton);
 
     formEl.testButton.classList.add('test');
+    formEl.testButton.type = 'button';
     formEl.testButton.textContent = 'Test';
     rightButtons.appendChild(formEl.testButton);
 
