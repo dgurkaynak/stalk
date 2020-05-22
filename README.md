@@ -18,7 +18,7 @@
 <div>
   <h3>:book: Tabular Perspective</h3>
   In addition to the timeline view, Stalk Studio provides table views for spans and logs to
-  pinpoint interesting spans & logs quickly.
+  pinpoint interesting events quickly.
   <br />
   <br />
   <div>
@@ -48,40 +48,22 @@
   <div>
     • <strong>Span Grouping</strong>: The spans in the same group are drawn vertically together.
     You may think like horizontal lanes separated from each other. Uninteresting groups can be
-    collapsed to prevent visual clutter. Built-in options: Process <em>[default]</em>,
-    Service, Trace.
+    collapsed to prevent visual clutter.
   </div>
   <div>
-    • <strong>Span Coloring</strong>: Change timeline span colors. You can color the spans by:
-    Operation Name <em>[default]</em>, Service Name, Self Time Heatmap.
+    • <strong>Span Coloring</strong>: Change timeline span colors by operation name, service name,
+    however you want.
   </div>
   <div>
-    • <strong>Draw Layout</strong>: Change where spans should be rendered vertically.
-    <div>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      • Fill: A span is rendered to the first possible lane in its group without overlapping.
-      All the span references are ignored.
-    </div>
-    <div>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      • Compact: <em>[default]</em> A span is rendered to the first possible lane again,
-      but it should be higher than its referencing (childOf or followsFrom) span, if they
-      are in the same group.
-    </div>
-    <div>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      • Waterfall: Only a single span is rendered to a lane.
-    </div>
+    • <strong>Draw Layout</strong>: Change where spans should be rendered vertically. There is 3 options
+    provided: fill, compact, and waterfall style.
   </div>
   <div>
     • <strong>Span Labelling</strong>: Change the text rendered on a span bar, if it has enough width to display.
-    Built-in options: "Operation Name" <em>[default]</em>, "Service + Operation" <em>(operation name prefixed
-    with its service name)</em>.
   </div>
   <div>
     • <strong>Tooltip Contents</strong>: Change the contents of the tooltip displayed when you hover a span bar.
-    By default, total time, self time, operation name, and the counts of tags & logs are shown along with the logs
-    near the cursor position. You can add/remove interested span tags and process tags.
+    You can add/remove interested span tags and process tags as your needs.
   </div>
 </div>
 
