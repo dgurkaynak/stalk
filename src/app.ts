@@ -645,7 +645,6 @@ export class App {
               )
           },
           { type: 'separator' },
-          { role: 'reload' },
           { role: 'forcereload' },
           { role: 'toggledevtools' }
         ]
