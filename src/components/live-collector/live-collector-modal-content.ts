@@ -238,7 +238,7 @@ export class LiveCollectorModalContent {
         )
       );
 
-      els.jaegerCollector.urlAdress.classList.add('code');
+      els.jaegerCollector.urlAdress.classList.add('code', 'selectable');
       els.jaegerCollector.urlAdress.textContent =
         'http://localhost:14268/api/traces';
       description.appendChild(els.jaegerCollector.urlAdress);
@@ -305,7 +305,7 @@ export class LiveCollectorModalContent {
         )
       );
 
-      els.zipkinCollector.urlAdress.classList.add('code');
+      els.zipkinCollector.urlAdress.classList.add('code', 'selectable');
       els.zipkinCollector.urlAdress.textContent =
         'http://localhost:9411/api/v2/spans';
       description.appendChild(els.zipkinCollector.urlAdress);

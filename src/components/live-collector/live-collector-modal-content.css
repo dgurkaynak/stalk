@@ -116,6 +116,10 @@
   word-break: break-all;
 }
 
+.live-collector-modal-content > .top > .left .widget span.code.selectable {
+  user-select: text;
+}
+
 .live-collector-modal-content > .top > .left .widget .port-row {
   display: flex;
   align-items: center;
