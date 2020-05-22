@@ -360,7 +360,7 @@ export class LiveCollectorModalContent {
       rightContainer.appendChild(els.bottom.addToStageButton);
 
       els.bottom.deleteFromCollectorButton.textContent =
-        'Delete from Collector';
+        'Delete from Live Collector';
       els.bottom.deleteFromCollectorButton.disabled = true;
       leftContainer.appendChild(els.bottom.deleteFromCollectorButton);
     }
