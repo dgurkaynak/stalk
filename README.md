@@ -55,7 +55,7 @@
     however you want.
   </div>
   <div>
-    • <strong>Draw Layout</strong>: Change where spans should be rendered vertically. There is 3 options
+    • <strong>Draw Layout</strong>: Change where spans should be rendered vertically. There are 3 options
     provided: fill, compact, and waterfall style.
   </div>
   <div>
