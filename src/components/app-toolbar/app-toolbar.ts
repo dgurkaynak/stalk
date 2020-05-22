@@ -433,8 +433,8 @@ export class AppToolbar {
               height: itemBBRect.height,
               top: itemBBRect.top - parentMenuBBRect.top,
               bottom: itemBBRect.bottom - parentMenuBBRect.top,
-              left: itemBBRect.left,
-              right: itemBBRect.right
+              left: itemBBRect.left - parentMenuBBRect.left,
+              right: itemBBRect.right - parentMenuBBRect.left
             };
           }
         });
