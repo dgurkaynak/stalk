@@ -122,7 +122,9 @@ export class SpanLogItemView {
       .join(' ');
 
     el.header.innerHTML = `<span class="arrow-right">►</span>
-      <span class="title">${this.options.title}</span>
+      <span class="title" title="Relative to stage beginning">${
+        this.options.title
+      }</span>
       ${hasError ? AlertSvgText : ''}
       <span class="curly">{</span>
       <span class="inline-fields">${inlineLogFieldsHtml}</span>
