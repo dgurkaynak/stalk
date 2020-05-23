@@ -1,5 +1,6 @@
 // https://github.com/nayunhwan/Electron-CRA-TypeScript
 
+const exec = require('child_process').exec;
 const net = require('net');
 const port = 9000;
 
@@ -16,8 +17,11 @@ const tryConnection = () =>
       if (!startedElectron) {
         console.log('starting electron');
         startedElectron = true;
-        const exec = require('child_process').exec;
-        exec('./node_modules/.bin/electron .');
+        if (process.platform == 'win32') {
+          exec('.\\node_modules\\.bin\\electron .');
+        } else {
+          exec('./node_modules/.bin/electron .');
+        }
       }
     }
   );
