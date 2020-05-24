@@ -34,7 +34,8 @@ function createWindow() {
     icon:
       ['darwin', 'win32'].indexOf(process.platform) > -1
         ? undefined
-        : path.join(__dirname, 'assets/icons/64x64.png')
+        : path.join(__dirname, 'assets/icons/64x64.png'),
+    show: false
   });
 
   // Bind window events & persist
@@ -49,6 +50,11 @@ function createWindow() {
       slashes: true
     });
   mainWindow.loadURL(startUrl);
+
+  // Show the main window when it's ready
+  // This fixes displaying a black border (or frame)
+  // on startup issue specifically on Windows 10.
+  mainWindow.on('ready-to-show', () => mainWindow.show());
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function() {
