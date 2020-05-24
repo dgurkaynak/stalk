@@ -564,7 +564,9 @@ export class JaegerSearchModalContent {
     this.tracesTable.resize(w, h);
   }
 
-  private async onTableSelectionUpdated(selectedTraces: SearchModalTraceRowData[]) {
+  private async onTableSelectionUpdated(
+    selectedTraces: SearchModalTraceRowData[]
+  ) {
     // When we try to redraw tabulator while it's already redrawing,
     // it gives an error. So, we apply the most famous javascript workaround ever.
     // await new Promise(resolve => setTimeout(resolve, 0));

@@ -126,8 +126,12 @@ export class TimelineWrapper {
     ),
     onKeyDown: this.onKeyDown.bind(this),
     onKeyUp: this.onKeyUp.bind(this),
-    onSampleTraceButtonHotrodClick: this.onSampleTraceButtonHotrodClick.bind(this),
-    onSampleTraceButtonRaftConcensusClick: this.onSampleTraceButtonRaftConcensusClick.bind(this)
+    onSampleTraceButtonHotrodClick: this.onSampleTraceButtonHotrodClick.bind(
+      this
+    ),
+    onSampleTraceButtonRaftConcensusClick: this.onSampleTraceButtonRaftConcensusClick.bind(
+      this
+    )
   };
 
   private spanGroupingModeMenu = new WidgetToolbarSelect({
@@ -244,9 +248,15 @@ export class TimelineWrapper {
 
     const sampleTraceText = document.createElement('div');
     sampleTraceText.classList.add('sample-trace-text');
-    sampleTraceText.appendChild(document.createTextNode('• Load some example traces to get started easily: '));
+    sampleTraceText.appendChild(
+      document.createTextNode(
+        '• Load some example traces to get started easily: '
+      )
+    );
 
-    emptyMessage.sampleTraceButtonHotrod.classList.add('add-sample-trace-button');
+    emptyMessage.sampleTraceButtonHotrod.classList.add(
+      'add-sample-trace-button'
+    );
     emptyMessage.sampleTraceButtonHotrod.textContent = 'jaeger/hotrod';
     emptyMessage.sampleTraceButtonHotrod.addEventListener(
       'click',
@@ -257,7 +267,9 @@ export class TimelineWrapper {
 
     sampleTraceText.appendChild(document.createTextNode(', '));
 
-    emptyMessage.sampleTraceButtonRaftConsensus.classList.add('add-sample-trace-button');
+    emptyMessage.sampleTraceButtonRaftConsensus.classList.add(
+      'add-sample-trace-button'
+    );
     emptyMessage.sampleTraceButtonRaftConsensus.textContent = 'raft-consensus';
     emptyMessage.sampleTraceButtonRaftConsensus.addEventListener(
       'click',

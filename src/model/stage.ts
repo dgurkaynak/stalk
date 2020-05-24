@@ -20,8 +20,8 @@ export class Stage extends EventEmitter {
   private processTags: { [key: string]: number } = {};
   private spanSelfTimes: { [key: string]: number } = {};
   private spanSelfTimeStats: {
-    min?: number,
-    max?: number
+    min?: number;
+    max?: number;
   };
 
   static getSingleton() {

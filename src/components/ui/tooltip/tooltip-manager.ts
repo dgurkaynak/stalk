@@ -1,4 +1,8 @@
-import tippy, { createSingleton, Instance as TippyInstance, Props as TippyProps } from 'tippy.js';
+import tippy, {
+  createSingleton,
+  Instance as TippyInstance,
+  Props as TippyProps
+} from 'tippy.js';
 import remove from 'lodash/remove';
 import './tooltip.css';
 
@@ -16,7 +20,9 @@ export class TooltipManager {
 
   update() {
     this.disposeAllTooltips();
-    this.tippyInstances = this.tippyOptions.map(([el, props]) => tippy(el, props));
+    this.tippyInstances = this.tippyOptions.map(([el, props]) =>
+      tippy(el, props)
+    );
     this.singletonTippyInstance = createSingleton(this.tippyInstances, {
       delay: 1000,
       duration: 0,

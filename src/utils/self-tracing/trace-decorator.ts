@@ -26,7 +26,9 @@ export function trace<T extends Handler>(
     let newSpan: opentracing.Span;
 
     // Prefix op name
-    options.operationName = `${getOperationNamePrefix(this) || ''}${options.operationName}`;
+    options.operationName = `${getOperationNamePrefix(this) || ''}${
+      options.operationName
+    }`;
 
     try {
       newSpan = options.handler.apply(this, args);

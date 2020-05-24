@@ -9,14 +9,18 @@ export interface FormatMicrosecondsOptions {
   scales?: FormatMicrosecondsScale[];
   minimumInteger?: number; // TODO: Our default min integer is 1, if integer part is below 1, scale down
   maximumFractionDigits?: number;
-};
+}
 
-export function formatMicroseconds(microseconds: number, options?: FormatMicrosecondsOptions) {
+export function formatMicroseconds(
+  microseconds: number,
+  options?: FormatMicrosecondsOptions
+) {
   options = defaults(options || {}, {
-    scales: [ // must be ordered
+    scales: [
+      // must be ordered
       { unit: 'µs', scale: 1 },
       { unit: 'ms', scale: 1000 },
-      { unit: 's', scale: 1000000 },
+      { unit: 's', scale: 1000000 }
     ],
     maximumFractionDigits: 3
   });
@@ -30,5 +34,7 @@ export function formatMicroseconds(microseconds: number, options?: FormatMicrose
 
   const num = microseconds / bestScale.scale;
   if (num === 0) return `0`;
-  return `${Number(num.toFixed(options.maximumFractionDigits))} ${bestScale.unit}`;
+  return `${Number(num.toFixed(options.maximumFractionDigits))} ${
+    bestScale.unit
+  }`;
 }

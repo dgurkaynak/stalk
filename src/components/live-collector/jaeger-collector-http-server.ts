@@ -107,7 +107,10 @@ export class JaegerCollectorHTTPServer {
   ) {
     // Enable CORS
     response.setHeader('Access-Control-Allow-Origin', '*');
-    response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    response.setHeader(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept'
+    );
 
     if (request.method.toLowerCase() == 'options') {
       response.writeHead(200);

@@ -45,7 +45,7 @@ export class SpanTooltipContent {
         showNearbyLogs: true,
         showServiceName: false,
         spanTagsToShow: [],
-        processTagsToShow: [],
+        processTagsToShow: []
         // logFieldsToShow: []
       },
       options
@@ -142,8 +142,9 @@ export class SpanTooltipContent {
 
     els.headerTime.textContent = timeText;
     els.headerOperationName.innerHTML =
-      (ErrorDetection.checkSpan(span) ? `<span class="span-tooltip-error-icon">${AlertSvgText}</span>` : '') +
-      span.operationName;
+      (ErrorDetection.checkSpan(span)
+        ? `<span class="span-tooltip-error-icon">${AlertSvgText}</span>`
+        : '') + span.operationName;
 
     // Handle tags & logs count
     els.headerRight.innerHTML =
@@ -237,7 +238,9 @@ export class SpanTooltipContent {
     els.logs.innerHTML = '';
 
     nearbyLogs.forEach(log => {
-      const time = formatMicroseconds(log.logView.log.timestamp - this.options.axis.getInputRange()[0]);
+      const time = formatMicroseconds(
+        log.logView.log.timestamp - this.options.axis.getInputRange()[0]
+      );
 
       const logContainer = document.createElement('div');
       logContainer.classList.add('span-tooltip-log', 'span-tooltip-border-top');
@@ -247,7 +250,9 @@ export class SpanTooltipContent {
       const logFields = Object.keys(log.logView.log.fields);
       logFields.forEach(key => {
         const value = log.logView.log.fields[key];
-        const extraClass = ErrorDetection.checkLogField(key, value) ? 'error' : '';
+        const extraClass = ErrorDetection.checkLogField(key, value)
+          ? 'error'
+          : '';
         if (!value) return;
         html +=
           `<span class="log-field-key ${extraClass}">${key}:</span>` +
