@@ -55,15 +55,14 @@
     however you want.
   </div>
   <div>
-    • <strong>Draw Layout</strong>: Change where spans should be rendered vertically. There are 3 options
-    provided: fill, compact, and waterfall style.
+    • <strong>Draw Layout</strong>: Change where spans should be rendered vertically.
   </div>
   <div>
     • <strong>Span Labelling</strong>: Change the text rendered on a span bar, if it has enough width to display.
   </div>
   <div>
     • <strong>Tooltip Contents</strong>: Change the contents of the tooltip displayed when you hover a span bar.
-    You can add/remove interested span tags and process tags as your needs.
+    You can add/remove interested span tags and process tags as your need.
   </div>
 </div>
 
@@ -98,8 +97,8 @@
 <img align="right" width="447" height="auto" src="./docs/readme-images/live-collector.mp4.gif">
 <div>
   <h3>:satellite: Live Collector</h3>
-  In addition to its analysis capabilities, Stalk Studio has <em>live collector</em> servers built-in
-  that mimicks Jaeger and Zipkin collector interface. So if you have services that already instrumented
+  In addition to its analysis capabilities, Stalk Studio has built-in servers mimicking Jaeger
+  and Zipkin collector interface. So if you have services that already instrumented
   with Jaeger and Zipkin, you can quickly capture & inspect low-volume traces just by changing
   the reporting URL of your instrumentations. It can be useful for debugging and development purposes.
   <br />
