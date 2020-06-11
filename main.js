@@ -113,6 +113,11 @@ function readFileContent(filePath) {
   });
 }
 
+// Electron v9 does not allow CORS even if webSecurity is off
+// This is a temporary solution, the issue link:
+// https://github.com/electron/electron/issues/23664
+app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
