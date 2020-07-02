@@ -29,7 +29,7 @@ export default class GroupView {
   };
   private label: string;
 
-  private container = document.createElementNS(SVG_NS, 'g');
+  private spansContainer = document.createElementNS(SVG_NS, 'g');
   private seperatorLine = document.createElementNS(SVG_NS, 'line');
   private labelText = document.createElementNS(SVG_NS, 'text');
   private svgDefs?: SVGDefsElement;
@@ -87,7 +87,7 @@ export default class GroupView {
     svgDefs: SVGDefsElement;
     spanViewSharedOptions: SpanViewSharedOptions;
   }) {
-    options.timelinePanel.appendChild(this.container);
+    options.timelinePanel.appendChild(this.spansContainer);
     options.groupNamePanel.appendChild(this.seperatorLine);
     options.groupNamePanel.appendChild(this.labelText);
     this.svgDefs = options.svgDefs;
@@ -103,8 +103,8 @@ export default class GroupView {
 
   dispose() {
     // Unmount self
-    const parent1 = this.container.parentElement;
-    parent1?.removeChild(this.container);
+    const parent1 = this.spansContainer.parentElement;
+    parent1?.removeChild(this.spansContainer);
     const parent2 = this.seperatorLine.parentElement;
     parent2?.removeChild(this.seperatorLine);
     const parent3 = this.labelText.parentElement;
@@ -146,7 +146,10 @@ export default class GroupView {
       groupLabelOffsetX: groupTextOffsetX,
       groupLabelOffsetY: groupTextOffsetY
     } = vc;
-    this.container.setAttribute('transform', `translate(0, ${options.y})`);
+    this.spansContainer.setAttribute(
+      'transform',
+      `translate(0, ${options.y + vc.groupPaddingTop})`
+    );
     this.seperatorLine.setAttribute('transform', `translate(0, ${options.y})`);
     this.labelText.setAttribute(
       'transform',
@@ -173,7 +176,7 @@ export default class GroupView {
   bringSpanViewToTop(spanId: string) {
     const spanView = this.spanViews[spanId];
     spanView.mount({
-      groupContainer: this.container,
+      parent: this.spansContainer,
       svgDefs: this.svgDefs!
     });
   }
@@ -186,7 +189,7 @@ export default class GroupView {
   layout() {
     this.rowsAndSpanIntervals = [];
     this.spanIdToRowIndex = {};
-    const { spanGroup: group, spanViews, container } = this;
+    const { spanGroup: group, spanViews } = this;
     const nodeQueue: SpanGroupNode[] = [
       ...group.rootNodes,
       ...group.orphanNodes
@@ -257,7 +260,7 @@ export default class GroupView {
       spanView.updateHorizontalPosition();
 
       spanView.mount({
-        groupContainer: container,
+        parent: this.spansContainer,
         svgDefs: this.svgDefs!
       });
 

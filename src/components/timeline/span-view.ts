@@ -77,8 +77,8 @@ export default class SpanView {
     this.clipPath.appendChild(this.clipPathRect);
   }
 
-  mount(options: { groupContainer: SVGGElement; svgDefs: SVGDefsElement }) {
-    options.groupContainer.appendChild(this.container);
+  mount(options: { parent: SVGGElement; svgDefs: SVGDefsElement }) {
+    options.parent.appendChild(this.container);
     options.svgDefs.appendChild(this.clipPath);
   }
 
@@ -193,9 +193,9 @@ export default class SpanView {
   }
 
   updateVerticalPosition(rowIndex: number, dontApplyTransform = false) {
-    const { spanBarSpacing, rowHeight, groupPaddingTop } = vc;
+    const { spanBarSpacing, rowHeight } = vc;
     const { x } = this.viewPropertiesCache;
-    const y = groupPaddingTop + rowIndex * rowHeight + spanBarSpacing; // Relative y in pixels to group container
+    const y = rowIndex * rowHeight + spanBarSpacing; // Relative y in pixels to group container
     this.viewPropertiesCache.y = y;
     !dontApplyTransform &&
       this.container.setAttribute('transform', `translate(${x}, ${y})`);

@@ -7,6 +7,7 @@ import {
   TimelineInteractableElementType
 } from '../interaction';
 import * as shortid from 'shortid';
+import vc from '../view-constants';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -103,12 +104,14 @@ export class SpanConnectionDecoration extends BaseDecoration {
     );
     let fromY =
       groupView1Props.y +
+      vc.groupPaddingTop +
       (this.groupView1.options.isCollapsed ? 0 : spanView1Props.y) +
       halfBarHeight;
     let fromSpanStartX = spanView1Props.x;
     let toX = spanView2Props.x + arrowHeadOffsetLeft;
     let toY =
       groupView2Props.y +
+      vc.groupPaddingTop +
       (this.groupView2.options.isCollapsed ? 0 : spanView2Props.y) +
       halfBarHeight;
 
