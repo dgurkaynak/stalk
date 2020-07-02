@@ -4,8 +4,8 @@ import * as JaegerTypes from '../../vendor/jaeger/gen-nodejs/jaeger_types';
 import { convertFromJaegerBatchThrift } from '../../model/jaeger';
 import { Span } from '../../model/interfaces';
 
-const Transport = thrift.TFramedTransport;
-const Protocol = thrift.TBinaryProtocol;
+const Transport: any = thrift.TFramedTransport;
+const Protocol: any = thrift.TBinaryProtocol;
 
 export enum JaegerCollectorHTTPServerState {
   STOPPED = 'stopped',
@@ -138,7 +138,7 @@ export class JaegerCollectorHTTPServer {
         // at this point, `body` has the entire request body stored in it as a string
         const bufTrans = new Transport(buffer);
         const myprot = new Protocol(bufTrans);
-        const batch = new JaegerTypes.Batch();
+        const batch = new (JaegerTypes.Batch as any)();
 
         try {
           (batch as any).read(myprot);

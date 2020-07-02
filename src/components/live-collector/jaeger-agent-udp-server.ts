@@ -4,8 +4,8 @@ import * as AgentGen from '../../vendor/jaeger/gen-nodejs/Agent';
 import { convertFromJaegerBatchThrift } from '../../model/jaeger';
 import { Span } from '../../model/interfaces';
 
-const Transport = thrift.TFramedTransport;
-const Protocol = thrift.TCompactProtocol;
+const Transport: any = thrift.TFramedTransport;
+const Protocol: any = thrift.TCompactProtocol;
 
 export enum JaegerAgentUDPServerState {
   STOPPED = 'stopped',
