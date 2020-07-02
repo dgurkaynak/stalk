@@ -11,7 +11,7 @@ import Axis from './axis';
 import vc from './view-constants';
 import EventEmitter from 'events';
 import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
-import { SpanView, SpanViewOptions } from './span-view';
+import { SpanView, SpanViewSharedOptions } from './span-view';
 import { Trace } from '../../model/trace';
 import {
   SpanGrouping,
@@ -101,7 +101,7 @@ export class Timeline extends EventEmitter {
   private groupViews: GroupView[] = [];
 
   private groupLayoutMode = GroupLayoutType.COMPACT; // Do not forget to change related config in timeline-wrapper
-  private readonly spanViewOptions: SpanViewOptions = {
+  private readonly spanViewSharedOptions: SpanViewSharedOptions = {
     axis: this.axis,
     colorFor: operationColoringOptions.colorBy, // Do not forget to change related config in timeline-wrapper
     labelFor: operationLabellingOptions.labelBy // Do not forget to change related config in timeline-wrapper
@@ -403,9 +403,9 @@ export class Timeline extends EventEmitter {
   // can throw
   // - s.updateColors
   updateSpanColoring(options: SpanColoringOptions) {
-    this.spanViewOptions.colorFor = options.colorBy;
+    this.spanViewSharedOptions.colorFor = options.colorBy;
     this.groupViews.forEach(g => {
-      g.updateSpanOptions(this.spanViewOptions);
+      g.setSpanViewSharedOptions(this.spanViewSharedOptions);
       g.getAllSpanViews().forEach(s => s.updateColors());
     });
   }
@@ -413,9 +413,9 @@ export class Timeline extends EventEmitter {
   // can throw
   // - s.updateLabelText
   updateSpanLabelling(options: SpanLabellingOptions) {
-    this.spanViewOptions.labelFor = options.labelBy;
+    this.spanViewSharedOptions.labelFor = options.labelBy;
     this.groupViews.forEach(g => {
-      g.updateSpanOptions(this.spanViewOptions);
+      g.setSpanViewSharedOptions(this.spanViewSharedOptions);
       g.getAllSpanViews().forEach(s => s.updateLabelText());
     });
   }
@@ -582,8 +582,8 @@ export class Timeline extends EventEmitter {
         groupLabel = `${group.name} ${groupNameCounter[group.name]}`;
       }
 
-      const groupView = new GroupView(group, {
-        width: this._width,
+      const groupView = new GroupView({
+        group,
         layoutType: this.groupLayoutMode,
         label: groupLabel
       });
@@ -591,8 +591,9 @@ export class Timeline extends EventEmitter {
         groupNamePanel: this.groupNamePanel,
         timelinePanel: this.timelinePanel,
         svgDefs: this.defs,
-        spanOptions: this.spanViewOptions
+        spanViewSharedOptions: this.spanViewSharedOptions
       });
+      groupView.updateSeperatorLineWidths(this._width);
       groupView.layout();
 
       this.groupViews.push(groupView);
@@ -617,7 +618,7 @@ export class Timeline extends EventEmitter {
 
     this.groupViews.forEach((groupView, i) => {
       groupView.updatePosition({ y });
-      if (groupView.options.isCollapsed) {
+      if (groupView.getComputedStyles().isCollapsed) {
         y += groupPaddingTop;
       } else {
         y +=
@@ -947,6 +948,7 @@ export class Timeline extends EventEmitter {
                   this.spanTooltipStuffCache.svgBBTop +
                   spanViewProp.y +
                   groupViewProp.y +
+                  groupViewProp.spansContainerOffsetTop +
                   vc.timeHeaderHeight +
                   this.panelTranslateY;
                 return {

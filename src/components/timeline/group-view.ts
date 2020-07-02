@@ -2,13 +2,13 @@ import isNumber from 'lodash/isNumber';
 import forEach from 'lodash/forEach';
 import every from 'lodash/every';
 import { SpanGroup } from '../../model/span-group/span-group';
-import { SpanView, SpanViewOptions } from './span-view';
+import { SpanView, SpanViewSharedOptions } from './span-view';
 import SpanGroupNode from '../../model/span-group/span-group-node';
-import vc from './view-constants';
 import {
   TimelineInteractableElementAttribute,
   TimelineInteractableElementType
 } from './interaction';
+import defaults from 'lodash/defaults';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -18,15 +18,27 @@ export enum GroupLayoutType {
   WATERFALL = 'waterfall'
 }
 
+export class GroupViewStyle {
+  spansContainerOffsetTop: number;
+  labelFontSize: number;
+  labelColor: string;
+  labelOffsetX: number;
+  labelOffsetY: number;
+  seperatorLineColor: string;
+  seperatorLineWidth: number;
+}
+
+export class GroupViewComputedStyles extends GroupViewStyle {
+  y: number;
+  isCollapsed: boolean;
+}
+
 export class GroupView {
   readonly spanGroup: SpanGroup;
   private spanViews: { [key: string]: SpanView } = {};
   get heightInRows() {
     return this.rowsAndSpanIntervals.length;
   } // How many rows containing
-  options = {
-    isCollapsed: false
-  };
   private label: string;
 
   private spansContainer = document.createElementNS(SVG_NS, 'g');
@@ -38,43 +50,51 @@ export class GroupView {
   private rowsAndSpanIntervals: number[][][] = [];
   private spanIdToRowIndex: { [key: string]: number } = {};
 
-  private computedStyles = {
-    y: 0,
-    paddingTop: 0
-  };
+  private computedStyles: GroupViewComputedStyles;
 
-  constructor(
-    group: SpanGroup,
-    options: {
-      width: number;
-      layoutType: GroupLayoutType;
-      label?: string;
-    }
-  ) {
-    this.spanGroup = group;
+  constructor(options: {
+    group: SpanGroup;
+    layoutType: GroupLayoutType;
+    label?: string;
+    style?: Partial<GroupViewStyle>;
+  }) {
+    this.spanGroup = options.group;
     this.layoutType = options.layoutType;
     this.label = options.label;
 
-    this.computedStyles.paddingTop = vc.groupPaddingTop;
+    const style = defaults(options.style, {
+      spansContainerOffsetTop: 20,
+      labelFontSize: 10,
+      labelColor: '#000',
+      labelOffsetX: 3,
+      labelOffsetY: 13,
+      seperatorLineColor: '#eee',
+      seperatorLineWidth: 1
+    });
+    this.computedStyles = {
+      ...style,
+      y: 0,
+      isCollapsed: false
+    };
 
     this.seperatorLine.setAttribute('x1', '0');
-    this.seperatorLine.setAttribute('x2', options.width + '');
+    this.seperatorLine.setAttribute('x2', '0');
     this.seperatorLine.setAttribute('y1', '0');
     this.seperatorLine.setAttribute('y2', '0');
-    this.seperatorLine.setAttribute('stroke', vc.groupSeperatorLineColor);
+    this.seperatorLine.setAttribute('stroke', style.seperatorLineColor);
     this.seperatorLine.setAttribute(
       'stroke-width',
-      vc.groupSeperatorLineWidth + ''
+      style.seperatorLineWidth + ''
     );
 
-    const prefixChar = this.options.isCollapsed ? '►' : '▼';
+    const prefixChar = this.computedStyles.isCollapsed ? '►' : '▼';
     this.labelText.textContent = `${prefixChar} ${this.label ||
       this.spanGroup.name}`;
     this.labelText.style.cursor = 'pointer';
-    this.labelText.setAttribute('fill', vc.groupLabelColor);
+    this.labelText.setAttribute('fill', style.labelColor);
     this.labelText.setAttribute('x', '0');
     this.labelText.setAttribute('y', '0');
-    this.labelText.setAttribute('font-size', `${vc.groupLabelFontSize}px`);
+    this.labelText.setAttribute('font-size', `${style.labelFontSize}px`);
     this.labelText.setAttribute(
       TimelineInteractableElementAttribute,
       TimelineInteractableElementType.GROUP_VIEW_LABEL_TEXT
@@ -88,7 +108,7 @@ export class GroupView {
     groupNamePanel: SVGGElement;
     timelinePanel: SVGGElement;
     svgDefs: SVGDefsElement;
-    spanOptions: SpanViewOptions;
+    spanViewSharedOptions: SpanViewSharedOptions;
   }) {
     options.timelinePanel.appendChild(this.spansContainer);
     options.groupNamePanel.appendChild(this.seperatorLine);
@@ -98,7 +118,10 @@ export class GroupView {
     // Set-up span views
     this.spanGroup.getAll().forEach(span => {
       // TODO: Reuse spanviews
-      const spanView = new SpanView(span, options.spanOptions);
+      const spanView = new SpanView({
+        span,
+        sharedOptions: options.spanViewSharedOptions
+      });
       spanView.reuse(span);
       this.spanViews[span.id] = spanView;
     });
@@ -124,16 +147,16 @@ export class GroupView {
   }
 
   toggleView() {
-    this.options.isCollapsed = !this.options.isCollapsed;
+    this.computedStyles.isCollapsed = !this.computedStyles.isCollapsed;
 
-    const prefixChar = this.options.isCollapsed ? '►' : '▼';
+    const prefixChar = this.computedStyles.isCollapsed ? '►' : '▼';
     this.labelText.textContent = `${prefixChar} ${this.label ||
       this.spanGroup.name}`;
     // this.updateLabelTextDecoration();
 
     this.layout();
 
-    return !this.options.isCollapsed;
+    return !this.computedStyles.isCollapsed;
   }
 
   getSpanViewById(spanId: string) {
@@ -144,23 +167,24 @@ export class GroupView {
     return Object.values(this.spanViews);
   }
 
-  updateSpanOptions(newOptions: Partial<SpanViewOptions>) {
-    Object.values(this.spanViews).forEach(s => s.updateOptions(newOptions));
+  setSpanViewSharedOptions(newOptions: SpanViewSharedOptions) {
+    Object.values(this.spanViews).forEach(s => s.setSharedOptions(newOptions));
   }
 
   updatePosition(options: { y: number }) {
     const {
-      groupLabelOffsetX: groupTextOffsetX,
-      groupLabelOffsetY: groupTextOffsetY
-    } = vc;
+      labelOffsetX,
+      labelOffsetY,
+      spansContainerOffsetTop
+    } = this.computedStyles;
     this.spansContainer.setAttribute(
       'transform',
-      `translate(0, ${options.y + vc.groupPaddingTop})`
+      `translate(0, ${options.y + spansContainerOffsetTop})`
     );
     this.seperatorLine.setAttribute('transform', `translate(0, ${options.y})`);
     this.labelText.setAttribute(
       'transform',
-      `translate(${groupTextOffsetX}, ${options.y + groupTextOffsetY})`
+      `translate(${labelOffsetX}, ${options.y + labelOffsetY})`
     );
     this.computedStyles.y = options.y;
   }
@@ -172,11 +196,11 @@ export class GroupView {
   updateLabelTextDecoration() {
     this.labelText.setAttribute(
       'text-decoration',
-      this.options.isCollapsed ? 'underline' : ''
+      this.computedStyles.isCollapsed ? 'underline' : ''
     );
     this.labelText.setAttribute(
       'font-style',
-      this.options.isCollapsed ? 'italic' : ''
+      this.computedStyles.isCollapsed ? 'italic' : ''
     );
   }
 
@@ -209,7 +233,7 @@ export class GroupView {
     const allSpans = group.getAll();
 
     // If collapsed, hide all the spans
-    if (this.options.isCollapsed) {
+    if (this.computedStyles.isCollapsed) {
       forEach(spanViews, v => v.unmount());
 
       this.rowsAndSpanIntervals = [];
@@ -342,7 +366,7 @@ export class GroupView {
   }
 
   getComputedStyles() {
-    return { ...this.computedStyles };
+    return this.computedStyles;
   }
 
   static getPropsFromLabelText(el: Element) {

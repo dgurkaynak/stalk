@@ -94,8 +94,7 @@ export class SpanConnectionDecoration extends BaseDecoration {
     const halfBarHeight = this.settings.barHeight / 2;
     const arrowHeadOffsetLeft = -3;
     const shouldHide =
-      this.groupView1.options.isCollapsed &&
-      this.groupView2.options.isCollapsed; // Do not show if both groups are collapsed
+      groupView1Props.isCollapsed && groupView2Props.isCollapsed; // Do not show if both groups are collapsed
 
     let fromX = Math.min(
       spanView1Props.x + spanView1Props.width,
@@ -103,15 +102,15 @@ export class SpanConnectionDecoration extends BaseDecoration {
     );
     let fromY =
       groupView1Props.y +
-      groupView1Props.paddingTop +
-      (this.groupView1.options.isCollapsed ? 0 : spanView1Props.y) +
+      groupView1Props.spansContainerOffsetTop +
+      (groupView1Props.isCollapsed ? 0 : spanView1Props.y) +
       halfBarHeight;
     let fromSpanStartX = spanView1Props.x;
     let toX = spanView2Props.x + arrowHeadOffsetLeft;
     let toY =
       groupView2Props.y +
-      groupView2Props.paddingTop +
-      (this.groupView2.options.isCollapsed ? 0 : spanView2Props.y) +
+      groupView2Props.spansContainerOffsetTop +
+      (groupView2Props.isCollapsed ? 0 : spanView2Props.y) +
       halfBarHeight;
 
     const angle = (Math.atan2(toY - fromY, toX - fromX) / Math.PI) * 180;
