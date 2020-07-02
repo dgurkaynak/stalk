@@ -90,11 +90,6 @@ export class ZipkinAPI {
   }
 
   async search(query: ZipkinAPISearchQuery) {
-    // If `query.limit` is Inifinity, set it high enough
-    if (query.limit == Infinity) {
-      query.limit = 10000;
-    }
-
     const response = await this.get('/traces', query as any);
     if (!isArray(response)) {
       throw new Error('Expected zipkin response must be array');

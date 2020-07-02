@@ -79,6 +79,7 @@ export class ZipkinSearchModalContent {
       customLookbackInput: document.createElement('input'),
       minDurationInput: document.createElement('input'),
       maxDurationInput: document.createElement('input'),
+      limitInput: document.createElement('input'),
       button: document.createElement('button')
     }
   };
@@ -173,6 +174,7 @@ export class ZipkinSearchModalContent {
         customLookbackInput,
         minDurationInput,
         maxDurationInput,
+        limitInput,
         button
       } = this.elements.search;
       container.appendChild(form);
@@ -248,6 +250,19 @@ export class ZipkinSearchModalContent {
       maxDurationContainer.appendChild(maxDurationTitleContainer);
       maxDurationInput.placeholder = 'e.g. 1.2s, 100ms, 500us';
       maxDurationContainer.appendChild(maxDurationInput);
+
+      const limitContainer = document.createElement('div');
+      limitContainer.classList.add('field');
+      form.appendChild(limitContainer);
+      const limitTitleContainer = document.createElement('div');
+      limitTitleContainer.textContent = 'Limit';
+      limitTitleContainer.classList.add('field-title');
+      limitContainer.appendChild(limitTitleContainer);
+      limitInput.type = 'number';
+      limitInput.min = '1';
+      limitInput.value = '100';
+      limitInput.required = true;
+      limitContainer.appendChild(limitInput);
 
       button.textContent = 'Search';
       button.type = 'submit';
@@ -494,8 +509,7 @@ export class ZipkinSearchModalContent {
     try {
       const formEl = this.elements.search;
       const query: ZipkinAPISearchQuery = {
-        serviceName: formEl.serviceSelect.value,
-        limit: Infinity
+        serviceName: formEl.serviceSelect.value
       };
 
       if (
@@ -530,6 +544,12 @@ export class ZipkinSearchModalContent {
       if (formEl.maxDurationInput.value) {
         query.maxDuration = parseDuration(formEl.maxDurationInput.value) * 1000;
       }
+
+      const limitIntValue = parseInt(formEl.limitInput.value, 10);
+      if (isNaN(limitIntValue)) {
+        throw new Error(`Unsupported limit value`);
+      }
+      query.limit = limitIntValue;
 
       const traceSpans: Span[][] = await this.api.search(query);
       this.traceResults = traceSpans.map(spans => new Trace(spans));
