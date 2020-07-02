@@ -6,9 +6,9 @@ import isString from 'lodash/isString';
 import isArray from 'lodash/isArray';
 import isFunction from 'lodash/isFunction';
 import differenceBy from 'lodash/differenceBy';
+import defaults from 'lodash/defaults';
 import { GroupView, GroupLayoutType } from './group-view';
 import Axis from './axis';
-import vc from './view-constants';
 import EventEmitter from 'events';
 import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
 import { SpanView, SpanViewSharedOptions } from './span-view';
@@ -54,6 +54,16 @@ export enum TimelineEvent {
 export enum TimelineTool {
   MOVE = 'move',
   RULER = 'ruler'
+}
+
+export interface TimelineViewStyle {
+  timeRulerHeight: number;
+  timeRulerTickLength: number; // in px
+  timeRulerTickLineColor: string;
+  timeRulerTickTextOffsetTop: string;
+  timeRulerTickTextColor: string;
+  timeRulerTickTextSize: string;
+  initialSpanMarginToViewport: number;
 }
 
 export class Timeline extends EventEmitter {
@@ -128,6 +138,8 @@ export class Timeline extends EventEmitter {
 
   private contextMenuManager = ContextMenuManager.getSingleton();
 
+  private style: TimelineViewStyle;
+
   private binded = {
     onMouseIdleMove: this.onMouseIdleMove.bind(this),
     onMouseIdleLeave: this.onMouseIdleLeave.bind(this),
@@ -138,8 +150,18 @@ export class Timeline extends EventEmitter {
     onClick: this.onClick.bind(this)
   };
 
-  constructor() {
+  constructor(options?: { style?: Partial<TimelineViewStyle> }) {
     super();
+
+    this.style = defaults(options?.style, {
+      timeRulerHeight: 20,
+      timeRulerTickLength: 200,
+      timeRulerTickLineColor: '#eee',
+      timeRulerTickTextOffsetTop: 14,
+      timeRulerTickTextColor: '#999',
+      timeRulerTickTextSize: 10,
+      initialSpanMarginToViewport: 5
+    });
 
     this.svg.setAttributeNS(
       'http://www.w3.org/2000/xmlns/',
@@ -254,12 +276,12 @@ export class Timeline extends EventEmitter {
     this.bodyClipPathRect.setAttribute('width', `${width}`);
     this.bodyClipPathRect.setAttribute(
       'height',
-      `${height - vc.timeHeaderHeight}`
+      `${height - this.style.timeRulerHeight}`
     );
 
     this.axis.updateOutputRange([
-      vc.spanBarViewportMargin,
-      width - vc.spanBarViewportMargin
+      this.style.initialSpanMarginToViewport,
+      width - this.style.initialSpanMarginToViewport
     ]);
 
     this.groupViews.forEach(g => g.handleAxisUpdate());
@@ -299,7 +321,7 @@ export class Timeline extends EventEmitter {
     this.bodyClipPathRect.setAttribute('width', `${width}`);
     this.bodyClipPathRect.setAttribute(
       'height',
-      `${height - vc.timeHeaderHeight}`
+      `${height - this.style.timeRulerHeight}`
     );
     this.bodyClipPath.appendChild(this.bodyClipPathRect);
     this.defs.appendChild(this.bodyClipPath);
@@ -310,7 +332,7 @@ export class Timeline extends EventEmitter {
     this.bodyContainer.setAttribute('y', `0`);
     this.bodyContainer.setAttribute(
       'transform',
-      `translate(0, ${vc.timeHeaderHeight})`
+      `translate(0, ${this.style.timeRulerHeight})`
     );
     this.bodyContainer.setAttribute('clip-path', 'url(#body-clip-path)');
     this.bodyContainer.appendChild(this.decorationUnderlayPanel);
@@ -516,42 +538,6 @@ export class Timeline extends EventEmitter {
     return acc;
   }
 
-  findSpanViewsByRect(rect: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }) {
-    // in px, relative to svg
-    // Substract time header height to match with internal representation
-    rect.y -= vc.timeHeaderHeight;
-    // Add already translated y
-    rect.y -= this.panelTranslateY;
-
-    const acc: [GroupView, SpanView][] = [];
-    const startTime = this.axis.output2input(rect.x);
-    const finishTime = this.axis.output2input(rect.x + rect.width);
-
-    for (let groupView of this.groupViews) {
-      const spanViews = groupView.getAllSpanViews();
-      const groupY = groupView.getComputedStyles().y;
-      spanViews.forEach(spanView => {
-        const spanAbsoluteY = spanView.getComputedStyles().y + groupY;
-        const isInstersected = !(
-          spanView.span.startTime > finishTime ||
-          spanView.span.finishTime < startTime ||
-          spanAbsoluteY > rect.y + rect.height ||
-          spanAbsoluteY + vc.spanBarHeight < rect.y
-        );
-        if (isInstersected) {
-          acc.push([groupView, spanView]);
-        }
-      });
-    }
-
-    return acc;
-  }
-
   // can throw
   // - groupView.init
   layout() {
@@ -564,7 +550,10 @@ export class Timeline extends EventEmitter {
 
     this.axis.reset(
       [startTimestamp, finishTimestamp],
-      [vc.spanBarViewportMargin, this._width - vc.spanBarViewportMargin]
+      [
+        this.style.initialSpanMarginToViewport,
+        this._width - this.style.initialSpanMarginToViewport
+      ]
     );
 
     this.groupViews.forEach(v => v.dispose());
@@ -613,19 +602,11 @@ export class Timeline extends EventEmitter {
   }
 
   updateGroupVerticalPositions() {
-    const { groupPaddingTop, groupPaddingBottom, rowHeight } = vc;
     let y = 0;
 
     this.groupViews.forEach((groupView, i) => {
       groupView.updatePosition({ y });
-      if (groupView.getComputedStyles().isCollapsed) {
-        y += groupPaddingTop;
-      } else {
-        y +=
-          groupPaddingTop +
-          groupPaddingBottom +
-          groupView.heightInRows * rowHeight;
-      }
+      y += groupView.height;
     });
 
     this._contentHeight = y;
@@ -639,7 +620,7 @@ export class Timeline extends EventEmitter {
   }
 
   translateY(delta: number) {
-    const bodyHeight = this._height - vc.timeHeaderHeight;
+    const bodyHeight = this._height - this.style.timeRulerHeight;
     if (this._contentHeight <= bodyHeight) return;
 
     const newTranslateY = this.panelTranslateY + delta;
@@ -675,7 +656,7 @@ export class Timeline extends EventEmitter {
   }
 
   private keepPanelTraslateYInScreen() {
-    const bodyHeight = this._height - vc.timeHeaderHeight;
+    const bodyHeight = this._height - this.style.timeRulerHeight;
     const bottomY = this.panelTranslateY + this._contentHeight;
     const offsetSnapToBottom = bodyHeight - bottomY;
     if (offsetSnapToBottom <= 0) return;
@@ -761,9 +742,9 @@ export class Timeline extends EventEmitter {
       minStartTime = Math.min(minStartTime, span.startTime);
       maxFinishTime = Math.max(maxFinishTime, span.finishTime);
 
-      const yTop =
-        groupView.getComputedStyles().y + spanView.getComputedStyles().y;
-      const yBottom = yTop + vc.rowHeight;
+      const spanStyles = spanView.getComputedStyles();
+      const yTop = groupView.getComputedStyles().y + spanStyles.y;
+      const yBottom = yTop + spanStyles.rowHeight;
       minY = Math.min(minY, yTop);
       maxY = Math.max(maxY, yBottom);
     });
@@ -787,7 +768,7 @@ export class Timeline extends EventEmitter {
     this.updateTicks();
 
     // Handle translate y
-    const bodyHeight = this._height - vc.timeHeaderHeight; // viewport height
+    const bodyHeight = this._height - this.style.timeRulerHeight; // viewport height
     // if content is already smaller than viewport, noop
     if (this._contentHeight > bodyHeight) {
       const newTranslateY = -((minY + maxY) / 2) + bodyHeight / 2;
@@ -804,12 +785,12 @@ export class Timeline extends EventEmitter {
     const [groupView, spanView] = this.findSpanView(spanId);
     if (!groupView || !spanView) return;
     const span = spanView.span;
-    const spanYTop =
-      groupView.getComputedStyles().y + spanView.getComputedStyles().y;
-    const spanYBottom = spanYTop + vc.rowHeight;
+    const spanStyles = spanView.getComputedStyles();
+    const spanYTop = groupView.getComputedStyles().y + spanStyles.y;
+    const spanYBottom = spanYTop + spanStyles.rowHeight;
 
     // Handle translate y
-    const bodyHeight = this._height - vc.timeHeaderHeight; // viewport height
+    const bodyHeight = this._height - this.style.timeRulerHeight; // viewport height
     // if content is already smaller than viewport, noop
     if (this._contentHeight > bodyHeight) {
       const viewportTopY = -this.panelTranslateY;
@@ -948,14 +929,14 @@ export class Timeline extends EventEmitter {
                   this.spanTooltipStuffCache.svgBBTop +
                   spanViewProp.y +
                   groupViewProp.y +
-                  groupViewProp.spansContainerOffsetTop +
-                  vc.timeHeaderHeight +
+                  groupViewProp.spansContainerMarginTop +
+                  this.style.timeRulerHeight +
                   this.panelTranslateY;
                 return {
                   width: 0,
-                  height: vc.spanBarHeight,
+                  height: spanViewProp.barHeight,
                   top: top,
-                  bottom: top + vc.spanBarHeight,
+                  bottom: top + spanViewProp.barHeight,
                   left: this.spanTooltipStuffCache.idleMouseClientX,
                   right: this.spanTooltipStuffCache.idleMouseClientX
                 };
@@ -1200,7 +1181,7 @@ export class Timeline extends EventEmitter {
       return;
     }
 
-    const tickCount = Math.round(this._width / vc.tickLength);
+    const tickCount = Math.round(this._width / this.style.timeRulerTickLength);
     const ticks = this.axis.ticks(tickCount);
 
     ticks.forEach((tick, i) => {
@@ -1217,15 +1198,15 @@ export class Timeline extends EventEmitter {
       line.setAttribute('x2', tick.output + '');
       line.setAttribute('y1', '0');
       line.setAttribute('y2', this._height + '');
-      line.setAttribute('stroke', vc.tickLineColor);
+      line.setAttribute('stroke', this.style.timeRulerTickLineColor);
       line.setAttribute('stroke-width', '1');
       this.tickContainer.appendChild(line);
 
       text.textContent = formatMicroseconds(tick.inputRelative);
       text.setAttribute('x', tick.output - 4 + '');
-      text.setAttribute('y', vc.tickTextOffsetY + '');
-      text.setAttribute('fill', vc.tickTextColor);
-      text.setAttribute('font-size', vc.tickTextFontSize + '');
+      text.setAttribute('y', this.style.timeRulerTickTextOffsetTop + '');
+      text.setAttribute('fill', this.style.timeRulerTickTextColor);
+      text.setAttribute('font-size', this.style.timeRulerTickTextSize + '');
       text.setAttribute('text-anchor', 'end');
       this.tickContainer.appendChild(text);
     });

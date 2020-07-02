@@ -19,7 +19,8 @@ export enum GroupLayoutType {
 }
 
 export class GroupViewStyle {
-  spansContainerOffsetTop: number;
+  spansContainerMarginTop: number;
+  spansContainerMarginBottom: number;
   labelFontSize: number;
   labelColor: string;
   labelOffsetX: number;
@@ -39,6 +40,20 @@ export class GroupView {
   get heightInRows() {
     return this.rowsAndSpanIntervals.length;
   } // How many rows containing
+  get height() {
+    if (this.computedStyles.isCollapsed) {
+      return this.computedStyles.spansContainerMarginTop;
+    }
+
+    const rowHeight =
+      Object.values(this.spanViews)[0]?.getComputedStyles().rowHeight ?? 0;
+
+    return (
+      this.computedStyles.spansContainerMarginTop +
+      this.computedStyles.spansContainerMarginBottom +
+      this.heightInRows * rowHeight
+    );
+  }
   private label: string;
 
   private spansContainer = document.createElementNS(SVG_NS, 'g');
@@ -63,7 +78,8 @@ export class GroupView {
     this.label = options.label;
 
     const style = defaults(options.style, {
-      spansContainerOffsetTop: 20,
+      spansContainerMarginTop: 20,
+      spansContainerMarginBottom: 10,
       labelFontSize: 10,
       labelColor: '#000',
       labelOffsetX: 3,
@@ -74,6 +90,7 @@ export class GroupView {
     this.computedStyles = {
       ...style,
       y: 0,
+      height: 0,
       isCollapsed: false
     };
 
@@ -175,11 +192,11 @@ export class GroupView {
     const {
       labelOffsetX,
       labelOffsetY,
-      spansContainerOffsetTop
+      spansContainerMarginTop
     } = this.computedStyles;
     this.spansContainer.setAttribute(
       'transform',
-      `translate(0, ${options.y + spansContainerOffsetTop})`
+      `translate(0, ${options.y + spansContainerMarginTop})`
     );
     this.seperatorLine.setAttribute('transform', `translate(0, ${options.y})`);
     this.labelText.setAttribute(

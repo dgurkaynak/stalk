@@ -102,14 +102,14 @@ export class SpanConnectionDecoration extends BaseDecoration {
     );
     let fromY =
       groupView1Props.y +
-      groupView1Props.spansContainerOffsetTop +
+      groupView1Props.spansContainerMarginTop +
       (groupView1Props.isCollapsed ? 0 : spanView1Props.y) +
       halfBarHeight;
     let fromSpanStartX = spanView1Props.x;
     let toX = spanView2Props.x + arrowHeadOffsetLeft;
     let toY =
       groupView2Props.y +
-      groupView2Props.spansContainerOffsetTop +
+      groupView2Props.spansContainerMarginTop +
       (groupView2Props.isCollapsed ? 0 : spanView2Props.y) +
       halfBarHeight;
 
