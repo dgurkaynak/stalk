@@ -12,13 +12,13 @@ import defaults from 'lodash/defaults';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-export enum GroupLayoutType {
+export enum SpanGroupLayoutType {
   FILL = 'fill',
   COMPACT = 'compact',
   WATERFALL = 'waterfall'
 }
 
-export class GroupViewStyle {
+export class SpanGroupViewStyle {
   spansContainerMarginTop: number;
   spansContainerMarginBottom: number;
   labelFontSize: number;
@@ -29,12 +29,12 @@ export class GroupViewStyle {
   seperatorLineWidth: number;
 }
 
-export class GroupViewComputedStyles extends GroupViewStyle {
+export class SpanGroupViewComputedStyles extends SpanGroupViewStyle {
   y: number;
   isCollapsed: boolean;
 }
 
-export class GroupView {
+export class SpanGroupView {
   readonly spanGroup: SpanGroup;
   private spanViews: { [key: string]: SpanView } = {};
   get heightInRows() {
@@ -61,17 +61,17 @@ export class GroupView {
   private labelText = document.createElementNS(SVG_NS, 'text');
   private svgDefs?: SVGDefsElement;
 
-  private layoutType = GroupLayoutType.FILL;
+  private layoutType = SpanGroupLayoutType.FILL;
   private rowsAndSpanIntervals: number[][][] = [];
   private spanIdToRowIndex: { [key: string]: number } = {};
 
-  private computedStyles: GroupViewComputedStyles;
+  private computedStyles: SpanGroupViewComputedStyles;
 
   constructor(options: {
     group: SpanGroup;
-    layoutType: GroupLayoutType;
+    layoutType: SpanGroupLayoutType;
     label?: string;
-    style?: Partial<GroupViewStyle>;
+    style?: Partial<SpanGroupViewStyle>;
   }) {
     this.spanGroup = options.group;
     this.layoutType = options.layoutType;
@@ -229,7 +229,7 @@ export class GroupView {
     });
   }
 
-  setLayoutType(layoutType: GroupLayoutType) {
+  setLayoutType(layoutType: SpanGroupLayoutType) {
     this.layoutType = layoutType;
     // TODO: Call .layout() maybe?
   }
@@ -269,11 +269,11 @@ export class GroupView {
       let availableRowIndex = 0;
 
       switch (this.layoutType) {
-        case GroupLayoutType.FILL: {
+        case SpanGroupLayoutType.FILL: {
           availableRowIndex = this.getAvailableRow({ startTime, finishTime });
           break;
         }
-        case GroupLayoutType.COMPACT: {
+        case SpanGroupLayoutType.COMPACT: {
           let minRowIndex = 0;
           if (node.parentOrFollows) {
             let parentRowIndex = this.spanIdToRowIndex[
@@ -288,7 +288,7 @@ export class GroupView {
           });
           break;
         }
-        case GroupLayoutType.WATERFALL: {
+        case SpanGroupLayoutType.WATERFALL: {
           availableRowIndex = i;
           break;
         }

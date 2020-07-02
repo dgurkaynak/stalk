@@ -26,7 +26,7 @@ import {
 } from '../../model/span-labelling-manager';
 import { SpanGroupingManager } from '../../model/span-grouping/manager';
 import { SpanGroupingRawOptions } from '../../model/span-grouping/span-grouping';
-import { GroupLayoutType } from '../timeline/group-view';
+import { SpanGroupLayoutType } from '../timeline/span-group-view';
 import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
 import { ModalManager } from '../ui/modal/modal-manager';
 import { SpanColoringFormModalContent } from '../customization/span-coloring-form-modal-content';
@@ -93,7 +93,7 @@ export class TimelineWrapper {
   private customSpanLabellingFormModalContent: SpanLabellingFormModalContent;
   private customSpanLabellingRawOptions: SpanLabellingRawOptions;
 
-  private groupLayoutMode = GroupLayoutType.COMPACT; // Do not forget to change default value of TimelineView
+  private groupLayoutMode = SpanGroupLayoutType.COMPACT; // Do not forget to change default value of TimelineView
 
   private timelineToolBeforeTemporarySwitchToRulerTool: TimelineTool;
 
@@ -194,9 +194,9 @@ export class TimelineWrapper {
   private groupLayoutModeMenu = new WidgetToolbarSelect({
     // width: 150,
     items: [
-      { type: 'item', text: 'Fill', id: GroupLayoutType.FILL },
-      { type: 'item', text: 'Compact', id: GroupLayoutType.COMPACT },
-      { type: 'item', text: 'Waterfall', id: GroupLayoutType.WATERFALL }
+      { type: 'item', text: 'Fill', id: SpanGroupLayoutType.FILL },
+      { type: 'item', text: 'Compact', id: SpanGroupLayoutType.COMPACT },
+      { type: 'item', text: 'Waterfall', id: SpanGroupLayoutType.WATERFALL }
     ],
     onSelect: this.binded.onGroupLayoutMenuItemClick
   });
@@ -865,7 +865,7 @@ export class TimelineWrapper {
 
   private onGroupLayoutMenuItemClick(item: WidgetToolbarSelectItem) {
     if (item.type == 'divider') return;
-    this.timeline.updateGroupLayoutMode(item.id as GroupLayoutType);
+    this.timeline.updateGroupLayoutMode(item.id as SpanGroupLayoutType);
     this.groupLayoutModeMenu.select(item.id);
     this.dropdowns.groupLayoutMode.hide();
   }

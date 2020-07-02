@@ -7,7 +7,7 @@ import isArray from 'lodash/isArray';
 import isFunction from 'lodash/isFunction';
 import differenceBy from 'lodash/differenceBy';
 import defaults from 'lodash/defaults';
-import { GroupView, GroupLayoutType } from './group-view';
+import { SpanGroupView, SpanGroupLayoutType } from './span-group-view';
 import Axis from './axis';
 import EventEmitter from 'events';
 import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
@@ -108,9 +108,9 @@ export class TimelineView extends EventEmitter {
 
   private traces: Trace[] = [];
   private spanGrouping: SpanGrouping;
-  private groupViews: GroupView[] = [];
+  private groupViews: SpanGroupView[] = [];
 
-  private groupLayoutMode = GroupLayoutType.COMPACT; // Do not forget to change related config in timeline-wrapper
+  private groupLayoutMode = SpanGroupLayoutType.COMPACT; // Do not forget to change related config in timeline-wrapper
   private readonly spanViewSharedOptions: SpanViewSharedOptions = {
     axis: this.axis,
     colorFor: operationColoringOptions.colorBy, // Do not forget to change related config in timeline-wrapper
@@ -399,7 +399,7 @@ export class TimelineView extends EventEmitter {
     this.removeAllListeners();
   }
 
-  updateGroupLayoutMode(groupLayoutType: GroupLayoutType) {
+  updateGroupLayoutMode(groupLayoutType: SpanGroupLayoutType) {
     this.groupLayoutMode = groupLayoutType;
     this.groupViews.forEach(g => {
       g.setLayoutType(groupLayoutType);
@@ -494,8 +494,8 @@ export class TimelineView extends EventEmitter {
   }
 
   findGroupView(
-    groupId: string | ((groupView: GroupView) => boolean)
-  ): GroupView | undefined {
+    groupId: string | ((groupView: SpanGroupView) => boolean)
+  ): SpanGroupView | undefined {
     if (isString(groupId)) {
       return find(this.groupViews, g => g.spanGroup.id === groupId);
     } else if (isFunction(groupId)) {
@@ -507,7 +507,7 @@ export class TimelineView extends EventEmitter {
 
   findSpanView(
     spanId: string | ((spanView: SpanView) => boolean)
-  ): [GroupView | undefined, SpanView | undefined] {
+  ): [SpanGroupView | undefined, SpanView | undefined] {
     if (isString(spanId)) {
       const groupView = find(this.groupViews, g => !!g.getSpanViewById(spanId));
       return [groupView, groupView?.getSpanViewById(spanId)];
@@ -527,8 +527,8 @@ export class TimelineView extends EventEmitter {
 
   findSpanViews(
     predicate: (spanView: SpanView) => boolean
-  ): [GroupView, SpanView][] {
-    const acc: [GroupView, SpanView][] = [];
+  ): [SpanGroupView, SpanView][] {
+    const acc: [SpanGroupView, SpanView][] = [];
     for (let groupView of this.groupViews) {
       const spanViews = groupView.getAllSpanViews();
       spanViews.filter(predicate).forEach(spanView => {
@@ -571,7 +571,7 @@ export class TimelineView extends EventEmitter {
         groupLabel = `${group.name} ${groupNameCounter[group.name]}`;
       }
 
-      const groupView = new GroupView({
+      const groupView = new SpanGroupView({
         group,
         layoutType: this.groupLayoutMode,
         label: groupLabel
@@ -1060,7 +1060,7 @@ export class TimelineView extends EventEmitter {
         }
 
         case TimelineInteractableElementType.GROUP_VIEW_LABEL_TEXT: {
-          const { id: groupId } = GroupView.getPropsFromLabelText(element);
+          const { id: groupId } = SpanGroupView.getPropsFromLabelText(element);
           if (!groupId) return;
           clickedGroupLabelId = groupId;
           return;

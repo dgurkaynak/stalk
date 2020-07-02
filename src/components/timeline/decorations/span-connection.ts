@@ -1,7 +1,7 @@
 import defaults from 'lodash/defaults';
 import BaseDecoration from './base';
 import { SpanView } from '../span-view';
-import { GroupView } from '../group-view';
+import { SpanGroupView } from '../span-group-view';
 import {
   TimelineInteractableElementAttribute,
   TimelineInteractableElementType
@@ -35,9 +35,9 @@ export class SpanConnectionDecoration extends BaseDecoration {
   };
   private container = document.createElementNS(SVG_NS, 'g');
   private spanView1: SpanView;
-  private groupView1: GroupView;
+  private groupView1: SpanGroupView;
   private spanView2: SpanView;
-  private groupView2: GroupView;
+  private groupView2: SpanGroupView;
   private path = document.createElementNS(SVG_NS, 'path');
 
   prepare(settings: SpanConnectionDecorationSettings) {

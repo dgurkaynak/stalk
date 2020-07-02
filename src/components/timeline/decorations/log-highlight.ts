@@ -1,6 +1,6 @@
 import defaults from 'lodash/defaults';
 import BaseDecoration from './base';
-import { GroupView } from '../group-view';
+import { SpanGroupView } from '../span-group-view';
 import { SpanView } from '../span-view';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -28,7 +28,7 @@ export default class LogHighlightDecoration extends BaseDecoration {
     circleStrokeColor: '#000'
   };
   private logTimestamp = 0;
-  private groupView: GroupView;
+  private groupView: SpanGroupView;
   private spanView: SpanView;
 
   private line = document.createElementNS(SVG_NS, 'line');
