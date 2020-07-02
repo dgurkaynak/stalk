@@ -78,6 +78,7 @@ export class JaegerSearchModalContent {
       customLookbackInput: document.createElement('input'),
       minDurationInput: document.createElement('input'),
       maxDurationInput: document.createElement('input'),
+      limitInput: document.createElement('input'),
       button: document.createElement('button')
     }
   };
@@ -172,6 +173,7 @@ export class JaegerSearchModalContent {
         customLookbackInput,
         minDurationInput,
         maxDurationInput,
+        limitInput,
         button
       } = this.elements.search;
       container.appendChild(form);
@@ -247,6 +249,19 @@ export class JaegerSearchModalContent {
       maxDurationContainer.appendChild(maxDurationTitleContainer);
       maxDurationInput.placeholder = 'e.g. 1.2s, 100ms, 500us';
       maxDurationContainer.appendChild(maxDurationInput);
+
+      const limitContainer = document.createElement('div');
+      limitContainer.classList.add('field');
+      form.appendChild(limitContainer);
+      const limitTitleContainer = document.createElement('div');
+      limitTitleContainer.textContent = 'Limit';
+      limitTitleContainer.classList.add('field-title');
+      limitContainer.appendChild(limitTitleContainer);
+      limitInput.type = 'number';
+      limitInput.min = '0';
+      limitInput.value = '100';
+      limitInput.required = true;
+      limitContainer.appendChild(limitInput);
 
       button.textContent = 'Search';
       button.type = 'submit';
@@ -491,8 +506,7 @@ export class JaegerSearchModalContent {
     try {
       const formEl = this.elements.search;
       const query: JaegerAPISearchQuery = {
-        service: formEl.serviceSelect.value,
-        limit: 0 // this forces jaeger api to return all the matched results
+        service: formEl.serviceSelect.value
       };
 
       if (
@@ -527,6 +541,12 @@ export class JaegerSearchModalContent {
       if (formEl.maxDurationInput.value) {
         query.maxDuration = formEl.maxDurationInput.value;
       }
+
+      const limitIntValue = parseInt(formEl.limitInput.value, 10);
+      if (isNaN(limitIntValue)) {
+        throw new Error(`Unsupported limit value`);
+      }
+      query.limit = limitIntValue;
 
       const traceSpans: Span[][] = await this.api.search(query);
       this.traceResults = traceSpans.map(spans => new Trace(spans));
