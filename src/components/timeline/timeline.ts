@@ -111,7 +111,7 @@ export class Timeline extends EventEmitter {
   private selectedSpanId: string;
 
   private selectionView = new SelectionView({
-    parentEl: this.svg,
+    parent: this.svg,
     axis: this.axis
   });
 
