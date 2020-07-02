@@ -11,7 +11,7 @@ import Axis from './axis';
 import vc from './view-constants';
 import EventEmitter from 'events';
 import MouseHandler, { MouseHandlerEvent } from './mouse-handler';
-import SpanView, { SpanViewSharedOptions } from './span-view';
+import { SpanView, SpanViewOptions } from './span-view';
 import { Trace } from '../../model/trace';
 import {
   SpanGrouping,
@@ -101,7 +101,7 @@ export class Timeline extends EventEmitter {
   private groupViews: GroupView[] = [];
 
   private groupLayoutMode = GroupLayoutType.COMPACT; // Do not forget to change related config in timeline-wrapper
-  private readonly spanViewSharedOptions: SpanViewSharedOptions = {
+  private readonly spanViewOptions: SpanViewOptions = {
     axis: this.axis,
     colorFor: operationColoringOptions.colorBy, // Do not forget to change related config in timeline-wrapper
     labelFor: operationLabellingOptions.labelBy // Do not forget to change related config in timeline-wrapper
@@ -403,20 +403,20 @@ export class Timeline extends EventEmitter {
   // can throw
   // - s.updateColors
   updateSpanColoring(options: SpanColoringOptions) {
-    this.spanViewSharedOptions.colorFor = options.colorBy;
+    this.spanViewOptions.colorFor = options.colorBy;
     this.groupViews.forEach(g => {
-      const spanViews = g.getAllSpanViews();
-      spanViews.forEach(s => s.updateColors());
+      g.updateSpanOptions(this.spanViewOptions);
+      g.getAllSpanViews().forEach(s => s.updateColors());
     });
   }
 
   // can throw
   // - s.updateLabelText
   updateSpanLabelling(options: SpanLabellingOptions) {
-    this.spanViewSharedOptions.labelFor = options.labelBy;
+    this.spanViewOptions.labelFor = options.labelBy;
     this.groupViews.forEach(g => {
-      const spanViews = g.getAllSpanViews();
-      spanViews.forEach(s => s.updateLabelText());
+      g.updateSpanOptions(this.spanViewOptions);
+      g.getAllSpanViews().forEach(s => s.updateLabelText());
     });
   }
 
@@ -591,7 +591,7 @@ export class Timeline extends EventEmitter {
         groupNamePanel: this.groupNamePanel,
         timelinePanel: this.timelinePanel,
         svgDefs: this.defs,
-        spanViewSharedOptions: this.spanViewSharedOptions
+        spanOptions: this.spanViewOptions
       });
       groupView.layout();
 

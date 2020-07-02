@@ -2,7 +2,7 @@ import isNumber from 'lodash/isNumber';
 import forEach from 'lodash/forEach';
 import every from 'lodash/every';
 import { SpanGroup } from '../../model/span-group/span-group';
-import SpanView, { SpanViewSharedOptions } from './span-view';
+import { SpanView, SpanViewOptions } from './span-view';
 import SpanGroupNode from '../../model/span-group/span-group-node';
 import vc from './view-constants';
 import {
@@ -85,7 +85,7 @@ export default class GroupView {
     groupNamePanel: SVGGElement;
     timelinePanel: SVGGElement;
     svgDefs: SVGDefsElement;
-    spanViewSharedOptions: SpanViewSharedOptions;
+    spanOptions: SpanViewOptions;
   }) {
     options.timelinePanel.appendChild(this.spansContainer);
     options.groupNamePanel.appendChild(this.seperatorLine);
@@ -95,7 +95,7 @@ export default class GroupView {
     // Set-up span views
     this.spanGroup.getAll().forEach(span => {
       // TODO: Reuse spanviews
-      const spanView = new SpanView(span, options.spanViewSharedOptions);
+      const spanView = new SpanView(span, options.spanOptions);
       spanView.reuse(span);
       this.spanViews[span.id] = spanView;
     });
@@ -139,6 +139,10 @@ export default class GroupView {
 
   getAllSpanViews() {
     return Object.values(this.spanViews);
+  }
+
+  updateSpanOptions(newOptions: Partial<SpanViewOptions>) {
+    Object.values(this.spanViews).forEach(s => s.updateOptions(newOptions));
   }
 
   updatePosition(options: { y: number }) {

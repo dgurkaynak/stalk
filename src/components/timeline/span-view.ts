@@ -37,7 +37,7 @@ export interface SpanLogViewObject {
   log: SpanLog;
 }
 
-export default class SpanView {
+export class SpanView {
   span: Span;
   private options: SpanViewOptions;
 
@@ -191,6 +191,15 @@ export default class SpanView {
 
   dispose() {
     this.unmount();
+  }
+
+  /**
+   * This method just updates options object, it does not
+   * change any style/view of the span. You need to explicitly
+   * call related `spanView.updateX()` method(s).
+   */
+  updateOptions(newOptions: Partial<SpanViewOptions>) {
+    this.options = defaultsDeep(newOptions, this.options);
   }
 
   // Can throw
