@@ -1,10 +1,10 @@
-import { Timeline } from '../timeline';
+import { TimelineView } from '../timeline-view';
 
 export default class BaseDecoration {
   protected underlayElements: SVGElement[] = [];
   protected overlayElements: SVGElement[] = [];
 
-  constructor(protected timelineView: Timeline) {
+  constructor(protected timelineView: TimelineView) {
     // Noop
   }
 

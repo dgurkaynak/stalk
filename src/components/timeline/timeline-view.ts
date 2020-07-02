@@ -47,7 +47,7 @@ import { clipboard } from 'electron';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-export enum TimelineEvent {
+export enum TimelineViewEvent {
   SPAN_SELECTED = 'tve_span_selected'
 }
 
@@ -66,7 +66,7 @@ export interface TimelineViewStyle {
   initialSpanMarginToViewport: number;
 }
 
-export class Timeline extends EventEmitter {
+export class TimelineView extends EventEmitter {
   private svg = document.createElementNS(SVG_NS, 'svg');
   private defs = document.createElementNS(SVG_NS, 'defs');
 
@@ -715,7 +715,7 @@ export class Timeline extends EventEmitter {
     }
 
     if (!silent) {
-      this.emit(TimelineEvent.SPAN_SELECTED, this.selectedSpanId);
+      this.emit(TimelineViewEvent.SPAN_SELECTED, this.selectedSpanId);
     }
   }
 

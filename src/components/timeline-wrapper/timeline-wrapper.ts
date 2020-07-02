@@ -1,4 +1,4 @@
-import { Timeline, TimelineTool } from '../timeline/timeline';
+import { TimelineView, TimelineTool } from '../timeline/timeline-view';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
   WidgetToolbarSelect,
@@ -52,7 +52,7 @@ import './timeline-wrapper.css';
 const TOOLBAR_HEIGHT = 30;
 
 export class TimelineWrapper {
-  readonly timeline = new Timeline();
+  readonly timeline = new TimelineView();
   private stage = Stage.getSingleton();
   private elements = {
     container: document.createElement('div'),

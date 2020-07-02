@@ -1,7 +1,7 @@
 import Fuse from 'fuse.js';
 import { Stage, StageEvent } from '../../model/stage';
 import debounce from 'lodash/debounce';
-import { Timeline, TimelineEvent } from '../timeline/timeline';
+import { TimelineView, TimelineViewEvent } from '../timeline/timeline-view';
 import {
   SpansTableView,
   SpansTableViewEvent
@@ -22,7 +22,7 @@ interface SpanTagItem {
 
 export class SpanTagsView {
   private stage = Stage.getSingleton();
-  private timeline: Timeline;
+  private timeline: TimelineView;
   private spansTable: SpansTableView;
   private logsTable: LogsTableView;
   private selectedSpanId: string;
@@ -84,7 +84,7 @@ export class SpanTagsView {
   }
 
   init(options: {
-    timeline: Timeline;
+    timeline: TimelineView;
     spansTable: SpansTableView;
     logsTable: LogsTableView;
   }) {
@@ -99,7 +99,7 @@ export class SpanTagsView {
       false
     );
     this.timeline.on(
-      TimelineEvent.SPAN_SELECTED,
+      TimelineViewEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
     );
     this.spansTable.on(
@@ -235,7 +235,7 @@ export class SpanTagsView {
       false
     );
     this.timeline.removeListener(
-      TimelineEvent.SPAN_SELECTED,
+      TimelineViewEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
     );
     this.spansTable.removeListener(

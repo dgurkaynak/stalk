@@ -10,7 +10,7 @@ import { SpanLabellingManager } from './model/span-labelling-manager';
 import { Trace } from './model/trace';
 import { Stage, StageEvent } from './model/stage';
 import { TimelineWrapper } from './components/timeline-wrapper/timeline-wrapper';
-import { TimelineEvent } from './components/timeline/timeline';
+import { TimelineViewEvent } from './components/timeline/timeline-view';
 import { DockPanel } from '@phosphor/widgets';
 import { WidgetWrapper } from './components/ui/widget-wrapper';
 import Noty from 'noty';
@@ -176,7 +176,7 @@ export class App {
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
     this.timeline.timeline.on(
-      TimelineEvent.SPAN_SELECTED,
+      TimelineViewEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
     );
     this.spansTable.on(

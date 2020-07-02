@@ -1,6 +1,6 @@
 import find from 'lodash/find';
 import { Stage, StageEvent } from '../../model/stage';
-import { Timeline, TimelineEvent } from '../timeline/timeline';
+import { TimelineView, TimelineViewEvent } from '../timeline/timeline-view';
 import {
   SpansTableView,
   SpansTableViewEvent
@@ -20,7 +20,7 @@ import './span-summary.css';
 
 export class SpanSummaryView {
   private stage = Stage.getSingleton();
-  private timeline: Timeline;
+  private timeline: TimelineView;
   private spansTable: SpansTableView;
   private logsTable: LogsTableView;
   private contextMenuManager = ContextMenuManager.getSingleton();
@@ -43,7 +43,7 @@ export class SpanSummaryView {
   }
 
   init(options: {
-    timeline: Timeline;
+    timeline: TimelineView;
     spansTable: SpansTableView;
     logsTable: LogsTableView;
   }) {
@@ -53,7 +53,7 @@ export class SpanSummaryView {
 
     // Bind events
     this.timeline.on(
-      TimelineEvent.SPAN_SELECTED,
+      TimelineViewEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
     );
     this.spansTable.on(
@@ -241,7 +241,7 @@ export class SpanSummaryView {
 
   dispose() {
     this.timeline.removeListener(
-      TimelineEvent.SPAN_SELECTED,
+      TimelineViewEvent.SPAN_SELECTED,
       this.binded.onTimelineSpanSelected
     );
     this.spansTable.removeListener(
