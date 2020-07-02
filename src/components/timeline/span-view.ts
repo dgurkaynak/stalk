@@ -49,10 +49,11 @@ export class SpanView {
   private errorTriangle = document.createElementNS(SVG_NS, 'polygon');
   private logViews: SpanLogViewObject[] = [];
 
-  private viewPropertiesCache = {
+  private computedStyles = {
     width: 0,
     x: 0,
     y: 0,
+    barHeight: 0,
     rowHeight: 0,
     barColorDefault: '',
     barColorHover: '',
@@ -78,8 +79,9 @@ export class SpanView {
     });
     const { style } = this.options;
 
-    this.viewPropertiesCache.rowHeight =
+    this.computedStyles.rowHeight =
       2 * style.barMarginVertical + style.barHeight;
+    this.computedStyles.barHeight = style.barHeight;
 
     this.container.style.cursor = 'pointer';
     this.labelText.style.cursor = 'pointer';
@@ -127,15 +129,15 @@ export class SpanView {
     this.span = span;
 
     const baseColor = this.options.colorFor(span);
-    this.viewPropertiesCache.barColorDefault = chroma(baseColor)
+    this.computedStyles.barColorDefault = chroma(baseColor)
       .alpha(0.75)
       .css();
-    this.viewPropertiesCache.barColorHover = chroma(baseColor)
+    this.computedStyles.barColorHover = chroma(baseColor)
       .alpha(1.0)
       .css();
-    const textColor = textColorFor(this.viewPropertiesCache.barColorDefault);
-    this.viewPropertiesCache.labelColor = textColor;
-    this.viewPropertiesCache.borderColor = chroma(baseColor)
+    const textColor = textColorFor(this.computedStyles.barColorDefault);
+    this.computedStyles.labelColor = textColor;
+    this.computedStyles.borderColor = chroma(baseColor)
       .darken(1)
       .alpha(1.0)
       .css();
@@ -161,7 +163,7 @@ export class SpanView {
     }
 
     const { style } = this.options;
-    const { x } = this.viewPropertiesCache;
+    const { x } = this.computedStyles;
     this.logViews.forEach(l => this.container.removeChild(l.line));
 
     this.logViews = this.span.logs.map(log => {
@@ -209,18 +211,18 @@ export class SpanView {
   }
 
   updateColorStyle(style: 'normal' | 'hover' | 'selected') {
-    let barColor = this.viewPropertiesCache.barColorDefault;
-    let labelTextColor = this.viewPropertiesCache.labelColor;
+    let barColor = this.computedStyles.barColorDefault;
+    let labelTextColor = this.computedStyles.labelColor;
     let strokeWidth = 0;
     let strokeColor = 'transparent';
 
     if (style === 'hover') {
-      barColor = this.viewPropertiesCache.barColorHover;
+      barColor = this.computedStyles.barColorHover;
       strokeWidth = 0;
       strokeColor = 'transparent';
     } else if (style === 'selected') {
       strokeWidth = 3;
-      strokeColor = this.viewPropertiesCache.borderColor;
+      strokeColor = this.computedStyles.borderColor;
     }
 
     this.barRect.setAttribute('fill', barColor);
@@ -231,18 +233,18 @@ export class SpanView {
 
   updateVerticalPosition(rowIndex: number, dontApplyTransform = false) {
     const { style } = this.options;
-    const { x, rowHeight } = this.viewPropertiesCache;
+    const { x, rowHeight } = this.computedStyles;
     const y = rowIndex * rowHeight + style.barMarginVertical; // Relative y in pixels to group container
-    this.viewPropertiesCache.y = y;
+    this.computedStyles.y = y;
     !dontApplyTransform &&
       this.container.setAttribute('transform', `translate(${x}, ${y})`);
   }
 
   updateHorizontalPosition() {
     const { axis, style } = this.options;
-    const { y } = this.viewPropertiesCache;
+    const { y } = this.computedStyles;
     const x = axis.input2output(this.span.startTime);
-    this.viewPropertiesCache.x = x;
+    this.computedStyles.x = x;
     this.container.setAttribute('transform', `translate(${x}, ${y})`);
 
     // Snap the label text to left of the screen
@@ -267,7 +269,7 @@ export class SpanView {
       axis.input2output(this.span.finishTime) - startX,
       style.barMinWidth
     );
-    this.viewPropertiesCache.width = width;
+    this.computedStyles.width = width;
     this.barRect.setAttribute('width', width + '');
     this.clipPathRect.setAttribute('width', width + '');
     this.errorTriangle.setAttribute(
@@ -284,22 +286,22 @@ export class SpanView {
   // - this.options.colorFor
   updateColors() {
     const baseColor = this.options.colorFor(this.span);
-    this.viewPropertiesCache.barColorDefault = chroma(baseColor)
+    this.computedStyles.barColorDefault = chroma(baseColor)
       .alpha(0.8)
       .css();
-    this.viewPropertiesCache.barColorHover = chroma(baseColor)
+    this.computedStyles.barColorHover = chroma(baseColor)
       .alpha(1.0)
       .css();
-    const textColor = textColorFor(this.viewPropertiesCache.barColorDefault);
-    this.viewPropertiesCache.labelColor = textColor;
-    this.viewPropertiesCache.borderColor = chroma(baseColor)
+    const textColor = textColorFor(this.computedStyles.barColorDefault);
+    this.computedStyles.labelColor = textColor;
+    this.computedStyles.borderColor = chroma(baseColor)
       .darken(1)
       .alpha(1.0)
       .css();
 
-    this.barRect.setAttribute('fill', this.viewPropertiesCache.barColorDefault);
+    this.barRect.setAttribute('fill', this.computedStyles.barColorDefault);
     // this.barRect.setAttribute('stroke', ??); // TODO: We don't know what the current style is
-    this.labelText.setAttribute('fill', this.viewPropertiesCache.labelColor);
+    this.labelText.setAttribute('fill', this.computedStyles.labelColor);
   }
 
   showLabel() {
@@ -340,8 +342,8 @@ export class SpanView {
     return logViews;
   }
 
-  getViewPropertiesCache() {
-    return { ...this.viewPropertiesCache };
+  getComputedStyles() {
+    return { ...this.computedStyles };
   }
 
   static getPropsFromContainer(el: Element) {

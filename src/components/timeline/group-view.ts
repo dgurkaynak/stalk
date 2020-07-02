@@ -18,7 +18,7 @@ export enum GroupLayoutType {
   WATERFALL = 'waterfall'
 }
 
-export default class GroupView {
+export class GroupView {
   readonly spanGroup: SpanGroup;
   private spanViews: { [key: string]: SpanView } = {};
   get heightInRows() {
@@ -38,8 +38,9 @@ export default class GroupView {
   private rowsAndSpanIntervals: number[][][] = [];
   private spanIdToRowIndex: { [key: string]: number } = {};
 
-  private viewPropertiesCache = {
-    y: 0
+  private computedStyles = {
+    y: 0,
+    paddingTop: 0
   };
 
   constructor(
@@ -53,6 +54,8 @@ export default class GroupView {
     this.spanGroup = group;
     this.layoutType = options.layoutType;
     this.label = options.label;
+
+    this.computedStyles.paddingTop = vc.groupPaddingTop;
 
     this.seperatorLine.setAttribute('x1', '0');
     this.seperatorLine.setAttribute('x2', options.width + '');
@@ -159,7 +162,7 @@ export default class GroupView {
       'transform',
       `translate(${groupTextOffsetX}, ${options.y + groupTextOffsetY})`
     );
-    this.viewPropertiesCache.y = options.y;
+    this.computedStyles.y = options.y;
   }
 
   updateSeperatorLineWidths(width: number) {
@@ -338,8 +341,8 @@ export default class GroupView {
     return rowIndex;
   }
 
-  getViewPropertiesCache() {
-    return { ...this.viewPropertiesCache };
+  getComputedStyles() {
+    return { ...this.computedStyles };
   }
 
   static getPropsFromLabelText(el: Element) {

@@ -1,8 +1,7 @@
 import defaults from 'lodash/defaults';
 import BaseDecoration from './base';
-import vc from '../view-constants';
-import GroupView from '../group-view';
-import SpanView from '../span-view';
+import { GroupView } from '../group-view';
+import { SpanView } from '../span-view';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -77,12 +76,12 @@ export default class LogHighlightDecoration extends BaseDecoration {
   update() {
     if (!this.spanView || !this.groupView) return;
 
-    const groupViewProps = this.groupView.getViewPropertiesCache();
-    const spanViewProps = this.spanView.getViewPropertiesCache();
+    const groupViewProps = this.groupView.getComputedStyles();
+    const spanStyles = this.spanView.getComputedStyles();
 
     const x = this.timelineView.axis.input2output(this.logTimestamp);
     this.line.setAttribute('transform', `translate(${x}, 0)`);
-    const y = groupViewProps.y + spanViewProps.y + vc.spanBarHeight / 2;
+    const y = groupViewProps.y + spanStyles.y + spanStyles.barHeight / 2;
     this.circle.setAttribute('transform', `translate(${x}, ${y})`);
   }
 }

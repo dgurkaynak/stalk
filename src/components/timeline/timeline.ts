@@ -6,7 +6,7 @@ import isString from 'lodash/isString';
 import isArray from 'lodash/isArray';
 import isFunction from 'lodash/isFunction';
 import differenceBy from 'lodash/differenceBy';
-import GroupView, { GroupLayoutType } from './group-view';
+import { GroupView, GroupLayoutType } from './group-view';
 import Axis from './axis';
 import vc from './view-constants';
 import EventEmitter from 'events';
@@ -534,9 +534,9 @@ export class Timeline extends EventEmitter {
 
     for (let groupView of this.groupViews) {
       const spanViews = groupView.getAllSpanViews();
-      const groupY = groupView.getViewPropertiesCache().y;
+      const groupY = groupView.getComputedStyles().y;
       spanViews.forEach(spanView => {
-        const spanAbsoluteY = spanView.getViewPropertiesCache().y + groupY;
+        const spanAbsoluteY = spanView.getComputedStyles().y + groupY;
         const isInstersected = !(
           spanView.span.startTime > finishTime ||
           spanView.span.finishTime < startTime ||
@@ -761,8 +761,7 @@ export class Timeline extends EventEmitter {
       maxFinishTime = Math.max(maxFinishTime, span.finishTime);
 
       const yTop =
-        groupView.getViewPropertiesCache().y +
-        spanView.getViewPropertiesCache().y;
+        groupView.getComputedStyles().y + spanView.getComputedStyles().y;
       const yBottom = yTop + vc.rowHeight;
       minY = Math.min(minY, yTop);
       maxY = Math.max(maxY, yBottom);
@@ -805,8 +804,7 @@ export class Timeline extends EventEmitter {
     if (!groupView || !spanView) return;
     const span = spanView.span;
     const spanYTop =
-      groupView.getViewPropertiesCache().y +
-      spanView.getViewPropertiesCache().y;
+      groupView.getComputedStyles().y + spanView.getComputedStyles().y;
     const spanYBottom = spanYTop + vc.rowHeight;
 
     // Handle translate y
@@ -943,8 +941,8 @@ export class Timeline extends EventEmitter {
               clientWidth: 0,
               clientHeight: 0,
               getBoundingClientRect: () => {
-                const spanViewProp = spanView.getViewPropertiesCache();
-                const groupViewProp = groupView.getViewPropertiesCache();
+                const spanViewProp = spanView.getComputedStyles();
+                const groupViewProp = groupView.getComputedStyles();
                 const top =
                   this.spanTooltipStuffCache.svgBBTop +
                   spanViewProp.y +

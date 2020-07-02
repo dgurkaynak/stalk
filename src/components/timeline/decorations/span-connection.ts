@@ -1,13 +1,12 @@
 import defaults from 'lodash/defaults';
 import BaseDecoration from './base';
-import SpanView from '../span-view';
-import GroupView from '../group-view';
+import { SpanView } from '../span-view';
+import { GroupView } from '../group-view';
 import {
   TimelineInteractableElementAttribute,
   TimelineInteractableElementType
 } from '../interaction';
 import * as shortid from 'shortid';
-import vc from '../view-constants';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -88,10 +87,10 @@ export class SpanConnectionDecoration extends BaseDecoration {
     if (!this.groupView1 || !this.spanView1) return;
     if (!this.groupView2 || !this.spanView2) return;
 
-    const spanView1Props = this.spanView1.getViewPropertiesCache();
-    const groupView1Props = this.groupView1.getViewPropertiesCache();
-    const spanView2Props = this.spanView2.getViewPropertiesCache();
-    const groupView2Props = this.groupView2.getViewPropertiesCache();
+    const spanView1Props = this.spanView1.getComputedStyles();
+    const groupView1Props = this.groupView1.getComputedStyles();
+    const spanView2Props = this.spanView2.getComputedStyles();
+    const groupView2Props = this.groupView2.getComputedStyles();
     const halfBarHeight = this.settings.barHeight / 2;
     const arrowHeadOffsetLeft = -3;
     const shouldHide =
@@ -104,14 +103,14 @@ export class SpanConnectionDecoration extends BaseDecoration {
     );
     let fromY =
       groupView1Props.y +
-      vc.groupPaddingTop +
+      groupView1Props.paddingTop +
       (this.groupView1.options.isCollapsed ? 0 : spanView1Props.y) +
       halfBarHeight;
     let fromSpanStartX = spanView1Props.x;
     let toX = spanView2Props.x + arrowHeadOffsetLeft;
     let toY =
       groupView2Props.y +
-      vc.groupPaddingTop +
+      groupView2Props.paddingTop +
       (this.groupView2.options.isCollapsed ? 0 : spanView2Props.y) +
       halfBarHeight;
 
