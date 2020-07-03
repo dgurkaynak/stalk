@@ -342,7 +342,7 @@ export class JaegerSearchModalContent {
         time_24hr: true,
         dateFormat: 'Z',
         altInput: true,
-        altFormat: 'M d H:i',
+        altFormat: 'M d, H:i',
         locale: {
           rangeSeparator: DATE_RANGE_SEPERATOR,
           firstDayOfWeek: 1

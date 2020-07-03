@@ -205,7 +205,7 @@ export class SearchModalTracesTableView extends EventEmitter {
   }
 
   private formatTimestamp(cell: any) {
-    return format(cell.getValue() / 1000, 'MMM dd HH:mm:ss.SSS');
+    return format(cell.getValue() / 1000, 'MMM dd, HH:mm:ss.SSS');
   }
 
   private formatDuration(cell: any) {
