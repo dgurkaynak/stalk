@@ -1,4 +1,4 @@
-import ticks from './ticks';
+import ticks from '../../utils/ticks';
 
 export default class Axis {
   private scale: number;

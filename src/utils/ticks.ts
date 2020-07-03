@@ -35,7 +35,7 @@ export default function(start: number, stop: number, count: number) {
   return ticks;
 }
 
-export function tickIncrement(start: number, stop: number, count: number) {
+function tickIncrement(start: number, stop: number, count: number) {
   var step = (stop - start) / Math.max(0, count),
     power = Math.floor(Math.log(step) / Math.LN10),
     error = step / Math.pow(10, power);
