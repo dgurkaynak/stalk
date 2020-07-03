@@ -84,7 +84,14 @@ export class JaegerAPI {
   async search(query: JaegerAPISearchQuery) {
     // Parse logfmt string into object, and stringify it again.
     if (isString(query.tags)) {
-      query.tags = JSON.stringify(logfmt.parse(query.tags));
+      // Logfmt library parses `error` or `error=true` as `{"error": true}`
+      // However jaeger expects the values as string always. So, we need to convert them.
+      const tags: any = logfmt.parse(query.tags);
+      for (let tagKey in tags) {
+        tags[tagKey] = tags[tagKey].toString();
+      }
+
+      query.tags = JSON.stringify(tags);
     }
 
     const response = await this.get(`/traces`, query as any);
