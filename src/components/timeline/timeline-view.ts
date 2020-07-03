@@ -60,9 +60,9 @@ export interface TimelineViewStyle {
   timeRulerHeight: number;
   timeRulerTickLength: number; // in px
   timeRulerTickLineColor: string;
-  timeRulerTickTextOffsetTop: string;
+  timeRulerTickTextOffsetTop: number;
   timeRulerTickTextColor: string;
-  timeRulerTickTextSize: string;
+  timeRulerTickTextSize: number;
   initialSpanMarginToViewport: number;
 }
 
@@ -154,7 +154,7 @@ export class TimelineView extends EventEmitter {
       timeRulerTickTextColor: '#999',
       timeRulerTickTextSize: 10,
       initialSpanMarginToViewport: 5
-    });
+    } as TimelineViewStyle);
     this.computedStyles = {
       ...style,
       width: 0,

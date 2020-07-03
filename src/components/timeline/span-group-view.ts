@@ -70,7 +70,7 @@ export class SpanGroupView {
       labelOffsetY: 13,
       seperatorLineColor: '#eee',
       seperatorLineWidth: 1
-    });
+    } as SpanGroupViewStyle);
     this.computedStyles = {
       ...style,
       y: 0,

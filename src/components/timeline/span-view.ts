@@ -61,7 +61,7 @@ export class SpanView {
   private errorTriangle = document.createElementNS(SVG_NS, 'polygon');
   private logViews: SpanLogViewObject[] = [];
 
-  private computedStyles: SpanViewComputedStyles;
+  private readonly computedStyles: SpanViewComputedStyles;
 
   constructor(options: {
     span: Span;
@@ -82,7 +82,7 @@ export class SpanView {
       labelOffsetTop: 1,
       errorTriangleColor: '#ff0000',
       errorTriangleSize: 10
-    });
+    } as SpanViewStyle);
     this.computedStyles = {
       ...style,
       width: 0,
