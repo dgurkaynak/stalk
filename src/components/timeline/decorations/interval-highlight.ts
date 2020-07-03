@@ -44,9 +44,10 @@ export default class IntervalHighlightDecoration extends BaseDecoration {
   }
 
   update() {
+    const timelineComputedStyles = this.timelineView.getComputedStyles();
     const height = Math.max(
-      this.timelineView.contentHeight,
-      this.timelineView.height
+      timelineComputedStyles.contentHeight,
+      timelineComputedStyles.height
     );
     this.rect.setAttribute('height', height + '');
     this.lineLeft.setAttribute('y2', height + '');

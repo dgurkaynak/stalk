@@ -52,9 +52,10 @@ export default class LogHighlightDecoration extends BaseDecoration {
     this.line.setAttribute('x1', '0');
     this.line.setAttribute('x2', '0');
     this.line.setAttribute('y1', '0');
+    const timelineComputedStyles = this.timelineView.getComputedStyles();
     const height = Math.max(
-      this.timelineView.contentHeight,
-      this.timelineView.height
+      timelineComputedStyles.contentHeight,
+      timelineComputedStyles.height
     );
     this.line.setAttribute('y2', height + '');
     this.line.setAttribute('stroke', this.settings.lineColor);

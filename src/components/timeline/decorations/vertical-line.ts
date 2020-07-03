@@ -65,9 +65,10 @@ export default class VerticalLineDecoration extends BaseDecoration {
   update() {
     if (this.settings.timestamp == 0) return;
 
+    const timelineComputedStyles = this.timelineView.getComputedStyles();
     const height = Math.max(
-      this.timelineView.contentHeight,
-      this.timelineView.height
+      timelineComputedStyles.contentHeight,
+      timelineComputedStyles.height
     );
     this.line.setAttribute('y2', height + '');
 
@@ -79,15 +80,15 @@ export default class VerticalLineDecoration extends BaseDecoration {
     const x = this.timelineView.axis.input2output(this.settings.timestamp);
 
     if (!isNaN(x)) {
-      const isOnLeftSide = x <= this.timelineView.width / 2;
+      const isOnLeftSide = x <= timelineComputedStyles.width / 2;
       const textX = isOnLeftSide
         ? x + this.settings.timeOffsetToLine
         : x - this.settings.timeOffsetToLine;
       this.line.setAttribute('transform', `translate(${x}, 0)`);
       const textY =
-        this.timelineView.height -
+      timelineComputedStyles.height -
         this.settings.timeOffsetToBottom -
-        this.timelineView.getPanelTranslateY();
+        timelineComputedStyles.panelTranslateY;
       this.text.setAttribute('transform', `translate(${textX}, ${textY})`);
       this.text.setAttribute('text-anchor', isOnLeftSide ? 'start' : 'end');
     }
