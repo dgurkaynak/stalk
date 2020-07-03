@@ -336,8 +336,6 @@ export class TracesScatterPlot {
       return;
     }
 
-    const s = this.computedStyles;
-
     this.points.forEach(p => {
       const x = this.getX(p.trace.startTime);
       const y = this.getY(p.trace.duration);
@@ -348,7 +346,46 @@ export class TracesScatterPlot {
   }
 
   private updateTicks() {
-    // TODO
+    const s = this.computedStyles;
+
+    this.yAxisTicks.forEach(t => {
+      const y = this.getY(t.duration);
+
+      t.tickLine.setAttribute(
+        'x1',
+        `${s.axisMarginLeft - s.axisTickLength / 2}`
+      );
+      t.tickLine.setAttribute(
+        'x2',
+        `${s.axisMarginLeft + s.axisTickLength / 2}`
+      );
+      t.tickLine.setAttribute('y1', `${y}`);
+      t.tickLine.setAttribute('y2', `${y}`);
+    });
+
+    this.xAxisTicks.forEach(t => {
+      const x = this.getX(t.ts);
+
+      t.tickLine.setAttribute('x1', `${x}`);
+      t.tickLine.setAttribute('x2', `${x}`);
+      t.tickLine.setAttribute(
+        'y1',
+        `${s.height - s.axisMarginBottom - s.axisTickLength / 2}`
+      );
+      t.tickLine.setAttribute(
+        'y2',
+        `${s.height - s.axisMarginBottom + s.axisTickLength / 2}`
+      );
+
+      t.labelText.setAttribute('x', `${x}`);
+      t.labelText.setAttribute(
+        'y',
+        `${s.height -
+          s.axisMarginBottom +
+          s.axisTickLength / 2 +
+          s.axisTickLabelOffset}`
+      );
+    });
   }
 
   private getX(ts: number) {
