@@ -32,28 +32,12 @@ export class SpanGroupViewStyle {
 export class SpanGroupViewComputedStyles extends SpanGroupViewStyle {
   y: number;
   isCollapsed: boolean;
+  height: number; // in px
 }
 
 export class SpanGroupView {
   readonly spanGroup: SpanGroup;
   private spanViews: { [key: string]: SpanView } = {};
-  get heightInRows() {
-    return this.rowsAndSpanIntervals.length;
-  } // How many rows containing
-  get height() {
-    if (this.computedStyles.isCollapsed) {
-      return this.computedStyles.spansContainerMarginTop;
-    }
-
-    const rowHeight =
-      Object.values(this.spanViews)[0]?.getComputedStyles().rowHeight ?? 0;
-
-    return (
-      this.computedStyles.spansContainerMarginTop +
-      this.computedStyles.spansContainerMarginBottom +
-      this.heightInRows * rowHeight
-    );
-  }
   private label: string;
 
   private spansContainer = document.createElementNS(SVG_NS, 'g');
@@ -65,7 +49,7 @@ export class SpanGroupView {
   private rowsAndSpanIntervals: number[][][] = [];
   private spanIdToRowIndex: { [key: string]: number } = {};
 
-  private computedStyles: SpanGroupViewComputedStyles;
+  private readonly computedStyles: SpanGroupViewComputedStyles;
 
   constructor(options: {
     group: SpanGroup;
@@ -93,6 +77,27 @@ export class SpanGroupView {
       height: 0,
       isCollapsed: false
     };
+    Object.defineProperty(this.computedStyles, 'height', {
+      get: () => {
+        const {
+          isCollapsed,
+          spansContainerMarginTop,
+          spansContainerMarginBottom
+        } = this.computedStyles;
+        if (isCollapsed) {
+          return spansContainerMarginTop;
+        }
+
+        const rowHeight =
+          Object.values(this.spanViews)[0]?.getComputedStyles().rowHeight ?? 0;
+
+        return (
+          spansContainerMarginTop +
+          spansContainerMarginBottom +
+          this.rowsAndSpanIntervals.length * rowHeight
+        );
+      }
+    });
 
     this.seperatorLine.setAttribute('x1', '0');
     this.seperatorLine.setAttribute('x2', '0');

@@ -606,7 +606,7 @@ export class TimelineView extends EventEmitter {
 
     this.groupViews.forEach((groupView, i) => {
       groupView.updatePosition({ y });
-      y += groupView.height;
+      y += groupView.getComputedStyles().height;
     });
 
     this._contentHeight = y;
