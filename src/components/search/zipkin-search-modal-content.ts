@@ -645,7 +645,7 @@ export class ZipkinSearchModalContent {
     if (!modal) throw new Error(`Could not find modal instance`);
     modal.close({ data: { action: 'addToStage', traces } });
 
-    this.tracesTable.deselectAll();
+    this.tracesTable.selectTrace(null);
   }
 
   private toggleRightPanelOverlay(

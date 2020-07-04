@@ -298,7 +298,7 @@ export class SearchModalTracesTableView extends EventEmitter {
     if (e.which == 27) {
       const selectedRows = this.table.getSelectedRows();
       if (selectedRows.length == 0) return;
-      this.deselectAll();
+      this.selectTrace(null);
       e.stopPropagation(); // for modal closing
       return;
     }
@@ -337,8 +337,26 @@ export class SearchModalTracesTableView extends EventEmitter {
     this.table.redraw(forceRerender);
   }
 
-  deselectAll() {
+  selectTrace(traceId: string) {
+    if (!traceId) {
+      this.table.deselectRow();
+      return;
+    }
+
+    const row = this.table.getRow(traceId);
+    if (!row) {
+      this.table.deselectRow();
+      return;
+    }
+
     this.table.deselectRow();
+    row.select();
+  }
+
+  focusTrace(traceId: string) {
+    const row = this.table.getRow(traceId);
+    if (!row) return;
+    this.table.scrollToRow(traceId);
   }
 
   mount(parentEl: HTMLElement) {
