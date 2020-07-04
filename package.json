@@ -19,7 +19,7 @@
   "scripts": {
     "build": "webpack --mode production",
     "commit": "git-cz",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "format": "prettier --write .",
     "package": "electron-builder --dir",
     "distribute": "electron-builder",
     "start:electron": "node scripts/electron-wait-webpack-dev-server.js",
