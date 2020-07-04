@@ -67,7 +67,7 @@
     "object-hash": "^2.0.3",
     "opentracing": "^0.14.4",
     "parse-duration": "^0.1.1",
-    "prettier": "1.19.1",
+    "prettier": "2.0.5",
     "raw-loader": "^3.1.0",
     "shortid": "^2.2.15",
     "source-map-loader": "^0.2.4",
