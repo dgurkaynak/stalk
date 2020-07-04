@@ -1,11 +1,13 @@
 import { Trace } from '../../model/trace';
 import defaults from 'lodash/defaults';
+import find from 'lodash/find';
 import map from '../../utils/map';
 import { MPN65ColorAssigner } from '../ui/color-assigner-mpn65';
 import ticks from '../../utils/ticks';
 import { formatMicroseconds } from '../../utils/format-microseconds';
 import isSameDay from 'date-fns/isSameDay';
 import format from 'date-fns/format';
+import EventEmitter from 'events';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -24,6 +26,7 @@ export interface TracesScatterPlotStyle {
   axisLineColor: string;
   axisLineWidth: number;
   pointFillOpacity: number;
+  pointFillOpacityHover: number;
   pointRadius: number;
   pointsMarginLeft: number;
   pointsMarginTop: number;
@@ -37,7 +40,13 @@ export interface TracesScatterPlotComputedStyles
   height: number;
 }
 
-export class TracesScatterPlot {
+export enum TracesScatterPlotEvent {
+  POINT_HOVERED = 'tsp_point_hovered',
+  POINT_UNHOVERED = 'tsp_point_unhovered',
+  POINT_CLICKED = 'tsp_point_clicked'
+}
+
+export class TracesScatterPlot extends EventEmitter {
   private elements = {
     svg: document.createElementNS(SVG_NS, 'svg'),
     defs: document.createElementNS(SVG_NS, 'defs'),
@@ -55,7 +64,7 @@ export class TracesScatterPlot {
     maxStartTime: number;
   };
   private points: {
-    trace: Trace;
+    trace: Trace; // You can rename this as `data`, you can take its type from generic
     circle: SVGCircleElement;
   }[] = [];
   private xAxisTicks: {
@@ -69,7 +78,20 @@ export class TracesScatterPlot {
     labelText: SVGTextElement;
   }[] = [];
 
+  private hoveredPoint: {
+    trace: Trace;
+    circle: SVGCircleElement;
+  };
+
+  private binded = {
+    onMouseMove: this.onMouseMove.bind(this),
+    onMouseLeave: this.onMouseLeave.bind(this),
+    onClick: this.onClick.bind(this)
+  };
+
   constructor(options?: { style?: TracesScatterPlotStyle }) {
+    super();
+
     const style = defaults(options?.style, {
       xAxisTickInterval: 250,
       yAxisTickInterval: 80,
@@ -85,6 +107,7 @@ export class TracesScatterPlot {
       axisLineColor: '#999',
       axisLineWidth: 1,
       pointFillOpacity: 0.5,
+      pointFillOpacityHover: 1.0,
       pointRadius: 5,
       pointsMarginLeft: 20,
       pointsMarginTop: 10,
@@ -119,6 +142,19 @@ export class TracesScatterPlot {
     yAxisLine.setAttribute('stroke-width', `${style.axisLineWidth}`);
     yAxisLine.setAttribute('shape-rendering', `crispEdges`); // https://stackoverflow.com/a/34229584
     chartContainer.appendChild(yAxisLine);
+
+    // Bind events
+    this.elements.svg.addEventListener(
+      'mousemove',
+      this.binded.onMouseMove,
+      false
+    );
+    this.elements.svg.addEventListener(
+      'mouseleave',
+      this.binded.onMouseLeave,
+      false
+    );
+    this.elements.svg.addEventListener('click', this.binded.onClick, false);
   }
 
   mount(parentElement: HTMLDivElement) {
@@ -174,6 +210,8 @@ export class TracesScatterPlot {
       circle.setAttribute('r', `${s.pointRadius}`);
       circle.setAttribute('fill', `${this.colorAssigner.colorFor(trace.name)}`);
       circle.setAttribute('opacity', `${s.pointFillOpacity}`);
+      circle.setAttribute('cursor', `pointer`);
+      circle.setAttribute('data-trace-id', `${trace.id}`);
 
       this.elements.chartContainer.appendChild(circle);
 
@@ -408,5 +446,77 @@ export class TracesScatterPlot {
       s.height - s.axisMarginBottom - s.pointsMarginBottom,
       s.axisMarginTop + s.pointsMarginTop
     );
+  }
+
+  private onMouseMove(e: MouseEvent) {
+    const newHoveredPoint = this.getPointFromMouseEvent(e);
+    const s = this.computedStyles;
+
+    if (
+      this.hoveredPoint &&
+      this.hoveredPoint.trace.id != newHoveredPoint?.trace.id
+    ) {
+      const unhoveredPoint = this.hoveredPoint;
+      this.hoveredPoint = null;
+      unhoveredPoint.circle.setAttribute('opacity', `${s.pointFillOpacity}`);
+      this.emit(TracesScatterPlotEvent.POINT_UNHOVERED, unhoveredPoint.trace);
+    }
+
+    if (newHoveredPoint) {
+      newHoveredPoint.circle.setAttribute(
+        'opacity',
+        `${s.pointFillOpacityHover}`
+      );
+      this.hoveredPoint = newHoveredPoint;
+      this.emit(TracesScatterPlotEvent.POINT_HOVERED, newHoveredPoint);
+    }
+  }
+
+  private onMouseLeave(e: MouseEvent) {
+    if (!this.hoveredPoint) {
+      return;
+    }
+
+    const s = this.computedStyles;
+    const unhoveredPoint = this.hoveredPoint;
+    this.hoveredPoint = null;
+    unhoveredPoint.circle.setAttribute('opacity', `${s.pointFillOpacity}`);
+    this.emit(TracesScatterPlotEvent.POINT_UNHOVERED, unhoveredPoint.trace);
+  }
+
+  private onClick(e: MouseEvent) {
+    const clickedPoint = this.getPointFromMouseEvent(e);
+    if (!clickedPoint) {
+      return;
+    }
+
+    this.emit(TracesScatterPlotEvent.POINT_CLICKED, clickedPoint.trace);
+  }
+
+  private getPointFromMouseEvent(e: MouseEvent) {
+    let element = e.target as SVGElement | null;
+
+    while (element && element !== this.elements.svg) {
+      if (element.hasAttribute('data-trace-id')) {
+        const traceId = element.getAttribute('data-trace-id');
+        return find(this.points, p => p.trace.id == traceId);
+      }
+      element = (element.parentElement as unknown) as SVGElement;
+    }
+  }
+
+  dispose() {
+    // Unbind events
+    this.elements.svg.removeEventListener(
+      'mousemove',
+      this.binded.onMouseMove,
+      false
+    );
+    this.elements.svg.removeEventListener(
+      'mouseleave',
+      this.binded.onMouseLeave,
+      false
+    );
+    this.elements.svg.removeEventListener('click', this.binded.onClick, false);
   }
 }
