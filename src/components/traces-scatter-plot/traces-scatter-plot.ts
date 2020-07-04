@@ -8,6 +8,8 @@ import { formatMicroseconds } from '../../utils/format-microseconds';
 import isSameDay from 'date-fns/isSameDay';
 import format from 'date-fns/format';
 import EventEmitter from 'events';
+import { TraceTooltipContent } from '../trace-tooltip/trace-tooltip-content';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -56,6 +58,13 @@ export class TracesScatterPlot extends EventEmitter {
   };
   private readonly computedStyles: TracesScatterPlotComputedStyles;
   private colorAssigner = new MPN65ColorAssigner();
+
+  private traceTooltipTippy: TippyInstance;
+  private traceTooltipContent = new TraceTooltipContent();
+  private traceTooltipStuffCache = {
+    svgBBTop: 0,
+    svgBBLeft: 0
+  };
 
   private sceneStats: {
     minDuration: number;
@@ -106,9 +115,9 @@ export class TracesScatterPlot extends EventEmitter {
       axisMarginRight: 20,
       axisLineColor: '#999',
       axisLineWidth: 1,
-      pointFillOpacity: 0.5,
+      pointFillOpacity: 0.3,
       pointFillOpacityHover: 1.0,
-      pointRadius: 5,
+      pointRadius: 6,
       pointsMarginLeft: 20,
       pointsMarginTop: 10,
       pointsMarginRight: 20,
@@ -155,6 +164,36 @@ export class TracesScatterPlot extends EventEmitter {
       false
     );
     this.elements.svg.addEventListener('click', this.binded.onClick, false);
+
+    // Tooltip
+    this.traceTooltipTippy = tippy(document.body, {
+      lazy: false,
+      duration: 0,
+      updateDuration: 0,
+      trigger: 'custom',
+      arrow: true,
+      content: this.traceTooltipContent.element,
+      multiple: true,
+      placement: 'top',
+      theme: 'trace-tooltip',
+      onCreate(instance) {
+        instance.popperInstance.reference = {
+          clientWidth: 0,
+          clientHeight: 0,
+          getBoundingClientRect() {
+            return {
+              width: 0,
+              height: 0,
+              top: 0,
+              bottom: 0,
+              left: 0,
+              right: 0
+            };
+          }
+        };
+      }
+    });
+    // this.traceTooltipTippy.hide = () => {};
   }
 
   mount(parentElement: HTMLDivElement) {
@@ -347,6 +386,10 @@ export class TracesScatterPlot extends EventEmitter {
     svg.setAttribute('height', `${height}`);
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
+    const svgRect = svg.getBoundingClientRect();
+    this.traceTooltipStuffCache.svgBBTop = svgRect.top;
+    this.traceTooltipStuffCache.svgBBLeft = svgRect.left;
+
     this.updateAxises();
     this.updatePoints();
     this.updateTicks();
@@ -456,6 +499,8 @@ export class TracesScatterPlot extends EventEmitter {
       this.hoveredPoint &&
       this.hoveredPoint.trace.id != newHoveredPoint?.trace.id
     ) {
+      this.traceTooltipTippy.hide();
+
       const unhoveredPoint = this.hoveredPoint;
       this.hoveredPoint = null;
       unhoveredPoint.circle.setAttribute('opacity', `${s.pointFillOpacity}`);
@@ -463,6 +508,31 @@ export class TracesScatterPlot extends EventEmitter {
     }
 
     if (newHoveredPoint) {
+      // Show trace tooltip
+      this.traceTooltipContent.updateTrace(newHoveredPoint.trace);
+      // HACK ALERT: To show tippy.js at custom coordinates
+      Object.assign(this.traceTooltipTippy.popperInstance.reference, {
+        clientWidth: 0,
+        clientHeight: 0,
+        getBoundingClientRect: () => {
+          const { svgBBTop, svgBBLeft } = this.traceTooltipStuffCache;
+          const r = this.computedStyles.pointRadius;
+          const x = Number(newHoveredPoint.circle.getAttribute('cx'));
+          const y = Number(newHoveredPoint.circle.getAttribute('cy'));
+          const top = svgBBTop + y - r;
+          return {
+            width: 0,
+            height: r * 2,
+            top: top,
+            bottom: top + r * 2,
+            left: svgBBLeft + x,
+            right: svgBBLeft + x
+          };
+        }
+      });
+      this.traceTooltipTippy.popperInstance.update();
+      this.traceTooltipTippy.show();
+
       newHoveredPoint.circle.setAttribute(
         'opacity',
         `${s.pointFillOpacityHover}`
@@ -473,6 +543,8 @@ export class TracesScatterPlot extends EventEmitter {
   }
 
   private onMouseLeave(e: MouseEvent) {
+    this.traceTooltipTippy.hide();
+
     if (!this.hoveredPoint) {
       return;
     }
