@@ -19,10 +19,14 @@ import throttle from 'lodash/throttle';
 import find from 'lodash/find';
 import isArray from 'lodash/isArray';
 import flatpickr from 'flatpickr';
+import { TracesScatterPlot } from '../traces-scatter-plot/traces-scatter-plot';
 
 import SvgCircleMedium from '!!raw-loader!@mdi/svg/svg/circle-small.svg';
 import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
 import SvgAlertCircle from '!!raw-loader!@mdi/svg/svg/alert-circle.svg';
+import SvgAlertCircleOutline from '!!raw-loader!@mdi/svg/svg/alert-circle-outline.svg';
+import SvgEmoticonSad from '!!raw-loader!@mdi/svg/svg/emoticon-sad-outline.svg';
+import SvgEmoticonCool from '!!raw-loader!@mdi/svg/svg/emoticon-cool-outline.svg';
 import './zipkin-search-modal-content.css';
 
 export interface ZipkinSearchModalContentOptions {
@@ -47,19 +51,21 @@ export class ZipkinSearchModalContent {
   private dsManager = DataSourceManager.getSingleton();
   private api: ZipkinAPI;
   private tracesTable = new SearchModalTracesTableView();
+  private tracesScatterPlot = new TracesScatterPlot();
   private traceResults: Trace[] = [];
   private selectedTraceIds: string[] = [];
   private customLookbackFlatpickr: flatpickr.Instance;
   private elements = {
     container: document.createElement('div'),
     leftContainer: document.createElement('div'),
-    rightContainer: document.createElement('div'),
+    right: {
+      container: document.createElement('div'),
+      scatterPlotContainer: document.createElement('div'),
+      tableContainer: document.createElement('div'),
+      overlayContainer: document.createElement('div')
+    },
     statusContainer: document.createElement('span'),
     statusContent: document.createElement('div'),
-    tracesTablePlaceholder: {
-      container: document.createElement('div'),
-      text: document.createElement('span')
-    },
     bottom: {
       container: document.createElement('div'),
       selectionText: document.createElement('div'),
@@ -115,8 +121,18 @@ export class ZipkinSearchModalContent {
     els.leftContainer.classList.add('left');
     topContainer.appendChild(els.leftContainer);
 
-    els.rightContainer.classList.add('right');
-    topContainer.appendChild(els.rightContainer);
+    els.right.container.classList.add('right');
+    topContainer.appendChild(els.right.container);
+
+    els.right.scatterPlotContainer.classList.add('scatter-plot-container');
+    els.right.container.appendChild(els.right.scatterPlotContainer);
+
+    els.right.tableContainer.classList.add('table-container');
+    els.right.container.appendChild(els.right.tableContainer);
+
+    els.right.overlayContainer.classList.add('overlay-container');
+    els.right.container.appendChild(els.right.overlayContainer);
+    this.toggleRightPanelOverlay('ready');
 
     // Left container
     const headerContainer = document.createElement('div');
@@ -269,13 +285,6 @@ export class ZipkinSearchModalContent {
       form.appendChild(button);
     }
 
-    // Table placeholder
-    const elsTP = els.tracesTablePlaceholder;
-    elsTP.container.style.display = 'none';
-    elsTP.container.classList.add('tabulator-placeholder');
-    elsTP.text.textContent = 'No traces found';
-    elsTP.container.appendChild(elsTP.text);
-
     // Bottom
     {
       const leftContainer = document.createElement('div');
@@ -356,14 +365,21 @@ export class ZipkinSearchModalContent {
     // Traces table
     // In order to get offsetWidth and height, the dom must be rendered
     // So before calling this `init()` method, ensure that dom is rendered.
-    this.tracesTable.mount(this.elements.rightContainer);
-    const { offsetWidth: w, offsetHeight: h } = this.elements.rightContainer;
+    const { tableContainer } = this.elements.right;
+    this.tracesTable.mount(tableContainer);
     this.tracesTable.init({
-      width: w,
-      height: h,
+      width: tableContainer.offsetWidth,
+      height: tableContainer.offsetHeight,
       showInStageColumn: true,
-      indicateTracesOverlappingWithStage: true,
-      placeholderElement: this.elements.tracesTablePlaceholder.container
+      indicateTracesOverlappingWithStage: true
+    });
+
+    // Traces scatter plot
+    const { scatterPlotContainer } = this.elements.right;
+    this.tracesScatterPlot.mount(scatterPlotContainer);
+    this.tracesScatterPlot.init({
+      width: scatterPlotContainer.offsetWidth,
+      height: scatterPlotContainer.offsetHeight
     });
   }
 
@@ -401,12 +417,19 @@ export class ZipkinSearchModalContent {
   }
 
   onShow() {
-    const { offsetWidth: w, offsetHeight: h } = this.elements.rightContainer;
-    this.tracesTable.resize(w, h);
+    const { tableContainer, scatterPlotContainer } = this.elements.right;
+    this.tracesScatterPlot.resize(
+      scatterPlotContainer.offsetWidth,
+      scatterPlotContainer.offsetHeight
+    );
+    this.tracesTable.resize(
+      tableContainer.offsetWidth,
+      tableContainer.offsetHeight
+    );
+    this.tracesTable.redrawTable(true);
 
     this.testApiAndUpdateStatus();
     this.updateServicesSelect();
-    this.tracesTable.redrawTable(true);
   }
 
   private async updateServicesSelect() {
@@ -474,8 +497,7 @@ export class ZipkinSearchModalContent {
 
     this.traceResults = [];
     this.elements.searchByTraceId.button.disabled = true;
-    this.tracesTable.toggleLoading(true);
-    this.elements.tracesTablePlaceholder.container.style.display = 'none';
+    this.toggleRightPanelOverlay('loading');
 
     try {
       const formEl = this.elements.searchByTraceId;
@@ -483,19 +505,17 @@ export class ZipkinSearchModalContent {
       const traceSpans: Span[] = await this.api.getTrace(formEl.input.value);
 
       this.traceResults = traceSpans.length > 0 ? [new Trace(traceSpans)] : [];
+      this.tracesScatterPlot.setTraces(this.traceResults);
       this.tracesTable.updateTraces(this.traceResults);
 
-      this.elements.tracesTablePlaceholder.container.style.display = '';
+      this.toggleRightPanelOverlay(
+        this.traceResults.length == 0 ? 'no-results' : false
+      );
     } catch (err) {
-      console.error(err);
-      new Noty({
-        text: `Could not search: "${err.message}"`,
-        type: 'error'
-      }).show();
+      this.toggleRightPanelOverlay('error', err.message);
     }
 
     this.elements.searchByTraceId.button.disabled = false;
-    this.tracesTable.toggleLoading(false);
   }
 
   private async onSearchFormSubmit(e: Event) {
@@ -503,8 +523,7 @@ export class ZipkinSearchModalContent {
 
     this.traceResults = [];
     this.elements.search.button.disabled = true;
-    this.tracesTable.toggleLoading(true);
-    this.elements.tracesTablePlaceholder.container.style.display = 'none';
+    this.toggleRightPanelOverlay('loading');
 
     try {
       const formEl = this.elements.search;
@@ -553,18 +572,17 @@ export class ZipkinSearchModalContent {
 
       const traceSpans: Span[][] = await this.api.search(query);
       this.traceResults = traceSpans.map(spans => new Trace(spans));
+      this.tracesScatterPlot.setTraces(this.traceResults);
       this.tracesTable.updateTraces(this.traceResults);
 
-      this.elements.tracesTablePlaceholder.container.style.display = '';
+      this.toggleRightPanelOverlay(
+        this.traceResults.length == 0 ? 'no-results' : false
+      );
     } catch (err) {
-      new Noty({
-        text: err.message,
-        type: 'error'
-      }).show();
+      this.toggleRightPanelOverlay('error', err.message);
     }
 
     this.elements.search.button.disabled = false;
-    this.tracesTable.toggleLoading(false);
   }
 
   private onServiceSelectChange() {
@@ -583,8 +601,15 @@ export class ZipkinSearchModalContent {
   }
 
   private onWindowResize() {
-    const { offsetWidth: w, offsetHeight: h } = this.elements.rightContainer;
-    this.tracesTable.resize(w, h);
+    const { tableContainer, scatterPlotContainer } = this.elements.right;
+    this.tracesScatterPlot.resize(
+      scatterPlotContainer.offsetWidth,
+      scatterPlotContainer.offsetHeight
+    );
+    this.tracesTable.resize(
+      tableContainer.offsetWidth,
+      tableContainer.offsetHeight
+    );
   }
 
   private async onTableSelectionUpdated(
@@ -621,6 +646,65 @@ export class ZipkinSearchModalContent {
     modal.close({ data: { action: 'addToStage', traces } });
 
     this.tracesTable.deselectAll();
+  }
+
+  private toggleRightPanelOverlay(
+    type: 'ready' | 'loading' | 'no-results' | 'error' | false,
+    errorMessage?: string
+  ) {
+    const { overlayContainer } = this.elements.right;
+
+    if (!type) {
+      overlayContainer.style.display = 'none';
+      return;
+    }
+
+    if (type == 'loading') {
+      // Borrowed from https://tobiasahlin.com/spinkit/
+      overlayContainer.innerHTML = `<div class="sk-circle">
+        <div class="sk-circle1 sk-child"></div>
+        <div class="sk-circle2 sk-child"></div>
+        <div class="sk-circle3 sk-child"></div>
+        <div class="sk-circle4 sk-child"></div>
+        <div class="sk-circle5 sk-child"></div>
+        <div class="sk-circle6 sk-child"></div>
+        <div class="sk-circle7 sk-child"></div>
+        <div class="sk-circle8 sk-child"></div>
+        <div class="sk-circle9 sk-child"></div>
+        <div class="sk-circle10 sk-child"></div>
+        <div class="sk-circle11 sk-child"></div>
+        <div class="sk-circle12 sk-child"></div>
+      </div>`;
+      overlayContainer.style.display = '';
+      return;
+    }
+
+    if (type == 'no-results') {
+      overlayContainer.innerHTML = `<div class="message">
+        ${SvgEmoticonSad}
+        <span>No results found</span>
+      </div>`;
+      overlayContainer.style.display = '';
+      return;
+    }
+
+    if (type == 'ready') {
+      overlayContainer.innerHTML = `<div class="message">
+        ${SvgEmoticonCool}
+        <span>Ready to search traces</span>
+      </div>`;
+      overlayContainer.style.display = '';
+      return;
+    }
+
+    if (type == 'error') {
+      overlayContainer.innerHTML = `<div class="message">
+        ${SvgAlertCircleOutline}
+        <span>${errorMessage}</span>
+      </div>`;
+      overlayContainer.style.display = '';
+      return;
+    }
   }
 
   getElement() {
