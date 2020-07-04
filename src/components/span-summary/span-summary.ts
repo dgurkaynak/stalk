@@ -3,14 +3,14 @@ import { Stage, StageEvent } from '../../model/stage';
 import { TimelineView, TimelineViewEvent } from '../timeline/timeline-view';
 import {
   SpansTableView,
-  SpansTableViewEvent
+  SpansTableViewEvent,
 } from '../spans-table/spans-table';
 import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
 import { serviceNameOf } from '../../model/span-grouping/service-name';
 import { formatMicroseconds } from '../../utils/format-microseconds';
 import {
   ContextMenuManager,
-  ContextMenuEvent
+  ContextMenuEvent,
 } from '../ui/context-menu/context-menu-manager';
 
 import SvgAlert from '!!raw-loader!@mdi/svg/svg/alert.svg';
@@ -25,7 +25,7 @@ export class SpanSummaryView {
   private logsTable: LogsTableView;
   private contextMenuManager = ContextMenuManager.getSingleton();
   private elements = {
-    container: document.createElement('div')
+    container: document.createElement('div'),
   };
   private selectedSpanId: string;
 
@@ -34,7 +34,7 @@ export class SpanSummaryView {
     onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
     onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
-    onContextMenu: this.onContextMenu.bind(this)
+    onContextMenu: this.onContextMenu.bind(this),
   };
 
   constructor() {
@@ -121,7 +121,7 @@ export class SpanSummaryView {
       </span>`;
     } else {
       referencesBody = span.references
-        .map(ref => {
+        .map((ref) => {
           const refSpan = mainSpanGroup.get(ref.spanId);
           if (!refSpan) {
             return `<div class="key-value-row">
@@ -204,25 +204,25 @@ export class SpanSummaryView {
           selectItem: {
             type: 'item',
             text: 'Show Span in Timeline View',
-            id: 'showInTimelineView'
+            id: 'showInTimelineView',
           },
           emitEvent: {
             event: ContextMenuEvent.SHOW_SPAN_IN_TIMELINE_VIEW,
-            data: refSpanId
-          }
+            data: refSpanId,
+          },
         },
         {
           selectItem: {
             type: 'item',
             text: 'Show Span in Table View',
-            id: 'showInTableView'
+            id: 'showInTableView',
           },
           emitEvent: {
             event: ContextMenuEvent.SHOW_SPAN_IN_TABLE_VIEW,
-            data: refSpanId
-          }
-        }
-      ]
+            data: refSpanId,
+          },
+        },
+      ],
     });
   }
 

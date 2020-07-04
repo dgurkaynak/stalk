@@ -41,7 +41,7 @@ export class ToolbarMenuList {
     options.headerEl && this.element.appendChild(options.headerEl);
     options.emptyEl && this.element.appendChild(options.emptyEl);
 
-    options.items.forEach(options => {
+    options.items.forEach((options) => {
       this.addItem(options);
     });
   }
@@ -69,7 +69,7 @@ export class ToolbarMenuList {
     const buttonsContainer = document.createElement('div');
     el.appendChild(buttonsContainer);
 
-    options.buttons.forEach(button => {
+    options.buttons.forEach((button) => {
       const buttonEl = document.createElement('div');
       buttonEl.classList.add('button');
       buttonEl.innerHTML = {
@@ -77,7 +77,7 @@ export class ToolbarMenuList {
         pencil: PencilSvgText,
         delete: DeleteSvgText,
         close: CloseSvgText,
-        plus: PlusSvgText
+        plus: PlusSvgText,
       }[button.icon];
       buttonEl.setAttribute('data-menu-list-button-id', button.id);
       buttonsContainer.appendChild(buttonEl);

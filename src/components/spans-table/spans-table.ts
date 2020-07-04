@@ -1,7 +1,7 @@
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
   WidgetToolbarMultiSelect,
-  WidgetToolbarMultiSelectItem
+  WidgetToolbarMultiSelectItem,
 } from '../ui/widget-toolbar/widget-toolbar-multi-select';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
@@ -18,13 +18,13 @@ import cloneDeep from 'lodash/cloneDeep';
 import EventEmitter from 'events';
 import {
   ContextMenuManager,
-  ContextMenuEvent
+  ContextMenuEvent,
 } from '../ui/context-menu/context-menu-manager';
 import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
 import { ModalManager } from '../ui/modal/modal-manager';
 import {
   SpanFilteringFormModalContent,
-  SpanFilteringRawOptions
+  SpanFilteringRawOptions,
 } from '../customization/span-filtering-form-modal-content';
 import Noty from 'noty';
 
@@ -46,7 +46,7 @@ export interface SpanRowData {
 }
 
 export enum SpansTableViewEvent {
-  SPAN_SELECTED = 'span_selected'
+  SPAN_SELECTED = 'span_selected',
 }
 
 export class SpansTableView extends EventEmitter {
@@ -62,13 +62,13 @@ export class SpansTableView extends EventEmitter {
     toolbarBtn: {
       filter: document.createElement('div'),
       removeFilter: document.createElement('div'),
-      columns: document.createElement('div')
+      columns: document.createElement('div'),
     },
-    tableContainer: document.createElement('div')
+    tableContainer: document.createElement('div'),
   };
   private viewPropertiesCache = {
     width: 0,
-    height: 0
+    height: 0,
   };
 
   private binded = {
@@ -88,55 +88,55 @@ export class SpansTableView extends EventEmitter {
     formatProcessTags: this.formatProcessTags.bind(this),
     onRowClick: this.onRowClick.bind(this),
     onRowContext: this.onRowContext.bind(this),
-    onKeyDown: this.onKeyDown.bind(this)
+    onKeyDown: this.onKeyDown.bind(this),
   };
 
   private columnDefinitions = {
     id: { title: 'Span ID', field: 'span.id' } as Tabulator.ColumnDefinition,
     traceId: {
       title: 'Trace ID',
-      field: 'span.traceId'
+      field: 'span.traceId',
     } as Tabulator.ColumnDefinition,
     operationName: {
       title: 'Operation Name',
-      field: 'span.operationName'
+      field: 'span.operationName',
     } as Tabulator.ColumnDefinition,
     serviceName: {
       title: 'Service Name',
-      field: 'serviceName'
+      field: 'serviceName',
     } as Tabulator.ColumnDefinition,
     startTime: {
       title: 'Start Time',
       field: 'span.startTime',
-      formatter: this.binded.formatTimestamp
+      formatter: this.binded.formatTimestamp,
     } as Tabulator.ColumnDefinition,
     finishTime: {
       title: 'Finish Time',
       field: 'span.finishTime',
-      formatter: this.binded.formatTimestamp
+      formatter: this.binded.formatTimestamp,
     } as Tabulator.ColumnDefinition,
     totalTime: {
       title: 'Total Time',
       field: 'totalTime',
-      formatter: this.binded.formatDuration
+      formatter: this.binded.formatDuration,
     } as Tabulator.ColumnDefinition,
     selfTime: {
       title: 'Self Time',
       field: 'selfTime',
-      formatter: this.binded.formatDuration
+      formatter: this.binded.formatDuration,
     } as Tabulator.ColumnDefinition,
     tags: {
       title: 'Tags',
       field: 'span.tags',
       formatter: this.binded.formatTags,
-      headerSort: false
+      headerSort: false,
     } as Tabulator.ColumnDefinition,
     processTags: {
       title: 'Process Tags',
       field: 'span.process.tags',
       formatter: this.binded.formatProcessTags,
-      headerSort: false
-    } as Tabulator.ColumnDefinition
+      headerSort: false,
+    } as Tabulator.ColumnDefinition,
   };
 
   private dropdowns: {
@@ -150,7 +150,7 @@ export class SpansTableView extends EventEmitter {
     onUnselect: this.binded.onColumnsMultiSelectUnselect,
     onSearchInput: this.binded.onColumnsMultiSelectSearchInput,
     items: [],
-    emptyMessage: 'No Spans'
+    emptyMessage: 'No Spans',
   });
 
   private spanFilteringFn: (span: Span) => boolean;
@@ -205,7 +205,7 @@ export class SpansTableView extends EventEmitter {
   init(options: { width: number; height: number }) {
     this.viewPropertiesCache = {
       width: options.width,
-      height: options.height
+      height: options.height,
     };
     this.initTooltips();
     this.initDropdowns();
@@ -232,7 +232,7 @@ export class SpansTableView extends EventEmitter {
     // Prepare initial data
     this.spanRows = this.stage
       .getAllSpans()
-      .map(span => this.span2RowData(span));
+      .map((span) => this.span2RowData(span));
 
     // Init table
     this.table = new Tabulator(this.elements.tableContainer, {
@@ -247,14 +247,14 @@ export class SpansTableView extends EventEmitter {
         this.columnDefinitions.totalTime,
         this.columnDefinitions.selfTime,
         this.columnDefinitions.operationName,
-        this.columnDefinitions.serviceName
+        this.columnDefinitions.serviceName,
       ],
       initialSort: [
-        { column: this.columnDefinitions.startTime.field, dir: 'asc' }
+        { column: this.columnDefinitions.startTime.field, dir: 'asc' },
       ],
       rowClick: this.binded.onRowClick,
       rowContext: this.binded.onRowContext,
-      keybindings: false
+      keybindings: false,
     });
 
     // Init column picker
@@ -269,27 +269,27 @@ export class SpansTableView extends EventEmitter {
         btn.filter,
         {
           content: 'Filter Spans',
-          multiple: true
-        }
-      ]
+          multiple: true,
+        },
+      ],
     ]);
     tooltipManager.addToSingleton([
       [
         btn.removeFilter,
         {
           content: 'Remove Span Filter',
-          multiple: true
-        }
-      ]
+          multiple: true,
+        },
+      ],
     ]);
     tooltipManager.addToSingleton([
       [
         btn.columns,
         {
           content: 'Customize Columns',
-          multiple: true
-        }
-      ]
+          multiple: true,
+        },
+      ],
     ]);
   }
 
@@ -304,14 +304,14 @@ export class SpansTableView extends EventEmitter {
         updateDuration: 0,
         theme: 'widget-toolbar-multi-select',
         trigger: 'click',
-        interactive: true
-      })
+        interactive: true,
+      }),
     };
   }
 
   private async onTraceAdded(trace: Trace) {
     let includesErrorTag = false;
-    trace.spans.forEach(span => {
+    trace.spans.forEach((span) => {
       if (span.tags.hasOwnProperty('error')) includesErrorTag = true;
       this.spanRows.push(this.span2RowData(span));
     });
@@ -321,7 +321,7 @@ export class SpansTableView extends EventEmitter {
       const currentColumns = this.table.getColumnDefinitions();
       const isAdded = !!find(
         currentColumns,
-        col => col.field == getColumnFieldSelectorByTag('error')
+        (col) => col.field == getColumnFieldSelectorByTag('error')
       );
       if (!isAdded) {
         this.addColumnGracefullyBeforeTagsOrProcessTagsColumn({
@@ -329,10 +329,10 @@ export class SpansTableView extends EventEmitter {
           // column struct, see: `onColumnsMultiSelectSelect()` method
           title: getColumnIdByTag('error'),
           field: getColumnFieldSelectorByTag('error'),
-          formatter: cell => {
+          formatter: (cell) => {
             const spanRow = cell.getRow().getData();
             return spanRow.span.tags.error || '';
-          }
+          },
         });
       }
     }
@@ -342,8 +342,8 @@ export class SpansTableView extends EventEmitter {
   }
 
   private async onTraceRemoved(trace: Trace) {
-    trace.spans.forEach(span =>
-      remove(this.spanRows, spanRow => spanRow.span.id == span.id)
+    trace.spans.forEach((span) =>
+      remove(this.spanRows, (spanRow) => spanRow.span.id == span.id)
     );
 
     this.updateColumnsMultiSelectItems();
@@ -354,35 +354,35 @@ export class SpansTableView extends EventEmitter {
     const currentColumns = this.table.getColumnDefinitions();
     const items: WidgetToolbarMultiSelectItem[] = Object.keys(
       this.columnDefinitions
-    ).map(id => {
+    ).map((id) => {
       const def = (this.columnDefinitions as any)[id];
-      const selected = !!find(currentColumns, col => col.field == def.field);
+      const selected = !!find(currentColumns, (col) => col.field == def.field);
       return { id, text: def.title as string, selected };
     });
 
-    Object.keys(this.stage.getAllSpanTags()).forEach(tag => {
+    Object.keys(this.stage.getAllSpanTags()).forEach((tag) => {
       const selected = !!find(
         currentColumns,
-        col => col.field == getColumnFieldSelectorByTag(tag)
+        (col) => col.field == getColumnFieldSelectorByTag(tag)
       );
       items.push({
         id: getColumnIdByTag(tag),
         text: getColumnIdByTag(tag),
         category: 'Span Tags',
-        selected
+        selected,
       });
     });
 
-    Object.keys(this.stage.getAllProcessTags()).forEach(tag => {
+    Object.keys(this.stage.getAllProcessTags()).forEach((tag) => {
       const selected = !!find(
         currentColumns,
-        col => col.field == getColumnFieldSelectorByProcessTag(tag)
+        (col) => col.field == getColumnFieldSelectorByProcessTag(tag)
       );
       items.push({
         id: getColumnIdByProcessTag(tag),
         text: getColumnIdByProcessTag(tag),
         category: 'Process Tags',
-        selected
+        selected,
       });
     });
 
@@ -390,8 +390,8 @@ export class SpansTableView extends EventEmitter {
     // column is added when some trace is added in stage. However that trace
     // removed now, and that column is not existing in future stage state.
     // When that happens, there is no way to remove that columns.
-    currentColumns.forEach(col => {
-      if (!!find(items, item => item.text == col.title)) return;
+    currentColumns.forEach((col) => {
+      if (!!find(items, (item) => item.text == col.title)) return;
       items.push({
         id: col.title,
         text: col.title,
@@ -401,7 +401,7 @@ export class SpansTableView extends EventEmitter {
             : col.title.indexOf(PROCESS_TAG_ID_PREFIX) == 0
             ? 'Process Tags'
             : undefined,
-        selected: true
+        selected: true,
       });
     });
 
@@ -419,10 +419,10 @@ export class SpansTableView extends EventEmitter {
       columnDefinition = {
         title: item.id,
         field: `span.tags.${tagKey}`,
-        formatter: cell => {
+        formatter: (cell) => {
           const spanRow = cell.getRow().getData();
           return spanRow.span.tags[tagKey] || '';
-        }
+        },
       };
     }
 
@@ -431,13 +431,13 @@ export class SpansTableView extends EventEmitter {
       columnDefinition = {
         title: item.id,
         field: `span.process.tags.${tagKey}`,
-        formatter: cell => {
+        formatter: (cell) => {
           const spanRow = cell.getRow().getData();
           const processTags = spanRow.span.process
             ? spanRow.span.process.tags || {}
             : {};
           return processTags[tagKey] || '';
-        }
+        },
       };
     }
 
@@ -453,7 +453,7 @@ export class SpansTableView extends EventEmitter {
     def: Tabulator.ColumnDefinition
   ) {
     const currentColumns = this.table.getColumnDefinitions();
-    const columnDef = find(currentColumns, col => {
+    const columnDef = find(currentColumns, (col) => {
       return (
         col.field == this.columnDefinitions.tags.field ||
         col.field == this.columnDefinitions.processTags.field
@@ -517,7 +517,7 @@ export class SpansTableView extends EventEmitter {
       spanOriginal: span,
       totalTime,
       selfTime,
-      serviceName
+      serviceName,
     };
   }
 
@@ -540,7 +540,7 @@ export class SpansTableView extends EventEmitter {
         if (a < b) return -1;
         return 0;
       })
-      .forEach(tag => {
+      .forEach((tag) => {
         const value = spanRowData.spanOriginal.tags[tag];
 
         html += `<span class="spans-table-tag">${tag}:</span>
@@ -564,7 +564,7 @@ export class SpansTableView extends EventEmitter {
         if (a < b) return -1;
         return 0;
       })
-      .forEach(tag => {
+      .forEach((tag) => {
         const value = spanRowData.spanOriginal.process.tags[tag];
 
         html += `<span class="spans-table-tag">${tag}:</span>
@@ -578,7 +578,7 @@ export class SpansTableView extends EventEmitter {
     const filterFn = this.spanFilteringFn;
     if (filterFn) {
       try {
-        const results = this.spanRows.filter(spanRow => {
+        const results = this.spanRows.filter((spanRow) => {
           // Perform filtering on original span object
           // `spanRow.span` can be modified depending on visible columns by tabulator
           return filterFn(spanRow.spanOriginal);
@@ -593,7 +593,7 @@ export class SpansTableView extends EventEmitter {
             `Unexpected error while filtering spans: "${err.message} <br /><br />"` +
             `Please check your console for further details. Press Command+Option+I or Ctrl+Option+I to ` +
             `open devtools.`,
-          type: 'error'
+          type: 'error',
         }).show();
       }
 
@@ -611,12 +611,12 @@ export class SpansTableView extends EventEmitter {
 
   private showFilterModal() {
     this.spanFilteringFormModalContent = new SpanFilteringFormModalContent({
-      rawOptions: this.spanFilteringRawOptions
+      rawOptions: this.spanFilteringRawOptions,
     });
     const modal = new Modal({
       content: this.spanFilteringFormModalContent.getElement(),
       onClose: this.binded.onSpanFilteringModalClose,
-      shouldAutoFocusFirstElement: true
+      shouldAutoFocusFirstElement: true,
     });
     ModalManager.getSingleton().show(modal);
     this.spanFilteringFormModalContent.init(); // must be called after modal is rendered
@@ -646,7 +646,7 @@ export class SpansTableView extends EventEmitter {
       key: 'custom',
       name: 'Custom',
       rawCode: data.tsCode,
-      compiledCode: data.compiledJSCode
+      compiledCode: data.compiledJSCode,
     };
     this.spanFilteringFn = data.filterBy;
 
@@ -714,7 +714,7 @@ export class SpansTableView extends EventEmitter {
       if (randomCells.length > 2) {
         const widthOfFirstCell = randomCells[0].offsetWidth;
         const areEqual = randomCells.every(
-          el => el.offsetWidth === widthOfFirstCell
+          (el) => el.offsetWidth === widthOfFirstCell
         );
         if (!areEqual) {
           forceRerender = true;
@@ -742,29 +742,29 @@ export class SpansTableView extends EventEmitter {
           selectItem: {
             type: 'item',
             text: 'Show in Timeline View',
-            id: 'showInTimelineView'
+            id: 'showInTimelineView',
           },
           emitEvent: {
             event: ContextMenuEvent.SHOW_SPAN_IN_TIMELINE_VIEW,
-            data: spanRow.span.id
-          }
+            data: spanRow.span.id,
+          },
         },
         {
           selectItem: {
             type: 'item',
             text: 'Copy Span To Clipboard',
             id: 'copyToClipboard',
-            altText: '⌘C'
+            altText: '⌘C',
           },
-          onSelected: () => this.copySpanToClipboard(spanRow.span.id)
-        }
-      ]
+          onSelected: () => this.copySpanToClipboard(spanRow.span.id),
+        },
+      ],
     });
   }
 
   private copySpanToClipboard(spanId: string) {
     if (!spanId) return;
-    const spanRow = find(this.spanRows, row => row.span.id == spanId);
+    const spanRow = find(this.spanRows, (row) => row.span.id == spanId);
     if (!spanRow) return;
     clipboard.writeText(JSON.stringify(spanRow.spanOriginal, null, 4));
   }

@@ -1,7 +1,7 @@
 // Derived from p5.js's map function
 // https://github.com/processing/p5.js/blob/1.0.0/src/math/calculation.js#L459
 
-export default function(
+export default function (
   n: number,
   start1: number,
   stop1: number,

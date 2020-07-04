@@ -6,7 +6,7 @@ import { SpanView, SpanViewSharedOptions } from './span-view';
 import SpanGroupNode from '../../model/span-group/span-group-node';
 import {
   TimelineInteractableElementAttribute,
-  TimelineInteractableElementType
+  TimelineInteractableElementType,
 } from './interaction';
 import defaults from 'lodash/defaults';
 
@@ -15,7 +15,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 export enum SpanGroupLayoutType {
   FILL = 'fill',
   COMPACT = 'compact',
-  WATERFALL = 'waterfall'
+  WATERFALL = 'waterfall',
 }
 
 export class SpanGroupViewStyle {
@@ -69,20 +69,20 @@ export class SpanGroupView {
       labelOffsetX: 3,
       labelOffsetY: 13,
       seperatorLineColor: '#eee',
-      seperatorLineWidth: 1
+      seperatorLineWidth: 1,
     } as SpanGroupViewStyle);
     this.computedStyles = {
       ...style,
       y: 0,
       height: 0,
-      isCollapsed: false
+      isCollapsed: false,
     };
     Object.defineProperty(this.computedStyles, 'height', {
       get: () => {
         const {
           isCollapsed,
           spansContainerMarginTop,
-          spansContainerMarginBottom
+          spansContainerMarginBottom,
         } = this.computedStyles;
         if (isCollapsed) {
           return spansContainerMarginTop;
@@ -96,7 +96,7 @@ export class SpanGroupView {
           spansContainerMarginBottom +
           this.rowsAndSpanIntervals.length * rowHeight
         );
-      }
+      },
     });
 
     this.seperatorLine.setAttribute('x1', '0');
@@ -110,8 +110,9 @@ export class SpanGroupView {
     );
 
     const prefixChar = this.computedStyles.isCollapsed ? '►' : '▼';
-    this.labelText.textContent = `${prefixChar} ${this.label ||
-      this.spanGroup.name}`;
+    this.labelText.textContent = `${prefixChar} ${
+      this.label || this.spanGroup.name
+    }`;
     this.labelText.style.cursor = 'pointer';
     this.labelText.setAttribute('fill', style.labelColor);
     this.labelText.setAttribute('x', '0');
@@ -138,11 +139,11 @@ export class SpanGroupView {
     this.svgDefs = options.svgDefs;
 
     // Set-up span views
-    this.spanGroup.getAll().forEach(span => {
+    this.spanGroup.getAll().forEach((span) => {
       // TODO: Reuse spanviews
       const spanView = new SpanView({
         span,
-        sharedOptions: options.spanViewSharedOptions
+        sharedOptions: options.spanViewSharedOptions,
       });
       spanView.reuse(span);
       this.spanViews[span.id] = spanView;
@@ -160,7 +161,7 @@ export class SpanGroupView {
 
     // Unmount spans
     const spanViews = Object.values(this.spanViews);
-    spanViews.forEach(v => v.dispose());
+    spanViews.forEach((v) => v.dispose());
     this.spanViews = {};
     // TODO: Re-use spanviews!
 
@@ -172,8 +173,9 @@ export class SpanGroupView {
     this.computedStyles.isCollapsed = !this.computedStyles.isCollapsed;
 
     const prefixChar = this.computedStyles.isCollapsed ? '►' : '▼';
-    this.labelText.textContent = `${prefixChar} ${this.label ||
-      this.spanGroup.name}`;
+    this.labelText.textContent = `${prefixChar} ${
+      this.label || this.spanGroup.name
+    }`;
     // this.updateLabelTextDecoration();
 
     this.layout();
@@ -190,14 +192,16 @@ export class SpanGroupView {
   }
 
   setSpanViewSharedOptions(newOptions: SpanViewSharedOptions) {
-    Object.values(this.spanViews).forEach(s => s.setSharedOptions(newOptions));
+    Object.values(this.spanViews).forEach((s) =>
+      s.setSharedOptions(newOptions)
+    );
   }
 
   updatePosition(options: { y: number }) {
     const {
       labelOffsetX,
       labelOffsetY,
-      spansContainerMarginTop
+      spansContainerMarginTop,
     } = this.computedStyles;
     this.spansContainer.setAttribute(
       'transform',
@@ -230,7 +234,7 @@ export class SpanGroupView {
     const spanView = this.spanViews[spanId];
     spanView.mount({
       parent: this.spansContainer,
-      svgDefs: this.svgDefs!
+      svgDefs: this.svgDefs!,
     });
   }
 
@@ -245,7 +249,7 @@ export class SpanGroupView {
     const { spanGroup: group, spanViews } = this;
     const nodeQueue: SpanGroupNode[] = [
       ...group.rootNodes,
-      ...group.orphanNodes
+      ...group.orphanNodes,
     ].sort((a, b) => {
       const spanA = group.get(a.spanId);
       const spanB = group.get(b.spanId);
@@ -256,7 +260,7 @@ export class SpanGroupView {
 
     // If collapsed, hide all the spans
     if (this.computedStyles.isCollapsed) {
-      forEach(spanViews, v => v.unmount());
+      forEach(spanViews, (v) => v.unmount());
 
       this.rowsAndSpanIntervals = [];
       this.spanIdToRowIndex = {};
@@ -289,7 +293,7 @@ export class SpanGroupView {
           availableRowIndex = this.getAvailableRow({
             startTime,
             finishTime,
-            minRowIndex
+            minRowIndex,
           });
           break;
         }
@@ -303,7 +307,7 @@ export class SpanGroupView {
         this.rowsAndSpanIntervals[availableRowIndex] = [];
       this.rowsAndSpanIntervals[availableRowIndex].push([
         startTime,
-        finishTime
+        finishTime,
       ]);
       this.spanIdToRowIndex[node.spanId] = availableRowIndex;
 
@@ -314,7 +318,7 @@ export class SpanGroupView {
 
       spanView.mount({
         parent: this.spansContainer,
-        svgDefs: this.svgDefs!
+        svgDefs: this.svgDefs!,
       });
 
       node.children
@@ -324,7 +328,7 @@ export class SpanGroupView {
           return spanA.startTime - spanB.startTime;
         })
         .reverse() // because we're unshifting
-        .forEach(childNode => nodeQueue.unshift(childNode));
+        .forEach((childNode) => nodeQueue.unshift(childNode));
 
       i++;
     } // while loop ended
@@ -332,7 +336,7 @@ export class SpanGroupView {
 
   handleAxisTranslate() {
     // Traverse just visible spans
-    Object.keys(this.spanIdToRowIndex).forEach(spanId => {
+    Object.keys(this.spanIdToRowIndex).forEach((spanId) => {
       const spanView = this.spanViews[spanId];
       spanView.updateHorizontalPosition();
     });
@@ -340,7 +344,7 @@ export class SpanGroupView {
 
   handleAxisZoom() {
     // Traverse just visible spans
-    Object.keys(this.spanIdToRowIndex).forEach(spanId => {
+    Object.keys(this.spanIdToRowIndex).forEach((spanId) => {
       const spanView = this.spanViews[spanId];
       const rowIndex = this.spanIdToRowIndex[spanId];
       spanView.updateVerticalPosition(rowIndex, true);
@@ -351,7 +355,7 @@ export class SpanGroupView {
 
   handleAxisUpdate() {
     // Traverse just visible spans
-    Object.keys(this.spanIdToRowIndex).forEach(spanId => {
+    Object.keys(this.spanIdToRowIndex).forEach((spanId) => {
       const spanView = this.spanViews[spanId];
       const rowIndex = this.spanIdToRowIndex[spanId];
       spanView.updateVerticalPosition(rowIndex, true);
@@ -393,7 +397,7 @@ export class SpanGroupView {
 
   static getPropsFromLabelText(el: Element) {
     return {
-      id: el.getAttribute('data-group-id')
+      id: el.getAttribute('data-group-id'),
     };
   }
 }

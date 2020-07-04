@@ -18,7 +18,7 @@ export default class IntervalHighlightDecoration extends BaseDecoration {
     lineColor: '#000',
     lineWidth: 1,
     lineDashArray: '2',
-    fillColor: 'transparent'
+    fillColor: 'transparent',
   };
   private lineLeft = document.createElementNS(SVG_NS, 'line');
   private lineRight = document.createElementNS(SVG_NS, 'line');
@@ -27,7 +27,7 @@ export default class IntervalHighlightDecoration extends BaseDecoration {
   prepare(settings: IntervalHighlightDecorationSettings) {
     this.settings = defaults(settings, this.settings);
 
-    [this.lineLeft, this.lineRight].forEach(line => {
+    [this.lineLeft, this.lineRight].forEach((line) => {
       line.setAttribute('x1', '0');
       line.setAttribute('x2', '0');
       line.setAttribute('y1', '0');

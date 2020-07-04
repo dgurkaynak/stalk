@@ -3,7 +3,7 @@
 //
 // DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 //
-"use strict";
+'use strict';
 
 // var thrift = require('thrift');
 const thrift = require('../../thrift');
@@ -11,11 +11,10 @@ var Thrift = thrift.Thrift;
 var Q = thrift.Q;
 var Int64 = require('node-int64');
 
-
 var ttypes = require('./jaeger_types');
 //HELPER FUNCTIONS AND STRUCTURES
 
-var Collector_submitBatches_args = function(args) {
+var Collector_submitBatches_args = function (args) {
   this.batches = null;
   if (args) {
     if (args.batches !== undefined && args.batches !== null) {
@@ -24,7 +23,7 @@ var Collector_submitBatches_args = function(args) {
   }
 };
 Collector_submitBatches_args.prototype = {};
-Collector_submitBatches_args.prototype.read = function(input) {
+Collector_submitBatches_args.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -35,21 +34,21 @@ Collector_submitBatches_args.prototype.read = function(input) {
     }
     switch (fid) {
       case 1:
-      if (ftype == Thrift.Type.LIST) {
-        this.batches = [];
-        var _rtmp331 = input.readListBegin();
-        var _size30 = _rtmp331.size || 0;
-        for (var _i32 = 0; _i32 < _size30; ++_i32) {
-          var elem33 = null;
-          elem33 = new ttypes.Batch();
-          elem33.read(input);
-          this.batches.push(elem33);
+        if (ftype == Thrift.Type.LIST) {
+          this.batches = [];
+          var _rtmp331 = input.readListBegin();
+          var _size30 = _rtmp331.size || 0;
+          for (var _i32 = 0; _i32 < _size30; ++_i32) {
+            var elem33 = null;
+            elem33 = new ttypes.Batch();
+            elem33.read(input);
+            this.batches.push(elem33);
+          }
+          input.readListEnd();
+        } else {
+          input.skip(ftype);
         }
-        input.readListEnd();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        break;
       case 0:
         input.skip(ftype);
         break;
@@ -62,7 +61,7 @@ Collector_submitBatches_args.prototype.read = function(input) {
   return;
 };
 
-Collector_submitBatches_args.prototype.write = function(output) {
+Collector_submitBatches_args.prototype.write = function (output) {
   output.writeStructBegin('Collector_submitBatches_args');
   if (this.batches !== null && this.batches !== undefined) {
     output.writeFieldBegin('batches', Thrift.Type.LIST, 1);
@@ -81,16 +80,18 @@ Collector_submitBatches_args.prototype.write = function(output) {
   return;
 };
 
-var Collector_submitBatches_result = function(args) {
+var Collector_submitBatches_result = function (args) {
   this.success = null;
   if (args) {
     if (args.success !== undefined && args.success !== null) {
-      this.success = Thrift.copyList(args.success, [ttypes.BatchSubmitResponse]);
+      this.success = Thrift.copyList(args.success, [
+        ttypes.BatchSubmitResponse,
+      ]);
     }
   }
 };
 Collector_submitBatches_result.prototype = {};
-Collector_submitBatches_result.prototype.read = function(input) {
+Collector_submitBatches_result.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -101,21 +102,21 @@ Collector_submitBatches_result.prototype.read = function(input) {
     }
     switch (fid) {
       case 0:
-      if (ftype == Thrift.Type.LIST) {
-        this.success = [];
-        var _rtmp336 = input.readListBegin();
-        var _size35 = _rtmp336.size || 0;
-        for (var _i37 = 0; _i37 < _size35; ++_i37) {
-          var elem38 = null;
-          elem38 = new ttypes.BatchSubmitResponse();
-          elem38.read(input);
-          this.success.push(elem38);
+        if (ftype == Thrift.Type.LIST) {
+          this.success = [];
+          var _rtmp336 = input.readListBegin();
+          var _size35 = _rtmp336.size || 0;
+          for (var _i37 = 0; _i37 < _size35; ++_i37) {
+            var elem38 = null;
+            elem38 = new ttypes.BatchSubmitResponse();
+            elem38.read(input);
+            this.success.push(elem38);
+          }
+          input.readListEnd();
+        } else {
+          input.skip(ftype);
         }
-        input.readListEnd();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        break;
       case 0:
         input.skip(ftype);
         break;
@@ -128,7 +129,7 @@ Collector_submitBatches_result.prototype.read = function(input) {
   return;
 };
 
-Collector_submitBatches_result.prototype.write = function(output) {
+Collector_submitBatches_result.prototype.write = function (output) {
   output.writeStructBegin('Collector_submitBatches_result');
   if (this.success !== null && this.success !== undefined) {
     output.writeFieldBegin('success', Thrift.Type.LIST, 0);
@@ -147,21 +148,25 @@ Collector_submitBatches_result.prototype.write = function(output) {
   return;
 };
 
-var CollectorClient = exports.Client = function(output, pClass) {
+var CollectorClient = (exports.Client = function (output, pClass) {
   this.output = output;
   this.pClass = pClass;
   this._seqid = 0;
   this._reqs = {};
-};
+});
 CollectorClient.prototype = {};
-CollectorClient.prototype.seqid = function() { return this._seqid; };
-CollectorClient.prototype.new_seqid = function() { return this._seqid += 1; };
+CollectorClient.prototype.seqid = function () {
+  return this._seqid;
+};
+CollectorClient.prototype.new_seqid = function () {
+  return (this._seqid += 1);
+};
 
-CollectorClient.prototype.submitBatches = function(batches, callback) {
+CollectorClient.prototype.submitBatches = function (batches, callback) {
   this._seqid = this.new_seqid();
   if (callback === undefined) {
     var _defer = Q.defer();
-    this._reqs[this.seqid()] = function(error, result) {
+    this._reqs[this.seqid()] = function (error, result) {
       if (error) {
         _defer.reject(error);
       } else {
@@ -176,19 +181,22 @@ CollectorClient.prototype.submitBatches = function(batches, callback) {
   }
 };
 
-CollectorClient.prototype.send_submitBatches = function(batches) {
+CollectorClient.prototype.send_submitBatches = function (batches) {
   var output = new this.pClass(this.output);
   var params = {
-    batches: batches
+    batches: batches,
   };
   var args = new Collector_submitBatches_args(params);
   try {
-    output.writeMessageBegin('submitBatches', Thrift.MessageType.CALL, this.seqid());
+    output.writeMessageBegin(
+      'submitBatches',
+      Thrift.MessageType.CALL,
+      this.seqid()
+    );
     args.write(output);
     output.writeMessageEnd();
     return this.output.flush();
-  }
-  catch (e) {
+  } catch (e) {
     delete this._reqs[this.seqid()];
     if (typeof output.reset === 'function') {
       output.reset();
@@ -197,8 +205,8 @@ CollectorClient.prototype.send_submitBatches = function(batches) {
   }
 };
 
-CollectorClient.prototype.recv_submitBatches = function(input,mtype,rseqid) {
-  var callback = this._reqs[rseqid] || function() {};
+CollectorClient.prototype.recv_submitBatches = function (input, mtype, rseqid) {
+  var callback = this._reqs[rseqid] || function () {};
   delete this._reqs[rseqid];
   if (mtype == Thrift.MessageType.EXCEPTION) {
     var x = new Thrift.TApplicationException();
@@ -215,53 +223,86 @@ CollectorClient.prototype.recv_submitBatches = function(input,mtype,rseqid) {
   }
   return callback('submitBatches failed: unknown result');
 };
-var CollectorProcessor = exports.Processor = function(handler) {
+var CollectorProcessor = (exports.Processor = function (handler) {
   this._handler = handler;
-};
-CollectorProcessor.prototype.process = function(input, output) {
+});
+CollectorProcessor.prototype.process = function (input, output) {
   var r = input.readMessageBegin();
   if (this['process_' + r.fname]) {
     return this['process_' + r.fname].call(this, r.rseqid, input, output);
   } else {
     input.skip(Thrift.Type.STRUCT);
     input.readMessageEnd();
-    var x = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN_METHOD, 'Unknown function ' + r.fname);
+    var x = new Thrift.TApplicationException(
+      Thrift.TApplicationExceptionType.UNKNOWN_METHOD,
+      'Unknown function ' + r.fname
+    );
     output.writeMessageBegin(r.fname, Thrift.MessageType.EXCEPTION, r.rseqid);
     x.write(output);
     output.writeMessageEnd();
     output.flush();
   }
 };
-CollectorProcessor.prototype.process_submitBatches = function(seqid, input, output) {
+CollectorProcessor.prototype.process_submitBatches = function (
+  seqid,
+  input,
+  output
+) {
   var args = new Collector_submitBatches_args();
   args.read(input);
   input.readMessageEnd();
   if (this._handler.submitBatches.length === 1) {
-    Q.fcall(this._handler.submitBatches.bind(this._handler),
-      args.batches
-    ).then(function(result) {
-      var result_obj = new Collector_submitBatches_result({success: result});
-      output.writeMessageBegin("submitBatches", Thrift.MessageType.REPLY, seqid);
-      result_obj.write(output);
-      output.writeMessageEnd();
-      output.flush();
-    }).catch(function (err) {
-      var result;
-      result = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN, err.message);
-      output.writeMessageBegin("submitBatches", Thrift.MessageType.EXCEPTION, seqid);
-      result.write(output);
-      output.writeMessageEnd();
-      output.flush();
-    });
+    Q.fcall(this._handler.submitBatches.bind(this._handler), args.batches)
+      .then(function (result) {
+        var result_obj = new Collector_submitBatches_result({
+          success: result,
+        });
+        output.writeMessageBegin(
+          'submitBatches',
+          Thrift.MessageType.REPLY,
+          seqid
+        );
+        result_obj.write(output);
+        output.writeMessageEnd();
+        output.flush();
+      })
+      .catch(function (err) {
+        var result;
+        result = new Thrift.TApplicationException(
+          Thrift.TApplicationExceptionType.UNKNOWN,
+          err.message
+        );
+        output.writeMessageBegin(
+          'submitBatches',
+          Thrift.MessageType.EXCEPTION,
+          seqid
+        );
+        result.write(output);
+        output.writeMessageEnd();
+        output.flush();
+      });
   } else {
     this._handler.submitBatches(args.batches, function (err, result) {
       var result_obj;
-      if ((err === null || typeof err === 'undefined')) {
-        result_obj = new Collector_submitBatches_result((err !== null || typeof err === 'undefined') ? err : {success: result});
-        output.writeMessageBegin("submitBatches", Thrift.MessageType.REPLY, seqid);
+      if (err === null || typeof err === 'undefined') {
+        result_obj = new Collector_submitBatches_result(
+          err !== null || typeof err === 'undefined' ? err : { success: result }
+        );
+        output.writeMessageBegin(
+          'submitBatches',
+          Thrift.MessageType.REPLY,
+          seqid
+        );
       } else {
-        result_obj = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN, err.message);
-        output.writeMessageBegin("submitBatches", Thrift.MessageType.EXCEPTION, seqid);
+        result_obj = new Thrift.TApplicationException(
+          Thrift.TApplicationExceptionType.UNKNOWN,
+          err.message
+        );
+        output.writeMessageBegin(
+          'submitBatches',
+          Thrift.MessageType.EXCEPTION,
+          seqid
+        );
       }
       result_obj.write(output);
       output.writeMessageEnd();

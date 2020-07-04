@@ -1,6 +1,6 @@
 export enum DataSourceType {
   JAEGER = 'jaeger',
-  ZIPKIN = 'zipkin'
+  ZIPKIN = 'zipkin',
 }
 
 export interface DataSource {

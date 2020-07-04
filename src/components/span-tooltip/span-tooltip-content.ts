@@ -34,7 +34,7 @@ export class SpanTooltipContent {
     serviceName: document.createElement('span'),
     tags: document.createElement('div'),
     processTags: document.createElement('div'),
-    logs: document.createElement('div')
+    logs: document.createElement('div'),
   };
   private stage = Stage.getSingleton();
   private nearbyLogsCacheId = '';
@@ -45,7 +45,7 @@ export class SpanTooltipContent {
         showNearbyLogs: true,
         showServiceName: false,
         spanTagsToShow: [],
-        processTagsToShow: []
+        processTagsToShow: [],
         // logFieldsToShow: []
       },
       options
@@ -179,7 +179,7 @@ export class SpanTooltipContent {
     const tagKeysSorted = this.options.spanTagsToShow.sort();
     // const tagKeysSorted = Object.keys(span.tags).sort();
     let displayedTagCount = 0;
-    tagKeysSorted.forEach(tagKey => {
+    tagKeysSorted.forEach((tagKey) => {
       const value = span.tags[tagKey];
       if (!value) return;
       const tagEl = document.createElement('div');
@@ -205,7 +205,7 @@ export class SpanTooltipContent {
     //   span.process ? span.process.tags || {} : {}
     // ).sort();
     let displayedTagCount = 0;
-    tagKeysSorted.forEach(tagKey => {
+    tagKeysSorted.forEach((tagKey) => {
       const value = span.process.tags[tagKey];
       if (!value) return;
       const tagEl = document.createElement('div');
@@ -228,7 +228,7 @@ export class SpanTooltipContent {
 
     const previousLogsCacheId = this.nearbyLogsCacheId;
     const nearbyLogs = this.options.spanView.getNearbyLogViews(mouseX);
-    this.nearbyLogsCacheId = nearbyLogs.map(l => l.logView.id).join('');
+    this.nearbyLogsCacheId = nearbyLogs.map((l) => l.logView.id).join('');
 
     // If logs are not changed, early terminate
     if (this.nearbyLogsCacheId == previousLogsCacheId) {
@@ -237,7 +237,7 @@ export class SpanTooltipContent {
 
     els.logs.innerHTML = '';
 
-    nearbyLogs.forEach(log => {
+    nearbyLogs.forEach((log) => {
       const time = formatMicroseconds(
         log.logView.log.timestamp - this.options.axis.getInputRange()[0]
       );
@@ -248,7 +248,7 @@ export class SpanTooltipContent {
 
       // const logFields = this.options.logFieldsToShow;
       const logFields = Object.keys(log.logView.log.fields);
-      logFields.forEach(key => {
+      logFields.forEach((key) => {
         const value = log.logView.log.fields[key];
         const extraClass = ErrorDetection.checkLogField(key, value)
           ? 'error'

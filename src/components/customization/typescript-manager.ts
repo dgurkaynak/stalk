@@ -22,7 +22,7 @@ export class TypeScriptManager {
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       allowNonTsExtensions: true, // this is required somehow
       target: monaco.languages.typescript.ScriptTarget.ES2015,
-      module: monaco.languages.typescript.ModuleKind.None
+      module: monaco.languages.typescript.ModuleKind.None,
     });
 
     this.defaultInterfacesDisposable = monaco.languages.typescript.typescriptDefaults.addExtraLib(
@@ -50,7 +50,7 @@ export class TypeScriptManager {
   static patchMonacoTypescriptToIgnoreDiagnostics() {
     // Original code taken from:
     // https://github.com/microsoft/monaco-typescript/blob/3596f46e41922104181cda3ed981f5a25246882e/src/languageFeatures.ts#L159-L190
-    languageFeatures.DiagnostcsAdapter.prototype._doValidate = function(
+    languageFeatures.DiagnostcsAdapter.prototype._doValidate = function (
       resource: monaco.Uri
     ): void {
       this._worker(resource)
@@ -62,7 +62,7 @@ export class TypeScriptManager {
           const promises: Promise<any[]>[] = [];
           const {
             noSyntaxValidation,
-            noSemanticValidation
+            noSemanticValidation,
           } = this._defaults.getDiagnosticsOptions();
           if (!noSyntaxValidation) {
             promises.push(worker.getSyntacticDiagnostics(resource.toString()));

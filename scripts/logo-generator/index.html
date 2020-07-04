@@ -161,7 +161,7 @@
         '12-uniform.png',
         '12-uniform-bold.png',
         '13-viafont.png',
-        '14-al-valenciaga.png'
+        '14-al-valenciaga.png',
       ];
       const containerBackgroundClasses = [
         'scooter',
@@ -179,7 +179,7 @@
         'bourbon',
         'stellar',
         'mantle',
-        'mirage'
+        'mirage',
       ];
       let images = [];
       let imageData;
@@ -228,12 +228,8 @@
           .max(30)
           .step(1),
         // horizontalResolution: gui.add(settings, 'horizontalResolution').min(5).max(200).step(1),
-        zoom: gui
-          .add(settings, 'zoom')
-          .min(0.1)
-          .max(2)
-          .step(0.01),
-        splitFolder: gui.addFolder('Horizontal Split')
+        zoom: gui.add(settings, 'zoom').min(0.1).max(2).step(0.01),
+        splitFolder: gui.addFolder('Horizontal Split'),
       };
       guiControllers = {
         ...guiControllers,
@@ -256,7 +252,7 @@
           settings,
           'randomizeHorizontalSplits'
         ),
-        stylingFolder: gui.addFolder('Styling')
+        stylingFolder: gui.addFolder('Styling'),
       };
       guiControllers = {
         ...guiControllers,
@@ -298,7 +294,7 @@
         randomizeOpacity: guiControllers.stylingFolder.add(
           settings,
           'randomizeOpacity'
-        )
+        ),
       };
       guiControllers.zoom.onChange(onZoomChange);
       guiControllers.fontImageUrl.onChange(onFontImageOrResolutionChange);
@@ -319,9 +315,11 @@
         images[fontImageUrls.indexOf(settings.fontImageUrl)];
 
       async function main() {
-        images = await Promise.all(fontImageUrls.map((fileName) => {
-          return readImage(`./font-images/${fileName}`);
-        }));
+        images = await Promise.all(
+          fontImageUrls.map((fileName) => {
+            return readImage(`./font-images/${fileName}`);
+          })
+        );
 
         // Initial run
         onFontImageOrResolutionChange();
@@ -360,17 +358,17 @@
       }
 
       function onRowStyleChange() {
-        Array.from(document.querySelectorAll('.row')).forEach(el => {
+        Array.from(document.querySelectorAll('.row')).forEach((el) => {
           el.style.width = `${settings.horizontalFillPercentage * 100}%`;
           el.style.margin = `${settings.barVerticalMargin}px 0`;
         });
       }
 
       function onBarStyleChange() {
-        Array.from(document.querySelectorAll('.row')).forEach(el => {
+        Array.from(document.querySelectorAll('.row')).forEach((el) => {
           el.style.height = `${settings.barHeight}px`;
         });
-        Array.from(document.querySelectorAll('.segment')).forEach(el => {
+        Array.from(document.querySelectorAll('.segment')).forEach((el) => {
           el.style.height = `${settings.barHeight}px`;
           el.style.borderRadius = `${settings.barBorderRadius}px`;
         });
@@ -410,7 +408,7 @@
               imageData.data[i + 0],
               imageData.data[i + 1],
               imageData.data[i + 2],
-              imageData.data[i + 3]
+              imageData.data[i + 3],
             ];
             const value = pixelToBinary([r, g, b, a]);
 
@@ -419,7 +417,7 @@
               lineSegments.push({
                 x: (x - 1) / width,
                 width: 1 / width,
-                value
+                value,
               });
               continue;
             }
@@ -449,11 +447,11 @@
 
       function randomlySplitLineSegments(lineSegmentsByRow) {
         const rv = [];
-        lineSegmentsByRow.forEach(lineSegments => {
+        lineSegmentsByRow.forEach((lineSegments) => {
           const newRow = [];
           rv.push(newRow);
 
-          lineSegments.forEach(lineSegment => {
+          lineSegments.forEach((lineSegment) => {
             if (
               lineSegment.value != 0 ||
               lineSegment.width < settings.minSplitWidth
@@ -476,12 +474,12 @@
             newRow.push({
               x: lineSegment.x,
               width: splitWidth,
-              value: lineSegment.value
+              value: lineSegment.value,
             });
             newRow.push({
               x: lineSegment.x + splitWidth,
               width: lineSegment.width - splitWidth,
-              value: lineSegment.value
+              value: lineSegment.value,
             });
           });
         });

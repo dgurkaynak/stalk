@@ -31,15 +31,15 @@ export class MPN65ColorAssigner {
         'bdbdbd',
         'f43600',
         'e7298a',
-        'e43872'
-      ]
+        'e43872',
+      ],
     });
     const rawColors: string[] = options.shuffle
       ? shuffle(palette('mpn65', 65))
       : palette('mpn65', 65);
 
     if (options.excludeColors!.length > 0) {
-      remove(rawColors, c => options!.excludeColors!.indexOf(c) > -1);
+      remove(rawColors, (c) => options!.excludeColors!.indexOf(c) > -1);
     }
 
     this.colors = rawColors.map((c: string) => `#${c}`);

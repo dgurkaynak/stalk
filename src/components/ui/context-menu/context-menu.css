@@ -33,9 +33,22 @@
   text-transform: uppercase;
   opacity: 0.85;
 }
-.tippy-tooltip.context-menu-theme .item:hover { background: #2B97EF; }
-.tippy-tooltip.context-menu-theme .item.selected { background: #2B97EF; }
-.tippy-tooltip.context-menu-theme .item.selected:hover { background: #288bdb; }
-.tippy-tooltip.context-menu-theme .item.disabled { cursor: default; color: #666; }
-.tippy-tooltip.context-menu-theme .item.disabled svg { fill: #666; }
-.tippy-tooltip.context-menu-theme .item.disabled:hover { background: none; }
+.tippy-tooltip.context-menu-theme .item:hover {
+  background: #2b97ef;
+}
+.tippy-tooltip.context-menu-theme .item.selected {
+  background: #2b97ef;
+}
+.tippy-tooltip.context-menu-theme .item.selected:hover {
+  background: #288bdb;
+}
+.tippy-tooltip.context-menu-theme .item.disabled {
+  cursor: default;
+  color: #666;
+}
+.tippy-tooltip.context-menu-theme .item.disabled svg {
+  fill: #666;
+}
+.tippy-tooltip.context-menu-theme .item.disabled:hover {
+  background: none;
+}

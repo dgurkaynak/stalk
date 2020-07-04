@@ -25,7 +25,7 @@ export default class VerticalLineDecoration extends BaseDecoration {
     timeOffsetToBottom: 10,
     timeOffsetToLine: 5,
     timeFontColor: '#aaa',
-    timeFontSize: 12
+    timeFontSize: 12,
   };
   private line = document.createElementNS(SVG_NS, 'line');
   private text = document.createElementNS(SVG_NS, 'text');
@@ -86,7 +86,7 @@ export default class VerticalLineDecoration extends BaseDecoration {
         : x - this.settings.timeOffsetToLine;
       this.line.setAttribute('transform', `translate(${x}, 0)`);
       const textY =
-      timelineComputedStyles.height -
+        timelineComputedStyles.height -
         this.settings.timeOffsetToBottom -
         timelineComputedStyles.panelTranslateY;
       this.text.setAttribute('transform', `translate(${textX}, ${textY})`);

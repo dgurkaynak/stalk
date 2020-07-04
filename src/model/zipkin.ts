@@ -94,7 +94,7 @@ export class ZipkinAPI {
     if (!isArray(response)) {
       throw new Error('Expected zipkin response must be array');
     }
-    return response.map(rawTrace => convertFromZipkinTrace(rawTrace));
+    return response.map((rawTrace) => convertFromZipkinTrace(rawTrace));
   }
 
   async test() {
@@ -149,8 +149,8 @@ export class ZipkinAPI {
       method: options.method,
       headers: {
         ...this.headers,
-        ...(options.headers || {})
-      }
+        ...(options.headers || {}),
+      },
     });
   }
 }
@@ -200,14 +200,14 @@ export function convertFromZipkinTrace(rawTrace: any) {
       logs: [],
       localEndpoint: isObject(rawSpan.localEndpoint)
         ? rawSpan.localEndpoint
-        : { serviceName: 'unknown' }
+        : { serviceName: 'unknown' },
     };
 
     if (isString(rawSpan.parentId) && rawSpan.parentId.length > 0) {
       span.references.push({
         type: 'childOf',
         traceId: rawSpan.traceId,
-        spanId: rawSpan.parentId
+        spanId: rawSpan.parentId,
       });
     }
 
@@ -215,8 +215,8 @@ export function convertFromZipkinTrace(rawTrace: any) {
       span.logs = rawSpan.annotations.map((anno: any) => ({
         timestamp: anno.timestamp,
         fields: {
-          annotation: anno.value
-        }
+          annotation: anno.value,
+        },
       }));
     }
 

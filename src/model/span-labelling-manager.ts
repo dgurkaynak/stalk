@@ -8,7 +8,7 @@ import { TypeScriptManager } from './../components/customization/typescript-mana
 
 export enum SpanLabellingManagerEvent {
   ADDED = 'slm_added',
-  REMOVED = 'slm_removed'
+  REMOVED = 'slm_removed',
 }
 
 export interface SpanLabellingRawOptions {
@@ -29,7 +29,7 @@ let singletonIns: SpanLabellingManager;
 export class SpanLabellingManager extends EventEmitter {
   private builtInOptions: SpanLabellingOptions[] = [
     operationLabellingOptions,
-    serviceOperationLabellingOptions
+    serviceOperationLabellingOptions,
   ];
   private customOptions: SpanLabellingOptions[] = [];
 
@@ -41,7 +41,7 @@ export class SpanLabellingManager extends EventEmitter {
   async init() {
     await db.open();
     const rawOptions = await db.spanLabellings.toArray();
-    await Promise.all(rawOptions.map(raw => this.add(raw, true)));
+    await Promise.all(rawOptions.map((raw) => this.add(raw, true)));
   }
 
   async add(raw: SpanLabellingRawOptions, doNotPersistToDatabase = false) {
@@ -50,10 +50,10 @@ export class SpanLabellingManager extends EventEmitter {
     const options: SpanLabellingOptions = {
       key: raw.key,
       name: raw.name,
-      labelBy: TypeScriptManager.generateFunction(raw.compiledCode, 'labelBy')
+      labelBy: TypeScriptManager.generateFunction(raw.compiledCode, 'labelBy'),
     };
 
-    const keyMatch = find(allOptions, c => c.key === options.key);
+    const keyMatch = find(allOptions, (c) => c.key === options.key);
     if (keyMatch) {
       return false;
     }
@@ -67,7 +67,7 @@ export class SpanLabellingManager extends EventEmitter {
   }
 
   async remove(labellingKey: string) {
-    const removeds = remove(this.customOptions, c => c.key === labellingKey);
+    const removeds = remove(this.customOptions, (c) => c.key === labellingKey);
     if (removeds.length === 0) return false;
     await db.spanLabellings.delete(labellingKey);
     this.emit(SpanLabellingManagerEvent.REMOVED, removeds);
@@ -76,20 +76,20 @@ export class SpanLabellingManager extends EventEmitter {
 
   getOptions(labellingKey: string) {
     const allOptions = [...this.builtInOptions, ...this.customOptions];
-    return find(allOptions, c => c.key === labellingKey);
+    return find(allOptions, (c) => c.key === labellingKey);
   }
 }
 
 export const operationLabellingOptions: SpanLabellingOptions = {
   key: 'operation',
   name: 'Operation',
-  labelBy: span => span.operationName
+  labelBy: (span) => span.operationName,
 };
 
 export const serviceOperationLabellingOptions: SpanLabellingOptions = {
   key: 'service-operation',
   name: 'Service + Operation',
-  labelBy: span => {
+  labelBy: (span) => {
     let serviceName = '';
 
     // Jaeger
@@ -101,5 +101,5 @@ export const serviceOperationLabellingOptions: SpanLabellingOptions = {
     }
 
     return `${serviceName}${serviceName ? '::' : ''}${span.operationName}`;
-  }
+  },
 };

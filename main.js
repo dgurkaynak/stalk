@@ -15,7 +15,7 @@ function createWindow() {
   // Remember window state (position & size)
   const mainWindowState = windowStateKeeper({
     defaultWidth: 800,
-    defaultHeight: 600
+    defaultHeight: 600,
   });
 
   // Create the browser window.
@@ -27,7 +27,7 @@ function createWindow() {
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       webSecurity: false,
-      nodeIntegration: true
+      nodeIntegration: true,
     },
     // this is for motherfucking linux:
     // https://github.com/electron-userland/electron-builder/issues/748#issuecomment-406786917
@@ -35,7 +35,7 @@ function createWindow() {
       ['darwin', 'win32'].indexOf(process.platform) > -1
         ? undefined
         : path.join(__dirname, 'assets/icons/64x64.png'),
-    show: false
+    show: false,
   });
 
   // Bind window events & persist
@@ -47,7 +47,7 @@ function createWindow() {
     url.format({
       pathname: path.join(__dirname, './build/index.html'),
       protocol: 'file:',
-      slashes: true
+      slashes: true,
     });
   mainWindow.loadURL(startUrl);
 
@@ -57,7 +57,7 @@ function createWindow() {
   mainWindow.on('ready-to-show', () => mainWindow.show());
 
   // Emitted when the window is closed.
-  mainWindow.on('closed', function() {
+  mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
@@ -92,21 +92,21 @@ app.on('open-file', async (event, filePath) => {
     openFilePathBuffer.push(filePath);
   }
 });
-ipcMain.once('app-initalized', async event => {
+ipcMain.once('app-initalized', async (event) => {
   isAppInitalized = true;
   event.reply('app-initalized-response', {
     openFiles: await Promise.all(
-      openFilePathBuffer.map(filePath => readFileContent(filePath))
-    )
+      openFilePathBuffer.map((filePath) => readFileContent(filePath))
+    ),
   });
 });
 function readFileContent(filePath) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     fs.readFile(filePath, { encoding: 'utf8' }, (err, data) => {
       if (err)
         return resolve({
           name: path.basename(filePath),
-          error: `Could not read file: ${err.message}`
+          error: `Could not read file: ${err.message}`,
         });
       resolve({ name: path.basename(filePath), content: data });
     });
@@ -124,7 +124,7 @@ app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
 app.on('ready', createWindow);
 
 // Quit when all windows are closed.
-app.on('window-all-closed', function() {
+app.on('window-all-closed', function () {
   app.quit();
 });
 

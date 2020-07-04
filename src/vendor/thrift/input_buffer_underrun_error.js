@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-var util = require("util");
+var util = require('util');
 
 module.exports = InputBufferUnderrunError;
 
@@ -25,6 +25,6 @@ function InputBufferUnderrunError(message) {
   Error.captureStackTrace(this, this.constructor);
   this.name = this.constructor.name;
   this.message = message;
-};
+}
 
 util.inherits(InputBufferUnderrunError, Error);

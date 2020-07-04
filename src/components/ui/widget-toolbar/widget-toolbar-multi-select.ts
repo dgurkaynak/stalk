@@ -28,7 +28,7 @@ export class WidgetToolbarMultiSelect {
   private elements = {
     container: document.createElement('div'),
     itemsContainer: document.createElement('div'),
-    searchInput: document.createElement('input')
+    searchInput: document.createElement('input'),
   };
 
   private fuse: Fuse<
@@ -38,7 +38,7 @@ export class WidgetToolbarMultiSelect {
 
   private binded = {
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
-    onItemContainerClick: this.onItemContainerClick.bind(this)
+    onItemContainerClick: this.onItemContainerClick.bind(this),
   };
 
   constructor(private options: WidgetToolbarMultiSelectOptions) {
@@ -82,7 +82,7 @@ export class WidgetToolbarMultiSelect {
   }
 
   getSelectedItems() {
-    return this.options.items.filter(i => i.selected);
+    return this.options.items.filter((i) => i.selected);
   }
 
   render() {
@@ -118,12 +118,12 @@ export class WidgetToolbarMultiSelect {
     // Render w/ category headers
     const itemsByCategories = groupBy(
       this.options.items,
-      item => item.category || ''
+      (item) => item.category || ''
     );
     const categories = Object.keys(itemsByCategories);
     categories.sort();
 
-    categories.forEach(category => {
+    categories.forEach((category) => {
       if (category) {
         const categoryHeaderElement = document.createElement('div');
         categoryHeaderElement.classList.add(
@@ -134,8 +134,8 @@ export class WidgetToolbarMultiSelect {
       }
 
       const items = itemsByCategories[category];
-      const itemsSorted = sortBy(items, item => item.text);
-      itemsSorted.forEach(item => {
+      const itemsSorted = sortBy(items, (item) => item.text);
+      itemsSorted.forEach((item) => {
         const itemElement = document.createElement('div');
         itemElement.setAttribute('data-item-id', item.id);
         itemElement.textContent = item.text;
@@ -148,7 +148,7 @@ export class WidgetToolbarMultiSelect {
   }
 
   select(id: string) {
-    const item = find(this.options.items, item => item.id == id);
+    const item = find(this.options.items, (item) => item.id == id);
     if (!item) return false;
     if (item.disabled) return false;
     const itemEl = this.elements.itemsContainer.querySelector(
@@ -160,7 +160,7 @@ export class WidgetToolbarMultiSelect {
   }
 
   unselect(id: string) {
-    const item = find(this.options.items, item => item.id == id);
+    const item = find(this.options.items, (item) => item.id == id);
     if (!item) return false;
     if (item.disabled) return false;
     const itemEl = this.elements.itemsContainer.querySelector(
@@ -180,7 +180,7 @@ export class WidgetToolbarMultiSelect {
     const itemEl = (e.target as Element).closest('[data-item-id]');
     if (!itemEl) return;
     const itemId = itemEl.getAttribute('data-item-id');
-    const item = find(this.options.items, item => item.id == itemId);
+    const item = find(this.options.items, (item) => item.id == itemId);
     if (!item) return;
 
     if (item.selected) {

@@ -14,20 +14,20 @@ export default class BaseDecoration {
 
   mount() {
     this.underlayElements.forEach(
-      el =>
+      (el) =>
         !el.parentElement &&
         this.timelineView.decorationUnderlayPanel.appendChild(el)
     );
     this.overlayElements.forEach(
-      el =>
+      (el) =>
         !el.parentElement &&
         this.timelineView.decorationOverlayPanel.appendChild(el)
     );
   }
 
   unmount() {
-    this.underlayElements.forEach(el => el.parentElement?.removeChild(el));
-    this.overlayElements.forEach(el => el.parentElement?.removeChild(el));
+    this.underlayElements.forEach((el) => el.parentElement?.removeChild(el));
+    this.overlayElements.forEach((el) => el.parentElement?.removeChild(el));
   }
 
   update(): void {

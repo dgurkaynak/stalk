@@ -4,12 +4,8 @@ import { SpanContext } from './span-context';
 import { BaseReporter } from './base-reporter';
 
 const generateId = () =>
-  Math.random()
-    .toString(16)
-    .substring(2, 10) +
-  Math.random()
-    .toString(16)
-    .substring(2, 10);
+  Math.random().toString(16).substring(2, 10) +
+  Math.random().toString(16).substring(2, 10);
 
 /**
  * StalkTracer inherits opentracing's noop class, with the
@@ -36,7 +32,7 @@ export class Tracer extends opentracing.Tracer {
   addTags(tags: { [key: string]: string }) {
     this._tags = {
       ...this._tags,
-      ...tags
+      ...tags,
     };
   }
 
@@ -112,7 +108,7 @@ export class Tracer extends opentracing.Tracer {
     span.start(fields.startTime);
 
     // Not cool bro
-    this._reporters.forEach(reporter => {
+    this._reporters.forEach((reporter) => {
       if (reporter.accepts.spanCreate) {
         reporter.recieveSpanCreate(span);
       }

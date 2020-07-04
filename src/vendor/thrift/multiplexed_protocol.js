@@ -22,44 +22,58 @@ var Thrift = require('./thrift');
 exports.Multiplexer = Multiplexer;
 
 function Wrapper(serviceName, protocol, connection) {
-
   function MultiplexProtocol(trans, strictRead, strictWrite) {
     protocol.call(this, trans, strictRead, strictWrite);
-  };
+  }
 
   util.inherits(MultiplexProtocol, protocol);
 
-  MultiplexProtocol.prototype.writeMessageBegin = function(name, type, seqid) {
+  MultiplexProtocol.prototype.writeMessageBegin = function (name, type, seqid) {
     if (type == Thrift.MessageType.CALL || type == Thrift.MessageType.ONEWAY) {
       connection.seqId2Service[seqid] = serviceName;
-      MultiplexProtocol.super_.prototype.writeMessageBegin.call(this,
-                                                                serviceName + ":" + name,
-                                                                type,
-                                                                seqid);
+      MultiplexProtocol.super_.prototype.writeMessageBegin.call(
+        this,
+        serviceName + ':' + name,
+        type,
+        seqid
+      );
     } else {
-      MultiplexProtocol.super_.prototype.writeMessageBegin.call(this, name, type, seqid);
+      MultiplexProtocol.super_.prototype.writeMessageBegin.call(
+        this,
+        name,
+        type,
+        seqid
+      );
     }
   };
 
   return MultiplexProtocol;
-};
+}
 
 function Multiplexer() {
   this.seqid = 0;
-};
+}
 
-Multiplexer.prototype.createClient = function(serviceName, ServiceClient, connection) {
+Multiplexer.prototype.createClient = function (
+  serviceName,
+  ServiceClient,
+  connection
+) {
   if (ServiceClient.Client) {
     ServiceClient = ServiceClient.Client;
   }
-  var writeCb = function(buf, seqid) {
-    connection.write(buf,seqid);
+  var writeCb = function (buf, seqid) {
+    connection.write(buf, seqid);
   };
   var transport = new connection.transport(undefined, writeCb);
-  var protocolWrapper = new Wrapper(serviceName, connection.protocol, connection);
+  var protocolWrapper = new Wrapper(
+    serviceName,
+    connection.protocol,
+    connection
+  );
   var client = new ServiceClient(transport, protocolWrapper);
   var self = this;
-  client.new_seqid = function() {
+  client.new_seqid = function () {
     self.seqid += 1;
     return self.seqid;
   };

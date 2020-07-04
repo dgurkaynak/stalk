@@ -10,7 +10,7 @@ import { TypeScriptManager } from '../../components/customization/typescript-man
 
 export enum SpanGroupingManagerEvent {
   ADDED = 'sgm_added',
-  REMOVED = 'sgm_removed'
+  REMOVED = 'sgm_removed',
 }
 
 let singletonIns: SpanGroupingManager;
@@ -19,7 +19,7 @@ export class SpanGroupingManager extends EventEmitter {
   private builtInSpanGroupings: SpanGroupingOptions[] = [
     TraceGrouping,
     ProcessGrouping,
-    ServiceNameGrouping
+    ServiceNameGrouping,
   ];
   private customSpanGroupings: SpanGroupingOptions[] = [];
 
@@ -31,21 +31,21 @@ export class SpanGroupingManager extends EventEmitter {
   async init() {
     await db.open();
     const rawOptions = await db.spanGroupings.toArray();
-    await Promise.all(rawOptions.map(raw => this.add(raw, true)));
+    await Promise.all(rawOptions.map((raw) => this.add(raw, true)));
   }
 
   async add(raw: SpanGroupingRawOptions, doNotPersistToDatabase = false) {
     const allGroupingClasses = [
       ...this.builtInSpanGroupings,
-      ...this.customSpanGroupings
+      ...this.customSpanGroupings,
     ];
     const options: SpanGroupingOptions = {
       key: raw.key,
       name: raw.name,
-      groupBy: TypeScriptManager.generateFunction(raw.compiledCode, 'groupBy')
+      groupBy: TypeScriptManager.generateFunction(raw.compiledCode, 'groupBy'),
     };
 
-    const keyMatch = find(allGroupingClasses, c => c.key === options.key);
+    const keyMatch = find(allGroupingClasses, (c) => c.key === options.key);
     if (keyMatch) {
       return false;
     }
@@ -61,7 +61,7 @@ export class SpanGroupingManager extends EventEmitter {
   async remove(groupingKey: string) {
     const removeds = remove(
       this.customSpanGroupings,
-      c => c.key === groupingKey
+      (c) => c.key === groupingKey
     );
     if (removeds.length === 0) return false;
     await db.spanGroupings.delete(groupingKey);
@@ -72,8 +72,8 @@ export class SpanGroupingManager extends EventEmitter {
   getOptions(groupingKey: string) {
     const allGroupingClasses = [
       ...this.builtInSpanGroupings,
-      ...this.customSpanGroupings
+      ...this.customSpanGroupings,
     ];
-    return find(allGroupingClasses, c => c.key === groupingKey);
+    return find(allGroupingClasses, (c) => c.key === groupingKey);
   }
 }

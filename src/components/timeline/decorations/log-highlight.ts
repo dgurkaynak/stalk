@@ -25,7 +25,7 @@ export default class LogHighlightDecoration extends BaseDecoration {
     circleColor: '#fff',
     circleRadius: 2,
     circleStrokeWidth: 2,
-    circleStrokeColor: '#000'
+    circleStrokeColor: '#000',
   };
   private logTimestamp = 0;
   private groupView: SpanGroupView;

@@ -4,7 +4,7 @@ import { SpanView } from '../span-view';
 import { SpanGroupView } from '../span-group-view';
 import {
   TimelineInteractableElementAttribute,
-  TimelineInteractableElementType
+  TimelineInteractableElementType,
 } from '../interaction';
 import * as shortid from 'shortid';
 
@@ -31,7 +31,7 @@ export class SpanConnectionDecoration extends BaseDecoration {
     strokeDasharray: '0',
     barHeight: 18,
     hoverStrokeWidth: 1,
-    hoverStrokeColor: 'rgba(0, 0, 0, 1)'
+    hoverStrokeColor: 'rgba(0, 0, 0, 1)',
   };
   private container = document.createElementNS(SVG_NS, 'g');
   private spanView1: SpanView;
@@ -201,7 +201,7 @@ export class SpanConnectionDecoration extends BaseDecoration {
     return {
       id: el.getAttribute('data-span-connection-id'),
       fromSpanId: el.getAttribute('data-from-span-id'),
-      toSpanId: el.getAttribute('data-to-span-id')
+      toSpanId: el.getAttribute('data-to-span-id'),
     };
   }
 }

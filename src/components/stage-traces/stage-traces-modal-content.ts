@@ -2,7 +2,7 @@ import { ModalManager } from '../ui/modal/modal-manager';
 import {
   StageTracesTableView,
   StageTracesTableViewEvent,
-  StageTraceRowData
+  StageTraceRowData,
 } from './stage-traces-table';
 import throttle from 'lodash/throttle';
 import { Stage, StageEvent } from '../../model/stage';
@@ -18,14 +18,14 @@ export class StageTracesModalContent {
     topContainer: document.createElement('div'),
     tracesTablePlaceholder: {
       container: document.createElement('div'),
-      text: document.createElement('span')
+      text: document.createElement('span'),
     },
     bottom: {
       container: document.createElement('div'),
       selectionText: document.createElement('div'),
       removeFromStageButton: document.createElement('button'),
-      removeAllButton: document.createElement('button')
-    }
+      removeAllButton: document.createElement('button'),
+    },
   };
   inited = false;
 
@@ -35,7 +35,7 @@ export class StageTracesModalContent {
     onRemoveFromStageButtonClick: this.onRemoveFromStageButtonClick.bind(this),
     onRemoveAllButtonClick: this.onRemoveAllButtonClick.bind(this),
     onTraceAdded: this.onTraceAdded.bind(this),
-    onTraceRemoved: this.onTraceRemoved.bind(this)
+    onTraceRemoved: this.onTraceRemoved.bind(this),
   };
 
   constructor() {
@@ -111,7 +111,7 @@ export class StageTracesModalContent {
     this.tracesTable.init({
       width: w,
       height: h,
-      placeholderElement: this.elements.tracesTablePlaceholder.container
+      placeholderElement: this.elements.tracesTablePlaceholder.container,
     });
     this.inited = true;
   }
@@ -131,7 +131,7 @@ export class StageTracesModalContent {
     // When we try to redraw tabulator while it's already redrawing,
     // it gives an error. So, we apply the most famous javascript workaround ever.
     // await new Promise(resolve => setTimeout(resolve, 0));
-    this.selectedTraceIds = selectedTraces.map(t => t.id);
+    this.selectedTraceIds = selectedTraces.map((t) => t.id);
 
     if (selectedTraces.length == 0) {
       this.elements.bottom.removeFromStageButton.disabled = true;
@@ -153,7 +153,7 @@ export class StageTracesModalContent {
     );
     if (!modal) throw new Error(`Could not find modal instance`);
     modal.close({
-      data: { action: 'removeFromStage', traceIds: this.selectedTraceIds }
+      data: { action: 'removeFromStage', traceIds: this.selectedTraceIds },
     });
 
     this.tracesTable.deselectAll();
@@ -177,8 +177,8 @@ export class StageTracesModalContent {
     modal.close({
       data: {
         action: 'removeFromStage',
-        traceIds: this.stage.getAllTraces().map(t => t.id)
-      }
+        traceIds: this.stage.getAllTraces().map((t) => t.id),
+      },
     });
   }
 

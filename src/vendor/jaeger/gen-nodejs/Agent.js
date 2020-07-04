@@ -3,18 +3,17 @@
 //
 // DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 //
-"use strict";
+'use strict';
 
 const thrift = require('../../thrift');
 var Thrift = thrift.Thrift;
 var Q = thrift.Q;
 var Int64 = require('node-int64');
 
-
 var ttypes = require('./jaeger_types');
 //HELPER FUNCTIONS AND STRUCTURES
 
-var Agent_emitBatch_args = function(args) {
+var Agent_emitBatch_args = function (args) {
   this.batch = null;
   if (args) {
     if (args.batch !== undefined && args.batch !== null) {
@@ -23,7 +22,7 @@ var Agent_emitBatch_args = function(args) {
   }
 };
 Agent_emitBatch_args.prototype = {};
-Agent_emitBatch_args.prototype.read = function(input) {
+Agent_emitBatch_args.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -34,13 +33,13 @@ Agent_emitBatch_args.prototype.read = function(input) {
     }
     switch (fid) {
       case 1:
-      if (ftype == Thrift.Type.STRUCT) {
-        this.batch = new ttypes.Batch();
-        this.batch.read(input);
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.STRUCT) {
+          this.batch = new ttypes.Batch();
+          this.batch.read(input);
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 0:
         input.skip(ftype);
         break;
@@ -53,7 +52,7 @@ Agent_emitBatch_args.prototype.read = function(input) {
   return;
 };
 
-Agent_emitBatch_args.prototype.write = function(output) {
+Agent_emitBatch_args.prototype.write = function (output) {
   output.writeStructBegin('Agent_emitBatch_args');
   if (this.batch !== null && this.batch !== undefined) {
     output.writeFieldBegin('batch', Thrift.Type.STRUCT, 1);
@@ -65,10 +64,9 @@ Agent_emitBatch_args.prototype.write = function(output) {
   return;
 };
 
-var Agent_emitBatch_result = function(args) {
-};
+var Agent_emitBatch_result = function (args) {};
 Agent_emitBatch_result.prototype = {};
-Agent_emitBatch_result.prototype.read = function(input) {
+Agent_emitBatch_result.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -83,28 +81,32 @@ Agent_emitBatch_result.prototype.read = function(input) {
   return;
 };
 
-Agent_emitBatch_result.prototype.write = function(output) {
+Agent_emitBatch_result.prototype.write = function (output) {
   output.writeStructBegin('Agent_emitBatch_result');
   output.writeFieldStop();
   output.writeStructEnd();
   return;
 };
 
-var AgentClient = exports.Client = function(output, pClass) {
+var AgentClient = (exports.Client = function (output, pClass) {
   this.output = output;
   this.pClass = pClass;
   this._seqid = 0;
   this._reqs = {};
-};
+});
 AgentClient.prototype = {};
-AgentClient.prototype.seqid = function() { return this._seqid; };
-AgentClient.prototype.new_seqid = function() { return this._seqid += 1; };
+AgentClient.prototype.seqid = function () {
+  return this._seqid;
+};
+AgentClient.prototype.new_seqid = function () {
+  return (this._seqid += 1);
+};
 
-AgentClient.prototype.emitBatch = function(batch, callback) {
+AgentClient.prototype.emitBatch = function (batch, callback) {
   this._seqid = this.new_seqid();
   if (callback === undefined) {
     var _defer = Q.defer();
-    this._reqs[this.seqid()] = function(error, result) {
+    this._reqs[this.seqid()] = function (error, result) {
       if (error) {
         _defer.reject(error);
       } else {
@@ -119,22 +121,25 @@ AgentClient.prototype.emitBatch = function(batch, callback) {
   }
 };
 
-AgentClient.prototype.send_emitBatch = function(batch) {
+AgentClient.prototype.send_emitBatch = function (batch) {
   var output = new this.pClass(this.output);
   var params = {
-    batch: batch
+    batch: batch,
   };
   var args = new Agent_emitBatch_args(params);
   try {
-    output.writeMessageBegin('emitBatch', Thrift.MessageType.ONEWAY, this.seqid());
+    output.writeMessageBegin(
+      'emitBatch',
+      Thrift.MessageType.ONEWAY,
+      this.seqid()
+    );
     args.write(output);
     output.writeMessageEnd();
     this.output.flush();
-    var callback = this._reqs[this.seqid()] || function() {};
+    var callback = this._reqs[this.seqid()] || function () {};
     delete this._reqs[this.seqid()];
     callback(null);
-  }
-  catch (e) {
+  } catch (e) {
     delete this._reqs[this.seqid()];
     if (typeof output.reset === 'function') {
       output.reset();
@@ -142,27 +147,29 @@ AgentClient.prototype.send_emitBatch = function(batch) {
     throw e;
   }
 };
-var AgentProcessor = exports.Processor = function(handler) {
+var AgentProcessor = (exports.Processor = function (handler) {
   this._handler = handler;
-};
-AgentProcessor.prototype.process = function(input, output) {
+});
+AgentProcessor.prototype.process = function (input, output) {
   var r = input.readMessageBegin();
   if (this['process_' + r.fname]) {
     return this['process_' + r.fname].call(this, r.rseqid, input, output);
   } else {
     input.skip(Thrift.Type.STRUCT);
     input.readMessageEnd();
-    var x = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN_METHOD, 'Unknown function ' + r.fname);
+    var x = new Thrift.TApplicationException(
+      Thrift.TApplicationExceptionType.UNKNOWN_METHOD,
+      'Unknown function ' + r.fname
+    );
     output.writeMessageBegin(r.fname, Thrift.MessageType.EXCEPTION, r.rseqid);
     x.write(output);
     output.writeMessageEnd();
     output.flush();
   }
 };
-AgentProcessor.prototype.process_emitBatch = function(seqid, input, output) {
+AgentProcessor.prototype.process_emitBatch = function (seqid, input, output) {
   var args = new Agent_emitBatch_args();
   args.read(input);
   input.readMessageEnd();
   this._handler.emitBatch(args.batch);
 };
-

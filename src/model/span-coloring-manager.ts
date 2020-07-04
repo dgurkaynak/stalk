@@ -11,7 +11,7 @@ import { Stage } from './stage';
 
 export enum SpanColoringManagerEvent {
   ADDED = 'scm_added',
-  REMOVED = 'scm_removed'
+  REMOVED = 'scm_removed',
 }
 
 export interface SpanColoringRawOptions {
@@ -33,7 +33,7 @@ export class SpanColoringManager extends EventEmitter {
   private builtInOptions: SpanColoringOptions[] = [
     operationColoringOptions,
     serviceColoringOptions,
-    selfTimeColoringOptions
+    selfTimeColoringOptions,
   ];
   private customOptions: SpanColoringOptions[] = [];
 
@@ -45,7 +45,7 @@ export class SpanColoringManager extends EventEmitter {
   async init() {
     await db.open();
     const rawOptions = await db.spanColorings.toArray();
-    await Promise.all(rawOptions.map(raw => this.add(raw, true)));
+    await Promise.all(rawOptions.map((raw) => this.add(raw, true)));
   }
 
   async add(raw: SpanColoringRawOptions, doNotPersistToDatabase = false) {
@@ -54,10 +54,10 @@ export class SpanColoringManager extends EventEmitter {
     const options: SpanColoringOptions = {
       key: raw.key,
       name: raw.name,
-      colorBy: TypeScriptManager.generateFunction(raw.compiledCode, 'colorBy')
+      colorBy: TypeScriptManager.generateFunction(raw.compiledCode, 'colorBy'),
     };
 
-    const keyMatch = find(allOptions, c => c.key === options.key);
+    const keyMatch = find(allOptions, (c) => c.key === options.key);
     if (keyMatch) {
       return false;
     }
@@ -71,7 +71,7 @@ export class SpanColoringManager extends EventEmitter {
   }
 
   async remove(coloringKey: string) {
-    const removeds = remove(this.customOptions, c => c.key === coloringKey);
+    const removeds = remove(this.customOptions, (c) => c.key === coloringKey);
     if (removeds.length === 0) return false;
     await db.spanColorings.delete(coloringKey);
     this.emit(SpanColoringManagerEvent.REMOVED, removeds);
@@ -80,7 +80,7 @@ export class SpanColoringManager extends EventEmitter {
 
   getOptions(coloringKey: string) {
     const allOptions = [...this.builtInOptions, ...this.customOptions];
-    return find(allOptions, c => c.key === coloringKey);
+    return find(allOptions, (c) => c.key === coloringKey);
   }
 }
 
@@ -88,14 +88,14 @@ export const operationColorAssigner = new MPN65ColorAssigner();
 export const operationColoringOptions: SpanColoringOptions = {
   key: 'operation',
   name: 'Operation',
-  colorBy: span => operationColorAssigner.colorFor(span.operationName)
+  colorBy: (span) => operationColorAssigner.colorFor(span.operationName),
 };
 
 export const serviceColorAssigner = new MPN65ColorAssigner();
 export const serviceColoringOptions: SpanColoringOptions = {
   key: 'service',
   name: 'Service',
-  colorBy: span => {
+  colorBy: (span) => {
     let serviceName = '';
 
     // Jaeger
@@ -107,14 +107,14 @@ export const serviceColoringOptions: SpanColoringOptions = {
     }
 
     return serviceColorAssigner.colorFor(serviceName);
-  }
+  },
 };
 
 export const selfTimeColoringScale = chroma.scale('RdYlBu');
 export const selfTimeColoringOptions: SpanColoringOptions = {
   key: 'selfTime',
   name: 'Self Time',
-  colorBy: span => {
+  colorBy: (span) => {
     const stage = Stage.getSingleton();
     const selfTime = stage.getSpanSelfTime(span.id);
     const selfTimeStats = stage.getSpanSelfTimeStats();
@@ -126,5 +126,5 @@ export const selfTimeColoringOptions: SpanColoringOptions = {
     const ratio =
       (selfTime - selfTimeStats.min) / (selfTimeStats.max - selfTimeStats.min);
     return selfTimeColoringScale(1 - ratio).hex();
-  }
+  },
 };

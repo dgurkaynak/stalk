@@ -10,7 +10,7 @@ const Protocol: any = thrift.TBinaryProtocol;
 export enum JaegerCollectorHTTPServerState {
   STOPPED = 'stopped',
   STARTING = 'starting',
-  RUNNING = 'running'
+  RUNNING = 'running',
 }
 
 export class JaegerCollectorHTTPServer {
@@ -24,7 +24,7 @@ export class JaegerCollectorHTTPServer {
   private binded = {
     onRequest: this.onRequest.bind(this),
     onClose: this.onClose.bind(this),
-    onError: this.onError.bind(this)
+    onError: this.onError.bind(this),
   };
 
   getPort() {
@@ -129,7 +129,7 @@ export class JaegerCollectorHTTPServer {
 
     const body: any[] = [];
     request
-      .on('data', chunk => {
+      .on('data', (chunk) => {
         body.push(chunk);
       })
       .on('end', () => {
@@ -148,7 +148,7 @@ export class JaegerCollectorHTTPServer {
         } catch (err) {
           console.error(`Could not parse jaeger batch binary thrift`, {
             err,
-            batch
+            batch,
           });
         }
 

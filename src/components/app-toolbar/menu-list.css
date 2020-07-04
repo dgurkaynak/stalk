@@ -5,7 +5,10 @@
 .tippy-tooltip.app-toolbar-menu-list-theme > .tippy-content > div {
   padding: 0 0 0.3em 0;
 }
-.tippy-tooltip.app-toolbar-menu-list-theme > .tippy-content > div > .app-toolbar-menu-list-item {
+.tippy-tooltip.app-toolbar-menu-list-theme
+  > .tippy-content
+  > div
+  > .app-toolbar-menu-list-item {
   font-size: 1em;
   line-height: 2em;
   padding: 0.25em 0.75em 0 0.75em;
@@ -18,11 +21,15 @@
   overflow: hidden;
   white-space: nowrap;
 }
-.tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item .text.clickable {
+.tippy-tooltip.app-toolbar-menu-list-theme
+  .app-toolbar-menu-list-item
+  .text.clickable {
   cursor: pointer;
   color: rgba(255, 255, 255, 0.75);
 }
-.tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item .text.clickable:hover {
+.tippy-tooltip.app-toolbar-menu-list-theme
+  .app-toolbar-menu-list-item
+  .text.clickable:hover {
   color: rgba(255, 255, 255, 1);
 }
 .tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item > div {
@@ -33,8 +40,18 @@
   cursor: pointer;
   display: inline-flex;
 }
-.tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item .button svg {
+.tippy-tooltip.app-toolbar-menu-list-theme
+  .app-toolbar-menu-list-item
+  .button
+  svg {
   height: 1.3em;
 }
-.tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item svg { fill: rgba(255, 255, 255, 0.75); }
-.tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item .button:hover svg { fill: #fff; }
+.tippy-tooltip.app-toolbar-menu-list-theme .app-toolbar-menu-list-item svg {
+  fill: rgba(255, 255, 255, 0.75);
+}
+.tippy-tooltip.app-toolbar-menu-list-theme
+  .app-toolbar-menu-list-item
+  .button:hover
+  svg {
+  fill: #fff;
+}

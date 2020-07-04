@@ -7,7 +7,7 @@ import { union } from '../utils/interval-helper';
 
 export enum StageEvent {
   TRACE_ADDED = 'trace_added',
-  TRACE_REMOVED = 'trace_removed'
+  TRACE_REMOVED = 'trace_removed',
 }
 
 let _singletonIns: Stage;
@@ -51,7 +51,7 @@ export class Stage extends EventEmitter {
     }
     this.traces[trace.id] = trace;
 
-    trace.spans.forEach(span => {
+    trace.spans.forEach((span) => {
       // Add to main span group
       this.mainSpanGroup.add(span);
 
@@ -62,7 +62,7 @@ export class Stage extends EventEmitter {
       }
 
       // Span log fields
-      span.logs.forEach(log => {
+      span.logs.forEach((log) => {
         for (let field in log.fields) {
           if (!this.logFields[field]) this.logFields[field] = 0;
           this.logFields[field]++;
@@ -81,11 +81,11 @@ export class Stage extends EventEmitter {
     // Span self time
     // We cant do this within previous loop, we need to wait until
     // all the spans are added to group, so tree relations are complete
-    trace.spans.forEach(span => {
+    trace.spans.forEach((span) => {
       const node = this.mainSpanGroup.nodeOf(span);
       const childrenSpans = node.children
-        .filter(node => !!node.parent)
-        .map(n => this.mainSpanGroup.get(n.spanId));
+        .filter((node) => !!node.parent)
+        .map((n) => this.mainSpanGroup.get(n.spanId));
       const childrenTime = union(childrenSpans).reduce((acc, interval) => {
         return acc + (interval.finishTime - interval.startTime);
       }, 0);
@@ -104,7 +104,7 @@ export class Stage extends EventEmitter {
     }
     const trace = this.traces[traceId];
 
-    trace.spans.forEach(span => {
+    trace.spans.forEach((span) => {
       this.mainSpanGroup.remove(span);
 
       // Span tags
@@ -115,7 +115,7 @@ export class Stage extends EventEmitter {
       }
 
       // Span log fields
-      span.logs.forEach(log => {
+      span.logs.forEach((log) => {
         for (let field in log.fields) {
           if (!this.logFields[field]) continue;
           this.logFields[field]--;
@@ -147,7 +147,7 @@ export class Stage extends EventEmitter {
     if (selfTimesArr.length > 0) {
       this.spanSelfTimeStats = {
         min: Math.min(...selfTimesArr),
-        max: Math.max(...selfTimesArr)
+        max: Math.max(...selfTimesArr),
       };
     } else {
       this.spanSelfTimeStats = null;
@@ -167,8 +167,8 @@ export class Stage extends EventEmitter {
   }
 
   getAllLogs() {
-    return flatMap(this.mainSpanGroup.getAll(), span => {
-      return span.logs.map(log => [log, span] as [SpanLog, Span]);
+    return flatMap(this.mainSpanGroup.getAll(), (span) => {
+      return span.logs.map((log) => [log, span] as [SpanLog, Span]);
     });
   }
 

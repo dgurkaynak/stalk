@@ -3,27 +3,26 @@
 //
 // DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 //
-"use strict";
+'use strict';
 
 const thrift = require('../../thrift');
 var Thrift = thrift.Thrift;
 var Q = thrift.Q;
 var Int64 = require('node-int64');
 
-
-var ttypes = module.exports = {};
+var ttypes = (module.exports = {});
 ttypes.TagType = {
-  'STRING' : 0,
-  'DOUBLE' : 1,
-  'BOOL' : 2,
-  'LONG' : 3,
-  'BINARY' : 4
+  STRING: 0,
+  DOUBLE: 1,
+  BOOL: 2,
+  LONG: 3,
+  BINARY: 4,
 };
 ttypes.SpanRefType = {
-  'CHILD_OF' : 0,
-  'FOLLOWS_FROM' : 1
+  CHILD_OF: 0,
+  FOLLOWS_FROM: 1,
 };
-var Tag = module.exports.Tag = function(args) {
+var Tag = (module.exports.Tag = function (args) {
   this.key = null;
   this.vType = null;
   this.vStr = null;
@@ -35,12 +34,18 @@ var Tag = module.exports.Tag = function(args) {
     if (args.key !== undefined && args.key !== null) {
       this.key = args.key;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field key is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field key is unset!'
+      );
     }
     if (args.vType !== undefined && args.vType !== null) {
       this.vType = args.vType;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field vType is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field vType is unset!'
+      );
     }
     if (args.vStr !== undefined && args.vStr !== null) {
       this.vStr = args.vStr;
@@ -58,9 +63,9 @@ var Tag = module.exports.Tag = function(args) {
       this.vBinary = args.vBinary;
     }
   }
-};
+});
 Tag.prototype = {};
-Tag.prototype.read = function(input) {
+Tag.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -71,54 +76,54 @@ Tag.prototype.read = function(input) {
     }
     switch (fid) {
       case 1:
-      if (ftype == Thrift.Type.STRING) {
-        this.key = input.readString();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.STRING) {
+          this.key = input.readString();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 2:
-      if (ftype == Thrift.Type.I32) {
-        this.vType = input.readI32();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I32) {
+          this.vType = input.readI32();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 3:
-      if (ftype == Thrift.Type.STRING) {
-        this.vStr = input.readString();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.STRING) {
+          this.vStr = input.readString();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 4:
-      if (ftype == Thrift.Type.DOUBLE) {
-        this.vDouble = input.readDouble();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.DOUBLE) {
+          this.vDouble = input.readDouble();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 5:
-      if (ftype == Thrift.Type.BOOL) {
-        this.vBool = input.readBool();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.BOOL) {
+          this.vBool = input.readBool();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 6:
-      if (ftype == Thrift.Type.I64) {
-        this.vLong = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.vLong = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 7:
-      if (ftype == Thrift.Type.STRING) {
-        this.vBinary = input.readBinary();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.STRING) {
+          this.vBinary = input.readBinary();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       default:
         input.skip(ftype);
     }
@@ -128,7 +133,7 @@ Tag.prototype.read = function(input) {
   return;
 };
 
-Tag.prototype.write = function(output) {
+Tag.prototype.write = function (output) {
   output.writeStructBegin('Tag');
   if (this.key !== null && this.key !== undefined) {
     output.writeFieldBegin('key', Thrift.Type.STRING, 1);
@@ -170,24 +175,30 @@ Tag.prototype.write = function(output) {
   return;
 };
 
-var Log = module.exports.Log = function(args) {
+var Log = (module.exports.Log = function (args) {
   this.timestamp = null;
   this.fields = null;
   if (args) {
     if (args.timestamp !== undefined && args.timestamp !== null) {
       this.timestamp = args.timestamp;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field timestamp is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field timestamp is unset!'
+      );
     }
     if (args.fields !== undefined && args.fields !== null) {
       this.fields = Thrift.copyList(args.fields, [ttypes.Tag]);
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field fields is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field fields is unset!'
+      );
     }
   }
-};
+});
 Log.prototype = {};
-Log.prototype.read = function(input) {
+Log.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -198,28 +209,28 @@ Log.prototype.read = function(input) {
     }
     switch (fid) {
       case 1:
-      if (ftype == Thrift.Type.I64) {
-        this.timestamp = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-      case 2:
-      if (ftype == Thrift.Type.LIST) {
-        this.fields = [];
-        var _rtmp31 = input.readListBegin();
-        var _size0 = _rtmp31.size || 0;
-        for (var _i2 = 0; _i2 < _size0; ++_i2) {
-          var elem3 = null;
-          elem3 = new ttypes.Tag();
-          elem3.read(input);
-          this.fields.push(elem3);
+        if (ftype == Thrift.Type.I64) {
+          this.timestamp = input.readI64();
+        } else {
+          input.skip(ftype);
         }
-        input.readListEnd();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        break;
+      case 2:
+        if (ftype == Thrift.Type.LIST) {
+          this.fields = [];
+          var _rtmp31 = input.readListBegin();
+          var _size0 = _rtmp31.size || 0;
+          for (var _i2 = 0; _i2 < _size0; ++_i2) {
+            var elem3 = null;
+            elem3 = new ttypes.Tag();
+            elem3.read(input);
+            this.fields.push(elem3);
+          }
+          input.readListEnd();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       default:
         input.skip(ftype);
     }
@@ -229,7 +240,7 @@ Log.prototype.read = function(input) {
   return;
 };
 
-Log.prototype.write = function(output) {
+Log.prototype.write = function (output) {
   output.writeStructBegin('Log');
   if (this.timestamp !== null && this.timestamp !== undefined) {
     output.writeFieldBegin('timestamp', Thrift.Type.I64, 1);
@@ -253,7 +264,7 @@ Log.prototype.write = function(output) {
   return;
 };
 
-var SpanRef = module.exports.SpanRef = function(args) {
+var SpanRef = (module.exports.SpanRef = function (args) {
   this.refType = null;
   this.traceIdLow = null;
   this.traceIdHigh = null;
@@ -262,27 +273,39 @@ var SpanRef = module.exports.SpanRef = function(args) {
     if (args.refType !== undefined && args.refType !== null) {
       this.refType = args.refType;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field refType is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field refType is unset!'
+      );
     }
     if (args.traceIdLow !== undefined && args.traceIdLow !== null) {
       this.traceIdLow = args.traceIdLow;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field traceIdLow is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field traceIdLow is unset!'
+      );
     }
     if (args.traceIdHigh !== undefined && args.traceIdHigh !== null) {
       this.traceIdHigh = args.traceIdHigh;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field traceIdHigh is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field traceIdHigh is unset!'
+      );
     }
     if (args.spanId !== undefined && args.spanId !== null) {
       this.spanId = args.spanId;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field spanId is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field spanId is unset!'
+      );
     }
   }
-};
+});
 SpanRef.prototype = {};
-SpanRef.prototype.read = function(input) {
+SpanRef.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -293,33 +316,33 @@ SpanRef.prototype.read = function(input) {
     }
     switch (fid) {
       case 1:
-      if (ftype == Thrift.Type.I32) {
-        this.refType = input.readI32();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I32) {
+          this.refType = input.readI32();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 2:
-      if (ftype == Thrift.Type.I64) {
-        this.traceIdLow = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.traceIdLow = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 3:
-      if (ftype == Thrift.Type.I64) {
-        this.traceIdHigh = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.traceIdHigh = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 4:
-      if (ftype == Thrift.Type.I64) {
-        this.spanId = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.spanId = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       default:
         input.skip(ftype);
     }
@@ -329,7 +352,7 @@ SpanRef.prototype.read = function(input) {
   return;
 };
 
-SpanRef.prototype.write = function(output) {
+SpanRef.prototype.write = function (output) {
   output.writeStructBegin('SpanRef');
   if (this.refType !== null && this.refType !== undefined) {
     output.writeFieldBegin('refType', Thrift.Type.I32, 1);
@@ -356,7 +379,7 @@ SpanRef.prototype.write = function(output) {
   return;
 };
 
-var Span = module.exports.Span = function(args) {
+var Span = (module.exports.Span = function (args) {
   this.traceIdLow = null;
   this.traceIdHigh = null;
   this.spanId = null;
@@ -372,27 +395,42 @@ var Span = module.exports.Span = function(args) {
     if (args.traceIdLow !== undefined && args.traceIdLow !== null) {
       this.traceIdLow = args.traceIdLow;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field traceIdLow is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field traceIdLow is unset!'
+      );
     }
     if (args.traceIdHigh !== undefined && args.traceIdHigh !== null) {
       this.traceIdHigh = args.traceIdHigh;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field traceIdHigh is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field traceIdHigh is unset!'
+      );
     }
     if (args.spanId !== undefined && args.spanId !== null) {
       this.spanId = args.spanId;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field spanId is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field spanId is unset!'
+      );
     }
     if (args.parentSpanId !== undefined && args.parentSpanId !== null) {
       this.parentSpanId = args.parentSpanId;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field parentSpanId is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field parentSpanId is unset!'
+      );
     }
     if (args.operationName !== undefined && args.operationName !== null) {
       this.operationName = args.operationName;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field operationName is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field operationName is unset!'
+      );
     }
     if (args.references !== undefined && args.references !== null) {
       this.references = Thrift.copyList(args.references, [ttypes.SpanRef]);
@@ -400,17 +438,26 @@ var Span = module.exports.Span = function(args) {
     if (args.flags !== undefined && args.flags !== null) {
       this.flags = args.flags;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field flags is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field flags is unset!'
+      );
     }
     if (args.startTime !== undefined && args.startTime !== null) {
       this.startTime = args.startTime;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field startTime is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field startTime is unset!'
+      );
     }
     if (args.duration !== undefined && args.duration !== null) {
       this.duration = args.duration;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field duration is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field duration is unset!'
+      );
     }
     if (args.tags !== undefined && args.tags !== null) {
       this.tags = Thrift.copyList(args.tags, [ttypes.Tag]);
@@ -419,9 +466,9 @@ var Span = module.exports.Span = function(args) {
       this.logs = Thrift.copyList(args.logs, [ttypes.Log]);
     }
   }
-};
+});
 Span.prototype = {};
-Span.prototype.read = function(input) {
+Span.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -432,109 +479,109 @@ Span.prototype.read = function(input) {
     }
     switch (fid) {
       case 1:
-      if (ftype == Thrift.Type.I64) {
-        this.traceIdLow = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.traceIdLow = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 2:
-      if (ftype == Thrift.Type.I64) {
-        this.traceIdHigh = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.traceIdHigh = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 3:
-      if (ftype == Thrift.Type.I64) {
-        this.spanId = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.spanId = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 4:
-      if (ftype == Thrift.Type.I64) {
-        this.parentSpanId = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.parentSpanId = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 5:
-      if (ftype == Thrift.Type.STRING) {
-        this.operationName = input.readString();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.STRING) {
+          this.operationName = input.readString();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 6:
-      if (ftype == Thrift.Type.LIST) {
-        this.references = [];
-        var _rtmp36 = input.readListBegin();
-        var _size5 = _rtmp36.size || 0;
-        for (var _i7 = 0; _i7 < _size5; ++_i7) {
-          var elem8 = null;
-          elem8 = new ttypes.SpanRef();
-          elem8.read(input);
-          this.references.push(elem8);
+        if (ftype == Thrift.Type.LIST) {
+          this.references = [];
+          var _rtmp36 = input.readListBegin();
+          var _size5 = _rtmp36.size || 0;
+          for (var _i7 = 0; _i7 < _size5; ++_i7) {
+            var elem8 = null;
+            elem8 = new ttypes.SpanRef();
+            elem8.read(input);
+            this.references.push(elem8);
+          }
+          input.readListEnd();
+        } else {
+          input.skip(ftype);
         }
-        input.readListEnd();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        break;
       case 7:
-      if (ftype == Thrift.Type.I32) {
-        this.flags = input.readI32();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I32) {
+          this.flags = input.readI32();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 8:
-      if (ftype == Thrift.Type.I64) {
-        this.startTime = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.startTime = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 9:
-      if (ftype == Thrift.Type.I64) {
-        this.duration = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.duration = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 10:
-      if (ftype == Thrift.Type.LIST) {
-        this.tags = [];
-        var _rtmp310 = input.readListBegin();
-        var _size9 = _rtmp310.size || 0;
-        for (var _i11 = 0; _i11 < _size9; ++_i11) {
-          var elem12 = null;
-          elem12 = new ttypes.Tag();
-          elem12.read(input);
-          this.tags.push(elem12);
+        if (ftype == Thrift.Type.LIST) {
+          this.tags = [];
+          var _rtmp310 = input.readListBegin();
+          var _size9 = _rtmp310.size || 0;
+          for (var _i11 = 0; _i11 < _size9; ++_i11) {
+            var elem12 = null;
+            elem12 = new ttypes.Tag();
+            elem12.read(input);
+            this.tags.push(elem12);
+          }
+          input.readListEnd();
+        } else {
+          input.skip(ftype);
         }
-        input.readListEnd();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        break;
       case 11:
-      if (ftype == Thrift.Type.LIST) {
-        this.logs = [];
-        var _rtmp314 = input.readListBegin();
-        var _size13 = _rtmp314.size || 0;
-        for (var _i15 = 0; _i15 < _size13; ++_i15) {
-          var elem16 = null;
-          elem16 = new ttypes.Log();
-          elem16.read(input);
-          this.logs.push(elem16);
+        if (ftype == Thrift.Type.LIST) {
+          this.logs = [];
+          var _rtmp314 = input.readListBegin();
+          var _size13 = _rtmp314.size || 0;
+          for (var _i15 = 0; _i15 < _size13; ++_i15) {
+            var elem16 = null;
+            elem16 = new ttypes.Log();
+            elem16.read(input);
+            this.logs.push(elem16);
+          }
+          input.readListEnd();
+        } else {
+          input.skip(ftype);
         }
-        input.readListEnd();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        break;
       default:
         input.skip(ftype);
     }
@@ -544,7 +591,7 @@ Span.prototype.read = function(input) {
   return;
 };
 
-Span.prototype.write = function(output) {
+Span.prototype.write = function (output) {
   output.writeStructBegin('Span');
   if (this.traceIdLow !== null && this.traceIdLow !== undefined) {
     output.writeFieldBegin('traceIdLow', Thrift.Type.I64, 1);
@@ -627,22 +674,25 @@ Span.prototype.write = function(output) {
   return;
 };
 
-var Process = module.exports.Process = function(args) {
+var Process = (module.exports.Process = function (args) {
   this.serviceName = null;
   this.tags = null;
   if (args) {
     if (args.serviceName !== undefined && args.serviceName !== null) {
       this.serviceName = args.serviceName;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field serviceName is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field serviceName is unset!'
+      );
     }
     if (args.tags !== undefined && args.tags !== null) {
       this.tags = Thrift.copyList(args.tags, [ttypes.Tag]);
     }
   }
-};
+});
 Process.prototype = {};
-Process.prototype.read = function(input) {
+Process.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -653,28 +703,28 @@ Process.prototype.read = function(input) {
     }
     switch (fid) {
       case 1:
-      if (ftype == Thrift.Type.STRING) {
-        this.serviceName = input.readString();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-      case 2:
-      if (ftype == Thrift.Type.LIST) {
-        this.tags = [];
-        var _rtmp321 = input.readListBegin();
-        var _size20 = _rtmp321.size || 0;
-        for (var _i22 = 0; _i22 < _size20; ++_i22) {
-          var elem23 = null;
-          elem23 = new ttypes.Tag();
-          elem23.read(input);
-          this.tags.push(elem23);
+        if (ftype == Thrift.Type.STRING) {
+          this.serviceName = input.readString();
+        } else {
+          input.skip(ftype);
         }
-        input.readListEnd();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        break;
+      case 2:
+        if (ftype == Thrift.Type.LIST) {
+          this.tags = [];
+          var _rtmp321 = input.readListBegin();
+          var _size20 = _rtmp321.size || 0;
+          for (var _i22 = 0; _i22 < _size20; ++_i22) {
+            var elem23 = null;
+            elem23 = new ttypes.Tag();
+            elem23.read(input);
+            this.tags.push(elem23);
+          }
+          input.readListEnd();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       default:
         input.skip(ftype);
     }
@@ -684,7 +734,7 @@ Process.prototype.read = function(input) {
   return;
 };
 
-Process.prototype.write = function(output) {
+Process.prototype.write = function (output) {
   output.writeStructBegin('Process');
   if (this.serviceName !== null && this.serviceName !== undefined) {
     output.writeFieldBegin('serviceName', Thrift.Type.STRING, 1);
@@ -708,30 +758,48 @@ Process.prototype.write = function(output) {
   return;
 };
 
-var ClientStats = module.exports.ClientStats = function(args) {
+var ClientStats = (module.exports.ClientStats = function (args) {
   this.fullQueueDroppedSpans = null;
   this.tooLargeDroppedSpans = null;
   this.failedToEmitSpans = null;
   if (args) {
-    if (args.fullQueueDroppedSpans !== undefined && args.fullQueueDroppedSpans !== null) {
+    if (
+      args.fullQueueDroppedSpans !== undefined &&
+      args.fullQueueDroppedSpans !== null
+    ) {
       this.fullQueueDroppedSpans = args.fullQueueDroppedSpans;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field fullQueueDroppedSpans is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field fullQueueDroppedSpans is unset!'
+      );
     }
-    if (args.tooLargeDroppedSpans !== undefined && args.tooLargeDroppedSpans !== null) {
+    if (
+      args.tooLargeDroppedSpans !== undefined &&
+      args.tooLargeDroppedSpans !== null
+    ) {
       this.tooLargeDroppedSpans = args.tooLargeDroppedSpans;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field tooLargeDroppedSpans is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field tooLargeDroppedSpans is unset!'
+      );
     }
-    if (args.failedToEmitSpans !== undefined && args.failedToEmitSpans !== null) {
+    if (
+      args.failedToEmitSpans !== undefined &&
+      args.failedToEmitSpans !== null
+    ) {
       this.failedToEmitSpans = args.failedToEmitSpans;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field failedToEmitSpans is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field failedToEmitSpans is unset!'
+      );
     }
   }
-};
+});
 ClientStats.prototype = {};
-ClientStats.prototype.read = function(input) {
+ClientStats.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -742,26 +810,26 @@ ClientStats.prototype.read = function(input) {
     }
     switch (fid) {
       case 1:
-      if (ftype == Thrift.Type.I64) {
-        this.fullQueueDroppedSpans = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.fullQueueDroppedSpans = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 2:
-      if (ftype == Thrift.Type.I64) {
-        this.tooLargeDroppedSpans = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.tooLargeDroppedSpans = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 3:
-      if (ftype == Thrift.Type.I64) {
-        this.failedToEmitSpans = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.failedToEmitSpans = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       default:
         input.skip(ftype);
     }
@@ -771,14 +839,20 @@ ClientStats.prototype.read = function(input) {
   return;
 };
 
-ClientStats.prototype.write = function(output) {
+ClientStats.prototype.write = function (output) {
   output.writeStructBegin('ClientStats');
-  if (this.fullQueueDroppedSpans !== null && this.fullQueueDroppedSpans !== undefined) {
+  if (
+    this.fullQueueDroppedSpans !== null &&
+    this.fullQueueDroppedSpans !== undefined
+  ) {
     output.writeFieldBegin('fullQueueDroppedSpans', Thrift.Type.I64, 1);
     output.writeI64(this.fullQueueDroppedSpans);
     output.writeFieldEnd();
   }
-  if (this.tooLargeDroppedSpans !== null && this.tooLargeDroppedSpans !== undefined) {
+  if (
+    this.tooLargeDroppedSpans !== null &&
+    this.tooLargeDroppedSpans !== undefined
+  ) {
     output.writeFieldBegin('tooLargeDroppedSpans', Thrift.Type.I64, 2);
     output.writeI64(this.tooLargeDroppedSpans);
     output.writeFieldEnd();
@@ -793,7 +867,7 @@ ClientStats.prototype.write = function(output) {
   return;
 };
 
-var Batch = module.exports.Batch = function(args) {
+var Batch = (module.exports.Batch = function (args) {
   this.process = null;
   this.spans = null;
   this.seqNo = null;
@@ -802,12 +876,18 @@ var Batch = module.exports.Batch = function(args) {
     if (args.process !== undefined && args.process !== null) {
       this.process = new ttypes.Process(args.process);
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field process is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field process is unset!'
+      );
     }
     if (args.spans !== undefined && args.spans !== null) {
       this.spans = Thrift.copyList(args.spans, [ttypes.Span]);
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field spans is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field spans is unset!'
+      );
     }
     if (args.seqNo !== undefined && args.seqNo !== null) {
       this.seqNo = args.seqNo;
@@ -816,9 +896,9 @@ var Batch = module.exports.Batch = function(args) {
       this.stats = new ttypes.ClientStats(args.stats);
     }
   }
-};
+});
 Batch.prototype = {};
-Batch.prototype.read = function(input) {
+Batch.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -829,44 +909,44 @@ Batch.prototype.read = function(input) {
     }
     switch (fid) {
       case 1:
-      if (ftype == Thrift.Type.STRUCT) {
-        this.process = new ttypes.Process();
-        this.process.read(input);
-      } else {
-        input.skip(ftype);
-      }
-      break;
-      case 2:
-      if (ftype == Thrift.Type.LIST) {
-        this.spans = [];
-        var _rtmp326 = input.readListBegin();
-        var _size25 = _rtmp326.size || 0;
-        for (var _i27 = 0; _i27 < _size25; ++_i27) {
-          var elem28 = null;
-          elem28 = new ttypes.Span();
-          elem28.read(input);
-          this.spans.push(elem28);
+        if (ftype == Thrift.Type.STRUCT) {
+          this.process = new ttypes.Process();
+          this.process.read(input);
+        } else {
+          input.skip(ftype);
         }
-        input.readListEnd();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        break;
+      case 2:
+        if (ftype == Thrift.Type.LIST) {
+          this.spans = [];
+          var _rtmp326 = input.readListBegin();
+          var _size25 = _rtmp326.size || 0;
+          for (var _i27 = 0; _i27 < _size25; ++_i27) {
+            var elem28 = null;
+            elem28 = new ttypes.Span();
+            elem28.read(input);
+            this.spans.push(elem28);
+          }
+          input.readListEnd();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 3:
-      if (ftype == Thrift.Type.I64) {
-        this.seqNo = input.readI64();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.I64) {
+          this.seqNo = input.readI64();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 4:
-      if (ftype == Thrift.Type.STRUCT) {
-        this.stats = new ttypes.ClientStats();
-        this.stats.read(input);
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.STRUCT) {
+          this.stats = new ttypes.ClientStats();
+          this.stats.read(input);
+        } else {
+          input.skip(ftype);
+        }
+        break;
       default:
         input.skip(ftype);
     }
@@ -876,7 +956,7 @@ Batch.prototype.read = function(input) {
   return;
 };
 
-Batch.prototype.write = function(output) {
+Batch.prototype.write = function (output) {
   output.writeStructBegin('Batch');
   if (this.process !== null && this.process !== undefined) {
     output.writeFieldBegin('process', Thrift.Type.STRUCT, 1);
@@ -910,18 +990,23 @@ Batch.prototype.write = function(output) {
   return;
 };
 
-var BatchSubmitResponse = module.exports.BatchSubmitResponse = function(args) {
+var BatchSubmitResponse = (module.exports.BatchSubmitResponse = function (
+  args
+) {
   this.ok = null;
   if (args) {
     if (args.ok !== undefined && args.ok !== null) {
       this.ok = args.ok;
     } else {
-      throw new Thrift.TProtocolException(Thrift.TProtocolExceptionType.UNKNOWN, 'Required field ok is unset!');
+      throw new Thrift.TProtocolException(
+        Thrift.TProtocolExceptionType.UNKNOWN,
+        'Required field ok is unset!'
+      );
     }
   }
-};
+});
 BatchSubmitResponse.prototype = {};
-BatchSubmitResponse.prototype.read = function(input) {
+BatchSubmitResponse.prototype.read = function (input) {
   input.readStructBegin();
   while (true) {
     var ret = input.readFieldBegin();
@@ -932,12 +1017,12 @@ BatchSubmitResponse.prototype.read = function(input) {
     }
     switch (fid) {
       case 1:
-      if (ftype == Thrift.Type.BOOL) {
-        this.ok = input.readBool();
-      } else {
-        input.skip(ftype);
-      }
-      break;
+        if (ftype == Thrift.Type.BOOL) {
+          this.ok = input.readBool();
+        } else {
+          input.skip(ftype);
+        }
+        break;
       case 0:
         input.skip(ftype);
         break;
@@ -950,7 +1035,7 @@ BatchSubmitResponse.prototype.read = function(input) {
   return;
 };
 
-BatchSubmitResponse.prototype.write = function(output) {
+BatchSubmitResponse.prototype.write = function (output) {
   output.writeStructBegin('BatchSubmitResponse');
   if (this.ok !== null && this.ok !== undefined) {
     output.writeFieldBegin('ok', Thrift.Type.BOOL, 1);
@@ -961,4 +1046,3 @@ BatchSubmitResponse.prototype.write = function(output) {
   output.writeStructEnd();
   return;
 };
-

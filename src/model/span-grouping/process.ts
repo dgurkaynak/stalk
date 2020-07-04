@@ -30,5 +30,5 @@ export default <SpanGroupingOptions>{
     }
 
     return [processId, processName];
-  }
+  },
 };

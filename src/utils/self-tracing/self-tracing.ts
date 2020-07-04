@@ -31,5 +31,5 @@ export function turnOff() {
   stalkTracer,
   customReporter,
   turnOn,
-  turnOff
+  turnOff,
 };

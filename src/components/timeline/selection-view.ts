@@ -31,8 +31,8 @@ export default class SelectionView {
         borderColor: '#3E7CD6',
         borderWidth: 1,
         textColor: '#3E7CD6',
-        textSize: 10
-      }
+        textSize: 10,
+      },
     });
     this.container.appendChild(this.rect);
     this.container.appendChild(this.durationText);
@@ -82,7 +82,7 @@ export default class SelectionView {
 
     const [startTime, finishTime] = [
       this.options.axis.output2input(x),
-      this.options.axis.output2input(x + width)
+      this.options.axis.output2input(x + width),
     ];
 
     this.rect.setAttribute('x', x + '');

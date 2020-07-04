@@ -7,5 +7,5 @@ export default <SpanGroupingOptions>{
   name: 'Trace',
   groupBy: (span: Span, trace: Trace) => {
     return [span.traceId, trace?.name || `Trace ${span.traceId}`];
-  }
+  },
 };

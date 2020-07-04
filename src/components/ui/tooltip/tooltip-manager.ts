@@ -1,7 +1,7 @@
 import tippy, {
   createSingleton,
   Instance as TippyInstance,
-  Props as TippyProps
+  Props as TippyProps,
 } from 'tippy.js';
 import remove from 'lodash/remove';
 import './tooltip.css';
@@ -28,7 +28,7 @@ export class TooltipManager {
       duration: 0,
       updateDuration: 0,
       theme: 'tooltip',
-      placement: 'top'
+      placement: 'top',
     });
   }
 
@@ -43,7 +43,7 @@ export class TooltipManager {
   }
 
   disposeAllTooltips() {
-    this.tippyInstances.forEach(t => t.destroy());
+    this.tippyInstances.forEach((t) => t.destroy());
     this.tippyInstances = [];
 
     if (this.singletonTippyInstance) {

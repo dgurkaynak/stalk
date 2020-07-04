@@ -3,17 +3,17 @@ const fs = require('fs');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
+  .BundleAnalyzerPlugin;
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackInlineSVGPlugin = require('html-webpack-inline-svg-plugin');
 const uglifycss = require('uglifycss');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
-
 module.exports = {
   target: 'electron-renderer',
   entry: {
-    index: './src/index.ts'
+    index: './src/index.ts',
   },
   devtool: 'source-map',
   resolve: {
@@ -31,7 +31,7 @@ module.exports = {
               transpileOnly: true,
               experimentalWatchApi: true,
             },
-          }
+          },
         ],
       },
       // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
@@ -46,9 +46,9 @@ module.exports = {
       },
       {
         test: /\.ttf$/,
-        use: ['file-loader']
-      }
-    ]
+        use: ['file-loader'],
+      },
+    ],
   },
   plugins: [
     new HardSourceWebpackPlugin(),
@@ -56,7 +56,7 @@ module.exports = {
       // typescriptServices.js causes a warning in webpack
       // Module not found: Error: Can't resolve '@microsoft/typescript-etw'
       // https://github.com/microsoft/monaco-editor/issues/1623
-      languages: ['typescript']
+      languages: ['typescript'],
     }),
     new CleanWebpackPlugin(),
     new ForkTsCheckerWebpackPlugin(),
@@ -64,22 +64,23 @@ module.exports = {
       template: path.resolve(__dirname, 'src/index.html'),
       templateParameters: {
         title: 'Stalk Studio',
-        indexCssInlineStyleTag: `<style>${uglifycss.processString(fs.readFileSync('./src/index.css').toString(), {})}</style>`
+        indexCssInlineStyleTag: `<style>${uglifycss.processString(
+          fs.readFileSync('./src/index.css').toString(),
+          {}
+        )}</style>`,
       },
     }),
     new HtmlWebpackInlineSVGPlugin(),
     new BundleAnalyzerPlugin({
       analyzerMode: 'static',
-      openAnalyzer: false
-    })
+      openAnalyzer: false,
+    }),
   ],
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'build'),
   },
   stats: {
-    warningsFilter: [
-      'node_modules/phosphor',
-    ]
+    warningsFilter: ['node_modules/phosphor'],
   },
 };

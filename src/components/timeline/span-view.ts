@@ -5,7 +5,7 @@ import * as shortid from 'shortid';
 import { textColorFor } from '../ui/color-helper';
 import {
   TimelineInteractableElementAttribute,
-  TimelineInteractableElementType
+  TimelineInteractableElementType,
 } from './interaction';
 import Axis from './axis';
 import chroma from 'chroma-js';
@@ -81,7 +81,7 @@ export class SpanView {
       labelSnappedOffsetLeft: 5,
       labelOffsetTop: 1,
       errorTriangleColor: '#ff0000',
-      errorTriangleSize: 10
+      errorTriangleSize: 10,
     } as SpanViewStyle);
     this.computedStyles = {
       ...style,
@@ -92,7 +92,7 @@ export class SpanView {
       barColorDefault: '',
       barColorHover: '',
       labelColor: '',
-      borderColor: ''
+      borderColor: '',
     };
 
     this.container.style.cursor = 'pointer';
@@ -141,12 +141,8 @@ export class SpanView {
     this.span = span;
 
     const baseColor = this.sharedOptions.colorFor(span);
-    this.computedStyles.barColorDefault = chroma(baseColor)
-      .alpha(0.75)
-      .css();
-    this.computedStyles.barColorHover = chroma(baseColor)
-      .alpha(1.0)
-      .css();
+    this.computedStyles.barColorDefault = chroma(baseColor).alpha(0.75).css();
+    this.computedStyles.barColorHover = chroma(baseColor).alpha(1.0).css();
     const textColor = textColorFor(this.computedStyles.barColorDefault);
     this.computedStyles.labelColor = textColor;
     this.computedStyles.borderColor = chroma(baseColor)
@@ -175,9 +171,9 @@ export class SpanView {
     }
 
     const { x, barHeight } = this.computedStyles;
-    this.logViews.forEach(l => this.container.removeChild(l.line));
+    this.logViews.forEach((l) => this.container.removeChild(l.line));
 
-    this.logViews = this.span.logs.map(log => {
+    this.logViews = this.span.logs.map((log) => {
       const id = shortid.generate();
       const line = document.createElementNS(SVG_NS, 'line');
       line.setAttribute('y1', '-4');
@@ -267,7 +263,7 @@ export class SpanView {
     }
 
     // Update logs
-    this.logViews.forEach(logView => {
+    this.logViews.forEach((logView) => {
       const logX = axis.input2output(logView.log.timestamp) - x;
       logView.line.setAttribute('x1', logX + '');
       logView.line.setAttribute('x2', logX + '');
@@ -297,12 +293,8 @@ export class SpanView {
   // - this.sharedOptions.colorFor
   updateColors() {
     const baseColor = this.sharedOptions.colorFor(this.span);
-    this.computedStyles.barColorDefault = chroma(baseColor)
-      .alpha(0.8)
-      .css();
-    this.computedStyles.barColorHover = chroma(baseColor)
-      .alpha(1.0)
-      .css();
+    this.computedStyles.barColorDefault = chroma(baseColor).alpha(0.8).css();
+    this.computedStyles.barColorHover = chroma(baseColor).alpha(1.0).css();
     const textColor = textColorFor(this.computedStyles.barColorDefault);
     this.computedStyles.labelColor = textColor;
     this.computedStyles.borderColor = chroma(baseColor)
@@ -330,11 +322,11 @@ export class SpanView {
   }
 
   hideLogs() {
-    this.logViews.forEach(l => l.line.parentElement?.removeChild(l.line));
+    this.logViews.forEach((l) => l.line.parentElement?.removeChild(l.line));
   }
 
   getLogViewById(logId: string) {
-    return find(this.logViews, l => l.id === logId);
+    return find(this.logViews, (l) => l.id === logId);
   }
 
   getLogViews() {
@@ -344,7 +336,7 @@ export class SpanView {
   // Get
   getNearbyLogViews(absoluteX: number, threshold = 10) {
     const logViews: { logView: SpanLogViewObject; distance: number }[] = [];
-    this.logViews.forEach(logView => {
+    this.logViews.forEach((logView) => {
       const logX = this.sharedOptions.axis.input2output(logView.log.timestamp);
       const distance = Math.abs(absoluteX - logX);
       if (distance > 10) return;
@@ -359,14 +351,14 @@ export class SpanView {
 
   static getPropsFromContainer(el: Element) {
     return {
-      id: el.getAttribute('data-span-id')
+      id: el.getAttribute('data-span-id'),
     };
   }
 
   static getPropsFromLogCircle(el: Element) {
     return {
       id: el.getAttribute('data-log-id'),
-      spanId: el.getAttribute('data-span-id')
+      spanId: el.getAttribute('data-span-id'),
     };
   }
 }

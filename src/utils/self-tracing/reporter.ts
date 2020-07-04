@@ -16,14 +16,14 @@ export class StalkStudioReporter extends BaseReporter {
     serviceName: 'stalk-studio-renderer',
     tags: {
       hostname: os.hostname(),
-      processId: StalkStudioReporter.PROCESS_ID
-    }
+      processId: StalkStudioReporter.PROCESS_ID,
+    },
   };
 
   readonly accepts = {
     spanCreate: false,
     spanLog: false,
-    spanFinish: true
+    spanFinish: true,
   };
 
   spans: ISpan[] = [];
@@ -36,7 +36,7 @@ export class StalkStudioReporter extends BaseReporter {
       operationName: data.operationName,
       startTime: data.startTime * 1000,
       finishTime: data.finishTime * 1000,
-      references: data.references.map(ref => {
+      references: data.references.map((ref) => {
         const type =
           ref.type == 'child_of'
             ? 'childOf'
@@ -47,12 +47,15 @@ export class StalkStudioReporter extends BaseReporter {
         return {
           type,
           spanId: ref.referencedContext.toSpanId(),
-          traceId: ref.referencedContext.toTraceId()
+          traceId: ref.referencedContext.toTraceId(),
         };
       }),
       tags: data.tags,
-      logs: data.logs.map(log => ({ ...log, timestamp: log.timestamp * 1000 })),
-      process: this.process
+      logs: data.logs.map((log) => ({
+        ...log,
+        timestamp: log.timestamp * 1000,
+      })),
+      process: this.process,
     };
     this.spans.push(span as any);
   }
@@ -66,8 +69,8 @@ export class StalkStudioReporter extends BaseReporter {
   }
 
   getTraces() {
-    const spansByTraceId = groupBy(this.spans, s => s.traceId);
-    return Object.keys(spansByTraceId).map(traceId => {
+    const spansByTraceId = groupBy(this.spans, (s) => s.traceId);
+    return Object.keys(spansByTraceId).map((traceId) => {
       const traceSpans = spansByTraceId[traceId];
       return new Trace(traceSpans);
     });
@@ -76,7 +79,7 @@ export class StalkStudioReporter extends BaseReporter {
   importTraces() {
     const traces = this.getTraces();
     this.clear();
-    traces.forEach(t => this.stage.addTrace(t));
+    traces.forEach((t) => this.stage.addTrace(t));
   }
 }
 

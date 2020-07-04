@@ -4,7 +4,7 @@ import debounce from 'lodash/debounce';
 import { TimelineView, TimelineViewEvent } from '../timeline/timeline-view';
 import {
   SpansTableView,
-  SpansTableViewEvent
+  SpansTableViewEvent,
 } from '../spans-table/spans-table';
 import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
 import * as ErrorDetection from '../../model/error-detection';
@@ -36,7 +36,7 @@ export class SpanTagsView {
     container: document.createElement('div'),
     toolbar: document.createElement('div'),
     searchInput: document.createElement('input'),
-    contentContainer: document.createElement('div')
+    contentContainer: document.createElement('div'),
   };
 
   private binded = {
@@ -44,7 +44,7 @@ export class SpanTagsView {
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
     onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
     onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this),
-    onStageTraceRemoved: this.onStageTraceRemoved.bind(this)
+    onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
   };
 
   constructor() {
@@ -201,7 +201,7 @@ export class SpanTagsView {
         if (a > b) return 1;
         return 0;
       })
-      .map(key => ({ key, value: span.tags[key] }));
+      .map((key) => ({ key, value: span.tags[key] }));
     this.fuse = new Fuse(this.tagItems, { keys: ['key', 'value'] });
     this.render();
   }

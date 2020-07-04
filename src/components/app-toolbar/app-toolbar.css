@@ -1,6 +1,6 @@
 #app-toolbar {
   background: #001529;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
   display: flex;
   justify-content: space-between;
   align-items: stretch;
@@ -11,16 +11,23 @@
   padding-left: 75px;
 }
 
-.app-toolbar-pane { display: flex; align-items: stretch; }
+.app-toolbar-pane {
+  display: flex;
+  align-items: stretch;
+}
 .app-toolbar-divider {
   display: inline-block;
   width: 5px;
-  background: linear-gradient(#E9E9E9, #E9E9E9) no-repeat center/1px 100%;
+  background: linear-gradient(#e9e9e9, #e9e9e9) no-repeat center/1px 100%;
   opacity: 0.25;
 }
 
-.app-toolbar-divider:first-of-type { display: none; }
-.darwin:not(.full-screen) .app-toolbar-divider:first-of-type { display: inline-block; }
+.app-toolbar-divider:first-of-type {
+  display: none;
+}
+.darwin:not(.full-screen) .app-toolbar-divider:first-of-type {
+  display: inline-block;
+}
 
 /* Traces badge count */
 .toolbar-traces-badge-count {
@@ -48,16 +55,29 @@
   cursor: pointer;
   -webkit-app-region: no-drag;
 }
-.app-toolbar-button svg { height: 1.75em; fill: rgba(255, 255, 255, 0.75); }
-.app-toolbar-button.fix-stroke svg { stroke: rgba(255, 255, 255, 0.75); }
+.app-toolbar-button svg {
+  height: 1.75em;
+  fill: rgba(255, 255, 255, 0.75);
+}
+.app-toolbar-button.fix-stroke svg {
+  stroke: rgba(255, 255, 255, 0.75);
+}
 
 /* .app-toolbar-button:hover { background: #F9F9F9; } */
-.app-toolbar-button:hover svg { fill: #fff; }
-.app-toolbar-button.fix-stroke:hover svg { stroke: #fff; }
+.app-toolbar-button:hover svg {
+  fill: #fff;
+}
+.app-toolbar-button.fix-stroke:hover svg {
+  stroke: #fff;
+}
 
 /* App toolbar button fine-tuning */
-.app-toolbar-button.traces { position: relative; }
-.app-toolbar-button.traces svg { height: 1.6em; }
+.app-toolbar-button.traces {
+  position: relative;
+}
+.app-toolbar-button.traces svg {
+  height: 1.6em;
+}
 
 /* Data sources menu header */
 .toolbar-data-sources-menu-header {
@@ -69,9 +89,9 @@
   align-items: center;
 }
 .toolbar-data-sources-menu-header span {
- font-size: 0.75em;
- text-transform: uppercase;
- color: #fff;
+  font-size: 0.75em;
+  text-transform: uppercase;
+  color: #fff;
 }
 .toolbar-data-sources-menu-header svg {
   cursor: pointer;
@@ -110,11 +130,16 @@
 }
 
 /* Override so hard */
-.tippy-tooltip.app-toolbar-menu-list-theme > .tippy-content > div.datasource-remove-popconfirm {
+.tippy-tooltip.app-toolbar-menu-list-theme
+  > .tippy-content
+  > div.datasource-remove-popconfirm {
   /* width: 200px; */
   padding: 0.25em 0.5em;
 }
 
-.tippy-tooltip.app-toolbar-menu-list-theme > .tippy-content > div.datasource-remove-popconfirm > .text {
+.tippy-tooltip.app-toolbar-menu-list-theme
+  > .tippy-content
+  > div.datasource-remove-popconfirm
+  > .text {
   white-space: nowrap;
 }

@@ -5,7 +5,7 @@ import { Span } from '../../model/interfaces';
 import * as shortid from 'shortid';
 import {
   SpanGroupingRawOptions,
-  SpanGroupingOptions
+  SpanGroupingOptions,
 } from '../../model/span-grouping/span-grouping';
 import throttle from 'lodash/throttle';
 import isArray from 'lodash/isArray';
@@ -31,7 +31,7 @@ export class SpanGroupingFormModalContent {
     testResultContainer: document.createElement('div'),
     cancelButton: document.createElement('button'),
     saveButton: document.createElement('button'),
-    testButton: document.createElement('button')
+    testButton: document.createElement('button'),
   };
   private model?: monaco.editor.ITextModel;
   private editor?: monaco.editor.IStandaloneCodeEditor;
@@ -46,7 +46,7 @@ export class SpanGroupingFormModalContent {
     onMonacoEditorContentChange: throttle(
       this.onMonacoEditorContentChange.bind(this),
       100
-    )
+    ),
   };
 
   constructor(private options: SpanGroupingFormModalContentOptions) {
@@ -132,7 +132,7 @@ export class SpanGroupingFormModalContent {
 
     this.model = monaco.editor.createModel(code, 'typescript');
     this.editor = monaco.editor.create(this.elements.monacoContainer, {
-      minimap: { enabled: false }
+      minimap: { enabled: false },
     });
     this.editor.setModel(this.model);
 
@@ -193,7 +193,7 @@ export class SpanGroupingFormModalContent {
           title: 'No spans in the stage to test',
           body:
             `Span grouping function seems OK, you can save it. However it's not tested on any real ` +
-            `spans, since there is no trace added to the stage.`
+            `spans, since there is no trace added to the stage.`,
         });
       } else {
         this.showTestResult({
@@ -206,13 +206,13 @@ export class SpanGroupingFormModalContent {
             <ul>
               ${sampleSize(result.testedSpans, 5)
                 .map(
-                  test =>
+                  (test) =>
                     `<li>
                   ${test.span.operationName} => <pre>${test.rv}</pre>
                 </li>`
                 )
                 .join('')}
-            </ul>`
+            </ul>`,
         });
       }
 
@@ -221,7 +221,7 @@ export class SpanGroupingFormModalContent {
       this.showTestResult({
         type: 'error',
         title: err.message,
-        body: err.description || ''
+        body: err.description || '',
       });
     }
   }
@@ -237,7 +237,7 @@ export class SpanGroupingFormModalContent {
     const svg = {
       success: CheckCircleOutlineSvg,
       warning: AlertCircleOutlineSvg,
-      error: CloseCircleOutlineSvg
+      error: CloseCircleOutlineSvg,
     }[options.type];
     el.innerHTML = `${svg}
       <div class="title">${options.title}</div>
@@ -270,7 +270,7 @@ export class SpanGroupingFormModalContent {
       throw err;
     }
 
-    const spansToTest = flatMap(this.stage.getAllTraces(), t => t.spans);
+    const spansToTest = flatMap(this.stage.getAllTraces(), (t) => t.spans);
     const testedSpans: { span: Span; rv: string[] }[] = [];
     for (let span of spansToTest) {
       const rv = groupByFn(span);

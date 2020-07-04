@@ -15,21 +15,21 @@ import { SpanView, SpanViewSharedOptions } from './span-view';
 import { Trace } from '../../model/trace';
 import {
   SpanGrouping,
-  SpanGroupingOptions
+  SpanGroupingOptions,
 } from '../../model/span-grouping/span-grouping';
 import processSpanGroupingOptions from '../../model/span-grouping/process';
 import {
   TimelineInteractableElementAttribute,
   TimelineInteractableElementType,
-  TimelineInteractedElementObject
+  TimelineInteractedElementObject,
 } from './interaction';
 import {
   SpanColoringOptions,
-  operationColoringOptions
+  operationColoringOptions,
 } from '../../model/span-coloring-manager';
 import {
   SpanLabellingOptions,
-  operationLabellingOptions
+  operationLabellingOptions,
 } from '../../model/span-labelling-manager';
 import { SpanConnectionDecoration } from './decorations/span-connection';
 import IntervalHighlightDecoration from './decorations/interval-highlight';
@@ -41,19 +41,19 @@ import { Span } from '../../model/interfaces';
 import VerticalLineDecoration from './decorations/vertical-line';
 import {
   ContextMenuManager,
-  ContextMenuEvent
+  ContextMenuEvent,
 } from '../ui/context-menu/context-menu-manager';
 import { clipboard } from 'electron';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export enum TimelineViewEvent {
-  SPAN_SELECTED = 'tve_span_selected'
+  SPAN_SELECTED = 'tve_span_selected',
 }
 
 export enum TimelineTool {
   MOVE = 'move',
-  RULER = 'ruler'
+  RULER = 'ruler',
 }
 
 export interface TimelineViewStyle {
@@ -93,7 +93,7 @@ export class TimelineView extends EventEmitter {
     logVerticalLine: new VerticalLineDecoration(this),
     selectedSpanIntervalHighlight: new IntervalHighlightDecoration(this),
     selectedSpanConnections: [] as SpanConnectionDecoration[],
-    hoveredSpanConnections: [] as SpanConnectionDecoration[]
+    hoveredSpanConnections: [] as SpanConnectionDecoration[],
   };
 
   readonly mouseHandler = new MouseHandler(this.svg);
@@ -107,7 +107,7 @@ export class TimelineView extends EventEmitter {
   private readonly spanViewSharedOptions: SpanViewSharedOptions = {
     axis: this.axis,
     colorFor: operationColoringOptions.colorBy, // Do not forget to change related config in timeline-wrapper
-    labelFor: operationLabellingOptions.labelBy // Do not forget to change related config in timeline-wrapper
+    labelFor: operationLabellingOptions.labelBy, // Do not forget to change related config in timeline-wrapper
   };
 
   private hoveredElements: TimelineInteractedElementObject[] = [];
@@ -115,18 +115,18 @@ export class TimelineView extends EventEmitter {
 
   private selectionView = new SelectionView({
     parent: this.svg,
-    axis: this.axis
+    axis: this.axis,
   });
 
   private _tool = TimelineTool.MOVE;
 
   private spanTooltipTippy: TippyInstance;
   private spanTooltipContent = new SpanTooltipContent({
-    axis: this.axis
+    axis: this.axis,
   });
   private spanTooltipStuffCache = {
     svgBBTop: 0,
-    idleMouseClientX: 0
+    idleMouseClientX: 0,
   };
 
   private contextMenuManager = ContextMenuManager.getSingleton();
@@ -140,7 +140,7 @@ export class TimelineView extends EventEmitter {
     onMousePanMove: this.onMousePanMove.bind(this),
     onMousePanEnd: this.onMousePanEnd.bind(this),
     onWheel: this.onWheel.bind(this),
-    onClick: this.onClick.bind(this)
+    onClick: this.onClick.bind(this),
   };
 
   constructor(options?: { style?: Partial<TimelineViewStyle> }) {
@@ -153,14 +153,14 @@ export class TimelineView extends EventEmitter {
       timeRulerTickTextOffsetTop: 14,
       timeRulerTickTextColor: '#999',
       timeRulerTickTextSize: 10,
-      initialSpanMarginToViewport: 5
+      initialSpanMarginToViewport: 5,
     } as TimelineViewStyle);
     this.computedStyles = {
       ...style,
       width: 0,
       height: 0,
       contentHeight: 0,
-      panelTranslateY: 0
+      panelTranslateY: 0,
     };
 
     this.svg.setAttributeNS(
@@ -248,11 +248,11 @@ export class TimelineView extends EventEmitter {
               top: 0,
               bottom: 0,
               left: 0,
-              right: 0
+              right: 0,
             };
-          }
+          },
         };
-      }
+      },
     });
     // this.spanTooltipTippy.hide = () => {};
   }
@@ -270,7 +270,7 @@ export class TimelineView extends EventEmitter {
     this.computedStyles.height = height;
     const {
       timeRulerHeight,
-      initialSpanMarginToViewport
+      initialSpanMarginToViewport,
     } = this.computedStyles;
 
     this.svg.setAttribute('width', `${width}`);
@@ -282,14 +282,14 @@ export class TimelineView extends EventEmitter {
 
     this.axis.updateOutputRange([
       initialSpanMarginToViewport,
-      width - initialSpanMarginToViewport
+      width - initialSpanMarginToViewport,
     ]);
 
-    this.groupViews.forEach(g => g.handleAxisUpdate());
+    this.groupViews.forEach((g) => g.handleAxisUpdate());
     this.updateAllDecorations();
     this.updateTicks();
 
-    this.groupViews.forEach(v => v.updateSeperatorLineWidths(width));
+    this.groupViews.forEach((v) => v.updateSeperatorLineWidths(width));
     this.keepPanelTraslateYInScreen();
 
     const svgRect = this.svg.getBoundingClientRect();
@@ -357,7 +357,7 @@ export class TimelineView extends EventEmitter {
           type: element.getAttribute(
             TimelineInteractableElementAttribute
           )! as any,
-          element: element
+          element: element,
         });
       }
       element = (element.parentElement as unknown) as SVGElement;
@@ -399,7 +399,7 @@ export class TimelineView extends EventEmitter {
 
   updateGroupLayoutMode(groupLayoutType: SpanGroupLayoutType) {
     this.groupLayoutMode = groupLayoutType;
-    this.groupViews.forEach(g => {
+    this.groupViews.forEach((g) => {
       g.setLayoutType(groupLayoutType);
       g.layout();
     });
@@ -414,8 +414,8 @@ export class TimelineView extends EventEmitter {
   updateSpanGrouping(spanGroupingOptions: SpanGroupingOptions) {
     // TODO: Dispose previous grouping maybe?
     this.spanGrouping = new SpanGrouping(spanGroupingOptions);
-    this.traces.forEach(t =>
-      t.spans.forEach(s => this.spanGrouping.addSpan(s, t))
+    this.traces.forEach((t) =>
+      t.spans.forEach((s) => this.spanGrouping.addSpan(s, t))
     );
     this.layout();
   }
@@ -424,9 +424,9 @@ export class TimelineView extends EventEmitter {
   // - s.updateColors
   updateSpanColoring(options: SpanColoringOptions) {
     this.spanViewSharedOptions.colorFor = options.colorBy;
-    this.groupViews.forEach(g => {
+    this.groupViews.forEach((g) => {
       g.setSpanViewSharedOptions(this.spanViewSharedOptions);
-      g.getAllSpanViews().forEach(s => s.updateColors());
+      g.getAllSpanViews().forEach((s) => s.updateColors());
     });
   }
 
@@ -434,9 +434,9 @@ export class TimelineView extends EventEmitter {
   // - s.updateLabelText
   updateSpanLabelling(options: SpanLabellingOptions) {
     this.spanViewSharedOptions.labelFor = options.labelBy;
-    this.groupViews.forEach(g => {
+    this.groupViews.forEach((g) => {
       g.setSpanViewSharedOptions(this.spanViewSharedOptions);
-      g.getAllSpanViews().forEach(s => s.updateLabelText());
+      g.getAllSpanViews().forEach((s) => s.updateLabelText());
     });
   }
 
@@ -456,13 +456,13 @@ export class TimelineView extends EventEmitter {
   // - this.spanGrouping.addSpan
   // - this.layout
   addTrace(trace: Trace) {
-    const idMatch = find(this.traces, t => t.id === trace.id);
+    const idMatch = find(this.traces, (t) => t.id === trace.id);
     if (idMatch) {
       return false;
     }
 
     this.traces.push(trace);
-    trace.spans.forEach(s => this.spanGrouping.addSpan(s, trace));
+    trace.spans.forEach((s) => this.spanGrouping.addSpan(s, trace));
 
     this.layout();
     return true;
@@ -471,13 +471,13 @@ export class TimelineView extends EventEmitter {
   // can throw
   // - this.layout
   removeTrace(trace: Trace) {
-    const removeds = remove(this.traces, t => t.id === trace.id);
+    const removeds = remove(this.traces, (t) => t.id === trace.id);
     if (removeds.length === 0) {
       return false;
     }
 
     let isSelectedSpanRemoved = false;
-    trace.spans.forEach(s => {
+    trace.spans.forEach((s) => {
       this.spanGrouping.removeSpan(s);
       if (this.selectedSpanId && s.id == this.selectedSpanId) {
         isSelectedSpanRemoved = true;
@@ -495,7 +495,7 @@ export class TimelineView extends EventEmitter {
     groupId: string | ((groupView: SpanGroupView) => boolean)
   ): SpanGroupView | undefined {
     if (isString(groupId)) {
-      return find(this.groupViews, g => g.spanGroup.id === groupId);
+      return find(this.groupViews, (g) => g.spanGroup.id === groupId);
     } else if (isFunction(groupId)) {
       return find(this.groupViews, groupId);
     } else {
@@ -507,7 +507,10 @@ export class TimelineView extends EventEmitter {
     spanId: string | ((spanView: SpanView) => boolean)
   ): [SpanGroupView | undefined, SpanView | undefined] {
     if (isString(spanId)) {
-      const groupView = find(this.groupViews, g => !!g.getSpanViewById(spanId));
+      const groupView = find(
+        this.groupViews,
+        (g) => !!g.getSpanViewById(spanId)
+      );
       return [groupView, groupView?.getSpanViewById(spanId)];
     } else if (isFunction(spanId)) {
       for (let groupView of this.groupViews) {
@@ -529,7 +532,7 @@ export class TimelineView extends EventEmitter {
     const acc: [SpanGroupView, SpanView][] = [];
     for (let groupView of this.groupViews) {
       const spanViews = groupView.getAllSpanViews();
-      spanViews.filter(predicate).forEach(spanView => {
+      spanViews.filter(predicate).forEach((spanView) => {
         acc.push([groupView, spanView]);
       });
     }
@@ -541,7 +544,7 @@ export class TimelineView extends EventEmitter {
   layout() {
     let startTimestamp = Infinity;
     let finishTimestamp = -Infinity;
-    this.traces.forEach(trace => {
+    this.traces.forEach((trace) => {
       startTimestamp = Math.min(startTimestamp, trace.startTime);
       finishTimestamp = Math.max(finishTimestamp, trace.finishTime);
     });
@@ -553,14 +556,14 @@ export class TimelineView extends EventEmitter {
       [initialSpanMarginToViewport, width - initialSpanMarginToViewport]
     );
 
-    this.groupViews.forEach(v => v.dispose());
+    this.groupViews.forEach((v) => v.dispose());
     this.groupViews = [];
 
     const groups = this.spanGrouping
       .getAllGroups()
       .sort((a, b) => a.startTimestamp - b.startTimestamp);
     const groupNameCounter: { [key: string]: number } = {};
-    groups.forEach(group => {
+    groups.forEach((group) => {
       let groupLabel = group.name;
       if (!groupNameCounter[group.name]) groupNameCounter[group.name] = 0;
       groupNameCounter[group.name]++;
@@ -571,13 +574,13 @@ export class TimelineView extends EventEmitter {
       const groupView = new SpanGroupView({
         group,
         layoutType: this.groupLayoutMode,
-        label: groupLabel
+        label: groupLabel,
       });
       groupView.init({
         groupNamePanel: this.groupNamePanel,
         timelinePanel: this.timelinePanel,
         svgDefs: this.defs,
-        spanViewSharedOptions: this.spanViewSharedOptions
+        spanViewSharedOptions: this.spanViewSharedOptions,
       });
       groupView.updateSeperatorLineWidths(width);
       groupView.layout();
@@ -611,7 +614,7 @@ export class TimelineView extends EventEmitter {
 
   translateX(delta: number) {
     this.axis.translate(delta);
-    this.groupViews.forEach(g => g.handleAxisTranslate());
+    this.groupViews.forEach((g) => g.handleAxisTranslate());
     this.updateAllDecorations();
     this.updateTicks();
   }
@@ -621,7 +624,7 @@ export class TimelineView extends EventEmitter {
       height,
       contentHeight,
       panelTranslateY,
-      timeRulerHeight
+      timeRulerHeight,
     } = this.computedStyles;
     const bodyHeight = height - timeRulerHeight;
     if (contentHeight <= bodyHeight) return;
@@ -654,7 +657,7 @@ export class TimelineView extends EventEmitter {
       height,
       panelTranslateY,
       contentHeight,
-      timeRulerHeight
+      timeRulerHeight,
     } = this.computedStyles;
     const bodyHeight = height - timeRulerHeight;
     const bottomY = panelTranslateY + contentHeight;
@@ -666,7 +669,7 @@ export class TimelineView extends EventEmitter {
 
   zoom(scaleFactor: number, anchorPosX: number) {
     this.axis.zoom(scaleFactor, anchorPosX);
-    this.groupViews.forEach(g => g.handleAxisZoom());
+    this.groupViews.forEach((g) => g.handleAxisZoom());
     this.updateAllDecorations();
     this.updateTicks();
   }
@@ -685,8 +688,8 @@ export class TimelineView extends EventEmitter {
 
     // Unmount all the selected spans connections
     this.decorations.selectedSpanIntervalHighlight.unmount();
-    this.decorations.selectedSpanConnections.forEach(c => c.unmount());
-    this.decorations.hoveredSpanConnections.forEach(c => c.unmount());
+    this.decorations.selectedSpanConnections.forEach((c) => c.unmount());
+    this.decorations.hoveredSpanConnections.forEach((c) => c.unmount());
 
     this.selectedSpanId = spanId;
     // If new span exists
@@ -705,7 +708,7 @@ export class TimelineView extends EventEmitter {
         lineColor: 'rgba(62, 124, 214, 0.25)',
         lineWidth: 1,
         lineDashArray: '2',
-        fillColor: 'rgba(58, 122, 217, 0.05)'
+        fillColor: 'rgba(58, 122, 217, 0.05)',
       });
       this.decorations.selectedSpanIntervalHighlight.update();
       this.decorations.selectedSpanIntervalHighlight.mount();
@@ -731,7 +734,7 @@ export class TimelineView extends EventEmitter {
     let minY = Infinity;
     let maxY = -Infinity;
 
-    spanIds.forEach(spanId => {
+    spanIds.forEach((spanId) => {
       const [groupView, spanView] = this.findSpanView(spanId);
       if (!groupView || !spanView) return;
       const span = spanView.span;
@@ -759,7 +762,7 @@ export class TimelineView extends EventEmitter {
       width,
       height,
       contentHeight,
-      timeRulerHeight
+      timeRulerHeight,
     } = this.computedStyles;
 
     this.axis.focus(
@@ -767,7 +770,7 @@ export class TimelineView extends EventEmitter {
       [width / 4, (width * 3) / 4]
     );
     // Copied from .zoom() method
-    this.groupViews.forEach(g => g.handleAxisZoom());
+    this.groupViews.forEach((g) => g.handleAxisZoom());
     this.updateAllDecorations();
     this.updateTicks();
 
@@ -797,7 +800,7 @@ export class TimelineView extends EventEmitter {
       height,
       contentHeight,
       panelTranslateY,
-      timeRulerHeight
+      timeRulerHeight,
     } = this.computedStyles;
 
     // Handle translate y
@@ -839,7 +842,7 @@ export class TimelineView extends EventEmitter {
       lineColor: 'rgba(0, 0, 0, 0.75)',
       lineWidth: 1,
       position: 'overlay',
-      displayTime: false
+      displayTime: false,
     });
     this.decorations.logVerticalLine.update();
     this.decorations.logVerticalLine.mount();
@@ -897,18 +900,18 @@ export class TimelineView extends EventEmitter {
           if (!spanView) return;
           spanView.updateColorStyle('normal');
           spanView.hideLogs();
-          this.decorations.hoveredSpanConnections.forEach(d => d.unmount());
+          this.decorations.hoveredSpanConnections.forEach((d) => d.unmount());
           return;
         }
 
         case TimelineInteractableElementType.SPAN_CONNECTION: {
           const {
-            id: spanConnectionId
+            id: spanConnectionId,
           } = SpanConnectionDecoration.getPropsFromPathElement(element);
           if (!spanConnectionId) return;
           const spanConnection = find(
             this.decorations.selectedSpanConnections,
-            d => d.id == spanConnectionId
+            (d) => d.id == spanConnectionId
           );
           if (!spanConnection) return;
           spanConnection.updateStyle('normal');
@@ -934,7 +937,7 @@ export class TimelineView extends EventEmitter {
               getBoundingClientRect: () => {
                 const {
                   panelTranslateY,
-                  timeRulerHeight
+                  timeRulerHeight,
                 } = this.computedStyles;
                 const spanViewProp = spanView.getComputedStyles();
                 const groupViewProp = groupView.getComputedStyles();
@@ -951,9 +954,9 @@ export class TimelineView extends EventEmitter {
                   top: top,
                   bottom: top + spanViewProp.barHeight,
                   left: this.spanTooltipStuffCache.idleMouseClientX,
-                  right: this.spanTooltipStuffCache.idleMouseClientX
+                  right: this.spanTooltipStuffCache.idleMouseClientX,
                 };
-              }
+              },
             });
             this.spanTooltipTippy.popperInstance.update();
             this.spanTooltipTippy.show();
@@ -977,7 +980,7 @@ export class TimelineView extends EventEmitter {
           const {
             id: spanConnectionId,
             fromSpanId,
-            toSpanId
+            toSpanId,
           } = SpanConnectionDecoration.getPropsFromPathElement(element);
           if (!spanConnectionId) return;
 
@@ -991,7 +994,7 @@ export class TimelineView extends EventEmitter {
 
           const spanConnection = find(
             this.decorations.selectedSpanConnections,
-            d => d.id == spanConnectionId
+            (d) => d.id == spanConnectionId
           );
           if (!spanConnection) return;
           spanConnection.updateStyle('hover');
@@ -1004,7 +1007,7 @@ export class TimelineView extends EventEmitter {
   }
 
   onMouseIdleLeave(e: MouseEvent) {
-    this.decorations.hoveredSpanConnections.forEach(d => d.unmount());
+    this.decorations.hoveredSpanConnections.forEach((d) => d.unmount());
     this.spanTooltipTippy.hide();
   }
 
@@ -1085,7 +1088,7 @@ export class TimelineView extends EventEmitter {
           const {
             id: spanConnectionId,
             fromSpanId,
-            toSpanId
+            toSpanId,
           } = SpanConnectionDecoration.getPropsFromPathElement(element);
           if (!spanConnectionId) return;
 
@@ -1140,32 +1143,32 @@ export class TimelineView extends EventEmitter {
               selectItem: {
                 type: 'item',
                 text: 'Show in Table View',
-                id: 'showInTableView'
+                id: 'showInTableView',
               },
               emitEvent: {
                 event: ContextMenuEvent.SHOW_SPAN_IN_TABLE_VIEW,
-                data: clickedSpanId
-              }
+                data: clickedSpanId,
+              },
             },
             {
               selectItem: {
                 type: 'item',
                 text: 'Focus',
                 altText: 'F',
-                id: 'focus'
+                id: 'focus',
               },
-              onSelected: () => this.focusSpans([clickedSpanId])
+              onSelected: () => this.focusSpans([clickedSpanId]),
             },
             {
               selectItem: {
                 type: 'item',
                 text: 'Copy Span To Clipboard',
                 id: 'copyToClipboard',
-                altText: '⌘C'
+                altText: '⌘C',
               },
-              onSelected: () => this.copySpanToClipboard(clickedSpanId)
-            }
-          ]
+              onSelected: () => this.copySpanToClipboard(clickedSpanId),
+            },
+          ],
         });
         return;
       }
@@ -1201,7 +1204,7 @@ export class TimelineView extends EventEmitter {
       timeRulerTickLineColor,
       timeRulerTickTextOffsetTop,
       timeRulerTickTextColor,
-      timeRulerTickTextSize
+      timeRulerTickTextSize,
     } = this.computedStyles;
     const tickCount = Math.round(width / timeRulerTickLength);
     const ticks = this.axis.ticks(tickCount);
@@ -1210,7 +1213,7 @@ export class TimelineView extends EventEmitter {
       if (!this.tickElements[i]) {
         this.tickElements[i] = {
           line: document.createElementNS(SVG_NS, 'line'),
-          text: document.createElementNS(SVG_NS, 'text')
+          text: document.createElementNS(SVG_NS, 'text'),
         };
       }
 
@@ -1250,7 +1253,7 @@ export class TimelineView extends EventEmitter {
     const that = this;
 
     // Clean-up
-    this.decorations.selectedSpanConnections.forEach(d => d.unmount());
+    this.decorations.selectedSpanConnections.forEach((d) => d.unmount());
     this.decorations.selectedSpanConnections = [];
 
     // Parent connection(s) recursive
@@ -1258,7 +1261,7 @@ export class TimelineView extends EventEmitter {
 
     function handleParentConnection(span: Span) {
       // CAUTION: We're assuming the first `childOf` or `followsFrom` reference as the parent.
-      const parentRef = find(span.references, ref => {
+      const parentRef = find(span.references, (ref) => {
         return ref.type == 'childOf' || ref.type == 'followsFrom';
       });
       if (!parentRef) return;
@@ -1270,7 +1273,7 @@ export class TimelineView extends EventEmitter {
       decoration.prepare({
         spanId1: refSpanView.span.id,
         spanId2: span.id,
-        strokeDasharray: parentRef.type == 'followsFrom' ? '2' : '0'
+        strokeDasharray: parentRef.type == 'followsFrom' ? '2' : '0',
       });
       decoration.update();
       decoration.mount();
@@ -1280,18 +1283,24 @@ export class TimelineView extends EventEmitter {
     }
 
     // Children connections
-    const childrenMatches = this.findSpanViews(v => {
-      const selfReferences = find(v.span.references, r => r.spanId === span.id);
+    const childrenMatches = this.findSpanViews((v) => {
+      const selfReferences = find(
+        v.span.references,
+        (r) => r.spanId === span.id
+      );
       return !!selfReferences;
     });
 
     childrenMatches.forEach(([refGroupView, refSpanView]) => {
-      const ref = find(refSpanView.span.references, r => r.spanId === span.id);
+      const ref = find(
+        refSpanView.span.references,
+        (r) => r.spanId === span.id
+      );
       const decoration = new SpanConnectionDecoration(this);
       decoration.prepare({
         spanId1: span.id,
         spanId2: refSpanView.span.id,
-        strokeDasharray: ref.type == 'followsFrom' ? '2' : '0'
+        strokeDasharray: ref.type == 'followsFrom' ? '2' : '0',
       });
       decoration.update();
       decoration.mount();
@@ -1307,11 +1316,11 @@ export class TimelineView extends EventEmitter {
     const span = spanView.span;
 
     // Clean-up
-    this.decorations.hoveredSpanConnections.forEach(d => d.unmount());
+    this.decorations.hoveredSpanConnections.forEach((d) => d.unmount());
     this.decorations.hoveredSpanConnections = [];
 
     // Parent connection(s)
-    span.references.forEach(ref => {
+    span.references.forEach((ref) => {
       const [refGroupView, refSpanView] = this.findSpanView(ref.spanId);
       if (!refGroupView || !refSpanView) return;
 
@@ -1319,7 +1328,7 @@ export class TimelineView extends EventEmitter {
       decoration.prepare({
         spanId1: refSpanView.span.id,
         spanId2: span.id,
-        strokeDasharray: ref.type == 'followsFrom' ? '2' : '0'
+        strokeDasharray: ref.type == 'followsFrom' ? '2' : '0',
       });
       decoration.update();
       decoration.mount();
@@ -1328,18 +1337,24 @@ export class TimelineView extends EventEmitter {
     });
 
     // Children connections
-    const childrenMatches = this.findSpanViews(v => {
-      const selfReferences = find(v.span.references, r => r.spanId === span.id);
+    const childrenMatches = this.findSpanViews((v) => {
+      const selfReferences = find(
+        v.span.references,
+        (r) => r.spanId === span.id
+      );
       return !!selfReferences;
     });
 
     childrenMatches.forEach(([refGroupView, refSpanView]) => {
-      const ref = find(refSpanView.span.references, r => r.spanId === span.id);
+      const ref = find(
+        refSpanView.span.references,
+        (r) => r.spanId === span.id
+      );
       const decoration = new SpanConnectionDecoration(this);
       decoration.prepare({
         spanId1: span.id,
         spanId2: refSpanView.span.id,
-        strokeDasharray: ref.type == 'followsFrom' ? '2' : '0'
+        strokeDasharray: ref.type == 'followsFrom' ? '2' : '0',
       });
       decoration.update();
       decoration.mount();

@@ -20,7 +20,7 @@
 var Int64 = require('node-int64');
 var Thrift = require('./thrift');
 var Type = Thrift.Type;
-var util = require("util");
+var util = require('util');
 
 var Int64Util = require('./int64_util');
 var json_parse = require('./json_parse');
@@ -43,7 +43,7 @@ function TJSONProtocol(trans) {
   this.tstack = [];
   this.tpos = [];
   this.trans = trans;
-};
+}
 
 /**
  * Thrift IDL type Id to string mapping.
@@ -89,12 +89,12 @@ TJSONProtocol.RType.set = Type.SET;
  */
 TJSONProtocol.Version = 1;
 
-TJSONProtocol.prototype.flush = function() {
+TJSONProtocol.prototype.flush = function () {
   this.writeToTransportIfStackIsFlushable();
   return this.trans.flush();
 };
 
-TJSONProtocol.prototype.writeToTransportIfStackIsFlushable = function() {
+TJSONProtocol.prototype.writeToTransportIfStackIsFlushable = function () {
   if (this.tstack.length === 1) {
     this.trans.write(this.tstack.pop());
   }
@@ -106,14 +106,23 @@ TJSONProtocol.prototype.writeToTransportIfStackIsFlushable = function() {
  * @param {Thrift.MessageType} messageType - The type of method call.
  * @param {number} seqid - The sequence number of this call (always 0 in Apache Thrift).
  */
-TJSONProtocol.prototype.writeMessageBegin = function(name, messageType, seqid) {
-  this.tstack.push([TJSONProtocol.Version, '"' + name + '"', messageType, seqid]);
+TJSONProtocol.prototype.writeMessageBegin = function (
+  name,
+  messageType,
+  seqid
+) {
+  this.tstack.push([
+    TJSONProtocol.Version,
+    '"' + name + '"',
+    messageType,
+    seqid,
+  ]);
 };
 
 /**
  * Serializes the end of a Thrift RPC message.
  */
-TJSONProtocol.prototype.writeMessageEnd = function() {
+TJSONProtocol.prototype.writeMessageEnd = function () {
   var obj = this.tstack.pop();
 
   this.wobj = this.tstack.pop();
@@ -129,7 +138,7 @@ TJSONProtocol.prototype.writeMessageEnd = function() {
  * Serializes the beginning of a struct.
  * @param {string} name - The name of the struct.
  */
-TJSONProtocol.prototype.writeStructBegin = function(name) {
+TJSONProtocol.prototype.writeStructBegin = function (name) {
   this.tpos.push(this.tstack.length);
   this.tstack.push({});
 };
@@ -137,7 +146,7 @@ TJSONProtocol.prototype.writeStructBegin = function(name) {
 /**
  * Serializes the end of a struct.
  */
-TJSONProtocol.prototype.writeStructEnd = function() {
+TJSONProtocol.prototype.writeStructEnd = function () {
   var p = this.tpos.pop();
   var struct = this.tstack[p];
   var str = '{';
@@ -164,26 +173,27 @@ TJSONProtocol.prototype.writeStructEnd = function() {
  * @param {Thrift.Protocol.Type} fieldType - The data type of the field.
  * @param {number} fieldId - The field's unique identifier.
  */
-TJSONProtocol.prototype.writeFieldBegin = function(name, fieldType, fieldId) {
+TJSONProtocol.prototype.writeFieldBegin = function (name, fieldType, fieldId) {
   this.tpos.push(this.tstack.length);
-  this.tstack.push({ 'fieldId': '"' +
-    fieldId + '"', 'fieldType': TJSONProtocol.Type[fieldType]
+  this.tstack.push({
+    fieldId: '"' + fieldId + '"',
+    fieldType: TJSONProtocol.Type[fieldType],
   });
 };
 
 /**
  * Serializes the end of a field.
  */
-TJSONProtocol.prototype.writeFieldEnd = function() {
+TJSONProtocol.prototype.writeFieldEnd = function () {
   var value = this.tstack.pop();
   var fieldInfo = this.tstack.pop();
 
-  if (':' + value === ":[object Object]") {
-    this.tstack[this.tstack.length - 1][fieldInfo.fieldId] = '{' +
-      fieldInfo.fieldType + ':' + JSON.stringify(value) + '}';
+  if (':' + value === ':[object Object]') {
+    this.tstack[this.tstack.length - 1][fieldInfo.fieldId] =
+      '{' + fieldInfo.fieldType + ':' + JSON.stringify(value) + '}';
   } else {
-    this.tstack[this.tstack.length - 1][fieldInfo.fieldId] = '{' +
-      fieldInfo.fieldType + ':' + value + '}';
+    this.tstack[this.tstack.length - 1][fieldInfo.fieldId] =
+      '{' + fieldInfo.fieldType + ':' + value + '}';
   }
   this.tpos.pop();
 
@@ -193,8 +203,7 @@ TJSONProtocol.prototype.writeFieldEnd = function() {
 /**
  * Serializes the end of the set of fields for a struct.
  */
-TJSONProtocol.prototype.writeFieldStop = function() {
-};
+TJSONProtocol.prototype.writeFieldStop = function () {};
 
 /**
  * Serializes the beginning of a map collection.
@@ -202,16 +211,20 @@ TJSONProtocol.prototype.writeFieldStop = function() {
  * @param {Thrift.Type} valType - The data type of the value.
  * @param {number} [size] - The number of elements in the map (ignored).
  */
-TJSONProtocol.prototype.writeMapBegin = function(keyType, valType, size) {
+TJSONProtocol.prototype.writeMapBegin = function (keyType, valType, size) {
   //size is invalid, we'll set it on end.
   this.tpos.push(this.tstack.length);
-  this.tstack.push([TJSONProtocol.Type[keyType], TJSONProtocol.Type[valType], 0]);
+  this.tstack.push([
+    TJSONProtocol.Type[keyType],
+    TJSONProtocol.Type[valType],
+    0,
+  ]);
 };
 
 /**
  * Serializes the end of a map.
  */
-TJSONProtocol.prototype.writeMapEnd = function() {
+TJSONProtocol.prototype.writeMapEnd = function () {
   var p = this.tpos.pop();
 
   if (p == this.tstack.length) {
@@ -237,7 +250,9 @@ TJSONProtocol.prototype.writeMapEnd = function() {
       map = ',' + map;
     }
 
-    if (! isNaN(k)) { k = '"' + k + '"'; } //json "keys" need to be strings
+    if (!isNaN(k)) {
+      k = '"' + k + '"';
+    } //json "keys" need to be strings
     map = k + ':' + v + map;
   }
   map = '{' + map;
@@ -253,7 +268,7 @@ TJSONProtocol.prototype.writeMapEnd = function() {
  * @param {Thrift.Type} elemType - The data type of the elements.
  * @param {number} size - The number of elements in the list.
  */
-TJSONProtocol.prototype.writeListBegin = function(elemType, size) {
+TJSONProtocol.prototype.writeListBegin = function (elemType, size) {
   this.tpos.push(this.tstack.length);
   this.tstack.push([TJSONProtocol.Type[elemType], size]);
 };
@@ -261,7 +276,7 @@ TJSONProtocol.prototype.writeListBegin = function(elemType, size) {
 /**
  * Serializes the end of a list.
  */
-TJSONProtocol.prototype.writeListEnd = function() {
+TJSONProtocol.prototype.writeListEnd = function () {
   var p = this.tpos.pop();
 
   while (this.tstack.length > p + 1) {
@@ -280,15 +295,15 @@ TJSONProtocol.prototype.writeListEnd = function() {
  * @param {Thrift.Type} elemType - The data type of the elements.
  * @param {number} size - The number of elements in the list.
  */
-TJSONProtocol.prototype.writeSetBegin = function(elemType, size) {
-    this.tpos.push(this.tstack.length);
-    this.tstack.push([TJSONProtocol.Type[elemType], size]);
+TJSONProtocol.prototype.writeSetBegin = function (elemType, size) {
+  this.tpos.push(this.tstack.length);
+  this.tstack.push([TJSONProtocol.Type[elemType], size]);
 };
 
 /**
  * Serializes the end of a set.
  */
-TJSONProtocol.prototype.writeSetEnd = function() {
+TJSONProtocol.prototype.writeSetEnd = function () {
   var p = this.tpos.pop();
 
   while (this.tstack.length > p + 1) {
@@ -303,27 +318,27 @@ TJSONProtocol.prototype.writeSetEnd = function() {
 };
 
 /** Serializes a boolean */
-TJSONProtocol.prototype.writeBool = function(bool) {
+TJSONProtocol.prototype.writeBool = function (bool) {
   this.tstack.push(bool ? 1 : 0);
 };
 
 /** Serializes a number */
-TJSONProtocol.prototype.writeByte = function(byte) {
+TJSONProtocol.prototype.writeByte = function (byte) {
   this.tstack.push(byte);
 };
 
 /** Serializes a number */
-TJSONProtocol.prototype.writeI16 = function(i16) {
+TJSONProtocol.prototype.writeI16 = function (i16) {
   this.tstack.push(i16);
 };
 
 /** Serializes a number */
-TJSONProtocol.prototype.writeI32 = function(i32) {
+TJSONProtocol.prototype.writeI32 = function (i32) {
   this.tstack.push(i32);
 };
 
 /** Serializes a number */
-TJSONProtocol.prototype.writeI64 = function(i64) {
+TJSONProtocol.prototype.writeI64 = function (i64) {
   if (i64 instanceof Int64) {
     this.tstack.push(Int64Util.toDecimalString(i64));
   } else {
@@ -332,67 +347,79 @@ TJSONProtocol.prototype.writeI64 = function(i64) {
 };
 
 /** Serializes a number */
-TJSONProtocol.prototype.writeDouble = function(dub) {
+TJSONProtocol.prototype.writeDouble = function (dub) {
   this.tstack.push(dub);
 };
 
 /** Serializes a string */
-TJSONProtocol.prototype.writeString = function(arg) {
+TJSONProtocol.prototype.writeString = function (arg) {
   // We do not encode uri components for wire transfer:
   if (arg === null) {
-      this.tstack.push(null);
+    this.tstack.push(null);
   } else {
-      if (typeof arg === 'string') {
-        var str = arg;
-      } else if (arg instanceof Buffer) {
-        var str = arg.toString('utf8');
-      } else {
-        throw new Error('writeString called without a string/Buffer argument: ' + arg);
-      }
+    if (typeof arg === 'string') {
+      var str = arg;
+    } else if (arg instanceof Buffer) {
+      var str = arg.toString('utf8');
+    } else {
+      throw new Error(
+        'writeString called without a string/Buffer argument: ' + arg
+      );
+    }
 
-      // concat may be slower than building a byte buffer
-      var escapedString = '';
-      for (var i = 0; i < str.length; i++) {
-          var ch = str.charAt(i);      // a single double quote: "
-          if (ch === '\"') {
-              escapedString += '\\\"'; // write out as: \"
-          } else if (ch === '\\') {    // a single backslash: \
-              escapedString += '\\\\'; // write out as: \\
-          /* Currently escaped forward slashes break TJSONProtocol.
-           * As it stands, we can simply pass forward slashes into
-           * our strings across the wire without being escaped.
-           * I think this is the protocol's bug, not thrift.js
-           * } else if(ch === '/') {   // a single forward slash: /
-           *  escapedString += '\\/';  // write out as \/
-           * }
-           */
-          } else if (ch === '\b') {    // a single backspace: invisible
-              escapedString += '\\b';  // write out as: \b"
-          } else if (ch === '\f') {    // a single formfeed: invisible
-              escapedString += '\\f';  // write out as: \f"
-          } else if (ch === '\n') {    // a single newline: invisible
-              escapedString += '\\n';  // write out as: \n"
-          } else if (ch === '\r') {    // a single return: invisible
-              escapedString += '\\r';  // write out as: \r"
-          } else if (ch === '\t') {    // a single tab: invisible
-              escapedString += '\\t';  // write out as: \t"
-          } else {
-              escapedString += ch;     // Else it need not be escaped
-          }
+    // concat may be slower than building a byte buffer
+    var escapedString = '';
+    for (var i = 0; i < str.length; i++) {
+      var ch = str.charAt(i); // a single double quote: "
+      if (ch === '"') {
+        escapedString += '\\"'; // write out as: \"
+      } else if (ch === '\\') {
+        // a single backslash: \
+        escapedString += '\\\\'; // write out as: \\
+        /* Currently escaped forward slashes break TJSONProtocol.
+         * As it stands, we can simply pass forward slashes into
+         * our strings across the wire without being escaped.
+         * I think this is the protocol's bug, not thrift.js
+         * } else if(ch === '/') {   // a single forward slash: /
+         *  escapedString += '\\/';  // write out as \/
+         * }
+         */
+      } else if (ch === '\b') {
+        // a single backspace: invisible
+        escapedString += '\\b'; // write out as: \b"
+      } else if (ch === '\f') {
+        // a single formfeed: invisible
+        escapedString += '\\f'; // write out as: \f"
+      } else if (ch === '\n') {
+        // a single newline: invisible
+        escapedString += '\\n'; // write out as: \n"
+      } else if (ch === '\r') {
+        // a single return: invisible
+        escapedString += '\\r'; // write out as: \r"
+      } else if (ch === '\t') {
+        // a single tab: invisible
+        escapedString += '\\t'; // write out as: \t"
+      } else {
+        escapedString += ch; // Else it need not be escaped
       }
-      this.tstack.push('"' + escapedString + '"');
+    }
+    this.tstack.push('"' + escapedString + '"');
   }
 };
 
 /** Serializes a string */
-TJSONProtocol.prototype.writeBinary = function(arg) {
+TJSONProtocol.prototype.writeBinary = function (arg) {
   if (typeof arg === 'string') {
     var buf = new Buffer(arg, 'binary');
-  } else if (arg instanceof Buffer ||
-             Object.prototype.toString.call(arg) == '[object Uint8Array]')  {
+  } else if (
+    arg instanceof Buffer ||
+    Object.prototype.toString.call(arg) == '[object Uint8Array]'
+  ) {
     var buf = arg;
   } else {
-    throw new Error('writeBinary called without a string/Buffer argument: ' + arg);
+    throw new Error(
+      'writeBinary called without a string/Buffer argument: ' + arg
+    );
   }
   this.tstack.push('"' + buf.toString('base64') + '"');
 };
@@ -408,7 +435,7 @@ TJSONProtocol.prototype.writeBinary = function(arg) {
  * Deserializes the beginning of a message.
  * @returns {AnonReadMessageBeginReturn}
  */
-TJSONProtocol.prototype.readMessageBegin = function() {
+TJSONProtocol.prototype.readMessageBegin = function () {
   this.rstack = [];
   this.rpos = [];
 
@@ -419,8 +446,9 @@ TJSONProtocol.prototype.readMessageBegin = function() {
   }
   var cursor = transBuf.readIndex;
 
-  if (transBuf.buf[cursor] !== 0x5B) { //[
-    throw new Error("Malformed JSON input, no opening bracket");
+  if (transBuf.buf[cursor] !== 0x5b) {
+    //[
+    throw new Error('Malformed JSON input, no opening bracket');
   }
 
   //Parse a single message (there may be several in the buffer)
@@ -432,22 +460,27 @@ TJSONProtocol.prototype.readMessageBegin = function() {
     var chr = transBuf.buf[cursor];
     //we use hexa charcode here because data[i] returns an int and not a char
     if (inString) {
-      if (chr === 0x22) { //"
+      if (chr === 0x22) {
+        //"
         inString = false;
-      } else if (chr === 0x5C) { //\
+      } else if (chr === 0x5c) {
+        //\
         //escaped character, skip
         cursor += 1;
       }
     } else {
-      if (chr === 0x5B) { //[
+      if (chr === 0x5b) {
+        //[
         openBracketCount += 1;
-      } else if (chr === 0x5D) { //]
+      } else if (chr === 0x5d) {
+        //]
         openBracketCount -= 1;
         if (openBracketCount === 0) {
           //end of json message detected
           break;
         }
-      } else if (chr === 0x22) { //"
+      } else if (chr === 0x22) {
+        //"
         inString = true;
       }
     }
@@ -459,7 +492,9 @@ TJSONProtocol.prototype.readMessageBegin = function() {
   }
 
   //Reconstitute the JSON object and conume the necessary bytes
-  this.robj = json_parse(transBuf.buf.slice(transBuf.readIndex, cursor+1).toString());
+  this.robj = json_parse(
+    transBuf.buf.slice(transBuf.readIndex, cursor + 1).toString()
+  );
   this.trans.consume(cursor + 1 - transBuf.readIndex);
 
   //Verify the protocol version
@@ -479,15 +514,14 @@ TJSONProtocol.prototype.readMessageBegin = function() {
 };
 
 /** Deserializes the end of a message. */
-TJSONProtocol.prototype.readMessageEnd = function() {
-};
+TJSONProtocol.prototype.readMessageEnd = function () {};
 
 /**
  * Deserializes the beginning of a struct.
  * @param {string} [name] - The name of the struct (ignored)
  * @returns {object} - An object with an empty string fname property
  */
-TJSONProtocol.prototype.readStructBegin = function() {
+TJSONProtocol.prototype.readStructBegin = function () {
   var r = {};
   r.fname = '';
 
@@ -500,7 +534,7 @@ TJSONProtocol.prototype.readStructBegin = function() {
 };
 
 /** Deserializes the end of a struct. */
-TJSONProtocol.prototype.readStructEnd = function() {
+TJSONProtocol.prototype.readStructEnd = function () {
   this.rstack.pop();
 };
 
@@ -515,14 +549,14 @@ TJSONProtocol.prototype.readStructEnd = function() {
  * Deserializes the beginning of a field.
  * @returns {AnonReadFieldBeginReturn}
  */
-TJSONProtocol.prototype.readFieldBegin = function() {
+TJSONProtocol.prototype.readFieldBegin = function () {
   var r = {};
 
   var fid = -1;
   var ftype = Type.STOP;
 
   //get a fieldId
-  for (var f in (this.rstack[this.rstack.length - 1])) {
+  for (var f in this.rstack[this.rstack.length - 1]) {
     if (f === null) {
       continue;
     }
@@ -543,13 +577,15 @@ TJSONProtocol.prototype.readFieldBegin = function() {
   if (fid != -1) {
     //should only be 1 of these but this is the only
     //way to match a key
-    for (var i in (this.rstack[this.rstack.length - 1])) {
+    for (var i in this.rstack[this.rstack.length - 1]) {
       if (TJSONProtocol.RType[i] === null) {
         continue;
       }
 
       ftype = TJSONProtocol.RType[i];
-      this.rstack[this.rstack.length - 1] = this.rstack[this.rstack.length - 1][i];
+      this.rstack[this.rstack.length - 1] = this.rstack[this.rstack.length - 1][
+        i
+      ];
     }
   }
 
@@ -561,7 +597,7 @@ TJSONProtocol.prototype.readFieldBegin = function() {
 };
 
 /** Deserializes the end of a field. */
-TJSONProtocol.prototype.readFieldEnd = function() {
+TJSONProtocol.prototype.readFieldEnd = function () {
   var pos = this.rpos.pop();
 
   //get back to the right place in the stack
@@ -581,7 +617,7 @@ TJSONProtocol.prototype.readFieldEnd = function() {
  * Deserializes the beginning of a map.
  * @returns {AnonReadMapBeginReturn}
  */
-TJSONProtocol.prototype.readMapBegin = function() {
+TJSONProtocol.prototype.readMapBegin = function () {
   var map = this.rstack.pop();
   var first = map.shift();
   if (first instanceof Array) {
@@ -595,7 +631,6 @@ TJSONProtocol.prototype.readMapBegin = function() {
   r.vtype = TJSONProtocol.RType[map.shift()];
   r.size = map.shift();
 
-
   this.rpos.push(this.rstack.length);
   this.rstack.push(map.shift());
 
@@ -603,7 +638,7 @@ TJSONProtocol.prototype.readMapBegin = function() {
 };
 
 /** Deserializes the end of a map. */
-TJSONProtocol.prototype.readMapEnd = function() {
+TJSONProtocol.prototype.readMapEnd = function () {
   this.readFieldEnd();
 };
 
@@ -617,7 +652,7 @@ TJSONProtocol.prototype.readMapEnd = function() {
  * Deserializes the beginning of a list.
  * @returns {AnonReadColBeginReturn}
  */
-TJSONProtocol.prototype.readListBegin = function() {
+TJSONProtocol.prototype.readListBegin = function () {
   var list = this.rstack[this.rstack.length - 1];
 
   var r = {};
@@ -631,7 +666,7 @@ TJSONProtocol.prototype.readListBegin = function() {
 };
 
 /** Deserializes the end of a list. */
-TJSONProtocol.prototype.readListEnd = function() {
+TJSONProtocol.prototype.readListEnd = function () {
   var pos = this.rpos.pop() - 2;
   var st = this.rstack;
   st.pop();
@@ -644,33 +679,33 @@ TJSONProtocol.prototype.readListEnd = function() {
  * Deserializes the beginning of a set.
  * @returns {AnonReadColBeginReturn}
  */
-TJSONProtocol.prototype.readSetBegin = function() {
+TJSONProtocol.prototype.readSetBegin = function () {
   return this.readListBegin();
 };
 
 /** Deserializes the end of a set. */
-TJSONProtocol.prototype.readSetEnd = function() {
+TJSONProtocol.prototype.readSetEnd = function () {
   return this.readListEnd();
 };
 
-TJSONProtocol.prototype.readBool = function() {
+TJSONProtocol.prototype.readBool = function () {
   return this.readValue() == '1';
 };
 
-TJSONProtocol.prototype.readByte = function() {
+TJSONProtocol.prototype.readByte = function () {
   return this.readI32();
 };
 
-TJSONProtocol.prototype.readI16 = function() {
+TJSONProtocol.prototype.readI16 = function () {
   return this.readI32();
 };
 
-TJSONProtocol.prototype.readI32 = function(f) {
+TJSONProtocol.prototype.readI32 = function (f) {
   return +this.readValue();
-}
+};
 
 /** Returns the next value found in the protocol buffer */
-TJSONProtocol.prototype.readValue = function(f) {
+TJSONProtocol.prototype.readValue = function (f) {
   if (f === undefined) {
     f = this.rstack[this.rstack.length - 1];
   }
@@ -702,8 +737,8 @@ TJSONProtocol.prototype.readValue = function(f) {
   return r.value;
 };
 
-TJSONProtocol.prototype.readI64 = function() {
-  var n = this.readValue()
+TJSONProtocol.prototype.readI64 = function () {
+  var n = this.readValue();
   if (typeof n === 'string') {
     // Assuming no one is sending in 1.11111e+33 format
     return Int64Util.fromDecimalString(n);
@@ -712,15 +747,15 @@ TJSONProtocol.prototype.readI64 = function() {
   }
 };
 
-TJSONProtocol.prototype.readDouble = function() {
+TJSONProtocol.prototype.readDouble = function () {
   return this.readI32();
 };
 
-TJSONProtocol.prototype.readBinary = function() {
+TJSONProtocol.prototype.readBinary = function () {
   return new Buffer(this.readValue(), 'base64');
 };
 
-TJSONProtocol.prototype.readString = function() {
+TJSONProtocol.prototype.readString = function () {
   return this.readValue();
 };
 
@@ -729,15 +764,15 @@ TJSONProtocol.prototype.readString = function() {
  * @readonly
  * @returns {Thrift.Transport} The underlying transport.
  */
-TJSONProtocol.prototype.getTransport = function() {
+TJSONProtocol.prototype.getTransport = function () {
   return this.trans;
 };
 
 /**
  * Method to arbitrarily skip over data
  */
-TJSONProtocol.prototype.skip = function(type) {
-    switch (type) {
+TJSONProtocol.prototype.skip = function (type) {
+  switch (type) {
     case Type.BOOL:
       this.readBool();
       break;
@@ -794,6 +829,6 @@ TJSONProtocol.prototype.skip = function(type) {
       this.readListEnd();
       break;
     default:
-      throw new  Error("Invalid type: " + type);
+      throw new Error('Invalid type: ' + type);
   }
 };

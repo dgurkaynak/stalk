@@ -6,11 +6,12 @@
 ![Demo](./docs/readme-images/screenshot.png)
 
 **Stalk Studio** is a highly flexible trace analysis tool for Jaeger and Zipkin.
+
 - Search & import traces directly from Jaeger and Zipkin services
 - Drag & drop JSON trace files exported from Jaeger and Zipkin
 - Intuitive UI for extracting useful information from complex traces
 - Supports viewing & inspecting multiple traces on the same stage to give you a bigger perspective
-- *and more...*
+- _and more..._
 
 # Main Features
 
@@ -139,7 +140,7 @@ You must have node.js >= 12 installed on your machine.
 ### Distribution
 
 - Build the project in production mode: `npm run build`
-- Make distribution files (*.dmg, *.AppImage, *-setup.exe)
+- Make distribution files (_.dmg, _.AppImage, \*-setup.exe)
   - Generates distribution files for your platform: `npm run distribute`
   - Generate distribution files for Windows and Linux in Docker: `node ./scripts/electron-build-win-and-linux-on-docker.sh`
 - Check out `/dist` folder for outputs

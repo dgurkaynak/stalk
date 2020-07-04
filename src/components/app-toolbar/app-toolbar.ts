@@ -2,7 +2,7 @@ import tippy, { Instance as TippyInstance } from 'tippy.js';
 import { ToolbarMenuList, ToolbarMenuListOptions } from './menu-list';
 import {
   DataSourceManager,
-  DataSourceManagerEvent
+  DataSourceManagerEvent,
 } from '../../model/datasource/manager';
 import { DataSourceType, DataSource } from '../../model/datasource/interfaces';
 import { Stage, StageEvent } from '../../model/stage';
@@ -31,15 +31,15 @@ export class AppToolbar {
       dataSources: document.createElement('div'),
       newDataSource: document.createElement('div'),
       liveCollector: document.createElement('div'),
-      traces: document.createElement('div')
+      traces: document.createElement('div'),
     },
     tracesBadgeCount: document.createElement('div'),
     dataSourceMenuList: {
       header: document.createElement('div'),
       empty: document.createElement('div'),
       removePopConfirmContainer: document.createElement('div'),
-      removePopConfirmButton: document.createElement('button')
-    }
+      removePopConfirmButton: document.createElement('button'),
+    },
   };
   private tippyInstaces: {
     dataSources: TippyInstance;
@@ -79,7 +79,7 @@ export class AppToolbar {
     ),
     onStageTracesModalClose: this.onStageTracesModalClose.bind(this),
     onLiveCollectorModalClose: this.onLiveCollectorModalClose.bind(this),
-    onContainerDoubleClick: this.onContainerDoubleClick.bind(this)
+    onContainerDoubleClick: this.onContainerDoubleClick.bind(this),
   };
 
   private stage = Stage.getSingleton();
@@ -90,7 +90,7 @@ export class AppToolbar {
     emptyEl: this.elements.dataSourceMenuList.empty,
     items: [],
     onButtonClick: this.binded.onDataSourceMenuListButtonClick,
-    onTextClick: this.binded.onDataSourceMenuListTextClick
+    onTextClick: this.binded.onDataSourceMenuListTextClick,
   });
 
   constructor() {
@@ -164,7 +164,7 @@ export class AppToolbar {
     // Data source remove pop confirm
     const {
       removePopConfirmContainer,
-      removePopConfirmButton
+      removePopConfirmButton,
     } = this.elements.dataSourceMenuList;
     removePopConfirmContainer.classList.add('datasource-remove-popconfirm');
     removePopConfirmContainer.innerHTML = `<div class="text">Are you sure to delete this data source?</div>`;
@@ -199,23 +199,23 @@ export class AppToolbar {
         this.elements.btn.dataSources,
         {
           content: 'Data Sources',
-          multiple: true
-        }
+          multiple: true,
+        },
       ],
       [
         this.elements.btn.liveCollector,
         {
           content: 'Live Collector',
-          multiple: true
-        }
+          multiple: true,
+        },
       ],
       [
         this.elements.btn.traces,
         {
           content: 'Traces in the Stage',
-          multiple: true
-        }
-      ]
+          multiple: true,
+        },
+      ],
     ]);
   }
 
@@ -230,7 +230,7 @@ export class AppToolbar {
         updateDuration: 0,
         theme: 'app-toolbar-menu-list',
         trigger: 'click',
-        interactive: true
+        interactive: true,
       }),
       dataSourceRemovePopConfirm: tippy(document.body, {
         lazy: false,
@@ -255,12 +255,12 @@ export class AppToolbar {
                 top: 0,
                 bottom: 0,
                 left: 0,
-                right: 0
+                right: 0,
               };
-            }
+            },
           };
-        }
-      })
+        },
+      }),
     };
   }
 
@@ -276,14 +276,14 @@ export class AppToolbar {
   private updateDataSourceList() {
     this.dataSourcesMenuList.removeAllItems();
     const dataSources = this.dsManager.getAll();
-    dataSources.forEach(ds => {
+    dataSources.forEach((ds) => {
       this.dataSourcesMenuList.addItem({
         text: ds.name,
         buttons: [
           { id: 'search', icon: 'magnify' },
           { id: 'edit', icon: 'pencil' },
-          { id: 'delete', icon: 'delete' }
-        ]
+          { id: 'delete', icon: 'delete' },
+        ],
       });
     });
   }
@@ -405,12 +405,12 @@ export class AppToolbar {
       case 'edit': {
         this.dataSourceFormModalContent = new DataSourceFormModalContent({
           type: 'edit',
-          dataSource: ds
+          dataSource: ds,
         });
         const modal = new Modal({
           content: this.dataSourceFormModalContent.getElement(),
           onClose: this.binded.onNewDataSourceModalClose,
-          shouldAutoFocusFirstElement: true
+          shouldAutoFocusFirstElement: true,
         });
         this.dataSourceFormModalContent.init();
         ModalManager.getSingleton().show(modal);
@@ -434,9 +434,9 @@ export class AppToolbar {
               top: itemBBRect.top - parentMenuBBRect.top,
               bottom: itemBBRect.bottom - parentMenuBBRect.top,
               left: itemBBRect.left - parentMenuBBRect.left,
-              right: itemBBRect.right - parentMenuBBRect.left
+              right: itemBBRect.right - parentMenuBBRect.left,
             };
-          }
+          },
         });
         tippyIns.popperInstance.update();
         tippyIns.show();
@@ -474,7 +474,7 @@ export class AppToolbar {
       modalContent = this.jaegerSearchModalContents[ds.id];
       if (!modalContent) {
         modalContent = new JaegerSearchModalContent({
-          dataSource: ds
+          dataSource: ds,
         });
         shouldInitModalContent = true;
         this.jaegerSearchModalContents[ds.id] = modalContent;
@@ -484,7 +484,7 @@ export class AppToolbar {
       modalContent = this.zipkinSearchModalContents[ds.id];
       if (!modalContent) {
         modalContent = new ZipkinSearchModalContent({
-          dataSource: ds
+          dataSource: ds,
         });
         shouldInitModalContent = true;
         this.zipkinSearchModalContents[ds.id] = modalContent;
@@ -501,7 +501,7 @@ export class AppToolbar {
       contentContainerClassName,
       onClose: this.binded.onDataSourceSearchModalClosed,
       shouldCloseOnEscPress: true,
-      shouldCloseOnOverlayClick: true
+      shouldCloseOnOverlayClick: true,
     });
     ModalManager.getSingleton().show(modal);
     shouldInitModalContent && modalContent.init(); // must be inited after render
@@ -541,7 +541,7 @@ export class AppToolbar {
       contentContainerClassName: 'stage-traces-modal-container',
       onClose: this.binded.onStageTracesModalClose,
       shouldCloseOnEscPress: true,
-      shouldCloseOnOverlayClick: true
+      shouldCloseOnOverlayClick: true,
     });
     ModalManager.getSingleton().show(modal);
     if (!this.stageTracesModalContent.inited)
@@ -555,7 +555,7 @@ export class AppToolbar {
   ) {
     if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
     if (data?.action != 'removeFromStage') return;
-    (data.traceIds as string[]).forEach(id => this.stage.removeTrace(id));
+    (data.traceIds as string[]).forEach((id) => this.stage.removeTrace(id));
   }
 
   private onLiveCollectorButtonClick() {
@@ -564,7 +564,7 @@ export class AppToolbar {
       contentContainerClassName: 'live-collector-modal-container',
       onClose: this.binded.onLiveCollectorModalClose,
       shouldCloseOnEscPress: true,
-      shouldCloseOnOverlayClick: true
+      shouldCloseOnOverlayClick: true,
     });
     ModalManager.getSingleton().show(modal);
     if (!this.liveCollectorModalContent.inited)
@@ -578,17 +578,17 @@ export class AppToolbar {
   ) {
     if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
     if (data?.action != 'addToStage') return;
-    (data.traces as Trace[]).forEach(t => this.stage.addTrace(t));
+    (data.traces as Trace[]).forEach((t) => this.stage.addTrace(t));
   }
 
   private onNewDataSourceButtonClick() {
     this.dataSourceFormModalContent = new DataSourceFormModalContent({
-      type: 'new'
+      type: 'new',
     });
     const modal = new Modal({
       content: this.dataSourceFormModalContent.getElement(),
       onClose: this.binded.onNewDataSourceModalClose,
-      shouldAutoFocusFirstElement: true
+      shouldAutoFocusFirstElement: true,
     });
     this.dataSourceFormModalContent.init();
     ModalManager.getSingleton().show(modal);
@@ -627,7 +627,7 @@ export class AppToolbar {
   ) {
     if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
     if (data?.action != 'addToStage') return;
-    (data.traces as Trace[]).forEach(t => this.stage.addTrace(t));
+    (data.traces as Trace[]).forEach((t) => this.stage.addTrace(t));
   }
 
   private onContainerDoubleClick() {
@@ -643,16 +643,16 @@ export class AppToolbar {
     const tooltipManager = TooltipManager.getSingleton();
     tooltipManager.removeFromSingleton([
       this.elements.btn.dataSources,
-      this.elements.btn.traces
+      this.elements.btn.traces,
     ]);
     for (let tippy of Object.values(this.tippyInstaces)) {
       tippy.destroy();
     }
     this.tippyInstaces = null;
 
-    Object.values(this.jaegerSearchModalContents).forEach(c => c.dispose);
+    Object.values(this.jaegerSearchModalContents).forEach((c) => c.dispose);
     this.jaegerSearchModalContents = {};
-    Object.values(this.zipkinSearchModalContents).forEach(c => c.dispose);
+    Object.values(this.zipkinSearchModalContents).forEach((c) => c.dispose);
     this.zipkinSearchModalContents = {};
 
     this.unbindEvents();

@@ -1,7 +1,7 @@
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
   WidgetToolbarSelect,
-  WidgetToolbarSelectItem
+  WidgetToolbarSelectItem,
 } from '../widget-toolbar/widget-toolbar-select';
 import find from 'lodash/find';
 import EventEmitter from 'events';
@@ -10,7 +10,7 @@ import '../context-menu/context-menu.css';
 
 export enum ContextMenuEvent {
   SHOW_SPAN_IN_TABLE_VIEW = 'showSpanInTableView',
-  SHOW_SPAN_IN_TIMELINE_VIEW = 'showSpanInTimelineView'
+  SHOW_SPAN_IN_TIMELINE_VIEW = 'showSpanInTimelineView',
 }
 
 export interface ContextMenuItem {
@@ -32,14 +32,14 @@ export class ContextMenuManager extends EventEmitter {
   }
 
   private binded = {
-    onMenuItemClick: this.onMenuItemClick.bind(this)
+    onMenuItemClick: this.onMenuItemClick.bind(this),
   };
 
   private menuItems: ContextMenuItem[] = [];
   private menu = new WidgetToolbarSelect({
     // width: 150,
     items: [],
-    onSelect: this.binded.onMenuItemClick
+    onSelect: this.binded.onMenuItemClick,
   });
 
   static getSingleton() {
@@ -70,9 +70,9 @@ export class ContextMenuManager extends EventEmitter {
               top: 0,
               bottom: 0,
               left: 0,
-              right: 0
+              right: 0,
             };
-          }
+          },
         };
       },
       onShow: () => {
@@ -80,13 +80,13 @@ export class ContextMenuManager extends EventEmitter {
       },
       onHide: () => {
         this._isShowing = false;
-      }
+      },
     });
   }
 
   show(options: { x: number; y: number; menuItems: ContextMenuItem[] }) {
     this.menuItems = options.menuItems;
-    this.menu.updateItems(options.menuItems.map(i => i.selectItem));
+    this.menu.updateItems(options.menuItems.map((i) => i.selectItem));
 
     Object.assign(this.tippy.popperInstance.reference, {
       clientWidth: 0,
@@ -98,9 +98,9 @@ export class ContextMenuManager extends EventEmitter {
           top: options.y,
           bottom: options.y,
           left: options.x,
-          right: options.x
+          right: options.x,
         };
-      }
+      },
     });
     this.tippy.popperInstance.update();
     this.tippy.show();
@@ -116,7 +116,7 @@ export class ContextMenuManager extends EventEmitter {
 
     const menuItem = find(
       this.menuItems,
-      i => (i.selectItem as any).id == item.id
+      (i) => (i.selectItem as any).id == item.id
     );
     if (menuItem) {
       menuItem.onSelected?.();

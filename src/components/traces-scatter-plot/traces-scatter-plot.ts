@@ -45,7 +45,7 @@ export interface TracesScatterPlotComputedStyles
 export enum TracesScatterPlotEvent {
   POINT_HOVERED = 'tsp_point_hovered',
   POINT_UNHOVERED = 'tsp_point_unhovered',
-  POINT_CLICKED = 'tsp_point_clicked'
+  POINT_CLICKED = 'tsp_point_clicked',
 }
 
 export class TracesScatterPlot extends EventEmitter {
@@ -54,7 +54,7 @@ export class TracesScatterPlot extends EventEmitter {
     defs: document.createElementNS(SVG_NS, 'defs'),
     chartContainer: document.createElementNS(SVG_NS, 'g'),
     xAxisLine: document.createElementNS(SVG_NS, 'line'),
-    yAxisLine: document.createElementNS(SVG_NS, 'line')
+    yAxisLine: document.createElementNS(SVG_NS, 'line'),
   };
   private readonly computedStyles: TracesScatterPlotComputedStyles;
   private colorAssigner = new MPN65ColorAssigner();
@@ -63,7 +63,7 @@ export class TracesScatterPlot extends EventEmitter {
   private traceTooltipContent = new TraceTooltipContent();
   private traceTooltipStuffCache = {
     svgBBTop: 0,
-    svgBBLeft: 0
+    svgBBLeft: 0,
   };
 
   private sceneStats: {
@@ -95,7 +95,7 @@ export class TracesScatterPlot extends EventEmitter {
   private binded = {
     onMouseMove: this.onMouseMove.bind(this),
     onMouseLeave: this.onMouseLeave.bind(this),
-    onClick: this.onClick.bind(this)
+    onClick: this.onClick.bind(this),
   };
 
   constructor(options?: { style?: TracesScatterPlotStyle }) {
@@ -121,12 +121,12 @@ export class TracesScatterPlot extends EventEmitter {
       pointsMarginLeft: 20,
       pointsMarginTop: 10,
       pointsMarginRight: 20,
-      pointsMarginBottom: 10
+      pointsMarginBottom: 10,
     } as TracesScatterPlotStyle);
     this.computedStyles = {
       ...style,
       width: 0,
-      height: 0
+      height: 0,
     };
 
     const { svg, defs, chartContainer, xAxisLine, yAxisLine } = this.elements;
@@ -187,11 +187,11 @@ export class TracesScatterPlot extends EventEmitter {
               top: 0,
               bottom: 0,
               left: 0,
-              right: 0
+              right: 0,
             };
-          }
+          },
         };
-      }
+      },
     });
     // this.traceTooltipTippy.hide = () => {};
   }
@@ -215,7 +215,7 @@ export class TracesScatterPlot extends EventEmitter {
     let minStartTime = Infinity;
     let maxStartTime = -Infinity;
 
-    traces.forEach(trace => {
+    traces.forEach((trace) => {
       minDuration = Math.min(minDuration, trace.duration);
       maxDuration = Math.max(maxDuration, trace.duration);
       minStartTime = Math.min(minStartTime, trace.startTime);
@@ -230,16 +230,16 @@ export class TracesScatterPlot extends EventEmitter {
       minDuration,
       maxDuration,
       minStartTime,
-      maxStartTime
+      maxStartTime,
     };
 
     // Unmount all the previous circles
-    this.points.forEach(p => p.circle.parentElement?.removeChild(p.circle));
+    this.points.forEach((p) => p.circle.parentElement?.removeChild(p.circle));
 
     const s = this.computedStyles;
 
     // New circles
-    this.points = traces.map(trace => {
+    this.points = traces.map((trace) => {
       const circle = document.createElementNS(SVG_NS, 'circle');
       const x = this.getX(trace.startTime);
       const y = this.getY(trace.duration);
@@ -256,12 +256,12 @@ export class TracesScatterPlot extends EventEmitter {
 
       return {
         trace,
-        circle
+        circle,
       };
     });
 
     // Unmount all the previous tick lines of y-axis
-    this.yAxisTicks.forEach(t => {
+    this.yAxisTicks.forEach((t) => {
       t.tickLine.parentElement?.removeChild(t.tickLine);
       t.labelText.parentElement?.removeChild(t.labelText);
     });
@@ -270,7 +270,7 @@ export class TracesScatterPlot extends EventEmitter {
       minDuration,
       maxDuration,
       Math.ceil(s.height / s.yAxisTickInterval)
-    ).map(duration => {
+    ).map((duration) => {
       const tickLine = document.createElementNS(SVG_NS, 'line');
       const labelText = document.createElementNS(SVG_NS, 'text');
 
@@ -302,12 +302,12 @@ export class TracesScatterPlot extends EventEmitter {
       return {
         duration,
         tickLine,
-        labelText
+        labelText,
       };
     });
 
     // Unmount all the previous tick lines of x-axis
-    this.xAxisTicks.forEach(t => {
+    this.xAxisTicks.forEach((t) => {
       t.tickLine.parentElement?.removeChild(t.tickLine);
       t.labelText.parentElement?.removeChild(t.labelText);
     });
@@ -328,7 +328,7 @@ export class TracesScatterPlot extends EventEmitter {
         }
       }
     }
-    this.xAxisTicks = xAxisTickTimestamps.map(ts => {
+    this.xAxisTicks = xAxisTickTimestamps.map((ts) => {
       const tickLine = document.createElementNS(SVG_NS, 'line');
       const labelText = document.createElementNS(SVG_NS, 'text');
 
@@ -355,10 +355,12 @@ export class TracesScatterPlot extends EventEmitter {
       labelText.setAttribute('x', `${x}`);
       labelText.setAttribute(
         'y',
-        `${s.height -
+        `${
+          s.height -
           s.axisMarginBottom +
           s.axisTickLength / 2 +
-          s.axisTickLabelOffset}`
+          s.axisTickLabelOffset
+        }`
       );
       labelText.setAttribute('fill', s.axisTickLabelColor);
       labelText.setAttribute('stroke', 'none');
@@ -372,7 +374,7 @@ export class TracesScatterPlot extends EventEmitter {
       return {
         ts,
         tickLine,
-        labelText
+        labelText,
       };
     });
   }
@@ -417,7 +419,7 @@ export class TracesScatterPlot extends EventEmitter {
       return;
     }
 
-    this.points.forEach(p => {
+    this.points.forEach((p) => {
       const x = this.getX(p.trace.startTime);
       const y = this.getY(p.trace.duration);
 
@@ -429,7 +431,7 @@ export class TracesScatterPlot extends EventEmitter {
   private updateTicks() {
     const s = this.computedStyles;
 
-    this.yAxisTicks.forEach(t => {
+    this.yAxisTicks.forEach((t) => {
       const y = this.getY(t.duration);
 
       t.tickLine.setAttribute(
@@ -444,7 +446,7 @@ export class TracesScatterPlot extends EventEmitter {
       t.tickLine.setAttribute('y2', `${y}`);
     });
 
-    this.xAxisTicks.forEach(t => {
+    this.xAxisTicks.forEach((t) => {
       const x = this.getX(t.ts);
 
       t.tickLine.setAttribute('x1', `${x}`);
@@ -461,10 +463,12 @@ export class TracesScatterPlot extends EventEmitter {
       t.labelText.setAttribute('x', `${x}`);
       t.labelText.setAttribute(
         'y',
-        `${s.height -
+        `${
+          s.height -
           s.axisMarginBottom +
           s.axisTickLength / 2 +
-          s.axisTickLabelOffset}`
+          s.axisTickLabelOffset
+        }`
       );
     });
   }
@@ -526,9 +530,9 @@ export class TracesScatterPlot extends EventEmitter {
             top: top,
             bottom: top + r * 2,
             left: svgBBLeft + x,
-            right: svgBBLeft + x
+            right: svgBBLeft + x,
           };
-        }
+        },
       });
       this.traceTooltipTippy.popperInstance.update();
       this.traceTooltipTippy.show();
@@ -571,7 +575,7 @@ export class TracesScatterPlot extends EventEmitter {
     while (element && element !== this.elements.svg) {
       if (element.hasAttribute('data-trace-id')) {
         const traceId = element.getAttribute('data-trace-id');
-        return find(this.points, p => p.trace.id == traceId);
+        return find(this.points, (p) => p.trace.id == traceId);
       }
       element = (element.parentElement as unknown) as SVGElement;
     }

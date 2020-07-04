@@ -15,7 +15,7 @@ export enum MouseHandlerEvent {
   PAN_END = 'gh_pan_end',
   WHEEL = 'gh_wheel',
   IDLE_MOVE = 'gh_idle_move',
-  IDLE_LEAVE = 'gh_idle_leave'
+  IDLE_LEAVE = 'gh_idle_leave',
 }
 
 interface MouseHandlerStateSchema {
@@ -56,23 +56,23 @@ export default class MouseHandler extends EventEmitter {
           on: {
             MOUSE_DOWN: {
               actions: ['saveEventAsFirstDown'],
-              target: 'waitForInitialUp'
+              target: 'waitForInitialUp',
             },
 
             MOUSE_UP: {
-              target: undefined
+              target: undefined,
             },
 
             MOUSE_MOVE: {
               actions: ['emitdIdleMove'],
-              target: undefined
+              target: undefined,
             },
 
             MOUSE_LEAVE: {
               actions: ['emitdIdleLeave'],
-              target: undefined
-            }
-          }
+              target: undefined,
+            },
+          },
         },
 
         waitForInitialUp: {
@@ -82,8 +82,8 @@ export default class MouseHandler extends EventEmitter {
             MOUSE_DOWN: [
               {
                 actions: ['saveEventAsFirstDown'],
-                target: undefined
-              }
+                target: undefined,
+              },
             ],
 
             // A button is released
@@ -92,24 +92,24 @@ export default class MouseHandler extends EventEmitter {
               {
                 cond: {
                   type: 'isDifferentButton',
-                  with: 'firstDown'
+                  with: 'firstDown',
                 },
-                target: undefined // noop
+                target: undefined, // noop
               },
               // We now know it's the same button
               // If it's already too late for double click, emit click event
               {
                 cond: {
                   type: 'isTooLateForDoubleClick',
-                  with: 'initialDown'
+                  with: 'initialDown',
                 },
                 actions: ['emitClickForFirstDown'],
-                target: 'idle'
+                target: 'idle',
               },
               // We have enough time to double click event
               {
-                target: 'waitForSecondDown'
-              }
+                target: 'waitForSecondDown',
+              },
             ],
 
             // Mouse is moving while a button is being pressed
@@ -117,21 +117,21 @@ export default class MouseHandler extends EventEmitter {
               {
                 cond: {
                   type: 'isNearby',
-                  to: 'initialDown'
+                  to: 'initialDown',
                 },
-                target: undefined
+                target: undefined,
               },
               // We now know user is panning
               {
-                target: 'pan'
-              }
+                target: 'pan',
+              },
             ],
 
             // Mouse is leaved, ignore the event
             MOUSE_LEAVE: {
-              target: 'idle'
-            }
-          }
+              target: 'idle',
+            },
+          },
         },
 
         waitForSecondDown: {
@@ -139,42 +139,42 @@ export default class MouseHandler extends EventEmitter {
           on: {
             DOUBLE_CLICK_TIMEOUT: {
               actions: ['clearDoubleClickTimeout', 'emitClickForFirstDown'],
-              target: 'idle'
+              target: 'idle',
             },
 
             MOUSE_DOWN: [
               {
                 cond: {
                   type: 'isDifferentButton',
-                  with: 'firstDown'
+                  with: 'firstDown',
                 },
                 actions: [
                   'clearDoubleClickTimeout',
                   'emitClickForFirstDown',
-                  'saveEventAsFirstDown'
+                  'saveEventAsFirstDown',
                 ],
-                target: 'waitForInitialUp'
+                target: 'waitForInitialUp',
               },
               // We now know it's the same button
               {
                 actions: ['saveEventAsSecondDown'],
-                target: 'waitForSecondUp'
-              }
+                target: 'waitForSecondUp',
+              },
             ],
 
             MOUSE_MOVE: {
-              target: undefined
+              target: undefined,
             },
 
             MOUSE_UP: {
-              target: undefined
+              target: undefined,
             },
 
             MOUSE_LEAVE: {
               actions: ['clearDoubleClickTimeout', 'emitClickForFirstDown'],
-              target: 'idle'
-            }
-          }
+              target: 'idle',
+            },
+          },
         },
 
         waitForSecondUp: {
@@ -183,9 +183,9 @@ export default class MouseHandler extends EventEmitter {
               actions: [
                 'clearDoubleClickTimeout',
                 'emitClickForFirstDown',
-                'saveEventAsFirstDown'
+                'saveEventAsFirstDown',
               ],
-              target: 'waitForInitialUp'
+              target: 'waitForInitialUp',
             },
 
             // Another mouse button is pressed,
@@ -195,10 +195,10 @@ export default class MouseHandler extends EventEmitter {
                 actions: [
                   'clearDoubleClickTimeout',
                   'emitClickForFirstDown',
-                  'saveEventAsFirstDown'
+                  'saveEventAsFirstDown',
                 ],
-                target: 'waitForInitialUp'
-              }
+                target: 'waitForInitialUp',
+              },
             ],
 
             // A button is released
@@ -207,9 +207,9 @@ export default class MouseHandler extends EventEmitter {
               {
                 cond: {
                   type: 'isDifferentButton',
-                  with: 'secondDown'
+                  with: 'secondDown',
                 },
-                target: undefined // noop
+                target: undefined, // noop
               },
               // We now know it's the same button
               // If it's already too late for double click, emit click event
@@ -217,20 +217,20 @@ export default class MouseHandler extends EventEmitter {
               {
                 cond: {
                   type: 'isTooLateForDoubleClick',
-                  with: 'secondDown'
+                  with: 'secondDown',
                 },
                 actions: [
                   'clearDoubleClickTimeout',
                   'emitClickForFirstDown',
-                  'emitClickForSecondDown'
+                  'emitClickForSecondDown',
                 ],
-                target: 'idle'
+                target: 'idle',
               },
               // Double clicked
               {
                 actions: ['clearDoubleClickTimeout', 'emitDoubleClick'],
-                target: 'idle'
-              }
+                target: 'idle',
+              },
             ],
 
             // Mouse is moving while a button is being pressed
@@ -238,23 +238,23 @@ export default class MouseHandler extends EventEmitter {
               {
                 cond: {
                   type: 'isNearby',
-                  to: 'initialDown'
+                  to: 'initialDown',
                 },
-                target: undefined
+                target: undefined,
               },
               // We now know user is panning
               {
                 actions: ['clearDoubleClickTimeout'],
-                target: 'pan'
-              }
+                target: 'pan',
+              },
             ],
 
             // Mouse is leaved, ignore the event
             MOUSE_LEAVE: {
               actions: ['clearDoubleClickTimeout', 'emitClickForFirstDown'],
-              target: 'idle'
-            }
-          }
+              target: 'idle',
+            },
+          },
         },
 
         pan: {
@@ -263,32 +263,32 @@ export default class MouseHandler extends EventEmitter {
           on: {
             MOUSE_DOWN: {
               actions: ['saveEventAsFirstDown'],
-              target: 'waitForInitialUp'
+              target: 'waitForInitialUp',
             },
 
             MOUSE_UP: [
               {
                 cond: {
                   type: 'isDifferentButton',
-                  with: 'firstDown'
+                  with: 'firstDown',
                 },
-                target: undefined
+                target: undefined,
               },
               // We now know pressed button is released
-              { target: 'idle' }
+              { target: 'idle' },
             ],
 
             MOUSE_MOVE: {
               actions: ['emitPanMove'],
-              target: undefined
+              target: undefined,
             },
 
             MOUSE_LEAVE: {
-              target: 'idle'
-            }
-          }
-        }
-      }
+              target: 'idle',
+            },
+          },
+        },
+      },
     },
     {
       actions: {
@@ -321,7 +321,7 @@ export default class MouseHandler extends EventEmitter {
         },
         setDoubleClickTimeout: send('DOUBLE_CLICK_TIMEOUT', {
           delay: DOUBLE_CLICK_WAIT_TIME,
-          id: 'doubleClickTimeout'
+          id: 'doubleClickTimeout',
         }),
         clearDoubleClickTimeout: cancel('DOUBLE_CLICK_TIMEOUT'),
         emitPanStart: (context, event) => {
@@ -332,7 +332,7 @@ export default class MouseHandler extends EventEmitter {
         },
         emitPanMove: (context, event) => {
           this.emit(MouseHandlerEvent.PAN_MOVE, event.mouseEvent);
-        }
+        },
       },
 
       guards: {
@@ -367,8 +367,8 @@ export default class MouseHandler extends EventEmitter {
           return (
             deltaX < PAN_DETECTION_DELTA_X && deltaY < PAN_DETECTION_DELTA_Y
           );
-        }
-      }
+        },
+      },
     }
   );
   private service = interpret(this.machine);
@@ -377,7 +377,7 @@ export default class MouseHandler extends EventEmitter {
     onMouseMove: this.onMouseMove.bind(this),
     onMouseUp: this.onMouseUp.bind(this),
     onMouseLeave: this.onMouseLeave.bind(this),
-    onWheel: this.onWheel.bind(this)
+    onWheel: this.onWheel.bind(this),
   };
 
   constructor(private element: SVGSVGElement) {

@@ -5,7 +5,7 @@ import { Span } from '../../model/interfaces';
 export enum ZipkinCollectorHTTPServerState {
   STOPPED = 'stopped',
   STARTING = 'starting',
-  RUNNING = 'running'
+  RUNNING = 'running',
 }
 
 export class ZipkinCollectorHTTPServer {
@@ -19,7 +19,7 @@ export class ZipkinCollectorHTTPServer {
   private binded = {
     onRequest: this.onRequest.bind(this),
     onClose: this.onClose.bind(this),
-    onError: this.onError.bind(this)
+    onError: this.onError.bind(this),
   };
 
   getPort() {
@@ -124,7 +124,7 @@ export class ZipkinCollectorHTTPServer {
 
     const body: any[] = [];
     request
-      .on('data', chunk => {
+      .on('data', (chunk) => {
         body.push(chunk);
       })
       .on('end', () => {
@@ -137,7 +137,7 @@ export class ZipkinCollectorHTTPServer {
         } catch (err) {
           console.error(`Could not parse jaeger batch binary thrift`, {
             err,
-            body: bodyStr
+            body: bodyStr,
           });
         }
 

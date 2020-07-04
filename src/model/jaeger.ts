@@ -146,8 +146,8 @@ export class JaegerAPI {
       method: options.method,
       headers: {
         ...this.headers,
-        ...(options.headers || {})
-      }
+        ...(options.headers || {}),
+      },
     });
   }
 }
@@ -189,18 +189,18 @@ export function convertFromJaegerTrace(rawTrace: any) {
       finishTime: rawSpan.startTime + rawSpan.duration,
       references: [],
       tags: {},
-      logs: []
+      logs: [],
     };
 
     if (isArray(rawSpan.references)) {
       const refTypeMapping: any = {
         CHILD_OF: 'childOf',
-        FOLLOWS_FROM: 'followsFrom'
+        FOLLOWS_FROM: 'followsFrom',
       };
       span.references = rawSpan.references.map((ref: any) => ({
         type: refTypeMapping[ref.refType],
         traceId: ref.traceID,
-        spanId: ref.spanID
+        spanId: ref.spanID,
       }));
     }
 
@@ -214,7 +214,7 @@ export function convertFromJaegerTrace(rawTrace: any) {
       span.logs = rawSpan.logs.map((rawLog: any) => {
         const log = {
           timestamp: rawLog.timestamp,
-          fields: {} as { [key: string]: string }
+          fields: {} as { [key: string]: string },
         };
         rawLog.fields.forEach(
           (field: any) => (log.fields[field.key] = field.value)
@@ -228,7 +228,7 @@ export function convertFromJaegerTrace(rawTrace: any) {
       span.process = {
         serviceName: process.serviceName,
         id: rawSpan.processID,
-        tags: {}
+        tags: {},
       };
       process.tags.forEach(
         (tag: any) => (span.process!.tags[tag.key] = tag.value)
@@ -251,7 +251,7 @@ export function convertFromJaegerBatchThrift(batch: any) {
   const process = {
     serviceName: batchAny.process.serviceName,
     id: '',
-    tags: {} as { [key: string]: any }
+    tags: {} as { [key: string]: any },
   };
 
   if (isArray(batchAny.process.tags)) {
@@ -330,7 +330,7 @@ export function convertFromJaegerBatchThrift(batch: any) {
         references.push({
           type: rawRef.refType == 0 ? 'childOf' : 'followsFrom',
           spanId,
-          traceId
+          traceId,
         });
       });
 
@@ -368,7 +368,7 @@ export function convertFromJaegerBatchThrift(batch: any) {
 
             return {
               timestamp: byteArray2number(rawLog.timestamp.buffer),
-              fields: parseJaegerThriftTags(rawLog.fields)
+              fields: parseJaegerThriftTags(rawLog.fields),
             };
           });
 
@@ -381,7 +381,7 @@ export function convertFromJaegerBatchThrift(batch: any) {
         references,
         tags,
         logs,
-        process
+        process,
       };
 
       spans.push(span);

@@ -18,7 +18,7 @@
 
 .customization-form-modal-content .test-result {
   padding: 15px 15px 15px 64px;
-  color: rgba(0,0,0,0.65);
+  color: rgba(0, 0, 0, 0.65);
   line-height: 1.5;
   border-radius: 4px;
   margin: 10px 0;
@@ -35,7 +35,7 @@
 
 .customization-form-modal-content .test-result .title {
   margin-bottom: 4px;
-  color: rgba(0,0,0,0.85);
+  color: rgba(0, 0, 0, 0.85);
   font-size: 1.3em;
 }
 

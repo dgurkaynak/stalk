@@ -5,7 +5,7 @@ var e10 = Math.sqrt(50),
   e5 = Math.sqrt(10),
   e2 = Math.sqrt(2);
 
-export default function(start: number, stop: number, count: number) {
+export default function (start: number, stop: number, count: number) {
   var reverse,
     i = -1,
     n,

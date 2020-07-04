@@ -4,7 +4,7 @@ import debounce from 'lodash/debounce';
 import { TimelineView, TimelineViewEvent } from '../timeline/timeline-view';
 import {
   SpansTableView,
-  SpansTableViewEvent
+  SpansTableViewEvent,
 } from '../spans-table/spans-table';
 import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
 import { SpanLogItemView } from './span-log-item';
@@ -35,10 +35,10 @@ export class SpanLogsView {
     toolbar: document.createElement('div'),
     toolbarBtn: {
       expandAll: document.createElement('div'),
-      collapseAll: document.createElement('div')
+      collapseAll: document.createElement('div'),
     },
     searchInput: document.createElement('input'),
-    contentContainer: document.createElement('div')
+    contentContainer: document.createElement('div'),
   };
 
   private binded = {
@@ -51,7 +51,7 @@ export class SpanLogsView {
     onMouseMove: this.onMouseMove.bind(this),
     onMouseLeave: this.onMouseLeave.bind(this),
     onScroll: this.onScroll.bind(this),
-    onStageTraceRemoved: this.onStageTraceRemoved.bind(this)
+    onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
   };
 
   constructor() {
@@ -167,16 +167,16 @@ export class SpanLogsView {
         btn.expandAll,
         {
           content: 'Expand All',
-          multiple: true
-        }
+          multiple: true,
+        },
       ],
       [
         btn.collapseAll,
         {
           content: 'Collapse All',
-          multiple: true
-        }
-      ]
+          multiple: true,
+        },
+      ],
     ]);
   }
 
@@ -218,9 +218,9 @@ export class SpanLogsView {
   }
 
   private renderLogItems(logItemViews: SpanLogItemView[]) {
-    this.logItemViews.forEach(v => v.unmount());
+    this.logItemViews.forEach((v) => v.unmount());
     this.elements.contentContainer.innerHTML = ``;
-    logItemViews.forEach(v => v.mount(this.elements.contentContainer));
+    logItemViews.forEach((v) => v.mount(this.elements.contentContainer));
   }
 
   private onSearchInput(e: InputEvent) {
@@ -229,18 +229,18 @@ export class SpanLogsView {
 
   private onTimelineSpanSelected(spanId: string) {
     this.updateSpan(spanId);
-    this.logItemViews.forEach(v => v.unhighlight());
+    this.logItemViews.forEach((v) => v.unhighlight());
   }
 
   private onSpansTableSpanSelected(spanId: string) {
     this.updateSpan(spanId);
-    this.logItemViews.forEach(v => v.unhighlight());
+    this.logItemViews.forEach((v) => v.unhighlight());
   }
 
   private onLogsTableLogSelected(logData: any) {
     this.updateSpan(logData.span.id);
 
-    this.logItemViews.forEach(logView => {
+    this.logItemViews.forEach((logView) => {
       if (logView.isEqual(logData)) {
         logView.expand();
         logView.highlight();
@@ -257,7 +257,7 @@ export class SpanLogsView {
 
     if (!spanId) {
       this.selectedSpanId = null;
-      this.logItemViews.forEach(v => {
+      this.logItemViews.forEach((v) => {
         v.unmount();
         v.dispose();
       });
@@ -270,23 +270,23 @@ export class SpanLogsView {
     const mainSpanGroup = this.stage.getMainSpanGroup();
     const span = mainSpanGroup.get(spanId); // TODO: If span does not exists?
     this.selectedSpanId = spanId;
-    this.logItemViews = span.logs.map(log => {
+    this.logItemViews = span.logs.map((log) => {
       const logItemView = new SpanLogItemView();
       logItemView.init({ log });
       return logItemView;
     });
     this.fuse = new Fuse(this.logItemViews, {
-      keys: ['fields.key', 'fields.value']
+      keys: ['fields.key', 'fields.value'],
     });
     this.render();
   }
 
   private onExpandAllClick() {
-    this.logItemViews.forEach(v => v.expand());
+    this.logItemViews.forEach((v) => v.expand());
   }
 
   private onCollapseAllClick() {
-    this.logItemViews.forEach(v => v.collapse());
+    this.logItemViews.forEach((v) => v.collapse());
   }
 
   private onScroll(e: MouseEvent) {

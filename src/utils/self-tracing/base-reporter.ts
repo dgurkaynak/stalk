@@ -5,7 +5,7 @@ export class BaseReporter {
   readonly accepts = {
     spanCreate: false,
     spanLog: false,
-    spanFinish: false
+    spanFinish: false,
   };
 
   recieveSpanCreate(span: opentracing.Span) {

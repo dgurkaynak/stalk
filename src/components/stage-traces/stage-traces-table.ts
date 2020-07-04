@@ -29,7 +29,7 @@ export interface StageTracesTableOptions {
 }
 
 export enum StageTracesTableViewEvent {
-  SELECTIONS_UPDATED = 'selections_updated'
+  SELECTIONS_UPDATED = 'selections_updated',
 }
 
 export class StageTracesTableView extends EventEmitter {
@@ -40,11 +40,11 @@ export class StageTracesTableView extends EventEmitter {
 
   private elements = {
     container: document.createElement('div'),
-    tableContainer: document.createElement('div')
+    tableContainer: document.createElement('div'),
   };
   private viewPropertiesCache = {
     width: 0,
-    height: 0
+    height: 0,
   };
 
   private binded = {
@@ -54,42 +54,42 @@ export class StageTracesTableView extends EventEmitter {
     rowSelectionChanged: this.rowSelectionChanged.bind(this),
     onKeyDown: this.onKeyDown.bind(this),
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
-    onStageTraceRemoved: this.onStageTraceRemoved.bind(this)
+    onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
   };
 
   private columnDefinitions = {
     id: {
       title: 'Trace Id',
-      field: 'id'
+      field: 'id',
     } as Tabulator.ColumnDefinition,
     startTime: {
       title: 'Date',
       field: 'startTime',
-      formatter: this.binded.formatTimestamp
+      formatter: this.binded.formatTimestamp,
     } as Tabulator.ColumnDefinition,
     duration: {
       title: 'Duration',
       field: 'duration',
-      formatter: this.binded.formatDuration
+      formatter: this.binded.formatDuration,
     } as Tabulator.ColumnDefinition,
     name: {
       title: 'Root Span',
-      field: 'name'
+      field: 'name',
     } as Tabulator.ColumnDefinition,
     spanCount: {
       title: 'Span(s)',
-      field: 'spanCount'
+      field: 'spanCount',
     } as Tabulator.ColumnDefinition,
     errorCount: {
       title: 'Error(s)',
-      field: 'errorCount'
+      field: 'errorCount',
     } as Tabulator.ColumnDefinition,
     services: {
       title: 'Services & Span(s)',
       field: 'services',
       formatter: this.binded.formatServices,
-      headerSort: false
-    } as Tabulator.ColumnDefinition
+      headerSort: false,
+    } as Tabulator.ColumnDefinition,
   };
 
   constructor() {
@@ -104,7 +104,7 @@ export class StageTracesTableView extends EventEmitter {
     this.options = options;
     this.viewPropertiesCache = {
       width: options.width,
-      height: options.height
+      height: options.height,
     };
 
     // Bind events
@@ -119,7 +119,7 @@ export class StageTracesTableView extends EventEmitter {
     // Prepare initial data
     this.traceRows = this.stage
       .getAllTraces()
-      .map(trace => this.trace2RowData(trace));
+      .map((trace) => this.trace2RowData(trace));
 
     // Init table
     this.table = new Tabulator(this.elements.tableContainer, {
@@ -136,21 +136,21 @@ export class StageTracesTableView extends EventEmitter {
         this.columnDefinitions.duration,
         this.columnDefinitions.spanCount,
         this.columnDefinitions.errorCount,
-        this.columnDefinitions.services
+        this.columnDefinitions.services,
       ],
       initialSort: [
-        { column: this.columnDefinitions.startTime.field, dir: 'desc' }
+        { column: this.columnDefinitions.startTime.field, dir: 'desc' },
       ],
       rowSelectionChanged: this.binded.rowSelectionChanged,
       selectableRangeMode: 'click',
       keybindings: false,
       footerElement: this.options.footerElement,
-      placeholder: this.options.placeholderElement
+      placeholder: this.options.placeholderElement,
     });
   }
 
   async updateTraces(traces: Trace[]) {
-    this.traceRows = traces.map(t => this.trace2RowData(t));
+    this.traceRows = traces.map((t) => this.trace2RowData(t));
     await this.table.replaceData(this.traceRows);
   }
 
@@ -167,7 +167,7 @@ export class StageTracesTableView extends EventEmitter {
       name: trace.name,
       spanCount: trace.spanCount,
       errorCount: trace.errorCount,
-      services: cloneDeep(trace.spanCountsByService)
+      services: cloneDeep(trace.spanCountsByService),
     };
   }
 
@@ -189,7 +189,7 @@ export class StageTracesTableView extends EventEmitter {
         if (a < b) return -1;
         return 0;
       })
-      .forEach(serviceName => {
+      .forEach((serviceName) => {
         const value = TraceRowData.services[serviceName];
         if (!value) return;
 
@@ -250,7 +250,7 @@ export class StageTracesTableView extends EventEmitter {
     if (randomCells.length > 2) {
       const widthOfFirstCell = randomCells[0].offsetWidth;
       const areEqual = randomCells.every(
-        el => el.offsetWidth === widthOfFirstCell
+        (el) => el.offsetWidth === widthOfFirstCell
       );
       if (!areEqual) forceRerender = true;
     }

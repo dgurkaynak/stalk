@@ -34,7 +34,7 @@ export interface SearchModalTracesTableOptions {
 }
 
 export enum SearchModalTracesTableViewEvent {
-  SELECTIONS_UPDATED = 'selections_updated'
+  SELECTIONS_UPDATED = 'selections_updated',
 }
 
 export class SearchModalTracesTableView extends EventEmitter {
@@ -46,11 +46,11 @@ export class SearchModalTracesTableView extends EventEmitter {
   private elements = {
     container: document.createElement('div'),
     tableContainer: document.createElement('div'),
-    loadingContainer: document.createElement('div')
+    loadingContainer: document.createElement('div'),
   };
   private viewPropertiesCache = {
     width: 0,
-    height: 0
+    height: 0,
   };
 
   private binded = {
@@ -60,7 +60,7 @@ export class SearchModalTracesTableView extends EventEmitter {
     formatInStage: this.formatInStage.bind(this),
     rowSelectionChanged: this.rowSelectionChanged.bind(this),
     rowFormatter: this.rowFormatter.bind(this),
-    onKeyDown: this.onKeyDown.bind(this)
+    onKeyDown: this.onKeyDown.bind(this),
   };
 
   private columnDefinitions = {
@@ -68,40 +68,40 @@ export class SearchModalTracesTableView extends EventEmitter {
       title: '',
       field: 'inStage',
       formatter: this.binded.formatInStage,
-      headerSort: false
+      headerSort: false,
     } as Tabulator.ColumnDefinition,
     id: {
       title: 'Id',
-      field: 'id'
+      field: 'id',
     } as Tabulator.ColumnDefinition,
     startTime: {
       title: 'Date',
       field: 'startTime',
-      formatter: this.binded.formatTimestamp
+      formatter: this.binded.formatTimestamp,
     } as Tabulator.ColumnDefinition,
     duration: {
       title: 'Duration',
       field: 'duration',
-      formatter: this.binded.formatDuration
+      formatter: this.binded.formatDuration,
     } as Tabulator.ColumnDefinition,
     name: {
       title: 'Root Span',
-      field: 'name'
+      field: 'name',
     } as Tabulator.ColumnDefinition,
     spanCount: {
       title: 'Span(s)',
-      field: 'spanCount'
+      field: 'spanCount',
     } as Tabulator.ColumnDefinition,
     errorCount: {
       title: 'Error(s)',
-      field: 'errorCount'
+      field: 'errorCount',
     } as Tabulator.ColumnDefinition,
     services: {
       title: 'Services & Span(s)',
       field: 'services',
       formatter: this.binded.formatServices,
-      headerSort: false
-    } as Tabulator.ColumnDefinition
+      headerSort: false,
+    } as Tabulator.ColumnDefinition,
   };
 
   constructor() {
@@ -135,7 +135,7 @@ export class SearchModalTracesTableView extends EventEmitter {
     this.options = options;
     this.viewPropertiesCache = {
       width: options.width,
-      height: options.height
+      height: options.height,
     };
 
     // Bind events
@@ -157,7 +157,7 @@ export class SearchModalTracesTableView extends EventEmitter {
         this.columnDefinitions.duration,
         this.columnDefinitions.spanCount,
         this.columnDefinitions.errorCount,
-        this.columnDefinitions.services
+        this.columnDefinitions.services,
       ]
     );
 
@@ -171,19 +171,19 @@ export class SearchModalTracesTableView extends EventEmitter {
       selectable: true,
       columns,
       initialSort: [
-        { column: this.columnDefinitions.startTime.field, dir: 'desc' }
+        { column: this.columnDefinitions.startTime.field, dir: 'desc' },
       ],
       rowFormatter: this.binded.rowFormatter,
       rowSelectionChanged: this.binded.rowSelectionChanged,
       selectableRangeMode: 'click',
       keybindings: false,
       footerElement: this.options.footerElement,
-      placeholder: this.options.placeholderElement
+      placeholder: this.options.placeholderElement,
     });
   }
 
   async updateTraces(traces: Trace[]) {
-    this.traceRows = traces.map(t => this.trace2RowData(t));
+    this.traceRows = traces.map((t) => this.trace2RowData(t));
     await this.table.replaceData(this.traceRows);
   }
 
@@ -200,7 +200,7 @@ export class SearchModalTracesTableView extends EventEmitter {
       name: trace.name,
       spanCount: trace.spanCount,
       errorCount: trace.errorCount,
-      services: cloneDeep(trace.spanCountsByService)
+      services: cloneDeep(trace.spanCountsByService),
     };
   }
 
@@ -222,7 +222,7 @@ export class SearchModalTracesTableView extends EventEmitter {
         if (a < b) return -1;
         return 0;
       })
-      .forEach(serviceName => {
+      .forEach((serviceName) => {
         const value = TraceRowData.services[serviceName];
         if (!value) return;
 
@@ -239,7 +239,7 @@ export class SearchModalTracesTableView extends EventEmitter {
 
     const traceInStage = find(
       this.stage.getAllTraces(),
-      t => t.id == traceRowData.id
+      (t) => t.id == traceRowData.id
     );
 
     if (!traceInStage) {
@@ -263,7 +263,7 @@ export class SearchModalTracesTableView extends EventEmitter {
       if (this.stage.getAllTraces().length > 0) {
         const stageInterval = {
           start: this.stage.startTimestamp,
-          end: this.stage.finishTimestamp
+          end: this.stage.finishTimestamp,
         };
         const traceInterval = { start: trace.startTime, end: trace.finishTime };
 
@@ -329,7 +329,7 @@ export class SearchModalTracesTableView extends EventEmitter {
     if (randomCells.length > 2) {
       const widthOfFirstCell = randomCells[0].offsetWidth;
       const areEqual = randomCells.every(
-        el => el.offsetWidth === widthOfFirstCell
+        (el) => el.offsetWidth === widthOfFirstCell
       );
       if (!areEqual) forceRerender = true;
     }

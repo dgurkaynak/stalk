@@ -9,7 +9,7 @@ import EventEmitter from 'events';
 export enum DataSourceManagerEvent {
   ADDED = 'dsm_added',
   UPDATED = 'dsm_updated',
-  REMOVED = 'dsm_removed'
+  REMOVED = 'dsm_removed',
 }
 
 let singletonIns: DataSourceManager;
@@ -28,14 +28,14 @@ export class DataSourceManager extends EventEmitter {
   async init() {
     await db.open();
     const dataSources = await db.dataSources.toArray();
-    await Promise.all(dataSources.map(ds => this.add(ds, true)));
+    await Promise.all(dataSources.map((ds) => this.add(ds, true)));
   }
 
   async add(ds: DataSource, doNotPersistToDatabase = false) {
     const { id, type } = ds;
     let api: JaegerAPI | ZipkinAPI;
 
-    if (find(this.datasources, ds => ds.id == id)) {
+    if (find(this.datasources, (ds) => ds.id == id)) {
       return false;
     }
 
@@ -52,7 +52,7 @@ export class DataSourceManager extends EventEmitter {
   }
 
   async update(ds: DataSource) {
-    const index = findIndex(this.datasources, x => x.id === ds.id);
+    const index = findIndex(this.datasources, (x) => x.id === ds.id);
     if (index === -1) return false;
     await db.dataSources.update(this.datasources[index].id, ds);
     this.datasources[index] = ds;
@@ -83,12 +83,12 @@ export class DataSourceManager extends EventEmitter {
 
   get(dsOrId: DataSource | string) {
     const id = typeof dsOrId == 'object' && dsOrId.id ? dsOrId.id : dsOrId;
-    return find(this.datasources, x => x.id === id);
+    return find(this.datasources, (x) => x.id === id);
   }
 
   getIndex(dsOrId: DataSource | string) {
     const id = typeof dsOrId == 'object' && dsOrId.id ? dsOrId.id : dsOrId;
-    return findIndex(this.datasources, x => x.id === id);
+    return findIndex(this.datasources, (x) => x.id === id);
   }
 }
 
@@ -98,14 +98,14 @@ export function createAPI(ds: DataSource) {
       return new JaegerAPI({
         baseUrl: ds.baseUrl!,
         username: ds.username,
-        password: ds.password
+        password: ds.password,
       });
     }
     case DataSourceType.ZIPKIN: {
       return new ZipkinAPI({
         baseUrl: ds.baseUrl!,
         username: ds.username,
-        password: ds.password
+        password: ds.password,
       });
     }
     default: {

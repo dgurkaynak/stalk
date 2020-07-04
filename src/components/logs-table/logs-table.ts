@@ -1,7 +1,7 @@
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
   WidgetToolbarMultiSelect,
-  WidgetToolbarMultiSelectItem
+  WidgetToolbarMultiSelectItem,
 } from '../ui/widget-toolbar/widget-toolbar-multi-select';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
@@ -17,7 +17,7 @@ import { clipboard } from 'electron';
 import cloneDeep from 'lodash/cloneDeep';
 import {
   ContextMenuManager,
-  ContextMenuEvent
+  ContextMenuEvent,
 } from '../ui/context-menu/context-menu-manager';
 import * as shortid from 'shortid';
 import EventEmitter from 'events';
@@ -25,7 +25,7 @@ import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
 import { ModalManager } from '../ui/modal/modal-manager';
 import {
   LogFilteringFormModalContent,
-  LogFilteringRawOptions
+  LogFilteringRawOptions,
 } from '../customization/log-filtering-form-modal-content';
 import Noty from 'noty';
 
@@ -50,7 +50,7 @@ export interface LogRowData {
 }
 
 export enum LogsTableViewEvent {
-  LOG_SELECTED = 'log_selected'
+  LOG_SELECTED = 'log_selected',
 }
 
 export class LogsTableView extends EventEmitter {
@@ -66,13 +66,13 @@ export class LogsTableView extends EventEmitter {
     toolbarBtn: {
       filter: document.createElement('div'),
       removeFilter: document.createElement('div'),
-      columns: document.createElement('div')
+      columns: document.createElement('div'),
     },
-    tableContainer: document.createElement('div')
+    tableContainer: document.createElement('div'),
   };
   private viewPropertiesCache = {
     width: 0,
-    height: 0
+    height: 0,
   };
 
   private binded = {
@@ -91,42 +91,42 @@ export class LogsTableView extends EventEmitter {
     formatFields: this.formatFields.bind(this),
     onRowClick: this.onRowClick.bind(this),
     onRowContext: this.onRowContext.bind(this),
-    onKeyDown: this.onKeyDown.bind(this)
+    onKeyDown: this.onKeyDown.bind(this),
   };
 
   private columnDefinitions = {
     spanId: {
       title: 'Span ID',
-      field: 'span.id'
+      field: 'span.id',
     } as Tabulator.ColumnDefinition,
     traceId: {
       title: 'Trace ID',
-      field: 'span.traceId'
+      field: 'span.traceId',
     } as Tabulator.ColumnDefinition,
     operationName: {
       title: 'Operation Name',
-      field: 'span.operationName'
+      field: 'span.operationName',
     } as Tabulator.ColumnDefinition,
     serviceName: {
       title: 'Service Name',
-      field: 'serviceName'
+      field: 'serviceName',
     } as Tabulator.ColumnDefinition,
     timestamp: {
       title: 'Timestamp',
       field: 'timestamp',
-      formatter: this.binded.formatTimestamp
+      formatter: this.binded.formatTimestamp,
     } as Tabulator.ColumnDefinition,
     spanTimestamp: {
       title: 'In-Span Timestamp',
       field: 'spanTimestamp',
-      formatter: this.binded.formatDuration
+      formatter: this.binded.formatDuration,
     } as Tabulator.ColumnDefinition,
     fields: {
       title: 'Fields',
       field: 'fields',
       formatter: this.binded.formatFields,
-      headerSort: false
-    } as Tabulator.ColumnDefinition
+      headerSort: false,
+    } as Tabulator.ColumnDefinition,
   };
 
   private dropdowns: {
@@ -140,7 +140,7 @@ export class LogsTableView extends EventEmitter {
     onUnselect: this.binded.onColumnsMultiSelectUnselect,
     onSearchInput: this.binded.onColumnsMultiSelectSearchInput,
     items: [],
-    emptyMessage: 'No Logs'
+    emptyMessage: 'No Logs',
   });
 
   private logFilteringFn: (log: SpanLog, span: Span) => boolean;
@@ -195,7 +195,7 @@ export class LogsTableView extends EventEmitter {
   init(options: { width: number; height: number }) {
     this.viewPropertiesCache = {
       width: options.width,
-      height: options.height
+      height: options.height,
     };
     this.initTooltips();
     this.initDropdowns();
@@ -237,14 +237,14 @@ export class LogsTableView extends EventEmitter {
         this.columnDefinitions.spanTimestamp,
         this.columnDefinitions.operationName,
         this.columnDefinitions.serviceName,
-        this.columnDefinitions.fields
+        this.columnDefinitions.fields,
       ],
       initialSort: [
-        { column: this.columnDefinitions.timestamp.field, dir: 'asc' }
+        { column: this.columnDefinitions.timestamp.field, dir: 'asc' },
       ],
       rowClick: this.binded.onRowClick,
       rowContext: this.binded.onRowContext,
-      keybindings: false
+      keybindings: false,
     });
 
     // Init column picker
@@ -259,27 +259,27 @@ export class LogsTableView extends EventEmitter {
         btn.filter,
         {
           content: 'Filter Logs',
-          multiple: true
-        }
-      ]
+          multiple: true,
+        },
+      ],
     ]);
     tooltipManager.addToSingleton([
       [
         btn.removeFilter,
         {
           content: 'Remove Log Filter',
-          multiple: true
-        }
-      ]
+          multiple: true,
+        },
+      ],
     ]);
     tooltipManager.addToSingleton([
       [
         btn.columns,
         {
           content: 'Customize Columns',
-          multiple: true
-        }
-      ]
+          multiple: true,
+        },
+      ],
     ]);
   }
 
@@ -294,8 +294,8 @@ export class LogsTableView extends EventEmitter {
         updateDuration: 0,
         theme: 'widget-toolbar-multi-select',
         trigger: 'click',
-        interactive: true
-      })
+        interactive: true,
+      }),
     };
   }
 
@@ -305,11 +305,11 @@ export class LogsTableView extends EventEmitter {
     const fieldCounts: { [key: string]: number } = {};
 
     // Scan the added spans, prepare the log data
-    trace.spans.forEach(span => {
-      span.logs.forEach(log => {
+    trace.spans.forEach((span) => {
+      span.logs.forEach((log) => {
         if (log.fields.hasOwnProperty('error')) includesErrorField = true;
         const rowData = this.log2RowData(log, span);
-        Object.keys(rowData.fields).forEach(fieldKey => {
+        Object.keys(rowData.fields).forEach((fieldKey) => {
           if (!fieldCounts[fieldKey]) fieldCounts[fieldKey] = 0;
           fieldCounts[fieldKey]++;
         });
@@ -319,7 +319,7 @@ export class LogsTableView extends EventEmitter {
     });
 
     // If any field has more than %90 occurance rate, add the column (if not already added!)
-    Object.keys(fieldCounts).forEach(fieldKey => {
+    Object.keys(fieldCounts).forEach((fieldKey) => {
       const rate = fieldCounts[fieldKey] / totalLogCount;
       if (rate < 0.9) return;
 
@@ -327,7 +327,7 @@ export class LogsTableView extends EventEmitter {
       const currentColumns = this.table.getColumnDefinitions();
       const isAdded = !!find(
         currentColumns,
-        col => col.field == getColumnFieldSelectorByFieldKey(fieldKey)
+        (col) => col.field == getColumnFieldSelectorByFieldKey(fieldKey)
       );
       if (!isAdded) {
         this.addColumnGracefullyBeforeFieldsColumn({
@@ -335,10 +335,10 @@ export class LogsTableView extends EventEmitter {
           // column struct, see: `onColumnsMultiSelectSelect()` method
           title: getColumnIdByFieldKey(fieldKey),
           field: getColumnFieldSelectorByFieldKey(fieldKey),
-          formatter: cell => {
+          formatter: (cell) => {
             const logRow = cell.getRow().getData();
             return logRow.fields[fieldKey] || '';
-          }
+          },
         });
       }
     });
@@ -348,7 +348,7 @@ export class LogsTableView extends EventEmitter {
       const currentColumns = this.table.getColumnDefinitions();
       const isAdded = !!find(
         currentColumns,
-        col => col.field == getColumnFieldSelectorByFieldKey('error')
+        (col) => col.field == getColumnFieldSelectorByFieldKey('error')
       );
       if (!isAdded) {
         this.addColumnGracefullyBeforeFieldsColumn({
@@ -356,10 +356,10 @@ export class LogsTableView extends EventEmitter {
           // column struct, see: `onColumnsMultiSelectSelect()` method
           title: getColumnIdByFieldKey('error'),
           field: getColumnFieldSelectorByFieldKey('error'),
-          formatter: cell => {
+          formatter: (cell) => {
             const logRow = cell.getRow().getData();
             return logRow.fields.error || '';
-          }
+          },
         });
       }
     }
@@ -369,8 +369,8 @@ export class LogsTableView extends EventEmitter {
   }
 
   private async onTraceRemoved(trace: Trace) {
-    trace.spans.forEach(span =>
-      remove(this.logRows, logRow => logRow.span.id == span.id)
+    trace.spans.forEach((span) =>
+      remove(this.logRows, (logRow) => logRow.span.id == span.id)
     );
 
     this.updateColumnsMultiSelectItems();
@@ -381,22 +381,22 @@ export class LogsTableView extends EventEmitter {
     const currentColumns = this.table.getColumnDefinitions();
     const items: WidgetToolbarMultiSelectItem[] = Object.keys(
       this.columnDefinitions
-    ).map(id => {
+    ).map((id) => {
       const def = (this.columnDefinitions as any)[id];
-      const selected = !!find(currentColumns, col => col.field == def.field);
+      const selected = !!find(currentColumns, (col) => col.field == def.field);
       return { id, text: def.title as string, selected };
     });
 
-    Object.keys(this.stage.getAllLogFieldKeys()).forEach(fieldKey => {
+    Object.keys(this.stage.getAllLogFieldKeys()).forEach((fieldKey) => {
       const selected = !!find(
         currentColumns,
-        col => col.field == getColumnFieldSelectorByFieldKey(fieldKey)
+        (col) => col.field == getColumnFieldSelectorByFieldKey(fieldKey)
       );
       items.push({
         id: getColumnIdByFieldKey(fieldKey),
         text: getColumnIdByFieldKey(fieldKey),
         category: 'Log Fields',
-        selected
+        selected,
       });
     });
 
@@ -404,14 +404,14 @@ export class LogsTableView extends EventEmitter {
     // column is added when some trace is added in stage. However that trace
     // removed now, and that column is not existing in future stage state.
     // When that happens, there is no way to remove that columns.
-    currentColumns.forEach(col => {
-      if (!!find(items, item => item.text == col.title)) return;
+    currentColumns.forEach((col) => {
+      if (!!find(items, (item) => item.text == col.title)) return;
       items.push({
         id: col.title,
         text: col.title,
         category:
           col.title.indexOf(FIELD_ID_PREFIX) == 0 ? 'Log Fields' : undefined,
-        selected: true
+        selected: true,
       });
     });
 
@@ -429,10 +429,10 @@ export class LogsTableView extends EventEmitter {
       columnDefinition = {
         title: item.id,
         field: getColumnFieldSelectorByFieldKey(fieldKey),
-        formatter: cell => {
+        formatter: (cell) => {
           const logRow = cell.getRow().getData();
           return logRow.fields[fieldKey] || '';
-        }
+        },
       };
     }
 
@@ -450,7 +450,7 @@ export class LogsTableView extends EventEmitter {
     const currentColumns = this.table.getColumnDefinitions();
     const isFieldsColumnExists = !!find(
       currentColumns,
-      col => col.field == this.columnDefinitions.fields.field
+      (col) => col.field == this.columnDefinitions.fields.field
     );
 
     if (isFieldsColumnExists) {
@@ -508,7 +508,7 @@ export class LogsTableView extends EventEmitter {
       spanTimestamp,
       fields: fieldsCopy,
       fieldsOriginal: log.fields,
-      serviceName
+      serviceName,
     };
   }
 
@@ -531,7 +531,7 @@ export class LogsTableView extends EventEmitter {
         if (a < b) return -1;
         return 0;
       })
-      .forEach(fieldKey => {
+      .forEach((fieldKey) => {
         const value = logRowData.fieldsOriginal[fieldKey];
 
         html += `<span class="logs-table-tag">${fieldKey}:</span>
@@ -545,13 +545,13 @@ export class LogsTableView extends EventEmitter {
     const filterFn = this.logFilteringFn;
     if (filterFn) {
       try {
-        const results = this.logRows.filter(logRow => {
+        const results = this.logRows.filter((logRow) => {
           // Perform filtering on original span object & log fields
           // `log.fields` and `span` can be modified depending on visible columns by tabulator
           return filterFn(
             {
               timestamp: logRow.timestamp,
-              fields: logRow.fieldsOriginal
+              fields: logRow.fieldsOriginal,
             },
             logRow.spanOriginal
           );
@@ -566,7 +566,7 @@ export class LogsTableView extends EventEmitter {
             `Unexpected error while filtering spans: "${err.message} <br /><br />"` +
             `Please check your console for further details. Press Command+Option+I or Ctrl+Option+I to ` +
             `open devtools.`,
-          type: 'error'
+          type: 'error',
         }).show();
       }
 
@@ -584,12 +584,12 @@ export class LogsTableView extends EventEmitter {
 
   private showFilterModal() {
     this.logFilteringFormModalContent = new LogFilteringFormModalContent({
-      rawOptions: this.logFilteringRawOptions
+      rawOptions: this.logFilteringRawOptions,
     });
     const modal = new Modal({
       content: this.logFilteringFormModalContent.getElement(),
       onClose: this.binded.onLogFilteringModalClose,
-      shouldAutoFocusFirstElement: true
+      shouldAutoFocusFirstElement: true,
     });
     ModalManager.getSingleton().show(modal);
     this.logFilteringFormModalContent.init(); // must be called after modal is rendered
@@ -619,7 +619,7 @@ export class LogsTableView extends EventEmitter {
       key: 'custom',
       name: 'Custom',
       rawCode: data.tsCode,
-      compiledCode: data.compiledJSCode
+      compiledCode: data.compiledJSCode,
     };
     this.logFilteringFn = data.filterBy;
 
@@ -689,7 +689,7 @@ export class LogsTableView extends EventEmitter {
       if (randomCells.length > 2) {
         const widthOfFirstCell = randomCells[0].offsetWidth;
         const areEqual = randomCells.every(
-          el => el.offsetWidth === widthOfFirstCell
+          (el) => el.offsetWidth === widthOfFirstCell
         );
         if (!areEqual) {
           forceRerender = true;
@@ -717,45 +717,45 @@ export class LogsTableView extends EventEmitter {
           selectItem: {
             type: 'item',
             text: 'Show Span in Timeline View',
-            id: 'showInTimelineView'
+            id: 'showInTimelineView',
           },
           emitEvent: {
             event: ContextMenuEvent.SHOW_SPAN_IN_TIMELINE_VIEW,
-            data: logRow.span.id
-          }
+            data: logRow.span.id,
+          },
         },
         {
           selectItem: {
             type: 'item',
             text: 'Show Span in Table View',
-            id: 'showInTableView'
+            id: 'showInTableView',
           },
           emitEvent: {
             event: ContextMenuEvent.SHOW_SPAN_IN_TABLE_VIEW,
-            data: logRow.span.id
-          }
+            data: logRow.span.id,
+          },
         },
         {
           selectItem: {
             type: 'item',
             text: 'Copy Log To Clipboard',
             id: 'copyToClipboard',
-            altText: '⌘C'
+            altText: '⌘C',
           },
-          onSelected: () => this.copyLogToClipboard(logRow.id)
-        }
-      ]
+          onSelected: () => this.copyLogToClipboard(logRow.id),
+        },
+      ],
     });
   }
 
   private copyLogToClipboard(logId: string) {
     if (!logId) return;
-    const logRow = find(this.logRows, row => row.id == logId);
+    const logRow = find(this.logRows, (row) => row.id == logId);
     if (!logRow) return;
     const str = JSON.stringify(
       {
         timestamp: logRow.timestamp,
-        fields: logRow.fieldsOriginal
+        fields: logRow.fieldsOriginal,
       },
       null,
       4

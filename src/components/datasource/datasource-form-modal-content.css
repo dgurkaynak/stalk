@@ -28,8 +28,8 @@
   text-align: right;
 }
 
-.datasource-form-modal-content .form-row input[type="text"],
-.datasource-form-modal-content .form-row input[type="password"] {
+.datasource-form-modal-content .form-row input[type='text'],
+.datasource-form-modal-content .form-row input[type='password'] {
   width: 20em;
   padding: 0.25em;
 }

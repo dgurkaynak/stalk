@@ -1,5 +1,8 @@
 /* Main layout */
-#app { width: 100%; height: 100%; }
+#app {
+  width: 100%;
+  height: 100%;
+}
 #app-toolbar {
   height: 3.2em;
 }
@@ -48,7 +51,6 @@
   color: #333;
 }
 
-
 /* Noty template stuff */
 .noty_theme__mint.noty_bar {
   margin: 4px 0;
@@ -56,11 +58,11 @@
   position: relative;
   /* border: 1px solid transparent; */
   border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: .25rem;
+  border-radius: 0.25rem;
   box-shadow: rgba(0, 0, 0, 0.3) 2px 1px 4px 0;
 }
 .noty_theme__mint.noty_bar .noty_body {
-  padding: .75rem 1.25rem;
+  padding: 0.75rem 1.25rem;
 }
 .noty_theme__mint.noty_bar .noty_buttons {
   padding: 10px;
@@ -72,7 +74,7 @@
   color: #000;
   text-shadow: 0 1px 0 #fff;
   filter: alpha(opacity=20);
-  opacity: .5;
+  opacity: 0.5;
   background: transparent;
 }
 .noty_theme__mint.noty_bar .noty_close_button:hover {
@@ -80,7 +82,7 @@
   text-decoration: none;
   cursor: pointer;
   filter: alpha(opacity=50);
-  opacity: .75;
+  opacity: 0.75;
 }
 .noty_theme__mint.noty_type__alert,
 .noty_theme__mint.noty_type__notification {
@@ -109,8 +111,6 @@
   /* border-color: #d6e9c6; */
 }
 
-
-
 /* Flatpicker stuff */
 .flatpickr-calendar {
   font-size: 1em;
@@ -128,7 +128,6 @@
   height: 2.5em;
   line-height: 2.5em;
 }
-
 
 /* Dock panel related stuff */
 .p-Widget {
@@ -223,7 +222,7 @@
 
 .p-TabBar-tab {
   padding: 0px 10px;
-  background: #E5E5E5;
+  background: #e5e5e5;
   flex: 0 1 125px;
   min-height: 20px;
   max-height: 20px;
@@ -237,7 +236,7 @@
 }
 
 .p-TabBar-tab:hover:not(.p-mod-current) {
-  background: #F0F0F0;
+  background: #f0f0f0;
 }
 
 .p-TabBar-tab:first-child {
@@ -289,7 +288,6 @@
 .p-TabBar[data-orientation='horizontal'] {
   flex-direction: row;
 }
-
 
 .p-TabBar[data-orientation='vertical'] {
   flex-direction: column;

@@ -10,7 +10,7 @@ export class TraceTooltipContent {
     container: document.createElement('div'),
     time: document.createElement('span'),
     name: document.createElement('span'),
-    right: document.createElement('div')
+    right: document.createElement('div'),
   };
   private trace: Trace;
 

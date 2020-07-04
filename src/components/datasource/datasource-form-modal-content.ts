@@ -27,8 +27,8 @@ export class DataSourceFormModalContent {
       passwordInput: document.createElement('input'),
       cancelButton: document.createElement('button'),
       saveButton: document.createElement('button'),
-      testButton: document.createElement('button')
-    }
+      testButton: document.createElement('button'),
+    },
   };
 
   private binded = {
@@ -36,7 +36,7 @@ export class DataSourceFormModalContent {
     onFormSubmit: this.onFormSubmit.bind(this),
     onTestButtonClick: this.onTestButtonClick.bind(this),
     onBasicAuthCheckboxChange: this.onBasicAuthCheckboxChange.bind(this),
-    onTypeSelectChange: this.onTypeSelectChange.bind(this)
+    onTypeSelectChange: this.onTypeSelectChange.bind(this),
   };
 
   constructor(private options: DataSourceFormModalContentOptions) {
@@ -96,7 +96,7 @@ export class DataSourceFormModalContent {
       name: formEl.nameInput.value.trim(),
       baseUrl: formEl.baseUrlInput.value.trim(),
       username: formEl.usernameInput.value,
-      password: formEl.passwordInput.value
+      password: formEl.passwordInput.value,
     };
 
     modal.close({ data: { action: 'save', dataSource } });
@@ -110,13 +110,13 @@ export class DataSourceFormModalContent {
       new Noty({
         text: 'Data source is working',
         type: 'success',
-        timeout: 2500
+        timeout: 2500,
       }).show();
     } catch (err) {
       new Noty({
         text: `Error: ${err.message || ''}`,
         type: 'error',
-        timeout: 2500
+        timeout: 2500,
       }).show();
     }
   }
@@ -126,7 +126,7 @@ export class DataSourceFormModalContent {
     const options = {
       baseUrl: formEl.baseUrlInput.value,
       username: formEl.usernameInput.value,
-      password: formEl.passwordInput.value
+      password: formEl.passwordInput.value,
     };
 
     const api =

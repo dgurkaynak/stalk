@@ -10,21 +10,18 @@ const client = new net.Socket();
 
 let startedElectron = false;
 const tryConnection = () =>
-  client.connect(
-    { port: port },
-    () => {
-      client.end();
-      if (!startedElectron) {
-        console.log('starting electron');
-        startedElectron = true;
-        if (process.platform == 'win32') {
-          exec('.\\node_modules\\.bin\\electron .');
-        } else {
-          exec('./node_modules/.bin/electron .');
-        }
+  client.connect({ port: port }, () => {
+    client.end();
+    if (!startedElectron) {
+      console.log('starting electron');
+      startedElectron = true;
+      if (process.platform == 'win32') {
+        exec('.\\node_modules\\.bin\\electron .');
+      } else {
+        exec('./node_modules/.bin/electron .');
       }
     }
-  );
+  });
 
 tryConnection();
 

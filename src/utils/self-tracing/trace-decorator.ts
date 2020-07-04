@@ -22,7 +22,7 @@ export function trace<T extends Handler>(
   options: TraceOptions<T>,
   originalFn: ReplaceReturnType<T, any>
 ): ReplaceReturnType<T, any> {
-  return function(...args: any[]) {
+  return function (...args: any[]) {
     let newSpan: opentracing.Span;
 
     // Prefix op name
@@ -73,7 +73,7 @@ export function trace<T extends Handler>(
               error: err.message,
               message: err.message,
               stack: err.stack,
-              'error.kind': err.name
+              'error.kind': err.name,
             });
             newSpan.setTag(opentracing.Tags.ERROR, true);
             newSpan.finish();
@@ -92,7 +92,7 @@ export function trace<T extends Handler>(
         error: err.message || err.name,
         message: err.message,
         stack: err.stack,
-        'error.kind': err.name
+        'error.kind': err.name,
       });
       newSpan.setTag(opentracing.Tags.ERROR, true);
       newSpan.finish();
@@ -206,7 +206,7 @@ export function FollowsFrom(
 
   const tracer = getTracer(parentSpan);
   return tracer.startSpan('', {
-    references: [opentracing.followsFrom(parentSpan.context())]
+    references: [opentracing.followsFrom(parentSpan.context())],
   });
 }
 

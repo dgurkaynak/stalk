@@ -12,7 +12,9 @@ some transports & protocols.
 - Commit title: THRIFT-5003: Websocket Connection in Browsers with nodejs code
 
 ### Packages required to be installed
+
 - `node-int64`
 
 ### Modifications taken:
+
 - `ws_connection.js` file is truncated, because it requires additional package `isomorphic-ws`.

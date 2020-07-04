@@ -24,14 +24,14 @@ export class SpanContext extends opentracing.SpanContext {
     return {
       traceId: this._traceId,
       spanId: this._spanId,
-      baggageItems: this._baggageItems
+      baggageItems: this._baggageItems,
     };
   }
 
   addBaggageItems(items: { [key: string]: string }) {
     this._baggageItems = {
       ...this._baggageItems,
-      ...items
+      ...items,
     };
   }
 

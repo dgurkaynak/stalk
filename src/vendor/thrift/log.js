@@ -42,22 +42,22 @@ exports.setLogFunc = function (func) {
   logFunc = func;
 };
 
-var setLogLevel = exports.setLogLevel = function (level) {
+var setLogLevel = (exports.setLogLevel = function (level) {
   trace = debug = error = warning = info = disabled;
   logLevel = level;
   switch (logLevel) {
-  case 'trace':
-    trace = factory('TRACE');
-  case 'debug':
-    debug = factory('DEBUG');
-  case 'error':
-    error = factory('ERROR');
-  case 'warning':
-    warning = factory('WARN');
-  case 'info':
-    info = factory('INFO');
+    case 'trace':
+      trace = factory('TRACE');
+    case 'debug':
+      debug = factory('DEBUG');
+    case 'error':
+      error = factory('ERROR');
+    case 'warning':
+      warning = factory('WARN');
+    case 'info':
+      info = factory('INFO');
   }
-};
+});
 
 // set default
 setLogLevel(logLevel);

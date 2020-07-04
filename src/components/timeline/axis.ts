@@ -129,7 +129,7 @@ export default class Axis {
       return {
         inputRelative,
         input,
-        output: this.input2output(input)
+        output: this.input2output(input),
       };
     });
   }

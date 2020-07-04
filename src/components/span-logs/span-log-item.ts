@@ -18,7 +18,7 @@ export class SpanLogItemView {
   private elements = {
     container: document.createElement('div'),
     header: document.createElement('div'),
-    body: document.createElement('div')
+    body: document.createElement('div'),
   };
   private options: SpanLogItemViewOptions;
 
@@ -29,7 +29,7 @@ export class SpanLogItemView {
   }[] = [];
 
   private binded = {
-    onHeaderClick: this.onHeaderClick.bind(this)
+    onHeaderClick: this.onHeaderClick.bind(this),
   };
 
   constructor() {
@@ -47,7 +47,7 @@ export class SpanLogItemView {
     this.options = defaults(options, {
       log: null,
       isExpanded: false,
-      title: null
+      title: null,
     });
 
     if (!this.options.title) {
@@ -64,7 +64,7 @@ export class SpanLogItemView {
         if (a > b) return 1;
         return 0;
       })
-      .map(key => {
+      .map((key) => {
         const value = this.options.log.fields[key];
         return { key, value };
       });
@@ -113,7 +113,7 @@ export class SpanLogItemView {
         if (a > b) return 1;
         return 0;
       })
-      .map(key => {
+      .map((key) => {
         const value = this.options.log.fields[key];
         if (ErrorDetection.checkLogField(key, value)) hasError = true;
         return `<span class="key">${key}:</span>
@@ -143,7 +143,7 @@ export class SpanLogItemView {
         if (a > b) return 1;
         return 0;
       })
-      .map(key => {
+      .map((key) => {
         const value = this.options.log.fields[key];
         if (ErrorDetection.checkLogField(key, value)) hasError = true;
         return `<div class="body-row">

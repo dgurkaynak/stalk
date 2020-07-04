@@ -5,21 +5,21 @@ import Noty from 'noty';
 import {
   SearchModalTracesTableView,
   SearchModalTracesTableViewEvent,
-  SearchModalTraceRowData
+  SearchModalTraceRowData,
 } from '../search/search-modal-traces-table';
 import throttle from 'lodash/throttle';
 import groupBy from 'lodash/groupBy';
 import {
   JaegerAgentUDPServer,
-  JaegerAgentUDPServerState
+  JaegerAgentUDPServerState,
 } from './jaeger-agent-udp-server';
 import {
   JaegerCollectorHTTPServer,
-  JaegerCollectorHTTPServerState
+  JaegerCollectorHTTPServerState,
 } from './jaeger-collector-http-server';
 import {
   ZipkinCollectorHTTPServer,
-  ZipkinCollectorHTTPServerState
+  ZipkinCollectorHTTPServerState,
 } from './zipkin-collector-http-server';
 import remove from 'lodash/remove';
 
@@ -35,28 +35,28 @@ export class LiveCollectorModalContent {
     rightContainer: document.createElement('div'),
     tracesTablePlaceholder: {
       container: document.createElement('div'),
-      text: document.createElement('span')
+      text: document.createElement('span'),
     },
     bottom: {
       container: document.createElement('div'),
       selectionText: document.createElement('div'),
       addToStageButton: document.createElement('button'),
-      deleteFromCollectorButton: document.createElement('button')
+      deleteFromCollectorButton: document.createElement('button'),
     },
     jaegerAgent: {
       checkbox: document.createElement('input'),
-      port: document.createElement('input')
+      port: document.createElement('input'),
     },
     jaegerCollector: {
       checkbox: document.createElement('input'),
       port: document.createElement('input'),
-      urlAdress: document.createElement('span')
+      urlAdress: document.createElement('span'),
     },
     zipkinCollector: {
       checkbox: document.createElement('input'),
       port: document.createElement('input'),
-      urlAdress: document.createElement('span')
-    }
+      urlAdress: document.createElement('span'),
+    },
   };
   inited = false;
 
@@ -99,7 +99,7 @@ export class LiveCollectorModalContent {
     onZipkinCollectorPortInput: this.onZipkinCollectorPortInput.bind(this),
     onZipkinCollectorCheckboxChanged: this.onZipkinCollectorCheckboxChanged.bind(
       this
-    )
+    ),
   };
 
   constructor() {
@@ -417,7 +417,7 @@ export class LiveCollectorModalContent {
       height: h,
       showInStageColumn: true,
       indicateTracesOverlappingWithStage: true,
-      placeholderElement: this.elements.tracesTablePlaceholder.container
+      placeholderElement: this.elements.tracesTablePlaceholder.container,
     });
 
     this.inited = true;
@@ -441,7 +441,7 @@ export class LiveCollectorModalContent {
     // When we try to redraw tabulator while it's already redrawing,
     // it gives an error. So, we apply the most famous javascript workaround ever.
     // await new Promise(resolve => setTimeout(resolve, 0));
-    this.selectedTraceIds = selectedTraces.map(t => t.id);
+    this.selectedTraceIds = selectedTraces.map((t) => t.id);
 
     if (selectedTraces.length == 0) {
       this.elements.bottom.addToStageButton.disabled = true;
@@ -462,8 +462,8 @@ export class LiveCollectorModalContent {
   private onAddToStageButtonClick() {
     const traces: Trace[] = [];
 
-    this.selectedTraceIds.forEach(traceId => {
-      const traceSpans = this.spansDB.filter(span => {
+    this.selectedTraceIds.forEach((traceId) => {
+      const traceSpans = this.spansDB.filter((span) => {
         return span.traceId == traceId;
       });
       const trace = new Trace(traceSpans);
@@ -480,7 +480,7 @@ export class LiveCollectorModalContent {
   }
 
   private onDeleteFromCollectorButtonClick() {
-    remove(this.spansDB, span => {
+    remove(this.spansDB, (span) => {
       return this.selectedTraceIds.indexOf(span.traceId) > -1;
     });
     this.tracesTable.deselectAll();
@@ -488,7 +488,7 @@ export class LiveCollectorModalContent {
   }
 
   private updateTraces() {
-    const tracesObj = groupBy(this.spansDB, span => span.traceId);
+    const tracesObj = groupBy(this.spansDB, (span) => span.traceId);
     const traces: Trace[] = [];
     for (const traceId in tracesObj) {
       const spans = tracesObj[traceId];
@@ -532,7 +532,7 @@ export class LiveCollectorModalContent {
       } catch (err) {
         new Noty({
           text: `Jaeger Agent UDP Server could not started: "${err.message}"`,
-          type: 'error'
+          type: 'error',
         }).show();
       }
     } else {
@@ -544,7 +544,7 @@ export class LiveCollectorModalContent {
       } catch (err) {
         new Noty({
           text: `Jaeger Agent UDP Server could not stopped: "${err.message}"`,
-          type: 'error'
+          type: 'error',
         }).show();
       }
     }
@@ -592,7 +592,7 @@ export class LiveCollectorModalContent {
       } catch (err) {
         new Noty({
           text: `Jaeger Collector HTTP Server could not started: "${err.message}"`,
-          type: 'error'
+          type: 'error',
         }).show();
       }
     } else {
@@ -604,7 +604,7 @@ export class LiveCollectorModalContent {
       } catch (err) {
         new Noty({
           text: `Jaeger Collector HTTP Server could not stopped: "${err.message}"`,
-          type: 'error'
+          type: 'error',
         }).show();
       }
     }
@@ -652,7 +652,7 @@ export class LiveCollectorModalContent {
       } catch (err) {
         new Noty({
           text: `Zipkin Collector HTTP Server could not started: "${err.message}"`,
-          type: 'error'
+          type: 'error',
         }).show();
       }
     } else {
@@ -664,7 +664,7 @@ export class LiveCollectorModalContent {
       } catch (err) {
         new Noty({
           text: `Zipkin Collector HTTP Server could not stopped: "${err.message}"`,
-          type: 'error'
+          type: 'error',
         }).show();
       }
     }

@@ -20,9 +20,9 @@ export function formatMicroseconds(
       // must be ordered
       { unit: 'µs', scale: 1 },
       { unit: 'ms', scale: 1000 },
-      { unit: 's', scale: 1000000 }
+      { unit: 's', scale: 1000000 },
     ],
-    maximumFractionDigits: 3
+    maximumFractionDigits: 3,
   });
 
   let bestScale = options.scales[0];

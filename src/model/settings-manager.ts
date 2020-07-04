@@ -1,7 +1,7 @@
 import db from './db';
 
 export enum SettingsKey {
-  DOCK_LAYOUT = 'dock_layout'
+  DOCK_LAYOUT = 'dock_layout',
 }
 
 export interface SettingsRecord {

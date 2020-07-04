@@ -3,7 +3,7 @@ import { Span } from '../../model/interfaces';
 import { Trace } from '../../model/trace';
 import {
   DataSourceManager,
-  DataSourceManagerEvent
+  DataSourceManagerEvent,
 } from '../../model/datasource/manager';
 import { ModalManager } from '../ui/modal/modal-manager';
 import Noty from 'noty';
@@ -12,7 +12,7 @@ import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
   SearchModalTracesTableView,
   SearchModalTracesTableViewEvent,
-  SearchModalTraceRowData
+  SearchModalTraceRowData,
 } from './search-modal-traces-table';
 import parseDuration from 'parse-duration';
 import throttle from 'lodash/throttle';
@@ -20,7 +20,7 @@ import find from 'lodash/find';
 import flatpickr from 'flatpickr';
 import {
   TracesScatterPlot,
-  TracesScatterPlotEvent
+  TracesScatterPlotEvent,
 } from '../traces-scatter-plot/traces-scatter-plot';
 
 import SvgCircleMedium from '!!raw-loader!@mdi/svg/svg/circle-small.svg';
@@ -44,7 +44,7 @@ export enum JaegerLookbackValue {
   LAST_24_HOURS = '24h',
   LAST_2_DAYS = '2d',
   LAST_7_DAYS = '7d',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 
 const DATE_RANGE_SEPERATOR = ' - ';
@@ -64,19 +64,19 @@ export class JaegerSearchModalContent {
       container: document.createElement('div'),
       scatterPlotContainer: document.createElement('div'),
       tableContainer: document.createElement('div'),
-      overlayContainer: document.createElement('div')
+      overlayContainer: document.createElement('div'),
     },
     statusContainer: document.createElement('span'),
     statusContent: document.createElement('div'),
     bottom: {
       container: document.createElement('div'),
       selectionText: document.createElement('div'),
-      addToStageButton: document.createElement('button')
+      addToStageButton: document.createElement('button'),
     },
     searchByTraceId: {
       form: document.createElement('form'),
       input: document.createElement('input'),
-      button: document.createElement('button')
+      button: document.createElement('button'),
     },
     search: {
       form: document.createElement('form'),
@@ -88,8 +88,8 @@ export class JaegerSearchModalContent {
       minDurationInput: document.createElement('input'),
       maxDurationInput: document.createElement('input'),
       limitInput: document.createElement('input'),
-      button: document.createElement('button')
-    }
+      button: document.createElement('button'),
+    },
   };
   private tippyInstaces: {
     status: TippyInstance;
@@ -104,7 +104,7 @@ export class JaegerSearchModalContent {
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
     onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this),
-    onTraceScatterPointClick: this.onTraceScatterPointClick.bind(this)
+    onTraceScatterPointClick: this.onTraceScatterPointClick.bind(this),
   };
 
   constructor(private options: JaegerSearchModalContentOptions) {
@@ -194,7 +194,7 @@ export class JaegerSearchModalContent {
         minDurationInput,
         maxDurationInput,
         limitInput,
-        button
+        button,
       } = this.elements.search;
       container.appendChild(form);
 
@@ -358,8 +358,8 @@ export class JaegerSearchModalContent {
         altFormat: 'M d, H:i',
         locale: {
           rangeSeparator: DATE_RANGE_SEPERATOR,
-          firstDayOfWeek: 1
-        } as any
+          firstDayOfWeek: 1,
+        } as any,
       }
     );
     // Initially hide custom date inputs
@@ -374,7 +374,7 @@ export class JaegerSearchModalContent {
       width: tableContainer.offsetWidth,
       height: tableContainer.offsetHeight,
       showInStageColumn: true,
-      indicateTracesOverlappingWithStage: true
+      indicateTracesOverlappingWithStage: true,
     });
 
     // Traces scatter plot
@@ -382,7 +382,7 @@ export class JaegerSearchModalContent {
     this.tracesScatterPlot.mount(scatterPlotContainer);
     this.tracesScatterPlot.init({
       width: scatterPlotContainer.offsetWidth,
-      height: scatterPlotContainer.offsetHeight
+      height: scatterPlotContainer.offsetHeight,
     });
     this.tracesScatterPlot.on(
       TracesScatterPlotEvent.POINT_CLICKED,
@@ -398,8 +398,8 @@ export class JaegerSearchModalContent {
         updateDuration: 0,
         content: this.elements.statusContent,
         theme: 'tooltip',
-        placement: 'top'
-      })
+        placement: 'top',
+      }),
     };
   }
 
@@ -448,14 +448,14 @@ export class JaegerSearchModalContent {
       if (!response.data) {
         new Noty({
           text: `There is no services found in Jaeger`,
-          type: 'error'
+          type: 'error',
         }).show();
         return;
       }
 
       const serviceNames: string[] = response.data.sort();
       this.elements.search.serviceSelect.innerHTML = serviceNames
-        .map(s => `<option value="${s}">${s}</option>`)
+        .map((s) => `<option value="${s}">${s}</option>`)
         .join('');
 
       if (serviceNames.indexOf(currentValue) > -1) {
@@ -466,7 +466,7 @@ export class JaegerSearchModalContent {
     } catch (err) {
       new Noty({
         text: `Could not fetch services from API: "${err.message}"`,
-        type: 'error'
+        type: 'error',
       }).show();
     }
   }
@@ -479,7 +479,7 @@ export class JaegerSearchModalContent {
       const response = await this.api.getOperations(serviceName);
       const operationNames: string[] = ['all', ...response.data.sort()];
       this.elements.search.operationSelect.innerHTML = operationNames
-        .map(o => `<option value="${o}">${o}</option>`)
+        .map((o) => `<option value="${o}">${o}</option>`)
         .join('');
 
       if (operationNames.indexOf(currentValue) > -1) {
@@ -488,7 +488,7 @@ export class JaegerSearchModalContent {
     } catch (err) {
       new Noty({
         text: `Could not fetch operations from API: "${err.message}"`,
-        type: 'error'
+        type: 'error',
       }).show();
     }
   }
@@ -510,7 +510,7 @@ export class JaegerSearchModalContent {
       const formEl = this.elements.searchByTraceId;
 
       const traceSpans: Span[][] = await this.api.getTrace(formEl.input.value);
-      this.traceResults = traceSpans.map(spans => new Trace(spans));
+      this.traceResults = traceSpans.map((spans) => new Trace(spans));
       this.tracesScatterPlot.setTraces(this.traceResults);
       this.tracesTable.updateTraces(this.traceResults);
 
@@ -534,7 +534,7 @@ export class JaegerSearchModalContent {
     try {
       const formEl = this.elements.search;
       const query: JaegerAPISearchQuery = {
-        service: formEl.serviceSelect.value
+        service: formEl.serviceSelect.value,
       };
 
       if (
@@ -577,7 +577,7 @@ export class JaegerSearchModalContent {
       query.limit = limitIntValue;
 
       const traceSpans: Span[][] = await this.api.search(query);
-      this.traceResults = traceSpans.map(spans => new Trace(spans));
+      this.traceResults = traceSpans.map((spans) => new Trace(spans));
       this.tracesScatterPlot.setTraces(this.traceResults);
       this.tracesTable.updateTraces(this.traceResults);
 
@@ -624,7 +624,7 @@ export class JaegerSearchModalContent {
     // When we try to redraw tabulator while it's already redrawing,
     // it gives an error. So, we apply the most famous javascript workaround ever.
     // await new Promise(resolve => setTimeout(resolve, 0));
-    this.selectedTraceIds = selectedTraces.map(t => t.id);
+    this.selectedTraceIds = selectedTraces.map((t) => t.id);
 
     if (selectedTraces.length == 0) {
       this.elements.bottom.addToStageButton.disabled = true;
@@ -641,8 +641,8 @@ export class JaegerSearchModalContent {
   }
 
   private onAddToStageButtonClick() {
-    const traces = this.selectedTraceIds.map(traceId => {
-      return find(this.traceResults, t => t.id == traceId);
+    const traces = this.selectedTraceIds.map((traceId) => {
+      return find(this.traceResults, (t) => t.id == traceId);
     });
 
     const modal = ModalManager.getSingleton().findModalFromElement(
@@ -762,7 +762,7 @@ export class JaegerSearchModalContent {
       this.binded.onTraceScatterPointClick
     );
 
-    Object.values(this.tippyInstaces).forEach(t => t.destroy());
+    Object.values(this.tippyInstaces).forEach((t) => t.destroy());
     this.tracesTable.dispose();
     this.tracesScatterPlot.dispose();
     this.customLookbackFlatpickr.destroy();

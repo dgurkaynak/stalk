@@ -24,15 +24,15 @@ import { SpanProcessTagsView } from './components/span-process-tags/span-process
 import { SpanLogsView } from './components/span-logs/span-logs';
 import {
   SpansTableView,
-  SpansTableViewEvent
+  SpansTableViewEvent,
 } from './components/spans-table/spans-table';
 import {
   LogsTableView,
-  LogsTableViewEvent
+  LogsTableViewEvent,
 } from './components/logs-table/logs-table';
 import {
   ContextMenuManager,
-  ContextMenuEvent
+  ContextMenuEvent,
 } from './components/ui/context-menu/context-menu-manager';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -55,7 +55,7 @@ export enum AppWidgetType {
   SPAN_SUMMARY = 'span-summary',
   SPAN_TAGS = 'span-tags',
   SPAN_PROCESS_TAGS = 'span-process-tags',
-  SPAN_LOGS = 'span-logs'
+  SPAN_LOGS = 'span-logs',
 }
 
 export interface AppOptions {
@@ -97,7 +97,7 @@ export class App {
     onDockPanelLayoutChange: debounce(
       this.onDockPanelLayoutChange.bind(this),
       2500
-    )
+    ),
   };
 
   constructor(private options: AppOptions) {
@@ -112,7 +112,7 @@ export class App {
       SpanGroupingManager.getSingleton().init(),
       SpanColoringManager.getSingleton().init(),
       SpanLabellingManager.getSingleton().init(),
-      TypeScriptManager.getSingleton().init()
+      TypeScriptManager.getSingleton().init(),
     ]);
 
     this.contextMenuManager.init();
@@ -141,7 +141,7 @@ export class App {
     this.spanSummary.init({
       timeline: this.timeline.timeline,
       spansTable: this.spansTable,
-      logsTable: this.logsTable
+      logsTable: this.logsTable,
     });
 
     const spanTagsWidgetEl = this.widgets[AppWidgetType.SPAN_TAGS].node;
@@ -149,7 +149,7 @@ export class App {
     this.spanTags.init({
       timeline: this.timeline.timeline,
       spansTable: this.spansTable,
-      logsTable: this.logsTable
+      logsTable: this.logsTable,
     });
 
     const spanProcessTagsWidgetEl = this.widgets[
@@ -159,7 +159,7 @@ export class App {
     this.spanProcessTags.init({
       timeline: this.timeline.timeline,
       spansTable: this.spansTable,
-      logsTable: this.logsTable
+      logsTable: this.logsTable,
     });
 
     const spanLogsWidgetEl = this.widgets[AppWidgetType.SPAN_LOGS].node;
@@ -167,7 +167,7 @@ export class App {
     this.spanLogs.init({
       timeline: this.timeline.timeline,
       spansTable: this.spansTable,
-      logsTable: this.logsTable
+      logsTable: this.logsTable,
     });
 
     this.initDropZone();
@@ -260,7 +260,7 @@ export class App {
       onResize: throttle((msg: { width: number; height: number }) => {
         this.onTimelineWidgetResize(msg);
       }, 100),
-      closable: false
+      closable: false,
     });
 
     this.widgets[AppWidgetType.SPANS_TABLE] = new WidgetWrapper({
@@ -269,7 +269,7 @@ export class App {
         this.spansTable.resize(msg.width, msg.height);
       }, 100),
       onAfterShow: () => this.spansTable.redrawTable(),
-      closable: false
+      closable: false,
     });
 
     this.widgets[AppWidgetType.LOGS_TABLE] = new WidgetWrapper({
@@ -278,7 +278,7 @@ export class App {
         this.logsTable.resize(msg.width, msg.height);
       }, 100),
       onAfterShow: () => this.logsTable.redrawTable(),
-      closable: false
+      closable: false,
     });
 
     this.widgets[AppWidgetType.SPAN_SUMMARY] = new WidgetWrapper({
@@ -286,7 +286,7 @@ export class App {
       onResize: throttle((msg: { width: number; height: number }) => {
         this.spanSummary.resize(msg.width, msg.height);
       }, 100),
-      closable: false
+      closable: false,
     });
 
     this.widgets[AppWidgetType.SPAN_TAGS] = new WidgetWrapper({
@@ -294,7 +294,7 @@ export class App {
       onResize: throttle((msg: { width: number; height: number }) => {
         this.spanTags.resize(msg.width, msg.height);
       }, 100),
-      closable: false
+      closable: false,
     });
 
     this.widgets[AppWidgetType.SPAN_PROCESS_TAGS] = new WidgetWrapper({
@@ -302,7 +302,7 @@ export class App {
       onResize: throttle((msg: { width: number; height: number }) => {
         this.spanProcessTags.resize(msg.width, msg.height);
       }, 100),
-      closable: false
+      closable: false,
     });
 
     this.widgets[AppWidgetType.SPAN_LOGS] = new WidgetWrapper({
@@ -310,7 +310,7 @@ export class App {
       onResize: throttle((msg: { width: number; height: number }) => {
         this.spanLogs.resize(msg.width, msg.height);
       }, 100),
-      closable: false
+      closable: false,
     });
 
     const layout = this.deserializeDockPanelLayout(
@@ -379,7 +379,7 @@ export class App {
     // You have to perform async (reading file) task in parallel,
     // if not `e.dataTransfer` will be released from memory on next
     // iteration, you can't access it.
-    const tasks = Array.from(e.dataTransfer.items).map(async item => {
+    const tasks = Array.from(e.dataTransfer.items).map(async (item) => {
       // If dropped items aren't files, reject them
       if (item.kind != 'file') {
         errorMessages.push('Only files can be dropped');
@@ -421,10 +421,10 @@ export class App {
 
     if (errorMessages.length > 0) {
       const text = `Following errors occured while importing:
-        <ul>${errorMessages.map(m => `<li>${m}</li>`).join('')}</ul>`;
+        <ul>${errorMessages.map((m) => `<li>${m}</li>`).join('')}</ul>`;
       new Noty({
         text,
-        type: 'error'
+        type: 'error',
       }).show();
     }
   }
@@ -474,10 +474,10 @@ export class App {
 
     if (errorMessages.length > 0) {
       const text = `Following errors occured while importing:
-        <ul>${errorMessages.map(m => `<li>${m}</li>`).join('')}</ul>`;
+        <ul>${errorMessages.map((m) => `<li>${m}</li>`).join('')}</ul>`;
       new Noty({
         text,
-        type: 'error'
+        type: 'error',
       }).show();
     }
   }
@@ -577,9 +577,9 @@ export class App {
                 { role: 'hideothers' },
                 { role: 'unhide' },
                 { type: 'separator' },
-                { role: 'quit' }
-              ]
-            }
+                { role: 'quit' },
+              ],
+            },
           ]
         : []),
       {
@@ -587,14 +587,14 @@ export class App {
         submenu: [
           {
             label: 'Import Trace(s)',
-            click: this.binded.onImportMenuClick
+            click: this.binded.onImportMenuClick,
           },
           {
             label: 'Export Stage',
-            click: this.binded.onExportMenuClick
+            click: this.binded.onExportMenuClick,
           },
-          ...(!isMac ? [{ type: 'separator' }, { role: 'quit' }] : [])
-        ]
+          ...(!isMac ? [{ type: 'separator' }, { role: 'quit' }] : []),
+        ],
       },
       {
         label: 'Edit',
@@ -613,19 +613,22 @@ export class App {
                 { type: 'separator' },
                 {
                   label: 'Speech',
-                  submenu: [{ role: 'startspeaking' }, { role: 'stopspeaking' }]
-                }
+                  submenu: [
+                    { role: 'startspeaking' },
+                    { role: 'stopspeaking' },
+                  ],
+                },
               ]
             : [
                 { role: 'delete' },
                 { type: 'separator' },
-                { role: 'selectAll' }
-              ])
-        ]
+                { role: 'selectAll' },
+              ]),
+        ],
       },
       {
         label: 'Window',
-        submenu: [{ role: 'minimize' }, { role: 'zoom' }]
+        submenu: [{ role: 'minimize' }, { role: 'zoom' }],
       },
       {
         role: 'help',
@@ -635,20 +638,20 @@ export class App {
             click: async () =>
               await shell.openExternal(
                 'https://github.com/dgurkaynak/stalk-studio/'
-              )
+              ),
           },
           {
             label: 'Report Issue',
             click: async () =>
               await shell.openExternal(
                 'https://github.com/dgurkaynak/stalk-studio/issues/new'
-              )
+              ),
           },
           { type: 'separator' },
           { role: 'forcereload' },
-          { role: 'toggledevtools' }
-        ]
-      }
+          { role: 'toggledevtools' },
+        ],
+      },
     ];
 
     const menu = Menu.buildFromTemplate(template as any);
@@ -658,24 +661,24 @@ export class App {
   private async onImportMenuClick() {
     const { canceled, filePaths } = await remote.dialog.showOpenDialog({
       properties: ['openFile', 'multiSelections'],
-      filters: [{ name: 'JSON', extensions: ['json'] }]
+      filters: [{ name: 'JSON', extensions: ['json'] }],
     });
     if (canceled) return;
 
     const readFiles: { name: string; content: string }[] = [];
-    const tasks = filePaths.map(filePath => {
+    const tasks = filePaths.map((filePath) => {
       const fileName = path.basename(filePath);
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         fs.readFile(filePath, 'utf8', (err, data) => {
           if (err) {
             new Noty({
               text: `${fileName}: Could not read its content -- ${err.message}`,
-              type: 'error'
+              type: 'error',
             }).show();
           } else {
             readFiles.push({
               name: path.basename(filePath),
-              content: data
+              content: data,
             });
           }
           resolve();
@@ -692,7 +695,7 @@ export class App {
     if (traces.length == 0) {
       new Noty({
         text: 'No traces in the stage',
-        type: 'warning'
+        type: 'warning',
       }).show();
       return;
     }
@@ -703,25 +706,25 @@ export class App {
       'yyyy-MM-dd--HH-mm-ss'
     )}.json`;
     const { canceled, filePath } = await remote.dialog.showSaveDialog({
-      defaultPath: path.join(downloadsFolder, fileName)
+      defaultPath: path.join(downloadsFolder, fileName),
     });
     if (canceled) return;
 
     const fileContent = JSON.stringify(
       {
         kind: 'stalk-studio/v1',
-        traces: traces.map(t => t.spans)
+        traces: traces.map((t) => t.spans),
       },
       null,
       2
     );
 
-    fs.writeFile(filePath, fileContent, err => {
+    fs.writeFile(filePath, fileContent, (err) => {
       if (err) {
         new Noty({
           text: err.message,
           type: 'error',
-          timeout: 2500
+          timeout: 2500,
         }).show();
         return;
       }
@@ -742,7 +745,7 @@ export class App {
         const widgets = obj.widgets;
 
         // Mutate
-        obj.widgets = widgets.map(widget => {
+        obj.widgets = widgets.map((widget) => {
           for (const widgetName in this.widgets) {
             if (this.widgets[widgetName] == widget) {
               return widgetName;
@@ -777,7 +780,7 @@ export class App {
         }
 
         // Mutate
-        obj.widgets = widgetNames.map(widgetName => {
+        obj.widgets = widgetNames.map((widgetName) => {
           const widget = this.widgets[widgetName];
           if (!widget) {
             throw new Error(
@@ -810,8 +813,8 @@ export class App {
             widgets: [
               AppWidgetType.TIMELINE,
               AppWidgetType.SPANS_TABLE,
-              AppWidgetType.LOGS_TABLE
-            ]
+              AppWidgetType.LOGS_TABLE,
+            ],
           },
           {
             type: 'split-area',
@@ -821,28 +824,28 @@ export class App {
               {
                 type: 'tab-area',
                 currentIndex: 0,
-                widgets: [AppWidgetType.SPAN_SUMMARY]
+                widgets: [AppWidgetType.SPAN_SUMMARY],
               },
               {
                 type: 'tab-area',
                 currentIndex: 0,
                 widgets: [
                   AppWidgetType.SPAN_TAGS,
-                  AppWidgetType.SPAN_PROCESS_TAGS
-                ]
+                  AppWidgetType.SPAN_PROCESS_TAGS,
+                ],
               },
               {
                 type: 'tab-area',
                 currentIndex: 0,
-                widgets: [AppWidgetType.SPAN_LOGS]
-              }
-            ]
-          }
+                widgets: [AppWidgetType.SPAN_LOGS],
+              },
+            ],
+          },
         ],
         orientation: 'vertical',
         sizes: [0.7, 0.3],
-        type: 'split-area'
-      }
+        type: 'split-area',
+      },
     };
   }
 

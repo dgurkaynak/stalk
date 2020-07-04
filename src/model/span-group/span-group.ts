@@ -18,8 +18,8 @@ export class SpanGroup {
   rootNodes: SpanGroupNode[] = [];
   get orphanNodes() {
     const sets = values(this.missingNodeDependents);
-    return flatten(sets.map(set => Array.from(set))).map(
-      spanId => this.nodes[spanId]
+    return flatten(sets.map((set) => Array.from(set))).map(
+      (spanId) => this.nodes[spanId]
     );
   }
 
@@ -83,14 +83,14 @@ export class SpanGroup {
     }
 
     // Remove from children node
-    node.children.forEach(childNode => {
+    node.children.forEach((childNode) => {
       childNode.parent = undefined;
       childNode.follows = undefined;
     });
     // If children exist, they're orphan now
     if (node.children.length > 0) {
       this.missingNodeDependents[span.id] = new Set(
-        node.children.map(child => child.spanId)
+        node.children.map((child) => child.spanId)
       );
     }
 
@@ -137,7 +137,7 @@ export class SpanGroup {
     // Consume dependencies if exist
     const dependencies = this.missingNodeDependents[span.id];
     delete this.missingNodeDependents[span.id];
-    if (dependencies) dependencies.forEach(spanId => this.setupNode(spanId));
+    if (dependencies) dependencies.forEach((spanId) => this.setupNode(spanId));
   }
 
   nodeOf(spanOrId: Span | string, createNew = false) {
@@ -160,7 +160,7 @@ export class SpanGroup {
 
   private indexOf(spanOrId: Span | string) {
     const id = typeof spanOrId === 'object' ? spanOrId.id : spanOrId;
-    return findIndex(this.spans, span => span.id === id);
+    return findIndex(this.spans, (span) => span.id === id);
   }
 
   get length() {

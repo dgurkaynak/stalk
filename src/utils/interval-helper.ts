@@ -15,14 +15,14 @@ export function union(intervals: Interval[]) {
     (a, b) => a.startTime - b.startTime || a.finishTime - b.finishTime
   );
   const acc: Interval[] = [];
-  sorted.forEach(interval => {
+  sorted.forEach((interval) => {
     const lastInterval = acc[acc.length - 1];
     if (lastInterval && isOverlapped(lastInterval, interval)) {
       lastInterval.finishTime = interval.finishTime;
     } else {
       acc.push({
         startTime: interval.startTime,
-        finishTime: interval.finishTime
+        finishTime: interval.finishTime,
       });
     }
   });

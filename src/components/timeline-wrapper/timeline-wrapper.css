@@ -8,7 +8,9 @@
   position: relative;
   top: 0.2em;
 }
-.timeline-toolbar-button.group-layout svg { height: 1.4em; }
+.timeline-toolbar-button.group-layout svg {
+  height: 1.4em;
+}
 
 .timeline-container {
   position: relative;

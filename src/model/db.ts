@@ -15,15 +15,15 @@ export class AppDatabase extends Dexie {
   constructor() {
     super('AppDatabase');
     this.version(1).stores({
-      dataSources: 'id'
+      dataSources: 'id',
     });
     this.version(2).stores({
       spanGroupings: 'key',
       spanLabellings: 'key',
-      spanColorings: 'key'
+      spanColorings: 'key',
     });
     this.version(3).stores({
-      settings: 'key'
+      settings: 'key',
     });
 
     this.dataSources = this.table('dataSources');

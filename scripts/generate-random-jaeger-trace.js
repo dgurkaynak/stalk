@@ -10,7 +10,14 @@ const Chance = require('chance');
 
 const chance = new Chance();
 
-const SERVICE_LIST = ['serviceA', 'serviceB', 'serviceC', 'serviceD', 'serviceE', 'serviceF'];
+const SERVICE_LIST = [
+  'serviceA',
+  'serviceB',
+  'serviceC',
+  'serviceD',
+  'serviceE',
+  'serviceF',
+];
 const OPERATIONS_LIST = [
   'GET',
   'PUT',
@@ -37,7 +44,9 @@ function getParentSpanId(span, levels) {
     }
   });
 
-  return nestingLevel - 1 >= 0 ? chance.pickone(levels[nestingLevel - 1]) : null;
+  return nestingLevel - 1 >= 0
+    ? chance.pickone(levels[nestingLevel - 1])
+    : null;
 }
 
 /* this simulates the hierarchy created by CHILD_OF tags */
@@ -45,34 +54,34 @@ function attachReferences(spans) {
   const depth = chance.integer({ min: 1, max: 10 });
   let levels = [[spans[0].id]];
 
-  const duplicateLevelFilter = currentLevels => spanID =>
-  !currentLevels.find(level => level.indexOf(spanID) >= 0);
+  const duplicateLevelFilter = (currentLevels) => (spanID) =>
+    !currentLevels.find((level) => level.indexOf(spanID) >= 0);
 
   while (levels.length < depth) {
     const newLevel = chance
-    .pickset(spans, chance.integer({ min: 4, max: 8 }))
-    .map(s => s.id)
-    .filter(duplicateLevelFilter(levels));
+      .pickset(spans, chance.integer({ min: 4, max: 8 }))
+      .map((s) => s.id)
+      .filter(duplicateLevelFilter(levels));
     levels.push(newLevel);
   }
 
   // filter out empty levels
-  levels = levels.filter(level => level.length > 0);
+  levels = levels.filter((level) => level.length > 0);
 
-  return spans.map(span => {
+  return spans.map((span) => {
     const parentSpanId = getParentSpanId(span, levels);
     return parentSpanId
-    ? {
-      ...span,
-      references: [
-        {
-          refType: 'CHILD_OF',
-          traceID: span.traceID,
-          spanID: parentSpanId,
-        },
-      ],
-    }
-    : span;
+      ? {
+          ...span,
+          references: [
+            {
+              refType: 'CHILD_OF',
+              traceID: span.traceID,
+              spanID: parentSpanId,
+            },
+          ],
+        }
+      : span;
   });
 }
 
@@ -90,10 +99,15 @@ chance.mixin({
   }) {
     const traceID = chance.guid();
     const duration = chance.integer({ min: 10000, max: 5000000 });
-    const timestamp = (new Date().getTime() - chance.integer({ min: 0, max: 1000 }) * 1000) * 1000;
+    const timestamp =
+      (new Date().getTime() - chance.integer({ min: 0, max: 1000 }) * 1000) *
+      1000;
 
     const processArray = chance.processes({ numberOfProcesses });
-    const processes = processArray.reduce((pMap, p) => ({ ...pMap, [p.processID]: p }), {});
+    const processes = processArray.reduce(
+      (pMap, p) => ({ ...pMap, [p.processID]: p }),
+      {}
+    );
 
     let spans = chance.n(chance.span, numberOfSpans, {
       traceID,
@@ -116,7 +130,11 @@ chance.mixin({
     return {
       key: 'http.url',
       type: 'String',
-      value: `/v2/${chance.pickone(['alpha', 'beta', 'gamma'])}/${chance.guid()}`,
+      value: `/v2/${chance.pickone([
+        'alpha',
+        'beta',
+        'gamma',
+      ])}/${chance.guid()}`,
     };
   },
   span({
@@ -163,13 +181,22 @@ chance.mixin({
 });
 
 const trace = chance.trace({
-  numberOfSpans: process.env.NUM_OF_SPANS || chance.pickone([
-    Math.ceil(chance.normal({ mean: 200, dev: 10 })) + 1,
-    Math.ceil(chance.integer({ min: 3, max: 10 })),
-    Math.ceil(chance.normal({ mean: 45, dev: 15 })) + 1,
-  ]),
-  numberOfProcesses: process.env.NUM_OF_PROCESSES || chance.integer({ min: 1, max: 10 }),
+  numberOfSpans:
+    process.env.NUM_OF_SPANS ||
+    chance.pickone([
+      Math.ceil(chance.normal({ mean: 200, dev: 10 })) + 1,
+      Math.ceil(chance.integer({ min: 3, max: 10 })),
+      Math.ceil(chance.normal({ mean: 45, dev: 15 })) + 1,
+    ]),
+  numberOfProcesses:
+    process.env.NUM_OF_PROCESSES || chance.integer({ min: 1, max: 10 }),
 });
-console.log(JSON.stringify({
-  data: [ trace ]
-}, null, 4));
+console.log(
+  JSON.stringify(
+    {
+      data: [trace],
+    },
+    null,
+    4
+  )
+);

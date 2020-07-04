@@ -8,7 +8,7 @@ export default <SpanGroupingOptions>{
   groupBy: (span: Span, trace: Trace) => {
     let serviceName = serviceNameOf(span) || 'unknown';
     return [serviceName, serviceName];
-  }
+  },
 };
 
 export function serviceNameOf(span: Span) {

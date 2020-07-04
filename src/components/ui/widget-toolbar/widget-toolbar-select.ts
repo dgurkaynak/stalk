@@ -28,7 +28,7 @@ export class WidgetToolbarSelect {
   private selectedItemId: string = null;
 
   private binded = {
-    onClick: this.onClick.bind(this)
+    onClick: this.onClick.bind(this),
   };
 
   constructor(private options: WidgetToolbarSelectOptions) {
@@ -48,7 +48,7 @@ export class WidgetToolbarSelect {
   render() {
     this.element.innerHTML = '';
 
-    this.options.items.forEach(item => {
+    this.options.items.forEach((item) => {
       const el = document.createElement('div');
 
       // Divider
@@ -85,7 +85,7 @@ export class WidgetToolbarSelect {
   }
 
   select(id: string) {
-    const item = find(this.options.items, item => (item as any).id == id);
+    const item = find(this.options.items, (item) => (item as any).id == id);
     if (!item) return false;
     if (item.type == 'divider') return false;
     if (item.disabled) return false;
@@ -108,7 +108,7 @@ export class WidgetToolbarSelect {
     const itemEl = (e.target as Element).closest('[data-item-id]');
     if (!itemEl) return;
     const itemId = itemEl.getAttribute('data-item-id');
-    const item = find(this.options.items, item => (item as any).id == itemId);
+    const item = find(this.options.items, (item) => (item as any).id == itemId);
     if (!item) return;
     if (item.type == 'divider') return;
     if (item.disabled) return;

@@ -68,12 +68,12 @@ export class Span extends opentracing.Span {
       operationName: this._operationName,
       startTime: this._startTime,
       finishTime: this._finishTime,
-      references: this._references.map(r => ({
+      references: this._references.map((r) => ({
         type: r.type(),
-        referencedContext: r.referencedContext() // TODO: If referenced context is not stalk-span-context?
+        referencedContext: r.referencedContext(), // TODO: If referenced context is not stalk-span-context?
       })),
       tags: this._tags,
-      logs: this._logs
+      logs: this._logs,
     };
   }
 
@@ -139,7 +139,7 @@ export class Span extends opentracing.Span {
   protected _addTags(keyValuePairs: { [key: string]: any }) {
     this._tags = {
       ...this._tags,
-      ...keyValuePairs // TODO: Cast to string
+      ...keyValuePairs, // TODO: Cast to string
     };
   }
 
@@ -149,12 +149,12 @@ export class Span extends opentracing.Span {
   protected _log(keyValuePairs: { [key: string]: any }, timestamp?: number) {
     const log = {
       fields: keyValuePairs, // TODO: Cast to string
-      timestamp: timestamp || Date.now()
+      timestamp: timestamp || Date.now(),
     };
     this._logs.push(log);
 
     // Not cool bro
-    this.__tracer.reporters.forEach(reporter => {
+    this.__tracer.reporters.forEach((reporter) => {
       if (reporter.accepts.spanLog) {
         reporter.recieveSpanLog(this, log);
       }
@@ -168,7 +168,7 @@ export class Span extends opentracing.Span {
     this._finishTime = finishTime || Date.now();
 
     // Not cool bro
-    this.__tracer.reporters.forEach(reporter => {
+    this.__tracer.reporters.forEach((reporter) => {
       if (reporter.accepts.spanFinish) {
         reporter.recieveSpanFinish(this);
       }

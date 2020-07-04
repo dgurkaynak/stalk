@@ -6,7 +6,7 @@ export class ModalManager {
   private modal: Modal;
 
   private binded = {
-    onKeyDown: this.onKeyDown.bind(this)
+    onKeyDown: this.onKeyDown.bind(this),
   };
 
   static getSingleton() {

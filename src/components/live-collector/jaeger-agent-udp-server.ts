@@ -10,7 +10,7 @@ const Protocol: any = thrift.TCompactProtocol;
 export enum JaegerAgentUDPServerState {
   STOPPED = 'stopped',
   STARTING = 'starting',
-  RUNNING = 'running'
+  RUNNING = 'running',
 }
 
 export class JaegerAgentUDPServer {
@@ -23,7 +23,7 @@ export class JaegerAgentUDPServer {
   private binded = {
     onMessage: this.onMessage.bind(this),
     onError: this.onError.bind(this),
-    onClose: this.onClose.bind(this)
+    onClose: this.onClose.bind(this),
   };
 
   getPort() {
@@ -111,10 +111,10 @@ export class JaegerAgentUDPServer {
         } catch (err) {
           console.error(`Could not parse jaeger batch compact thrift`, {
             err,
-            batch
+            batch,
           });
         }
-      }
+      },
     });
     (processor as any).process(prot);
   }

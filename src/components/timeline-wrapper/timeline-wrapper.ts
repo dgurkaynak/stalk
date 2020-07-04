@@ -2,11 +2,11 @@ import { TimelineView, TimelineTool } from '../timeline/timeline-view';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
   WidgetToolbarSelect,
-  WidgetToolbarSelectItem
+  WidgetToolbarSelectItem,
 } from '../ui/widget-toolbar/widget-toolbar-select';
 import {
   WidgetToolbarMultiSelect,
-  WidgetToolbarMultiSelectItem
+  WidgetToolbarMultiSelectItem,
 } from '../ui/widget-toolbar/widget-toolbar-multi-select';
 import processGroupingOptions from '../../model/span-grouping/process';
 import serviceNameGroupingOptions from '../../model/span-grouping/service-name';
@@ -16,13 +16,13 @@ import {
   SpanColoringRawOptions,
   operationColoringOptions,
   serviceColoringOptions,
-  selfTimeColoringOptions
+  selfTimeColoringOptions,
 } from '../../model/span-coloring-manager';
 import {
   SpanLabellingManager,
   SpanLabellingRawOptions,
   operationLabellingOptions,
-  serviceOperationLabellingOptions
+  serviceOperationLabellingOptions,
 } from '../../model/span-labelling-manager';
 import { SpanGroupingManager } from '../../model/span-grouping/manager';
 import { SpanGroupingRawOptions } from '../../model/span-grouping/span-grouping';
@@ -64,14 +64,14 @@ export class TimelineWrapper {
       spanLabellingMode: document.createElement('div'),
       spanColoringMode: document.createElement('div'),
       groupLayoutMode: document.createElement('div'),
-      spanTooltipCustomization: document.createElement('div')
+      spanTooltipCustomization: document.createElement('div'),
     },
     timelineContainer: document.createElement('div'),
     emptyMessage: {
       container: document.createElement('div'),
       sampleTraceButtonHotrod: document.createElement('span'),
-      sampleTraceButtonRaftConsensus: document.createElement('span')
-    }
+      sampleTraceButtonRaftConsensus: document.createElement('span'),
+    },
   };
   private dropdowns: {
     groupingMode: TippyInstance;
@@ -131,7 +131,7 @@ export class TimelineWrapper {
     ),
     onSampleTraceButtonRaftConcensusClick: this.onSampleTraceButtonRaftConcensusClick.bind(
       this
-    )
+    ),
   };
 
   private spanGroupingModeMenu = new WidgetToolbarSelect({
@@ -141,7 +141,7 @@ export class TimelineWrapper {
       { type: 'item', text: 'Process', id: processGroupingOptions.key },
       { type: 'item', text: 'Service', id: serviceNameGroupingOptions.key },
       { type: 'divider' },
-      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' }
+      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
       // {
       //   type: 'item',
       //   text: 'Manage All',
@@ -150,7 +150,7 @@ export class TimelineWrapper {
       //   disabled: true
       // }
     ],
-    onSelect: this.binded.onSpanGroupingModeMenuItemClick
+    onSelect: this.binded.onSpanGroupingModeMenuItemClick,
   });
   private spanLabellingModeMenu = new WidgetToolbarSelect({
     // width: 150,
@@ -159,10 +159,10 @@ export class TimelineWrapper {
       {
         type: 'item',
         text: 'Service + Operation',
-        id: serviceOperationLabellingOptions.key
+        id: serviceOperationLabellingOptions.key,
       },
       { type: 'divider' },
-      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' }
+      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
       // {
       //   type: 'item',
       //   text: 'Manage All',
@@ -171,7 +171,7 @@ export class TimelineWrapper {
       //   disabled: true
       // }
     ],
-    onSelect: this.binded.onSpanLabellingMenuItemClick
+    onSelect: this.binded.onSpanLabellingMenuItemClick,
   });
   private spanColoringModeMenu = new WidgetToolbarSelect({
     // width: 150,
@@ -180,7 +180,7 @@ export class TimelineWrapper {
       { type: 'item', text: 'Service', id: serviceColoringOptions.key },
       { type: 'item', text: 'Self Time', id: selfTimeColoringOptions.key },
       { type: 'divider' },
-      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' }
+      { type: 'item', text: 'Custom', icon: 'code-tags', id: 'custom' },
       // {
       //   type: 'item',
       //   text: 'Manage All',
@@ -189,16 +189,16 @@ export class TimelineWrapper {
       //   disabled: true
       // }
     ],
-    onSelect: this.binded.onSpanColoringMenuItemClick
+    onSelect: this.binded.onSpanColoringMenuItemClick,
   });
   private groupLayoutModeMenu = new WidgetToolbarSelect({
     // width: 150,
     items: [
       { type: 'item', text: 'Fill', id: SpanGroupLayoutType.FILL },
       { type: 'item', text: 'Compact', id: SpanGroupLayoutType.COMPACT },
-      { type: 'item', text: 'Waterfall', id: SpanGroupLayoutType.WATERFALL }
+      { type: 'item', text: 'Waterfall', id: SpanGroupLayoutType.WATERFALL },
     ],
-    onSelect: this.binded.onGroupLayoutMenuItemClick
+    onSelect: this.binded.onGroupLayoutMenuItemClick,
   });
 
   private spanTooltipCustomizationMultiSelect = new WidgetToolbarMultiSelect({
@@ -209,7 +209,7 @@ export class TimelineWrapper {
     onUnselect: this.binded.onSpanTooltipCustomizationMultiSelectUnselect,
     onSearchInput: this.binded.onSpanTooltipCustomizationMultiSelectSearchInput,
     items: [],
-    emptyMessage: 'No Fields'
+    emptyMessage: 'No Fields',
   });
 
   constructor() {
@@ -346,7 +346,7 @@ export class TimelineWrapper {
   init(options: { width: number; height: number }) {
     this.timeline.init({
       width: options.width,
-      height: options.height - TOOLBAR_HEIGHT
+      height: options.height - TOOLBAR_HEIGHT,
     });
     this.initTooltips();
     this.initDropdowns();
@@ -379,7 +379,7 @@ export class TimelineWrapper {
     );
 
     // Initial data
-    this.stage.getAllTraces().forEach(trace => this.addTrace(trace));
+    this.stage.getAllTraces().forEach((trace) => this.addTrace(trace));
   }
 
   private initTooltips() {
@@ -390,51 +390,51 @@ export class TimelineWrapper {
         btn.moveTool,
         {
           content: 'Move Tool',
-          multiple: true
-        }
+          multiple: true,
+        },
       ],
       [
         btn.rulerTool,
         {
           content: 'Ruler Tool',
-          multiple: true
-        }
+          multiple: true,
+        },
       ],
       [
         btn.groupingMode,
         {
           content: 'Span Grouping',
-          multiple: true
-        }
+          multiple: true,
+        },
       ],
       [
         btn.spanLabellingMode,
         {
           content: 'Span Labelling',
-          multiple: true
-        }
+          multiple: true,
+        },
       ],
       [
         btn.spanColoringMode,
         {
           content: 'Span Coloring',
-          multiple: true
-        }
+          multiple: true,
+        },
       ],
       [
         btn.groupLayoutMode,
         {
           content: 'Draw Layout',
-          multiple: true
-        }
+          multiple: true,
+        },
       ],
       [
         btn.spanTooltipCustomization,
         {
           content: 'Customize Span Tooltip',
-          multiple: true
-        }
-      ]
+          multiple: true,
+        },
+      ],
     ]);
   }
 
@@ -450,7 +450,7 @@ export class TimelineWrapper {
         updateDuration: 0,
         theme: 'widget-toolbar-select',
         trigger: 'click',
-        interactive: true
+        interactive: true,
       }),
       spanLabellingMode: tippy(btn.spanLabellingMode, {
         content: this.spanLabellingModeMenu.element,
@@ -461,7 +461,7 @@ export class TimelineWrapper {
         updateDuration: 0,
         theme: 'widget-toolbar-select',
         trigger: 'click',
-        interactive: true
+        interactive: true,
       }),
       spanColoringMode: tippy(btn.spanColoringMode, {
         content: this.spanColoringModeMenu.element,
@@ -472,7 +472,7 @@ export class TimelineWrapper {
         updateDuration: 0,
         theme: 'widget-toolbar-select',
         trigger: 'click',
-        interactive: true
+        interactive: true,
       }),
       groupLayoutMode: tippy(btn.groupLayoutMode, {
         content: this.groupLayoutModeMenu.element,
@@ -483,7 +483,7 @@ export class TimelineWrapper {
         updateDuration: 0,
         theme: 'widget-toolbar-select',
         trigger: 'click',
-        interactive: true
+        interactive: true,
       }),
       spanTooltipCustomization: tippy(btn.spanTooltipCustomization, {
         content: this.spanTooltipCustomizationMultiSelect.element,
@@ -494,8 +494,8 @@ export class TimelineWrapper {
         updateDuration: 0,
         theme: 'widget-toolbar-multi-select',
         trigger: 'click',
-        interactive: true
-      })
+        interactive: true,
+      }),
     };
   }
 
@@ -593,13 +593,13 @@ export class TimelineWrapper {
     if (item.id === 'custom') {
       this.customSpanGroupingFormModalContent = new SpanGroupingFormModalContent(
         {
-          rawOptions: this.customSpanGroupingRawOptions
+          rawOptions: this.customSpanGroupingRawOptions,
         }
       );
       const modal = new Modal({
         content: this.customSpanGroupingFormModalContent.getElement(),
         onClose: this.binded.onCustomSpanGroupingModalClose,
-        shouldAutoFocusFirstElement: true
+        shouldAutoFocusFirstElement: true,
       });
       ModalManager.getSingleton().show(modal);
       this.customSpanGroupingFormModalContent.init(); // must be called after modal is rendered
@@ -612,7 +612,7 @@ export class TimelineWrapper {
     if (!spanGroupingOptions) {
       new Noty({
         text: `Unknown span grouping: "${item.id}"`,
-        type: 'error'
+        type: 'error',
       }).show();
       return;
     }
@@ -628,7 +628,7 @@ export class TimelineWrapper {
           `Unexpected error while grouping spans or layout: "${err.message} <br /><br />"` +
           `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
           `open devtools.`,
-        type: 'error'
+        type: 'error',
       }).show();
     }
   }
@@ -653,14 +653,14 @@ export class TimelineWrapper {
       key: 'custom',
       name: 'Custom',
       rawCode: data.tsCode,
-      compiledCode: data.compiledJSCode
+      compiledCode: data.compiledJSCode,
     };
 
     try {
       this.timeline.updateSpanGrouping({
         key: 'custom',
         name: 'Custom',
-        groupBy: data.groupBy
+        groupBy: data.groupBy,
       });
       this.spanGroupingMode = 'custom';
       this.spanGroupingModeMenu.select('custom');
@@ -671,7 +671,7 @@ export class TimelineWrapper {
           `Unexpected error while grouping spans or layout: "${err.message} <br /><br />"` +
           `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
           `open devtools.`,
-        type: 'error'
+        type: 'error',
       }).show();
     }
   }
@@ -688,13 +688,13 @@ export class TimelineWrapper {
     if (item.id === 'custom') {
       this.customSpanLabellingFormModalContent = new SpanLabellingFormModalContent(
         {
-          rawOptions: this.customSpanLabellingRawOptions
+          rawOptions: this.customSpanLabellingRawOptions,
         }
       );
       const modal = new Modal({
         content: this.customSpanLabellingFormModalContent.getElement(),
         onClose: this.binded.onCustomSpanLabellingModalClose,
-        shouldAutoFocusFirstElement: true
+        shouldAutoFocusFirstElement: true,
       });
       ModalManager.getSingleton().show(modal);
       this.customSpanLabellingFormModalContent.init(); // must be called after modal is rendered
@@ -720,7 +720,7 @@ export class TimelineWrapper {
           `Unexpected error while labelling spans: "${err.message} <br /><br />"` +
           `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
           `open devtools.`,
-        type: 'error'
+        type: 'error',
       });
     }
   }
@@ -745,14 +745,14 @@ export class TimelineWrapper {
       key: 'custom',
       name: 'Custom',
       rawCode: data.tsCode,
-      compiledCode: data.compiledJSCode
+      compiledCode: data.compiledJSCode,
     };
 
     try {
       this.timeline.updateSpanLabelling({
         key: 'custom',
         name: 'Custom',
-        labelBy: data.labelBy
+        labelBy: data.labelBy,
       });
       this.spanLabellingMode = 'custom';
       this.spanLabellingModeMenu.select('custom');
@@ -763,7 +763,7 @@ export class TimelineWrapper {
           `Unexpected error while labelling spans: "${err.message} <br /><br />"` +
           `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
           `open devtools.`,
-        type: 'error'
+        type: 'error',
       });
     }
   }
@@ -780,13 +780,13 @@ export class TimelineWrapper {
     if (item.id === 'custom') {
       this.customSpanColoringFormModalContent = new SpanColoringFormModalContent(
         {
-          rawOptions: this.customSpanColoringRawOptions
+          rawOptions: this.customSpanColoringRawOptions,
         }
       );
       const modal = new Modal({
         content: this.customSpanColoringFormModalContent.getElement(),
         onClose: this.binded.onCustomSpanColoringModalClose,
-        shouldAutoFocusFirstElement: true
+        shouldAutoFocusFirstElement: true,
       });
       ModalManager.getSingleton().show(modal);
       this.customSpanColoringFormModalContent.init(); // must be called after modal is rendered
@@ -799,7 +799,7 @@ export class TimelineWrapper {
     if (!spanColoringOptions) {
       new Noty({
         text: ` Unknown span coloring: "${item.id}"`,
-        type: 'error'
+        type: 'error',
       });
       return;
     }
@@ -815,7 +815,7 @@ export class TimelineWrapper {
           `Unexpected error while coloring spans: "${err.message} <br /><br />"` +
           `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
           `open devtools.`,
-        type: 'error'
+        type: 'error',
       }).show();
     }
   }
@@ -840,14 +840,14 @@ export class TimelineWrapper {
       key: 'custom',
       name: 'Custom',
       rawCode: data.tsCode,
-      compiledCode: data.compiledJSCode
+      compiledCode: data.compiledJSCode,
     };
 
     try {
       this.timeline.updateSpanColoring({
         key: 'custom',
         name: 'Custom',
-        colorBy: data.colorBy
+        colorBy: data.colorBy,
       });
       this.spanColoringMode = 'custom';
       this.spanColoringModeMenu.select('custom');
@@ -858,7 +858,7 @@ export class TimelineWrapper {
           `Unexpected error while coloring spans: "${err.message} <br /><br />"` +
           `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
           `open devtools.`,
-        type: 'error'
+        type: 'error',
       }).show();
     }
   }
@@ -942,9 +942,9 @@ export class TimelineWrapper {
     const btn = this.elements.toolbarBtn;
     const toolButtons = {
       [TimelineTool.MOVE]: btn.moveTool,
-      [TimelineTool.RULER]: btn.rulerTool
+      [TimelineTool.RULER]: btn.rulerTool,
     };
-    Object.values(toolButtons).forEach(el => el.classList.remove('selected'));
+    Object.values(toolButtons).forEach((el) => el.classList.remove('selected'));
     const selectedTool = toolButtons[this.timeline.tool];
     selectedTool?.classList.add('selected');
   }
@@ -955,30 +955,30 @@ export class TimelineWrapper {
       {
         id: 'serviceName',
         text: 'Service Name',
-        selected: tooltipOptions.showServiceName
+        selected: tooltipOptions.showServiceName,
       },
       {
         id: 'nearbyLogs',
         text: 'Nearby Logs',
-        selected: tooltipOptions.showNearbyLogs
-      }
+        selected: tooltipOptions.showNearbyLogs,
+      },
     ];
 
     const allSpanTagKeys = Object.keys(this.stage.getAllSpanTags());
-    allSpanTagKeys.forEach(tag => {
+    allSpanTagKeys.forEach((tag) => {
       items.push({
         id: `tag.${tag}`,
         text: `tag.${tag}`,
-        category: 'Span Tags'
+        category: 'Span Tags',
       });
     });
 
     const allProcessTagKeys = Object.keys(this.stage.getAllProcessTags());
-    allProcessTagKeys.forEach(tag => {
+    allProcessTagKeys.forEach((tag) => {
       items.push({
         id: `process.tag.${tag}`,
         text: `process.tag.${tag}`,
-        category: 'Process Tags'
+        category: 'Process Tags',
       });
     });
 
@@ -1017,7 +1017,7 @@ export class TimelineWrapper {
           `Unexpected error while adding trace: "${err.message} <br /><br />"` +
           `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
           `open devtools.`,
-        type: 'error'
+        type: 'error',
       }).show();
     }
   }
@@ -1035,7 +1035,7 @@ export class TimelineWrapper {
           `Unexpected error while adding trace: "${err.message} <br /><br />"` +
           `Please check your console for further details. Press Cmd+Option+I or Ctrl+Option+I to ` +
           `open devtools.`,
-        type: 'error'
+        type: 'error',
       }).show();
     }
   }
@@ -1063,7 +1063,7 @@ export class TimelineWrapper {
       btn.spanLabellingMode,
       btn.spanColoringMode,
       btn.groupLayoutMode,
-      btn.spanTooltipCustomization
+      btn.spanTooltipCustomization,
     ]);
     const { emptyMessage } = this.elements;
 

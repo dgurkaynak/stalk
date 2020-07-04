@@ -14,11 +14,11 @@ export interface ModalOptions {
 export enum ModalCloseTriggerType {
   ESC_KEY = 'esc-key',
   OVERLAY_CLICK = 'overlay-click',
-  CLOSE_METHOD_CALL = 'close-method-call'
+  CLOSE_METHOD_CALL = 'close-method-call',
 }
 
 export enum ModalEvent {
-  CLOSE = 'close'
+  CLOSE = 'close',
 }
 
 export class Modal extends EventEmitter {
@@ -32,7 +32,7 @@ export class Modal extends EventEmitter {
   private binded = {
     onOverlayClick: this.onOverlayClick.bind(this),
     onContentContainerKeyDown: this.onContentContainerKeyDown.bind(this),
-    onBlur: this.onBlur.bind(this)
+    onBlur: this.onBlur.bind(this),
   };
 
   constructor(readonly options: ModalOptions) {
@@ -75,7 +75,7 @@ export class Modal extends EventEmitter {
         false
       );
       this.contentContainer.addEventListener('blur', this.binded.onBlur, {
-        capture: true
+        capture: true,
       });
     }
 
@@ -99,7 +99,7 @@ export class Modal extends EventEmitter {
   handleEscKeyPress() {
     if (!this.options.shouldCloseOnEscPress) return;
     this.close({
-      triggerType: ModalCloseTriggerType.ESC_KEY
+      triggerType: ModalCloseTriggerType.ESC_KEY,
     });
   }
 
@@ -114,7 +114,7 @@ export class Modal extends EventEmitter {
 
       this.focusTrap = focusTrap(this.options.content, {
         escapeDeactivates: false,
-        allowOutsideClick: () => true
+        allowOutsideClick: () => true,
       });
       this.focusTrap.activate();
 
@@ -126,7 +126,7 @@ export class Modal extends EventEmitter {
       this.focusTrap = focusTrap(this.options.content, {
         escapeDeactivates: false,
         allowOutsideClick: () => true,
-        initialFocus: this.options.content
+        initialFocus: this.options.content,
       });
       this.focusTrap.activate();
     }
@@ -173,7 +173,7 @@ export class Modal extends EventEmitter {
     }
 
     this.close({
-      triggerType: ModalCloseTriggerType.OVERLAY_CLICK
+      triggerType: ModalCloseTriggerType.OVERLAY_CLICK,
     });
   }
 
@@ -211,7 +211,7 @@ export class Modal extends EventEmitter {
       false
     );
     this.contentContainer.removeEventListener('blur', this.binded.onBlur, {
-      capture: true
+      capture: true,
     });
     this.contentContainer.removeEventListener(
       'keydown',
