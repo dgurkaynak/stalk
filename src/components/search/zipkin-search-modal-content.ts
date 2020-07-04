@@ -19,7 +19,10 @@ import throttle from 'lodash/throttle';
 import find from 'lodash/find';
 import isArray from 'lodash/isArray';
 import flatpickr from 'flatpickr';
-import { TracesScatterPlot } from '../traces-scatter-plot/traces-scatter-plot';
+import {
+  TracesScatterPlot,
+  TracesScatterPlotEvent
+} from '../traces-scatter-plot/traces-scatter-plot';
 
 import SvgCircleMedium from '!!raw-loader!@mdi/svg/svg/circle-small.svg';
 import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
@@ -101,7 +104,8 @@ export class ZipkinSearchModalContent {
     onLookbackSelectChange: this.onLookbackSelectChange.bind(this),
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
-    onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this)
+    onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this),
+    onTraceScatterPointClick: this.onTraceScatterPointClick.bind(this)
   };
 
   constructor(private options: ZipkinSearchModalContentOptions) {
@@ -381,6 +385,10 @@ export class ZipkinSearchModalContent {
       width: scatterPlotContainer.offsetWidth,
       height: scatterPlotContainer.offsetHeight
     });
+    this.tracesScatterPlot.on(
+      TracesScatterPlotEvent.POINT_CLICKED,
+      this.binded.onTraceScatterPointClick
+    );
   }
 
   private initTippyInstances() {
@@ -648,6 +656,11 @@ export class ZipkinSearchModalContent {
     this.tracesTable.selectTrace(null);
   }
 
+  private onTraceScatterPointClick(trace: Trace) {
+    this.tracesTable.selectTrace(trace.id);
+    this.tracesTable.focusTrace(trace.id);
+  }
+
   private toggleRightPanelOverlay(
     type: 'ready' | 'loading' | 'no-results' | 'error' | false,
     errorMessage?: string
@@ -746,9 +759,14 @@ export class ZipkinSearchModalContent {
       false
     );
     window.removeEventListener('resize', this.binded.onWindowResize, false);
+    this.tracesScatterPlot.removeListener(
+      TracesScatterPlotEvent.POINT_CLICKED,
+      this.binded.onTraceScatterPointClick
+    );
 
     Object.values(this.tippyInstaces).forEach(t => t.destroy());
     this.tracesTable.dispose();
+    this.tracesScatterPlot.dispose();
     this.customLookbackFlatpickr.destroy();
   }
 }
