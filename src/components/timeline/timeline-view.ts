@@ -296,7 +296,7 @@ export class TimelineView extends EventEmitter {
     this.spanTooltipStuffCache.svgBBTop = svgRect.top;
   }
 
-  updateAllDecorations(forceReprepare = false) {
+  private updateAllDecorations(forceReprepare = false) {
     for (const decoration of Object.values(this.decorations)) {
       const decorations = isArray(decoration) ? decoration : [decoration];
 
@@ -313,7 +313,7 @@ export class TimelineView extends EventEmitter {
     }
   }
 
-  setupPanels() {
+  private setupPanels() {
     const { width, height, timeRulerHeight } = this.computedStyles;
 
     this.bodyClipPath.id = 'body-clip-path';
@@ -345,7 +345,7 @@ export class TimelineView extends EventEmitter {
   }
 
   // Array order is from deepest element to root
-  getInteractedElementsFromMouseEvent(
+  private getInteractedElementsFromMouseEvent(
     e: MouseEvent
   ): TimelineInteractedElementObject[] {
     let element = e.target as SVGElement | null;
@@ -601,7 +601,7 @@ export class TimelineView extends EventEmitter {
     this.setPanelTranslateY(0);
   }
 
-  updateGroupVerticalPositions() {
+  private updateGroupVerticalPositions() {
     let y = 0;
 
     this.groupViews.forEach((groupView, i) => {
@@ -856,7 +856,7 @@ export class TimelineView extends EventEmitter {
   //////////// EVENT-HANDLING ////////////
   ////////////////////////////////////////
 
-  onMouseIdleMove(e: MouseEvent) {
+  private onMouseIdleMove(e: MouseEvent) {
     if (this.traces.length === 0) return;
 
     // If context menu is dislaying, prevent span tooltip
@@ -1006,12 +1006,12 @@ export class TimelineView extends EventEmitter {
     if (removed.length === 0 && added.length === 0) return;
   }
 
-  onMouseIdleLeave(e: MouseEvent) {
+  private onMouseIdleLeave(e: MouseEvent) {
     this.decorations.hoveredSpanConnections.forEach((d) => d.unmount());
     this.spanTooltipTippy.hide();
   }
 
-  onMousePanStart(e: MouseEvent) {
+  private onMousePanStart(e: MouseEvent) {
     this.spanTooltipTippy.hide();
     this.selectionView.unmount();
 
@@ -1024,7 +1024,7 @@ export class TimelineView extends EventEmitter {
     }
   }
 
-  onMousePanMove(e: MouseEvent) {
+  private onMousePanMove(e: MouseEvent) {
     if (this.traces.length === 0) return;
 
     if (this._tool == TimelineTool.RULER) {
@@ -1036,7 +1036,7 @@ export class TimelineView extends EventEmitter {
     }
   }
 
-  onMousePanEnd(e: MouseEvent) {
+  private onMousePanEnd(e: MouseEvent) {
     if (this.traces.length === 0) return;
 
     const isMouseLeaveBeforeUp = e.type == 'mouseleave';
@@ -1048,13 +1048,13 @@ export class TimelineView extends EventEmitter {
     }
   }
 
-  onWheel(e: WheelEvent) {
+  private onWheel(e: WheelEvent) {
     if (this.traces.length === 0) return;
     this.spanTooltipTippy.popperInstance.update();
     this.zoom(1 - 0.01 * e.deltaY, e.offsetX);
   }
 
-  onClick(e: MouseEvent) {
+  private onClick(e: MouseEvent) {
     this.spanTooltipTippy.hide();
 
     if (!e) return; // Sometimes event can be garbage-collected
@@ -1188,7 +1188,7 @@ export class TimelineView extends EventEmitter {
   //////////// TICK HANDLING ////////////
   ///////////////////////////////////////
 
-  updateTicks() {
+  private updateTicks() {
     if (this.traces.length == 0) {
       this.tickElements.forEach(({ text, line }) => {
         text.parentElement?.removeChild(text);
