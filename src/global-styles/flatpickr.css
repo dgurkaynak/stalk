@@ -1,0 +1,16 @@
+.flatpickr-calendar {
+  font-size: 1em;
+  width: 20em;
+}
+.flatpickr-calendar .flatpickr-days {
+  width: 20em;
+}
+.flatpickr-calendar .dayContainer {
+  width: 20em;
+  min-width: 20em;
+  max-width: 20em;
+}
+.flatpickr-calendar .flatpickr-day {
+  height: 2.5em;
+  line-height: 2.5em;
+}

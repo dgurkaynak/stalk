@@ -43,6 +43,9 @@ import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
 import 'flatpickr/dist/flatpickr.min.css';
 import './app.css';
+import './global-styles/dock-panel.css';
+import './global-styles/noty.css';
+import './global-styles/flatpickr.css';
 
 const { Menu } = remote;
 
