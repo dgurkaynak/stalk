@@ -280,7 +280,6 @@ export class AppToolbar {
       this.dataSourcesMenuList.addItem({
         text: ds.name,
         buttons: [
-          { id: 'search', icon: 'magnify' },
           { id: 'edit', icon: 'pencil' },
           { id: 'delete', icon: 'delete' },
         ],
@@ -397,11 +396,6 @@ export class AppToolbar {
     }
 
     switch (buttonId) {
-      case 'search': {
-        this.showDataSourceSearchModal(index);
-        return;
-      }
-
       case 'edit': {
         this.dataSourceFormModalContent = new DataSourceFormModalContent({
           type: 'edit',

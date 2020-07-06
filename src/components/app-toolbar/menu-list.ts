@@ -1,5 +1,4 @@
 import './menu-list.css';
-import MagnifySvgText from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import PencilSvgText from '!!raw-loader!@mdi/svg/svg/pencil.svg';
 import DeleteSvgText from '!!raw-loader!@mdi/svg/svg/delete.svg';
 import CloseSvgText from '!!raw-loader!@mdi/svg/svg/close.svg';
@@ -19,7 +18,7 @@ export interface ToolbarMenuListItemOptions {
   className?: string;
   buttons?: {
     id: string;
-    icon: 'magnify' | 'pencil' | 'delete' | 'close' | 'plus';
+    icon: 'pencil' | 'delete' | 'close' | 'plus';
   }[];
 }
 
@@ -73,7 +72,6 @@ export class ToolbarMenuList {
       const buttonEl = document.createElement('div');
       buttonEl.classList.add('button');
       buttonEl.innerHTML = {
-        magnify: MagnifySvgText,
         pencil: PencilSvgText,
         delete: DeleteSvgText,
         close: CloseSvgText,
