@@ -223,7 +223,10 @@ export class TracesScatterPlot extends EventEmitter {
     });
 
     if (traces.length == 1) {
-      // TODO: Special case
+      minDuration = minDuration - (minDuration / 2);
+      maxDuration = maxDuration + (maxDuration / 2);
+      minStartTime = minStartTime - 60000000; // 1 minute
+      maxStartTime = maxStartTime + 60000000; // 1 minute
     }
 
     this.sceneStats = {
