@@ -53,7 +53,9 @@ export class JaegerSearchModalContent {
   private dsManager = DataSourceManager.getSingleton();
   private api: JaegerAPI;
   private tracesTable = new SearchModalTracesTableView();
-  private tracesScatterPlot = new TracesScatterPlot();
+  private tracesScatterPlot = new TracesScatterPlot({
+    showStageBoundaries: true,
+  });
   private traceResults: Trace[] = [];
   private selectedTraceIds: string[] = [];
   private customLookbackFlatpickr: flatpickr.Instance;

@@ -54,7 +54,9 @@ export class ZipkinSearchModalContent {
   private dsManager = DataSourceManager.getSingleton();
   private api: ZipkinAPI;
   private tracesTable = new SearchModalTracesTableView();
-  private tracesScatterPlot = new TracesScatterPlot();
+  private tracesScatterPlot = new TracesScatterPlot({
+    showStageBoundaries: true,
+  });
   private traceResults: Trace[] = [];
   private selectedTraceIds: string[] = [];
   private customLookbackFlatpickr: flatpickr.Instance;

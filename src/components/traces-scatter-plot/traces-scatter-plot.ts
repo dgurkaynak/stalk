@@ -10,6 +10,7 @@ import format from 'date-fns/format';
 import EventEmitter from 'events';
 import { TraceTooltipContent } from '../trace-tooltip/trace-tooltip-content';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
+import { Stage, StageEvent } from '../../model/stage';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -49,12 +50,14 @@ export enum TracesScatterPlotEvent {
 }
 
 export class TracesScatterPlot extends EventEmitter {
+  private stage = Stage.getSingleton();
   private elements = {
     svg: document.createElementNS(SVG_NS, 'svg'),
     defs: document.createElementNS(SVG_NS, 'defs'),
     chartContainer: document.createElementNS(SVG_NS, 'g'),
     xAxisLine: document.createElementNS(SVG_NS, 'line'),
     yAxisLine: document.createElementNS(SVG_NS, 'line'),
+    stageRect: document.createElementNS(SVG_NS, 'rect'),
   };
   private readonly computedStyles: TracesScatterPlotComputedStyles;
   private colorAssigner = new MPN65ColorAssigner();
@@ -66,6 +69,10 @@ export class TracesScatterPlot extends EventEmitter {
     svgBBLeft: 0,
   };
 
+  private stageInterval: {
+    startTime: number;
+    finishTime: number;
+  };
   private sceneStats: {
     minDuration: number;
     maxDuration: number;
@@ -96,9 +103,15 @@ export class TracesScatterPlot extends EventEmitter {
     onMouseMove: this.onMouseMove.bind(this),
     onMouseLeave: this.onMouseLeave.bind(this),
     onClick: this.onClick.bind(this),
+    onStageUpdated: this.onStageUpdated.bind(this),
   };
 
-  constructor(options?: { style?: TracesScatterPlotStyle }) {
+  constructor(
+    private options?: {
+      showStageBoundaries: boolean;
+      style?: TracesScatterPlotStyle;
+    }
+  ) {
     super();
 
     const style = defaults(options?.style, {
@@ -129,7 +142,14 @@ export class TracesScatterPlot extends EventEmitter {
       height: 0,
     };
 
-    const { svg, defs, chartContainer, xAxisLine, yAxisLine } = this.elements;
+    const {
+      svg,
+      defs,
+      chartContainer,
+      xAxisLine,
+      yAxisLine,
+      stageRect,
+    } = this.elements;
     svg.setAttributeNS(
       'http://www.w3.org/2000/xmlns/',
       'xmlns:xlink',
@@ -152,6 +172,10 @@ export class TracesScatterPlot extends EventEmitter {
     yAxisLine.setAttribute('shape-rendering', `crispEdges`); // https://stackoverflow.com/a/34229584
     chartContainer.appendChild(yAxisLine);
 
+    stageRect.setAttribute('fill', 'rgba(171, 196, 226, 0.25)');
+    stageRect.setAttribute('display', 'none');
+    chartContainer.appendChild(stageRect);
+
     // Bind events
     this.elements.svg.addEventListener(
       'mousemove',
@@ -164,6 +188,11 @@ export class TracesScatterPlot extends EventEmitter {
       false
     );
     this.elements.svg.addEventListener('click', this.binded.onClick, false);
+    if (this.options?.showStageBoundaries) {
+      this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageUpdated);
+      this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageUpdated);
+      this.onStageUpdated();
+    }
 
     // Tooltip
     this.traceTooltipTippy = tippy(document.body, {
@@ -223,8 +252,8 @@ export class TracesScatterPlot extends EventEmitter {
     });
 
     if (traces.length == 1) {
-      minDuration = minDuration - (minDuration / 2);
-      maxDuration = maxDuration + (maxDuration / 2);
+      minDuration = minDuration - minDuration / 2;
+      maxDuration = maxDuration + maxDuration / 2;
       minStartTime = minStartTime - 60000000; // 1 minute
       maxStartTime = maxStartTime + 60000000; // 1 minute
     }
@@ -380,6 +409,9 @@ export class TracesScatterPlot extends EventEmitter {
         labelText,
       };
     });
+
+    // Update stage rect
+    this.updateStageRect();
   }
 
   resize(width: number, height: number) {
@@ -398,6 +430,7 @@ export class TracesScatterPlot extends EventEmitter {
     this.updateAxises();
     this.updatePoints();
     this.updateTicks();
+    this.updateStageRect();
   }
 
   private updateAxises() {
@@ -572,6 +605,72 @@ export class TracesScatterPlot extends EventEmitter {
     this.emit(TracesScatterPlotEvent.POINT_CLICKED, clickedPoint.trace);
   }
 
+  private onStageUpdated() {
+    const traces = this.stage.getAllTraces();
+    if (traces.length == 0) {
+      this.stageInterval = null;
+      return;
+    }
+
+    this.stageInterval = {
+      startTime: this.stage.startTimestamp,
+      finishTime: this.stage.finishTimestamp,
+    };
+
+    this.updateStageRect();
+  }
+
+  private updateStageRect() {
+    const { stageRect } = this.elements;
+    if (
+      !this.options?.showStageBoundaries ||
+      !this.stageInterval ||
+      !this.sceneStats
+    ) {
+      stageRect.setAttribute('display', 'none');
+      return;
+    }
+
+    // Check stage boundaries in current boundaries
+    const shouldRender = areIntervalsOverlapping(
+      {
+        start: this.sceneStats.minStartTime,
+        end: this.sceneStats.maxStartTime,
+      },
+      {
+        start: this.stageInterval.startTime,
+        end: this.stageInterval.finishTime,
+      }
+    );
+    if (!shouldRender) {
+      stageRect.setAttribute('display', 'none');
+      return;
+    }
+
+    // Two intervals can overlap partially, we must decide the boundaries manually
+    const rectStartTime = Math.max(
+      this.sceneStats.minStartTime,
+      this.stageInterval.startTime
+    );
+    const rectFinishTime = Math.min(
+      this.sceneStats.maxStartTime,
+      this.stageInterval.finishTime
+    );
+
+    const s = this.computedStyles;
+    const x1 = this.getX(rectStartTime);
+    const x2 = this.getX(rectFinishTime);
+
+    stageRect.setAttribute('display', '');
+    stageRect.setAttribute('x', `${x1}`);
+    stageRect.setAttribute('y', `${s.axisMarginTop}`);
+    stageRect.setAttribute('width', `${x2 - x1}`);
+    stageRect.setAttribute(
+      'height',
+      `${s.height - s.axisMarginTop - s.axisMarginBottom}`
+    );
+  }
+
   private getPointFromMouseEvent(e: MouseEvent) {
     let element = e.target as SVGElement | null;
 
@@ -597,5 +696,20 @@ export class TracesScatterPlot extends EventEmitter {
       false
     );
     this.elements.svg.removeEventListener('click', this.binded.onClick, false);
+    this.stage.removeListener(
+      StageEvent.TRACE_ADDED,
+      this.binded.onStageUpdated
+    );
+    this.stage.removeListener(
+      StageEvent.TRACE_REMOVED,
+      this.binded.onStageUpdated
+    );
   }
+}
+
+function areIntervalsOverlapping(
+  a: { start: number; end: number },
+  b: { start: number; end: number }
+) {
+  return a.start <= b.end && b.start <= a.end;
 }
