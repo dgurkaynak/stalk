@@ -87,6 +87,7 @@
   justify-content: space-between;
   padding: 0.45em 0.75em 0.15em 0.75em;
   align-items: center;
+  min-width: 200px;
 }
 .toolbar-data-sources-menu-header span {
   font-size: 0.75em;
