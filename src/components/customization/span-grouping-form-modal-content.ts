@@ -81,7 +81,7 @@ export class SpanGroupingFormModalContent {
     els.testButton.textContent = 'Test';
     rightButtons.appendChild(els.testButton);
 
-    els.saveButton.classList.add('save');
+    els.saveButton.classList.add('save', 'primary');
     els.saveButton.textContent = 'Save';
     els.saveButton.disabled = true;
     rightButtons.appendChild(els.saveButton);
@@ -204,7 +204,7 @@ export class SpanGroupingFormModalContent {
           } span(s) in
             the stage and here are some samples: <br />
             <ul>
-              ${sampleSize(result.testedSpans, 5)
+              ${sampleSize(result.testedSpans, 3)
                 .map(
                   (test) =>
                     `<li>

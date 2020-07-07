@@ -5,14 +5,6 @@ textarea,
   outline: none;
 }
 
-/*
-  TODO:
-  - Disabled styles
-  - Input type = number
-  - Buttons
-  - Input button group
-*/
-
 /* Heavily inspired by https://dribbble.com/shots/12109708/attachments/3741712?mode=media */
 input:not([type='checkbox']):not([type='radio']),
 select {
@@ -44,10 +36,19 @@ select {
   background-repeat: no-repeat;
   background-position: calc(100% - 5px) 50%;
   padding-right: 30px;
+  cursor: pointer;
 }
 
 select:focus {
   background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="960px" height="560px" viewBox="0 0 960 560" xml:space="preserve"><g><path fill="%231371FB" d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/></g></svg>');
+}
+
+input:not([type='checkbox']):not([type='radio']):disabled,
+select:disabled {
+  border-color: #d0d0d0;
+  background: #f2f2f2;
+  color: #afafaf;
+  cursor: not-allowed;
 }
 
 /* Small inputs & selectboxes */
@@ -115,6 +116,7 @@ input[type='checkbox']:not(.switch) {
   margin: 0;
   position: relative;
   transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+  cursor: pointer;
 }
 
 input[type='checkbox']:not(.switch):after {
@@ -202,4 +204,103 @@ input[type='checkbox'].switch:checked::after {
   transform: translateX(17px);
   border-color: #1479ea;
   background-color: #1682fc;
+}
+
+/* Button */
+button {
+  background: transparent;
+  color: #666;
+  font-weight: 600;
+  border: 1px solid #999;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.4s, border-color 0.3s, box-shadow 0.2s;
+}
+
+button:hover {
+  border-color: #1582ea;
+  color: #1582ea;
+}
+
+button:focus {
+  border-color: #1582ea;
+  box-shadow: 0 0 0px 2px #d2e6fe;
+  color: #1582ea;
+}
+
+button.small {
+  padding: 3px 15px;
+}
+
+button.primary:not(:disabled) {
+  border-color: #1582ea;
+  background: linear-gradient(
+    0deg,
+    rgba(18, 110, 243, 1) 0%,
+    rgba(24, 140, 252, 1) 100%
+  );
+  color: #fff;
+}
+
+button.primary:not(:disabled):hover {
+  /* TODO */
+}
+
+button.primary:not(:disabled):focus {
+  /* TODO */
+}
+
+button.secondary:not(:disabled) {
+  background: #edf4ff;
+  color: #1371fb;
+  border-color: #b6d5fd;
+}
+
+button.secondary:not(:disabled):hover {
+  border-color: #1582ea;
+}
+
+button.secondary:not(:disabled):focus {
+  border-color: #1582ea;
+  /* TODO */
+}
+
+button.danger:not(:disabled) {
+  color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+button.danger:not(:disabled):hover,
+button.danger:not(:disabled):focus {
+  color: #ff7875;
+  border-color: #ff7875;
+}
+
+button.danger:not(:disabled):focus {
+  box-shadow: 0 0 0px 2px #ff787599;
+}
+
+button:disabled {
+  border-color: #d0d0d0;
+  background: #f2f2f2;
+  color: #afafaf;
+  cursor: not-allowed;
+}
+
+/* Input + button group */
+.input-button-group input:not([type='checkbox']):not([type='radio']) {
+  border-radius: 5px 0 0 5px;
+}
+
+.input-button-group button {
+  border-radius: 0 5px 5px 0;
+  border-left-color: transparent;
+}
+
+.input-button-group button:hover,
+.input-button-group button:focus {
+  border-left-color: inherit;
 }

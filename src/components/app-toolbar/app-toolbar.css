@@ -134,8 +134,7 @@
 .tippy-tooltip.app-toolbar-menu-list-theme
   > .tippy-content
   > div.datasource-remove-popconfirm {
-  /* width: 200px; */
-  padding: 0.25em 0.5em;
+  padding: 0.5em 0.75em;
 }
 
 .tippy-tooltip.app-toolbar-menu-list-theme
@@ -143,4 +142,8 @@
   > div.datasource-remove-popconfirm
   > .text {
   white-space: nowrap;
+}
+
+.datasource-remove-popconfirm button {
+  margin-top: 3px;
 }

@@ -89,7 +89,7 @@ export class LogFilteringFormModalContent {
     els.testButton.textContent = 'Test';
     rightButtons.appendChild(els.testButton);
 
-    els.saveButton.classList.add('save');
+    els.saveButton.classList.add('save', 'primary');
     els.saveButton.textContent = 'Save';
     els.saveButton.disabled = true;
     rightButtons.appendChild(els.saveButton);
@@ -199,7 +199,7 @@ export class LogFilteringFormModalContent {
           } span(s) in
             the stage and here are some samples: <br />
             <ul>
-              ${sampleSize(result.testedLogs, 5)
+              ${sampleSize(result.testedLogs, 3)
                 .map(
                   (test) =>
                     `<li>

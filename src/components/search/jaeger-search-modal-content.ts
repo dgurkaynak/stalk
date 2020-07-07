@@ -164,6 +164,7 @@ export class JaegerSearchModalContent {
       container.appendChild(title);
 
       const { form, input, button } = this.elements.searchByTraceId;
+      form.classList.add('input-button-group');
       container.appendChild(form);
 
       input.required = true;
@@ -172,6 +173,7 @@ export class JaegerSearchModalContent {
 
       button.textContent = 'Search';
       button.type = 'submit';
+      button.classList.add('secondary');
       form.appendChild(button);
     }
 
@@ -287,6 +289,7 @@ export class JaegerSearchModalContent {
 
       button.textContent = 'Search';
       button.type = 'submit';
+      button.classList.add('secondary');
       form.appendChild(button);
     }
 
@@ -303,6 +306,7 @@ export class JaegerSearchModalContent {
       els.bottom.selectionText.innerHTML = 'No trace selected';
       rightContainer.appendChild(els.bottom.selectionText);
 
+      els.bottom.addToStageButton.classList.add('primary', 'small');
       els.bottom.addToStageButton.textContent = 'Add to Stage';
       els.bottom.addToStageButton.disabled = true;
       rightContainer.appendChild(els.bottom.addToStageButton);

@@ -4,7 +4,7 @@
 }
 
 .customization-form-modal-content .monaco-container {
-  height: 200px;
+  height: 250px;
 }
 
 .customization-form-modal-content .buttons {
@@ -14,6 +14,10 @@
 
 .customization-form-modal-content .buttons .left {
   flex-grow: 1;
+}
+
+.customization-form-modal-content .buttons .right .test {
+  margin-right: 5px;
 }
 
 .customization-form-modal-content .test-result {

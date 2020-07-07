@@ -183,6 +183,7 @@ export class LiveCollectorModalContent {
       const portInputContainer = document.createElement('div');
       portRow.appendChild(portInputContainer);
 
+      els.jaegerAgent.port.classList.add('small');
       els.jaegerAgent.port.type = 'number';
       els.jaegerAgent.port.value = '6831';
       els.jaegerAgent.port.min = '1';
@@ -257,6 +258,7 @@ export class LiveCollectorModalContent {
       const portInputContainer = document.createElement('div');
       portRow.appendChild(portInputContainer);
 
+      els.jaegerCollector.port.classList.add('small');
       els.jaegerCollector.port.type = 'number';
       els.jaegerCollector.port.value = '14268';
       els.jaegerCollector.port.min = '1';
@@ -324,6 +326,7 @@ export class LiveCollectorModalContent {
       const portInputContainer = document.createElement('div');
       portRow.appendChild(portInputContainer);
 
+      els.zipkinCollector.port.classList.add('small');
       els.zipkinCollector.port.type = 'number';
       els.zipkinCollector.port.value = '9411';
       els.zipkinCollector.port.min = '1';
@@ -355,10 +358,12 @@ export class LiveCollectorModalContent {
       els.bottom.selectionText.innerHTML = 'No trace selected';
       rightContainer.appendChild(els.bottom.selectionText);
 
+      els.bottom.addToStageButton.classList.add('primary', 'small');
       els.bottom.addToStageButton.textContent = 'Add to Stage';
       els.bottom.addToStageButton.disabled = true;
       rightContainer.appendChild(els.bottom.addToStageButton);
 
+      els.bottom.deleteFromCollectorButton.classList.add('small');
       els.bottom.deleteFromCollectorButton.textContent =
         'Delete from Live Collector';
       els.bottom.deleteFromCollectorButton.disabled = true;
@@ -476,14 +481,14 @@ export class LiveCollectorModalContent {
     if (!modal) throw new Error(`Could not find modal instance`);
     modal.close({ data: { action: 'addToStage', traces } });
 
-    this.tracesTable.deselectAll();
+    this.tracesTable.selectTrace(null);
   }
 
   private onDeleteFromCollectorButtonClick() {
     remove(this.spansDB, (span) => {
       return this.selectedTraceIds.indexOf(span.traceId) > -1;
     });
-    this.tracesTable.deselectAll();
+    this.tracesTable.selectTrace(null);
     this.updateTraces();
   }
 

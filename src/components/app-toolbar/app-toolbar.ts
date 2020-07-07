@@ -168,6 +168,7 @@ export class AppToolbar {
     } = this.elements.dataSourceMenuList;
     removePopConfirmContainer.classList.add('datasource-remove-popconfirm');
     removePopConfirmContainer.innerHTML = `<div class="text">Are you sure to delete this data source?</div>`;
+    removePopConfirmButton.classList.add('danger', 'small');
     removePopConfirmButton.textContent = 'Delete';
     removePopConfirmContainer.appendChild(removePopConfirmButton);
     removePopConfirmButton.addEventListener(

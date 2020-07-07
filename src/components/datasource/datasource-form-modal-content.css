@@ -12,6 +12,10 @@
   flex-grow: 1;
 }
 
+.datasource-form-modal-content .buttons .right .test {
+  margin-right: 5px;
+}
+
 .datasource-form-modal-content .form-container h2 {
   margin: 0.25em 0 1em 0;
 }

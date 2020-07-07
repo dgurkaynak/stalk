@@ -107,6 +107,8 @@ export class DataSourceFormModalContent {
 
     try {
       await this.test();
+      this.elements.form.saveButton.disabled = false;
+
       new Noty({
         text: 'Data source is working',
         type: 'success',
@@ -255,9 +257,10 @@ export class DataSourceFormModalContent {
     formEl.testButton.textContent = 'Test';
     rightButtons.appendChild(formEl.testButton);
 
-    formEl.saveButton.classList.add('save');
+    formEl.saveButton.classList.add('save', 'primary');
     formEl.saveButton.type = 'submit';
     formEl.saveButton.textContent = 'Save';
+    formEl.saveButton.disabled = this.options.type == 'new';
     rightButtons.appendChild(formEl.saveButton);
   }
 
