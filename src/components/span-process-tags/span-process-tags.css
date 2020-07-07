@@ -1,36 +1,18 @@
 .span-process-tags {
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .span-process-tags .widget-toolbar {
-  height: 27px;
+  padding: 4px;
 }
 
 .span-process-tags .content-container {
-  height: calc(100% - 27px);
+  flex-grow: 1;
   overflow-y: auto;
   box-sizing: border-box;
   padding: 1em;
-}
-
-.span-process-tags .search-container {
-  display: flex;
-  align-items: center;
-}
-
-.span-process-tags .search-container svg {
-  width: 1.3em;
-  height: 1.3em;
-  position: relative;
-  margin-left: 0.4em;
-}
-
-.span-process-tags .search-container input {
-  height: 23px;
-  border: 0;
-  padding: 0;
-  font-size: 1em;
-  padding-left: 0.2em;
 }
 
 .span-process-tags .content-message {
@@ -79,4 +61,12 @@
 
 .span-process-tags .content-container .key-value-row.error {
   color: rgba(255, 0, 0, 0.85);
+}
+
+.span-process-tags .input-with-svg-icon-container {
+  flex-grow: 1;
+}
+
+.span-process-tags .input-with-svg-icon-container input {
+  width: 100%;
 }

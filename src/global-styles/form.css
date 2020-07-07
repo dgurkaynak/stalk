@@ -1,0 +1,205 @@
+input,
+button,
+textarea,
+:focus {
+  outline: none;
+}
+
+/*
+  TODO:
+  - Disabled styles
+  - Input type = number
+  - Buttons
+  - Input button group
+*/
+
+/* Heavily inspired by https://dribbble.com/shots/12109708/attachments/3741712?mode=media */
+input:not([type='checkbox']):not([type='radio']),
+select {
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  border: 1px solid #aab3c5;
+  padding: 6px 7px;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 12px;
+  transition: border-color 0.3s, box-shadow 0.2s;
+}
+
+input:not([type='checkbox']):not([type='radio']):hover,
+select:hover {
+  border-color: #1874fb;
+}
+
+input:not([type='checkbox']):not([type='radio']):focus,
+select:focus {
+  border-color: #1874fb;
+  box-shadow: 0 0 0px 2px #d2e6fe;
+}
+
+select {
+  /* Note that the SVG content needs to be url-escaped for this to work, e.g. # gets replaced with %23 */
+  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="960px" height="560px" viewBox="0 0 960 560" xml:space="preserve"><g><path fill="%238C96A6" d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/></g></svg>');
+  background-size: 20px;
+  background-repeat: no-repeat;
+  background-position: calc(100% - 5px) 50%;
+  padding-right: 30px;
+}
+
+select:focus {
+  background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="960px" height="560px" viewBox="0 0 960 560" xml:space="preserve"><g><path fill="%231371FB" d="M480,344.181L268.869,131.889c-15.756-15.859-41.3-15.859-57.054,0c-15.754,15.857-15.754,41.57,0,57.431l237.632,238.937c8.395,8.451,19.562,12.254,30.553,11.698c10.993,0.556,22.159-3.247,30.555-11.698l237.631-238.937c15.756-15.86,15.756-41.571,0-57.431s-41.299-15.859-57.051,0L480,344.181z"/></g></svg>');
+}
+
+/* Small inputs & selectboxes */
+input:not([type='checkbox']):not([type='radio']).small,
+select.small {
+  padding: 3px 6px;
+}
+
+/* Borderless inputs & selectboxes */
+input:not([type='checkbox']):not([type='radio']).borderless,
+select.borderless {
+  border-width: 0;
+}
+
+/* Input with svg icon */
+.input-with-svg-icon-container {
+  position: relative;
+}
+
+.input-with-svg-icon-container svg {
+  position: absolute;
+  height: 17px;
+  top: calc(50% - 8px);
+  left: 5px;
+  z-index: -1;
+  fill: #8c96a6;
+}
+
+.input-with-svg-icon-container
+  input:not([type='checkbox']):not([type='radio']) {
+  background: transparent;
+  padding-left: 30px;
+}
+
+.input-with-svg-icon-container
+  input:not([type='checkbox']):not([type='radio']):focus
+  + svg {
+  fill: #1371fb;
+}
+
+/* Search input clear button: https://gist.github.com/tj/9455aa5add1c78e6bc573fcf0f8e7eb5 */
+input[type='search']::-webkit-search-cancel-button {
+  --size: 11px;
+  --background: #7f7f7f;
+  --icon: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3IiBoZWlnaHQ9IjciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9ImZlYXRoZXIgZmVhdGhlci14Ij48cGF0aCBkPSJNMTggNkw2IDE4TTYgNmwxMiAxMiIvPjwvc3ZnPgo=');
+  -webkit-appearance: none;
+  height: var(--size);
+  width: var(--size);
+  border-radius: 50%;
+  background: var(--background) var(--icon) 50% 50% no-repeat;
+}
+
+input[type='search']::-webkit-search-cancel-button:hover {
+  opacity: 0.9;
+}
+
+/* Checkbox */
+input[type='checkbox']:not(.switch) {
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #dde2e8;
+  border-radius: 3px;
+  margin: 0;
+  position: relative;
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+input[type='checkbox']:not(.switch):after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  border: 2px solid #fff;
+  border-top: 0;
+  border-left: 0;
+  left: 6px;
+  top: 3px;
+  transform: rotate(43deg);
+}
+
+input[type='checkbox']:not(.switch):hover {
+  border-color: #1582ea;
+}
+
+input[type='checkbox']:not(.switch):checked {
+  border-color: #1582ea;
+  background: linear-gradient(
+    0deg,
+    rgba(18, 110, 243, 1) 0%,
+    rgba(24, 140, 252, 1) 100%
+  );
+}
+
+input[type='checkbox']:not(.switch):focus {
+  box-shadow: 0 0 0px 2px #d2e6fe;
+}
+
+/* iOS switch-like checkbox */
+/* Borrowed from: https://codepen.io/JowayYoung/pen/PoqgbGV */
+input[type='checkbox'].switch,
+input[type='checkbox'].switch::before {
+  border-radius: 11px;
+  width: 40px;
+  height: 22px;
+  box-sizing: border-box;
+}
+
+input[type='checkbox'].switch {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: all 100ms;
+  margin: 0;
+  border: 2px solid #dde2e8;
+  background: #f8f9fc;
+}
+
+input[type='checkbox'].switch:focus {
+  box-shadow: 0 0 0px 2px #d2e6fe;
+}
+
+input[type='checkbox'].switch:checked {
+  background-color: #f1f7ff;
+  border-color: #a9cdfd;
+}
+
+input[type='checkbox'].switch::before {
+  position: absolute;
+  content: '';
+  transition: all 300ms cubic-bezier(0.45, 1, 0.4, 1);
+}
+
+input[type='checkbox'].switch::after {
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  border-radius: 8px;
+  width: 16px;
+  height: 16px;
+  background-color: #aab3c5;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+  content: '';
+  transition: all 300ms cubic-bezier(0.4, 0.4, 0.25, 1.35);
+  box-sizing: border-box;
+  border: 1px solid #1479ea00;
+}
+
+input[type='checkbox'].switch:checked::after {
+  transform: translateX(17px);
+  border-color: #1479ea;
+  background-color: #1682fc;
+}

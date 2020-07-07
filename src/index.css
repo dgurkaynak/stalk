@@ -26,12 +26,6 @@ body {
 :not(input):not(textarea)::before {
   user-select: none;
 }
-input,
-button,
-textarea,
-:focus {
-  /* outline: none; */
-}
 
 /* Loading */
 #initial-loading {

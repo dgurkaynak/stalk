@@ -9,7 +9,6 @@ export interface WidgetToolbarMultiSelectOptions {
   width?: number;
   maxItemContainerHeight?: number;
   items: WidgetToolbarMultiSelectItem[];
-  showSearch?: boolean;
   onSelect: (item: WidgetToolbarMultiSelectItem) => void;
   onUnselect: (item: WidgetToolbarMultiSelectItem) => void;
   onSearchInput?: (input: string) => void;
@@ -44,13 +43,19 @@ export class WidgetToolbarMultiSelect {
   constructor(private options: WidgetToolbarMultiSelectOptions) {
     const els = this.elements;
 
+    // This is for applying correctly marginTop to search input
+    els.container.style.overflow = 'hidden';
+
     if (options.width) els.container.style.width = `${options.width}px`;
 
     els.searchInput.type = 'search';
-    els.searchInput.classList.add('widget-toolbar-multi-select-search');
+    els.searchInput.classList.add(
+      'widget-toolbar-multi-select-search',
+      'small'
+    );
     els.searchInput.placeholder = 'Search...';
     els.searchInput.addEventListener('input', this.binded.onSearchInput, false);
-    options.showSearch && els.container.appendChild(els.searchInput);
+    els.container.appendChild(els.searchInput);
 
     if (options.maxItemContainerHeight) {
       els.itemsContainer.style.overflowY = 'auto';

@@ -8,6 +8,7 @@ import {
 } from '../spans-table/spans-table';
 import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
 import * as ErrorDetection from '../../model/error-detection';
+import { createElementFromHTML } from '../../utils/create-element';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
 import SvgCursorDefaultClick from '!!raw-loader!@mdi/svg/svg/cursor-default-click-outline.svg';
@@ -62,25 +63,17 @@ export class SpanTagsView {
     const toolbarEl = this.elements.toolbar;
     const searchInput = this.elements.searchInput;
 
-    toolbarEl.classList.add('widget-toolbar', 'widget-toolbar');
-
-    // Panes
-    const leftPane = document.createElement('div');
-    leftPane.classList.add('widget-toolbar-pane');
-    toolbarEl.appendChild(leftPane);
-
-    const rightPane = document.createElement('div');
-    rightPane.classList.add('widget-toolbar-pane', 'right');
-    toolbarEl.appendChild(rightPane);
+    toolbarEl.classList.add('widget-toolbar');
 
     // Search icon & input
-    const searchContainer = document.createElement('div');
-    searchContainer.classList.add('search-container');
-    leftPane.appendChild(searchContainer);
-    searchContainer.innerHTML = SvgMagnify;
+    const inputContainer = document.createElement('div');
+    inputContainer.classList.add('input-with-svg-icon-container');
+    toolbarEl.appendChild(inputContainer);
     searchInput.type = 'search';
     searchInput.placeholder = 'Search...';
-    searchContainer.appendChild(searchInput);
+    searchInput.classList.add('small', 'borderless');
+    inputContainer.appendChild(searchInput);
+    inputContainer.appendChild(createElementFromHTML(SvgMagnify));
   }
 
   init(options: {

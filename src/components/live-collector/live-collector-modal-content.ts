@@ -150,7 +150,7 @@ export class LiveCollectorModalContent {
       title.appendChild(titleRight);
 
       els.jaegerAgent.checkbox.type = 'checkbox';
-      els.jaegerAgent.checkbox.classList.add('ios-switch');
+      els.jaegerAgent.checkbox.classList.add('switch');
       titleRight.appendChild(els.jaegerAgent.checkbox);
 
       const body = document.createElement('div');
@@ -215,7 +215,7 @@ export class LiveCollectorModalContent {
       title.appendChild(titleRight);
 
       els.jaegerCollector.checkbox.type = 'checkbox';
-      els.jaegerCollector.checkbox.classList.add('ios-switch');
+      els.jaegerCollector.checkbox.classList.add('switch');
       titleRight.appendChild(els.jaegerCollector.checkbox);
 
       const body = document.createElement('div');
@@ -289,7 +289,7 @@ export class LiveCollectorModalContent {
       title.appendChild(titleRight);
 
       els.zipkinCollector.checkbox.type = 'checkbox';
-      els.zipkinCollector.checkbox.classList.add('ios-switch');
+      els.zipkinCollector.checkbox.classList.add('switch');
       titleRight.appendChild(els.zipkinCollector.checkbox);
 
       const body = document.createElement('div');

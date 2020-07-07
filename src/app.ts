@@ -46,6 +46,7 @@ import './app.css';
 import './global-styles/dock-panel.css';
 import './global-styles/noty.css';
 import './global-styles/flatpickr.css';
+import './global-styles/form.css';
 
 const { Menu } = remote;
 

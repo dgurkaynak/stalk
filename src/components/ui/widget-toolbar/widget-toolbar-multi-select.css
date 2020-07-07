@@ -37,9 +37,6 @@
   font-size: 1.1em;
 }
 /* Really-custom ones */
-.tippy-tooltip.widget-toolbar-multi-select-theme > .tippy-content > div {
-  padding: 0.6em 0;
-}
 .tippy-tooltip.widget-toolbar-multi-select-theme
   > .tippy-content
   > div
@@ -95,18 +92,17 @@
 /* Go go go */
 .widget-toolbar-multi-select-search {
   display: block;
-  margin: 0 0.6em;
-  margin-bottom: 0.6em;
+  margin: 0.6em;
   width: calc(100% - 1.2em);
 }
 
-.widget-toolbar-multi-select-search + .widget-toolbar-multi-select-items {
+.widget-toolbar-multi-select-items {
+  padding: 0.6em 0;
   border-top: 1px solid #ccc;
 }
 
 .widget-toolbar-multi-select-items > .empty {
-  padding: 0.6em;
-  padding-bottom: 0;
+  padding: 0 0.6em;
 }
 
 .widget-toolbar-multi-select-category {
