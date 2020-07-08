@@ -6,7 +6,7 @@ import {
   SearchModalTracesTableView,
   SearchModalTracesTableViewEvent,
   SearchModalTraceRowData,
-} from '../search/search-modal-traces-table';
+} from '../trace-search/search-modal-traces-table';
 import throttle from 'lodash/throttle';
 import groupBy from 'lodash/groupBy';
 import {
