@@ -67,6 +67,7 @@ export class LiveCollectorModalContent {
   private binded = {
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
+    onTableTraceDoubleClicked: this.onTableTraceDoubleClicked.bind(this),
     onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this),
     onDeleteFromCollectorButtonClick: this.onDeleteFromCollectorButtonClick.bind(
       this
@@ -385,6 +386,10 @@ export class LiveCollectorModalContent {
       SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
     );
+    this.tracesTable.on(
+      SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED,
+      this.binded.onTableTraceDoubleClicked
+    );
     this.elements.bottom.addToStageButton.addEventListener(
       'click',
       this.binded.onAddToStageButtonClick,
@@ -462,6 +467,21 @@ export class LiveCollectorModalContent {
     this.elements.bottom.selectionText.innerHTML = `<strong>${text}</strong> selected`;
     this.elements.bottom.addToStageButton.disabled = false;
     this.elements.bottom.deleteFromCollectorButton.disabled = false;
+  }
+
+  private async onTableTraceDoubleClicked(trace: SearchModalTraceRowData) {
+    const traceSpans = this.spansDB.filter((span) => {
+      return span.traceId == trace.id;
+    });
+    const originalTrace = new Trace(traceSpans);
+
+    const modal = ModalManager.getSingleton().findModalFromElement(
+      this.elements.container
+    );
+    if (!modal) throw new Error(`Could not find modal instance`);
+    modal.close({ data: { action: 'addToStage', traces: [originalTrace] } });
+
+    this.tracesTable.selectTrace(null);
   }
 
   private onAddToStageButtonClick() {
@@ -688,6 +708,10 @@ export class LiveCollectorModalContent {
     this.tracesTable.removeListener(
       SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
+    );
+    this.tracesTable.removeListener(
+      SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED,
+      this.binded.onTableTraceDoubleClicked
     );
     this.elements.bottom.addToStageButton.removeEventListener(
       'click',

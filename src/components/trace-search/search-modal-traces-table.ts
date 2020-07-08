@@ -35,6 +35,7 @@ export interface SearchModalTracesTableOptions {
 
 export enum SearchModalTracesTableViewEvent {
   SELECTIONS_UPDATED = 'selections_updated',
+  TRACE_DOUBLE_CLICKED = 'trace_double_clicked',
 }
 
 export class SearchModalTracesTableView extends EventEmitter {
@@ -59,6 +60,7 @@ export class SearchModalTracesTableView extends EventEmitter {
     formatServices: this.formatServices.bind(this),
     formatInStage: this.formatInStage.bind(this),
     rowSelectionChanged: this.rowSelectionChanged.bind(this),
+    rowDblClick: this.rowDblClick.bind(this),
     rowFormatter: this.rowFormatter.bind(this),
     onKeyDown: this.onKeyDown.bind(this),
   };
@@ -175,6 +177,7 @@ export class SearchModalTracesTableView extends EventEmitter {
       ],
       rowFormatter: this.binded.rowFormatter,
       rowSelectionChanged: this.binded.rowSelectionChanged,
+      rowDblClick: this.binded.rowDblClick,
       selectableRangeMode: 'click',
       keybindings: false,
       footerElement: this.options.footerElement,
@@ -189,6 +192,11 @@ export class SearchModalTracesTableView extends EventEmitter {
 
   private rowSelectionChanged(data: any, rows: any) {
     this.emit(SearchModalTracesTableViewEvent.SELECTIONS_UPDATED, data);
+  }
+
+  private rowDblClick(e: MouseEvent, row: any) {
+    const data: SearchModalTraceRowData = row.getData();
+    this.emit(SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED, data);
   }
 
   private trace2RowData(trace: Trace) {

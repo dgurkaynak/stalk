@@ -105,6 +105,7 @@ export class JaegerSearchModalContent {
     onLookbackSelectChange: this.onLookbackSelectChange.bind(this),
     onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
+    onTableTraceDoubleClicked: this.onTableTraceDoubleClicked.bind(this),
     onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this),
     onTraceScatterPointClick: this.onTraceScatterPointClick.bind(this),
   };
@@ -324,6 +325,10 @@ export class JaegerSearchModalContent {
     this.tracesTable.on(
       SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
+    );
+    this.tracesTable.on(
+      SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED,
+      this.binded.onTableTraceDoubleClicked
     );
     this.elements.searchByTraceId.form.addEventListener(
       'submit',
@@ -646,6 +651,18 @@ export class JaegerSearchModalContent {
     this.elements.bottom.addToStageButton.disabled = false;
   }
 
+  private async onTableTraceDoubleClicked(trace: SearchModalTraceRowData) {
+    const traces = this.traceResults.filter((t) => t.id == trace.id);
+
+    const modal = ModalManager.getSingleton().findModalFromElement(
+      this.elements.container
+    );
+    if (!modal) throw new Error(`Could not find modal instance`);
+    modal.close({ data: { action: 'addToStage', traces } });
+
+    this.tracesTable.selectTrace(null);
+  }
+
   private onAddToStageButtonClick() {
     const traces = this.selectedTraceIds.map((traceId) => {
       return find(this.traceResults, (t) => t.id == traceId);
@@ -736,6 +753,10 @@ export class JaegerSearchModalContent {
     this.tracesTable.removeListener(
       SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
+    );
+    this.tracesTable.removeListener(
+      SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED,
+      this.binded.onTableTraceDoubleClicked
     );
     this.elements.searchByTraceId.form.removeEventListener(
       'submit',
