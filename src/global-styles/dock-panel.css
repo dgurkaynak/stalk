@@ -78,8 +78,9 @@
 }
 
 .p-TabBar {
-  min-height: 24px;
-  max-height: 24px;
+  --height: 31px;
+  min-height: var(--height);
+  max-height: var(--height);
 }
 
 .p-TabBar-content {
@@ -89,14 +90,15 @@
 }
 
 .p-TabBar-tab {
+  --height: 30px;
   padding: 0px 10px;
   background: #e5e5e5;
   flex: 0 1 125px;
-  min-height: 20px;
-  max-height: 20px;
+  min-height: var(--height);
+  max-height: var(--height);
   min-width: 35px;
   margin-left: -1px;
-  line-height: 20px;
+  line-height: var(--height);
 }
 
 .p-TabBar-tab.p-mod-current {
@@ -112,9 +114,9 @@
 }
 
 .p-TabBar-tab.p-mod-current {
-  min-height: 23px;
+  /* min-height: 23px;
   max-height: 23px;
-  transform: translateY(1px);
+  transform: translateY(1px); */
 }
 
 .p-TabBar-tabIcon,
@@ -137,8 +139,9 @@
 }
 
 .p-TabBar-tab.p-mod-drag-image {
-  min-height: 23px;
-  max-height: 23px;
+  --height: 30px;
+  min-height: var(--height);
+  max-height: var(--height);
   min-width: 125px;
   border: none;
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
