@@ -5,7 +5,6 @@ import {
   SpansTableView,
   SpansTableViewEvent,
 } from '../spans-table/spans-table';
-import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
 import { serviceNameOf } from '../../model/span-grouping/service-name';
 import { formatMicroseconds } from '../../utils/format-microseconds';
 import {
@@ -22,7 +21,6 @@ export class SpanSummaryView {
   private stage = Stage.getSingleton();
   private timeline: TimelineView;
   private spansTable: SpansTableView;
-  private logsTable: LogsTableView;
   private contextMenuManager = ContextMenuManager.getSingleton();
   private elements = {
     container: document.createElement('div'),
@@ -32,7 +30,6 @@ export class SpanSummaryView {
   private binded = {
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
     onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
-    onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
     onContextMenu: this.onContextMenu.bind(this),
   };
@@ -45,11 +42,9 @@ export class SpanSummaryView {
   init(options: {
     timeline: TimelineView;
     spansTable: SpansTableView;
-    logsTable: LogsTableView;
   }) {
     this.timeline = options.timeline;
     this.spansTable = options.spansTable;
-    this.logsTable = options.logsTable;
 
     // Bind events
     this.timeline.on(
@@ -59,10 +54,6 @@ export class SpanSummaryView {
     this.spansTable.on(
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
-    );
-    this.logsTable.on(
-      LogsTableViewEvent.LOG_SELECTED,
-      this.binded.onLogsTableLogSelected
     );
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
     this.elements.container.addEventListener(
@@ -83,10 +74,6 @@ export class SpanSummaryView {
 
   private onSpansTableSpanSelected(spanId: string) {
     this.render(spanId);
-  }
-
-  private onLogsTableLogSelected(logData: any) {
-    this.render(logData.span.id);
   }
 
   private render(spanId: string) {
@@ -247,10 +234,6 @@ export class SpanSummaryView {
     this.spansTable.removeListener(
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
-    );
-    this.logsTable.removeListener(
-      LogsTableViewEvent.LOG_SELECTED,
-      this.binded.onLogsTableLogSelected
     );
     this.stage.removeListener(
       StageEvent.TRACE_REMOVED,

@@ -6,7 +6,6 @@ import {
   SpansTableView,
   SpansTableViewEvent,
 } from '../spans-table/spans-table';
-import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
 import { SpanLogItemView } from './span-log-item';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 import { createElementFromHTML } from '../../utils/create-element';
@@ -23,7 +22,6 @@ export class SpanLogsView {
   private stage = Stage.getSingleton();
   private timeline: TimelineView;
   private spansTable: SpansTableView;
-  private logsTable: LogsTableView;
   private selectedSpanId: string;
   private logItemViews: SpanLogItemView[] = [];
   private fuse: Fuse<
@@ -46,7 +44,6 @@ export class SpanLogsView {
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
     onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
-    onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this),
     onExpandAllClick: this.onExpandAllClick.bind(this),
     onCollapseAllClick: this.onCollapseAllClick.bind(this),
     onMouseMove: this.onMouseMove.bind(this),
@@ -106,11 +103,9 @@ export class SpanLogsView {
   init(options: {
     timeline: TimelineView;
     spansTable: SpansTableView;
-    logsTable: LogsTableView;
   }) {
     this.timeline = options.timeline;
     this.spansTable = options.spansTable;
-    this.logsTable = options.logsTable;
     this.initTooltips();
 
     // Bind events
@@ -126,10 +121,6 @@ export class SpanLogsView {
     this.spansTable.on(
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
-    );
-    this.logsTable.on(
-      LogsTableViewEvent.LOG_SELECTED,
-      this.binded.onLogsTableLogSelected
     );
     this.elements.toolbarBtn.expandAll.addEventListener(
       'click',
@@ -240,21 +231,6 @@ export class SpanLogsView {
     this.logItemViews.forEach((v) => v.unhighlight());
   }
 
-  private onLogsTableLogSelected(logData: any) {
-    this.updateSpan(logData.span.id);
-
-    this.logItemViews.forEach((logView) => {
-      if (logView.isEqual(logData)) {
-        logView.expand();
-        logView.highlight();
-        this.elements.contentContainer.scrollTop = logView.getElement().offsetTop;
-      } else {
-        // logView.collapse();
-        logView.unhighlight();
-      }
-    });
-  }
-
   private updateSpan(spanId: string) {
     if (this.selectedSpanId == spanId) return;
 
@@ -344,10 +320,6 @@ export class SpanLogsView {
     this.spansTable.removeListener(
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
-    );
-    this.logsTable.removeListener(
-      LogsTableViewEvent.LOG_SELECTED,
-      this.binded.onLogsTableLogSelected
     );
     this.elements.toolbarBtn.expandAll.removeEventListener(
       'click',

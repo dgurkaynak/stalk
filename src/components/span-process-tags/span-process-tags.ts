@@ -6,7 +6,6 @@ import {
   SpansTableView,
   SpansTableViewEvent,
 } from '../spans-table/spans-table';
-import { LogsTableView, LogsTableViewEvent } from '../logs-table/logs-table';
 import { createElementFromHTML } from '../../utils/create-element';
 
 import SvgMagnify from '!!raw-loader!@mdi/svg/svg/magnify.svg';
@@ -24,7 +23,6 @@ export class SpanProcessTagsView {
   private stage = Stage.getSingleton();
   private timeline: TimelineView;
   private spansTable: SpansTableView;
-  private logsTable: LogsTableView;
   private selectedSpanId: string;
   private processTagItems: SpanProcessTagItem[] = [];
   private fuse: Fuse<
@@ -43,7 +41,6 @@ export class SpanProcessTagsView {
     onSearchInput: debounce(this.onSearchInput.bind(this), 100),
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
     onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
-    onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
   };
 
@@ -78,11 +75,9 @@ export class SpanProcessTagsView {
   init(options: {
     timeline: TimelineView;
     spansTable: SpansTableView;
-    logsTable: LogsTableView;
   }) {
     this.timeline = options.timeline;
     this.spansTable = options.spansTable;
-    this.logsTable = options.logsTable;
 
     // Bind events
     this.elements.searchInput.addEventListener(
@@ -97,10 +92,6 @@ export class SpanProcessTagsView {
     this.spansTable.on(
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
-    );
-    this.logsTable.on(
-      LogsTableViewEvent.LOG_SELECTED,
-      this.binded.onLogsTableLogSelected
     );
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
 
@@ -169,10 +160,6 @@ export class SpanProcessTagsView {
     this.updateSpan(spanId);
   }
 
-  private onLogsTableLogSelected(logData: any) {
-    this.updateSpan(logData.span.id);
-  }
-
   private updateSpan(spanId: string) {
     if (this.selectedSpanId == spanId) return;
 
@@ -234,10 +221,6 @@ export class SpanProcessTagsView {
     this.spansTable.removeListener(
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
-    );
-    this.logsTable.removeListener(
-      LogsTableViewEvent.LOG_SELECTED,
-      this.binded.onLogsTableLogSelected
     );
     this.stage.removeListener(
       StageEvent.TRACE_REMOVED,

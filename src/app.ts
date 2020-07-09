@@ -27,10 +27,6 @@ import {
   SpansTableViewEvent,
 } from './components/spans-table/spans-table';
 import {
-  LogsTableView,
-  LogsTableViewEvent,
-} from './components/logs-table/logs-table';
-import {
   ContextMenuManager,
   ContextMenuEvent,
 } from './components/ui/context-menu/context-menu-manager';
@@ -55,7 +51,6 @@ const { Menu } = remote;
 export enum AppWidgetType {
   TIMELINE = 'timeline-view',
   SPANS_TABLE = 'spans-table',
-  LOGS_TABLE = 'logs-table',
   SPAN_SUMMARY = 'span-summary',
   SPAN_TAGS = 'span-tags',
   SPAN_PROCESS_TAGS = 'span-process-tags',
@@ -77,7 +72,6 @@ export class App {
   private spanProcessTags = new SpanProcessTagsView();
   private spanLogs = new SpanLogsView();
   private spansTable = new SpansTableView();
-  private logsTable = new LogsTableView();
 
   private dockPanel = new DockPanel();
   private widgets: { [key: string]: WidgetWrapper } = {};
@@ -88,7 +82,6 @@ export class App {
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
     onTimelineSpanSelected: this.onTimelineSpanSelected.bind(this),
     onSpansTableSpanSelected: this.onSpansTableSpanSelected.bind(this),
-    onLogsTableLogSelected: this.onLogsTableLogSelected.bind(this),
     onWindowResize: this.onWindowResize.bind(this),
     onDrop: this.onDrop.bind(this),
     onDragOver: this.onDragOver.bind(this),
@@ -135,17 +128,11 @@ export class App {
     const { offsetWidth: w4, offsetHeight: h4 } = spansTableWidgetEl;
     this.spansTable.init({ width: w4, height: h4 });
 
-    const logsTableWidgetEl = this.widgets[AppWidgetType.LOGS_TABLE].node;
-    this.logsTable.mount(logsTableWidgetEl);
-    const { offsetWidth: w5, offsetHeight: h5 } = logsTableWidgetEl;
-    this.logsTable.init({ width: w5, height: h5 });
-
     const spanSummaryWidgetEl = this.widgets[AppWidgetType.SPAN_SUMMARY].node;
     this.spanSummary.mount(spanSummaryWidgetEl);
     this.spanSummary.init({
       timeline: this.timeline.timeline,
       spansTable: this.spansTable,
-      logsTable: this.logsTable,
     });
 
     const spanTagsWidgetEl = this.widgets[AppWidgetType.SPAN_TAGS].node;
@@ -153,7 +140,6 @@ export class App {
     this.spanTags.init({
       timeline: this.timeline.timeline,
       spansTable: this.spansTable,
-      logsTable: this.logsTable,
     });
 
     const spanProcessTagsWidgetEl = this.widgets[
@@ -163,7 +149,6 @@ export class App {
     this.spanProcessTags.init({
       timeline: this.timeline.timeline,
       spansTable: this.spansTable,
-      logsTable: this.logsTable,
     });
 
     const spanLogsWidgetEl = this.widgets[AppWidgetType.SPAN_LOGS].node;
@@ -171,7 +156,6 @@ export class App {
     this.spanLogs.init({
       timeline: this.timeline.timeline,
       spansTable: this.spansTable,
-      logsTable: this.logsTable,
     });
 
     this.initDropZone();
@@ -186,10 +170,6 @@ export class App {
     this.spansTable.on(
       SpansTableViewEvent.SPAN_SELECTED,
       this.binded.onSpansTableSpanSelected
-    );
-    this.logsTable.on(
-      LogsTableViewEvent.LOG_SELECTED,
-      this.binded.onLogsTableLogSelected
     );
     window.addEventListener('resize', this.binded.onWindowResize, false);
     this.options.element.addEventListener('drop', this.binded.onDrop, false);
@@ -276,15 +256,6 @@ export class App {
       closable: false,
     });
 
-    this.widgets[AppWidgetType.LOGS_TABLE] = new WidgetWrapper({
-      title: 'Logs Table View',
-      onResize: throttle((msg: { width: number; height: number }) => {
-        this.logsTable.resize(msg.width, msg.height);
-      }, 100),
-      onAfterShow: () => this.logsTable.redrawTable(),
-      closable: false,
-    });
-
     this.widgets[AppWidgetType.SPAN_SUMMARY] = new WidgetWrapper({
       title: 'Span Summary',
       onResize: throttle((msg: { width: number; height: number }) => {
@@ -338,23 +309,11 @@ export class App {
   private onTimelineSpanSelected(spanId: string) {
     this.spansTable.selectSpan(spanId, true);
     this.spansTable.focusSpan(spanId);
-
-    this.logsTable.selectLog(null, true);
   }
 
   private onSpansTableSpanSelected(spanId: string) {
     this.timeline.timeline.selectSpan(spanId, true);
     this.timeline.timeline.focusSpans([spanId]);
-
-    this.logsTable.selectLog(null, true);
-  }
-
-  private onLogsTableLogSelected(logData: any) {
-    this.timeline.timeline.selectSpan(logData.span.id, true);
-    this.timeline.timeline.focusSpans([logData.span.id]);
-
-    this.spansTable.selectSpan(logData.span.id, true);
-    this.spansTable.focusSpan(logData.span.id);
   }
 
   private onWindowResize() {
@@ -817,7 +776,6 @@ export class App {
             widgets: [
               AppWidgetType.TIMELINE,
               AppWidgetType.SPANS_TABLE,
-              AppWidgetType.LOGS_TABLE,
             ],
           },
           {
