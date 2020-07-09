@@ -288,12 +288,25 @@ export class App {
       closable: false,
     });
 
-    const layout = this.deserializeDockPanelLayout(
-      this.settingsManager.get(SettingsKey.DOCK_LAYOUT) ||
+    try {
+      const layout = this.deserializeDockPanelLayout(
+        this.settingsManager.get(SettingsKey.DOCK_LAYOUT) ||
+          this.getDefaultDockPanelLayout(),
+        true
+      );
+      this.dockPanel.restoreLayout(layout);
+    } catch (err) {
+      console.warn(
+        `Unexpected error while loading dockPanel settings, resetting...`,
+        err
+      );
+      const layout = this.deserializeDockPanelLayout(
         this.getDefaultDockPanelLayout(),
-      true
-    );
-    this.dockPanel.restoreLayout(layout);
+        true
+      );
+      this.dockPanel.restoreLayout(layout);
+    }
+
     this.dockPanel.layoutModified.connect(this.binded.onDockPanelLayoutChange);
     DockPanel.attach(this.dockPanel, this.options.element);
   }
@@ -773,10 +786,7 @@ export class App {
           {
             type: 'tab-area',
             currentIndex: 0,
-            widgets: [
-              AppWidgetType.TIMELINE,
-              AppWidgetType.SPANS_TABLE,
-            ],
+            widgets: [AppWidgetType.TIMELINE, AppWidgetType.SPANS_TABLE],
           },
           {
             type: 'split-area',
