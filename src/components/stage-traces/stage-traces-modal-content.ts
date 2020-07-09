@@ -68,7 +68,7 @@ export class StageTracesModalContent {
       els.bottom.selectionText.innerHTML = 'No trace selected';
       rightContainer.appendChild(els.bottom.selectionText);
 
-      els.bottom.removeFromStageButton.classList.add('small');
+      els.bottom.removeFromStageButton.classList.add('danger', 'small');
       els.bottom.removeFromStageButton.textContent = 'Remove from Stage';
       els.bottom.removeFromStageButton.disabled = true;
       rightContainer.appendChild(els.bottom.removeFromStageButton);
