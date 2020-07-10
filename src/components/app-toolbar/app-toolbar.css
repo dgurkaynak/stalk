@@ -72,11 +72,20 @@
 }
 
 /* App toolbar button fine-tuning */
-.app-toolbar-button.traces {
+.app-toolbar-button.stage-traces {
   position: relative;
+  padding: 0 0.5em;
 }
-.app-toolbar-button.traces svg {
+.app-toolbar-button.stage-traces svg {
   height: 1.6em;
+}
+/* App toolbar button fine-tuning */
+.app-toolbar-button.clear-stage {
+  position: relative;
+  padding: 0 0.75em;
+}
+.app-toolbar-button.clear-stage svg {
+  height: 1.7em;
 }
 
 /* Data sources menu header */
@@ -131,19 +140,18 @@
 }
 
 /* Override so hard */
-.tippy-tooltip.app-toolbar-menu-list-theme
-  > .tippy-content
-  > div.datasource-remove-popconfirm {
+.tippy-tooltip.app-toolbar-menu-list-theme > .tippy-content > div.popconfirm {
   padding: 0.5em 0.75em;
 }
 
 .tippy-tooltip.app-toolbar-menu-list-theme
   > .tippy-content
-  > div.datasource-remove-popconfirm
+  > div.popconfirm
   > .text {
   white-space: nowrap;
 }
 
-.datasource-remove-popconfirm button {
+.popconfirm button {
   margin-top: 3px;
+  width: 100%;
 }

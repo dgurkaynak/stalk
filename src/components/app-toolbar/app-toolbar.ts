@@ -22,6 +22,7 @@ import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
 import SvgSourceBranch from '!!raw-loader!@mdi/svg/svg/source-branch.svg';
 import SvgSatellite from '!!raw-loader!@mdi/svg/svg/satellite-uplink.svg';
+import SvgDeleteEmpty from '!!raw-loader!@mdi/svg/svg/delete-empty.svg';
 import './app-toolbar.css';
 
 export class AppToolbar {
@@ -31,7 +32,8 @@ export class AppToolbar {
       dataSources: document.createElement('div'),
       newDataSource: document.createElement('div'),
       liveCollector: document.createElement('div'),
-      traces: document.createElement('div'),
+      stageTraces: document.createElement('div'),
+      clearStage: document.createElement('div'),
     },
     tracesBadgeCount: document.createElement('div'),
     dataSourceMenuList: {
@@ -40,10 +42,13 @@ export class AppToolbar {
       removePopConfirmContainer: document.createElement('div'),
       removePopConfirmButton: document.createElement('button'),
     },
+    clearStagePopConfirmContainer: document.createElement('div'),
+    clearStagePopConfirmButton: document.createElement('button'),
   };
   private tippyInstaces: {
     dataSources: TippyInstance;
     dataSourceRemovePopConfirm: TippyInstance;
+    clearStagePopConfirm: TippyInstance;
   };
   private dataSourceFormModalContent: DataSourceFormModalContent;
   private jaegerSearchModalContents: {
@@ -80,6 +85,9 @@ export class AppToolbar {
     onStageTracesModalClose: this.onStageTracesModalClose.bind(this),
     onLiveCollectorModalClose: this.onLiveCollectorModalClose.bind(this),
     onContainerDoubleClick: this.onContainerDoubleClick.bind(this),
+    onClearStagePopConfirmButtonClick: this.onClearStagePopConfirmButtonClick.bind(
+      this
+    ),
   };
 
   private stage = Stage.getSingleton();
@@ -125,9 +133,13 @@ export class AppToolbar {
     leftPane.appendChild(btn.liveCollector);
 
     // Right buttons
-    btn.traces.classList.add('app-toolbar-button', 'traces');
-    btn.traces.innerHTML = SvgSourceBranch;
-    rightPane.appendChild(btn.traces);
+    btn.stageTraces.classList.add('app-toolbar-button', 'stage-traces');
+    btn.stageTraces.innerHTML = SvgSourceBranch;
+    rightPane.appendChild(btn.stageTraces);
+
+    btn.clearStage.classList.add('app-toolbar-button', 'clear-stage');
+    btn.clearStage.innerHTML = SvgDeleteEmpty;
+    rightPane.appendChild(btn.clearStage);
   }
 
   init() {
@@ -166,7 +178,7 @@ export class AppToolbar {
       removePopConfirmContainer,
       removePopConfirmButton,
     } = this.elements.dataSourceMenuList;
-    removePopConfirmContainer.classList.add('datasource-remove-popconfirm');
+    removePopConfirmContainer.classList.add('popconfirm');
     removePopConfirmContainer.innerHTML = `<div class="text">Are you sure to delete this data source?</div>`;
     removePopConfirmButton.classList.add('danger', 'small');
     removePopConfirmButton.textContent = 'Delete';
@@ -174,6 +186,22 @@ export class AppToolbar {
     removePopConfirmButton.addEventListener(
       'click',
       this.binded.onDataSourceRemovePopConfirmButtonClick,
+      false
+    );
+
+    // Clear the stage pop confirm
+    const {
+      clearStagePopConfirmContainer,
+      clearStagePopConfirmButton,
+    } = this.elements;
+    clearStagePopConfirmContainer.classList.add('popconfirm');
+    clearStagePopConfirmContainer.innerHTML = `<div class="text">Are you sure to clear the stage?</div>`;
+    clearStagePopConfirmButton.classList.add('danger', 'small');
+    clearStagePopConfirmButton.textContent = 'Clear';
+    clearStagePopConfirmContainer.appendChild(clearStagePopConfirmButton);
+    clearStagePopConfirmButton.addEventListener(
+      'click',
+      this.binded.onClearStagePopConfirmButtonClick,
       false
     );
 
@@ -211,9 +239,16 @@ export class AppToolbar {
         },
       ],
       [
-        this.elements.btn.traces,
+        this.elements.btn.stageTraces,
         {
           content: 'Traces in the Stage',
+          multiple: true,
+        },
+      ],
+      [
+        this.elements.btn.clearStage,
+        {
+          content: 'Clear the Stage',
           multiple: true,
         },
       ],
@@ -262,6 +297,17 @@ export class AppToolbar {
           };
         },
       }),
+      clearStagePopConfirm: tippy(this.elements.btn.clearStage, {
+        content: this.elements.clearStagePopConfirmContainer,
+        multiple: true,
+        appendTo: document.body,
+        placement: 'bottom',
+        duration: 0,
+        updateDuration: 0,
+        theme: 'app-toolbar-menu-list',
+        trigger: 'click',
+        interactive: true,
+      }),
     };
   }
 
@@ -292,7 +338,7 @@ export class AppToolbar {
     const el = this.elements.tracesBadgeCount;
     if (count > 0) {
       el.textContent = count + '';
-      !el.parentElement && this.elements.btn.traces.appendChild(el);
+      !el.parentElement && this.elements.btn.stageTraces.appendChild(el);
     } else {
       el.parentElement?.removeChild(el);
     }
@@ -325,7 +371,7 @@ export class AppToolbar {
     );
     this.stage.on(StageEvent.TRACE_ADDED, this.binded.onStageTraceAdded);
     this.stage.on(StageEvent.TRACE_REMOVED, this.binded.onStageTraceRemoved);
-    this.elements.btn.traces.addEventListener(
+    this.elements.btn.stageTraces.addEventListener(
       'click',
       this.binded.onStageTracesButtonClick,
       false
@@ -374,7 +420,7 @@ export class AppToolbar {
       this.binded.onDataSourceRemovePopConfirmButtonClick,
       false
     );
-    this.elements.btn.traces.removeEventListener(
+    this.elements.btn.stageTraces.removeEventListener(
       'click',
       this.binded.onStageTracesButtonClick,
       false
@@ -382,6 +428,11 @@ export class AppToolbar {
     this.elements.btn.liveCollector.removeEventListener(
       'click',
       this.binded.onLiveCollectorButtonClick,
+      false
+    );
+    this.elements.clearStagePopConfirmButton.removeEventListener(
+      'click',
+      this.binded.onClearStagePopConfirmButtonClick,
       false
     );
   }
@@ -553,6 +604,11 @@ export class AppToolbar {
     (data.traceIds as string[]).forEach((id) => this.stage.removeTrace(id));
   }
 
+  private onClearStagePopConfirmButtonClick(e: MouseEvent) {
+    this.stage.getAllTraces().forEach((t) => this.stage.removeTrace(t.id));
+    this.tippyInstaces.clearStagePopConfirm.hide();
+  }
+
   private onLiveCollectorButtonClick() {
     const modal = new Modal({
       content: this.liveCollectorModalContent.getElement(),
@@ -638,7 +694,7 @@ export class AppToolbar {
     const tooltipManager = TooltipManager.getSingleton();
     tooltipManager.removeFromSingleton([
       this.elements.btn.dataSources,
-      this.elements.btn.traces,
+      this.elements.btn.stageTraces,
     ]);
     for (let tippy of Object.values(this.tippyInstaces)) {
       tippy.destroy();
