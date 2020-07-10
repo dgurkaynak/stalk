@@ -1,0 +1,18 @@
+.span-detail .key-value-row {
+  display: flex;
+  line-height: 1.7em;
+}
+
+.span-detail .key-value-row:nth-child(odd) {
+  background: #f6f6f6;
+}
+
+.span-detail .key-value-row > div:nth-child(1) {
+  flex-grow: 1;
+  user-select: text;
+}
+
+.span-detail .key-value-row > div:nth-child(2) {
+  text-align: right;
+  user-select: text;
+}
