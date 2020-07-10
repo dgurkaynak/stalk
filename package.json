@@ -27,6 +27,8 @@
     "start": "cross-env BROWSER=none nf start"
   },
   "devDependencies": {
+    "@mdi/js": "^5.3.45",
+    "@mdi/react": "^1.4.0",
     "@mdi/svg": "^4.5.95",
     "@phosphor/widgets": "^1.9.3",
     "@types/chroma-js": "^1.4.3",
