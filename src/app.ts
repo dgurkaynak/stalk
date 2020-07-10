@@ -34,6 +34,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import format from 'date-fns/format';
 import { SettingsManager, SettingsKey } from './model/settings-manager';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { SpanDetail } from './components/span-detail/span-detail';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -51,6 +54,7 @@ const { Menu } = remote;
 export enum AppWidgetType {
   TIMELINE = 'timeline-view',
   SPANS_TABLE = 'spans-table',
+  SPAN_DETAIL = 'span-detail',
   SPAN_SUMMARY = 'span-summary',
   SPAN_TAGS = 'span-tags',
   SPAN_PROCESS_TAGS = 'span-process-tags',
@@ -72,6 +76,7 @@ export class App {
   private spanProcessTags = new SpanProcessTagsView();
   private spanLogs = new SpanLogsView();
   private spansTable = new SpansTableView();
+  private spanDetail: SpanDetail;
 
   private dockPanel = new DockPanel();
   private widgets: { [key: string]: WidgetWrapper } = {};
@@ -127,6 +132,12 @@ export class App {
     this.spansTable.mount(spansTableWidgetEl);
     const { offsetWidth: w4, offsetHeight: h4 } = spansTableWidgetEl;
     this.spansTable.init({ width: w4, height: h4 });
+
+    const spanDetailWidgetEl = this.widgets[AppWidgetType.SPAN_DETAIL].node;
+    this.spanDetail = ReactDOM.render(
+      React.createElement(SpanDetail),
+      spanDetailWidgetEl
+    );
 
     const spanSummaryWidgetEl = this.widgets[AppWidgetType.SPAN_SUMMARY].node;
     this.spanSummary.mount(spanSummaryWidgetEl);
@@ -256,6 +267,11 @@ export class App {
       closable: false,
     });
 
+    this.widgets[AppWidgetType.SPAN_DETAIL] = new WidgetWrapper({
+      title: 'Span Detail',
+      closable: false,
+    });
+
     this.widgets[AppWidgetType.SPAN_SUMMARY] = new WidgetWrapper({
       title: 'Span Summary',
       onResize: throttle((msg: { width: number; height: number }) => {
@@ -322,11 +338,17 @@ export class App {
   private onTimelineSpanSelected(spanId: string) {
     this.spansTable.selectSpan(spanId, true);
     this.spansTable.focusSpan(spanId);
+    this.spanDetail.setSpan(
+      spanId ? this.stage.getMainSpanGroup().get(spanId) : null
+    );
   }
 
   private onSpansTableSpanSelected(spanId: string) {
     this.timeline.timeline.selectSpan(spanId, true);
     this.timeline.timeline.focusSpans([spanId]);
+    this.spanDetail.setSpan(
+      spanId ? this.stage.getMainSpanGroup().get(spanId) : null
+    );
   }
 
   private onWindowResize() {
@@ -791,25 +813,22 @@ export class App {
           {
             type: 'split-area',
             orientation: 'horizontal',
-            sizes: [0.33, 0.33, 0.33],
+            sizes: [0.5, 0.5],
             children: [
               {
                 type: 'tab-area',
                 currentIndex: 0,
-                widgets: [AppWidgetType.SPAN_SUMMARY],
+                widgets: [AppWidgetType.SPAN_DETAIL],
               },
               {
                 type: 'tab-area',
                 currentIndex: 0,
                 widgets: [
+                  AppWidgetType.SPAN_LOGS,
+                  AppWidgetType.SPAN_SUMMARY,
                   AppWidgetType.SPAN_TAGS,
                   AppWidgetType.SPAN_PROCESS_TAGS,
                 ],
-              },
-              {
-                type: 'tab-area',
-                currentIndex: 0,
-                widgets: [AppWidgetType.SPAN_LOGS],
               },
             ],
           },
