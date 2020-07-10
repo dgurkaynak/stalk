@@ -53,8 +53,8 @@
 }
 
 .zipkin-search-modal-content > .top > .left {
-  width: 22em;
-  min-width: 22em;
+  width: 280px;
+  min-width: 280px;
   border-right: 1px solid #ccc;
   padding: 10px;
   box-sizing: border-box;
