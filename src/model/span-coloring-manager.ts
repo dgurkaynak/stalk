@@ -110,7 +110,9 @@ export const serviceColoringOptions: SpanColoringOptions = {
   },
 };
 
-export const selfTimeColoringScale = chroma.scale('RdYlBu');
+export const selfTimeColoringScale = chroma
+  .scale('RdYlBu')
+  .padding([-0.15, 0.3]);
 export const selfTimeColoringOptions: SpanColoringOptions = {
   key: 'selfTime',
   name: 'Self Time',
