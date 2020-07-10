@@ -44,9 +44,13 @@ export class TraceTooltipContent {
 
     els.name.textContent = trace.name;
 
-    els.right.innerHTML =
-      `<span class="trace-tooltip-span-count">${trace.spanCount} span(s)</span>` +
-      `<span class="trace-tooltip-error-count">${trace.errorCount}</span>` +
-      `<span class="trace-tooltip-error-icon">${AlertSvgText}</span>`;
+    if (trace.errorCount > 0) {
+      els.right.innerHTML =
+        `<span class="trace-tooltip-span-count">${trace.spanCount} span(s)</span>` +
+        `<span class="trace-tooltip-error-count">${trace.errorCount}</span>` +
+        `<span class="trace-tooltip-error-icon">${AlertSvgText}</span>`;
+    } else {
+      els.right.innerHTML = `<span class="trace-tooltip-span-count">${trace.spanCount} span(s)</span>`;
+    }
   }
 }
