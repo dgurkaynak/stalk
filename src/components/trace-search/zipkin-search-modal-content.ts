@@ -24,7 +24,6 @@ import {
   TracesScatterPlotEvent,
 } from '../traces-scatter-plot/traces-scatter-plot';
 
-import SvgCircleMedium from '!!raw-loader!@mdi/svg/svg/circle-small.svg';
 import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
 import SvgAlertCircle from '!!raw-loader!@mdi/svg/svg/alert-circle.svg';
 import SvgAlertCircleOutline from '!!raw-loader!@mdi/svg/svg/alert-circle-outline.svg';
@@ -62,16 +61,18 @@ export class ZipkinSearchModalContent {
   private customLookbackFlatpickr: flatpickr.Instance;
   private elements = {
     container: document.createElement('div'),
-    leftContainer: document.createElement('div'),
-    right: {
+    header: {
+      statusContainer: document.createElement('span'),
+      statusContent: document.createElement('div'),
+    },
+    sidebar: document.createElement('div'),
+    result: {
       container: document.createElement('div'),
       scatterPlotContainer: document.createElement('div'),
       tableContainer: document.createElement('div'),
       overlayContainer: document.createElement('div'),
     },
-    statusContainer: document.createElement('span'),
-    statusContent: document.createElement('div'),
-    bottom: {
+    footer: {
       container: document.createElement('div'),
       selectionText: document.createElement('div'),
       addToStageButton: document.createElement('button'),
@@ -118,59 +119,53 @@ export class ZipkinSearchModalContent {
     const els = this.elements;
     els.container.classList.add('zipkin-search-modal-content');
 
-    const topContainer = document.createElement('div');
-    topContainer.classList.add('top');
-    els.container.appendChild(topContainer);
+    const header = document.createElement('div');
+    header.classList.add('header');
+    els.container.appendChild(header);
 
-    els.bottom.container.classList.add('bottom');
-    els.container.appendChild(els.bottom.container);
+    const mainContainer = document.createElement('div');
+    mainContainer.classList.add('main');
+    els.container.appendChild(mainContainer);
 
-    els.leftContainer.classList.add('left');
-    topContainer.appendChild(els.leftContainer);
+    els.footer.container.classList.add('footer');
+    els.container.appendChild(els.footer.container);
 
-    els.right.container.classList.add('right');
-    topContainer.appendChild(els.right.container);
+    els.sidebar.classList.add('sidebar');
+    mainContainer.appendChild(els.sidebar);
 
-    els.right.scatterPlotContainer.classList.add('scatter-plot-container');
-    els.right.container.appendChild(els.right.scatterPlotContainer);
+    els.result.container.classList.add('result');
+    mainContainer.appendChild(els.result.container);
 
-    els.right.tableContainer.classList.add('table-container');
-    els.right.container.appendChild(els.right.tableContainer);
+    els.result.scatterPlotContainer.classList.add('scatter-plot-container');
+    els.result.container.appendChild(els.result.scatterPlotContainer);
 
-    els.right.overlayContainer.classList.add('overlay-container');
-    els.right.container.appendChild(els.right.overlayContainer);
+    els.result.tableContainer.classList.add('table-container');
+    els.result.container.appendChild(els.result.tableContainer);
+
+    els.result.overlayContainer.classList.add('overlay-container');
+    els.result.container.appendChild(els.result.overlayContainer);
     this.toggleRightPanelOverlay('ready');
 
-    // Left container
-    const headerContainer = document.createElement('div');
-    headerContainer.classList.add('header');
-    els.leftContainer.appendChild(headerContainer);
+    // Header
+    const titleContainer = document.createElement('div');
+    titleContainer.classList.add('title-container');
+    header.appendChild(titleContainer);
 
     const title = document.createElement('span');
-    title.classList.add('title');
     title.textContent = this.options.dataSource.name;
-    headerContainer.appendChild(title);
+    titleContainer.appendChild(title);
 
-    els.statusContainer.classList.add('status');
-    headerContainer.appendChild(els.statusContainer);
+    els.header.statusContainer.classList.add('status');
+    titleContainer.appendChild(els.header.statusContainer);
 
     // Search by trace id
     {
-      const container = document.createElement('div');
-      container.classList.add('search-widget', 'search-by-trace-id');
-      els.leftContainer.appendChild(container);
-
-      const title = document.createElement('div');
-      title.classList.add('title');
-      title.textContent = 'Search by Trace ID';
-      container.appendChild(title);
-
       const { form, input, button } = this.elements.searchByTraceId;
-      form.classList.add('input-button-group');
-      container.appendChild(form);
+      form.classList.add('search-by-trace-id', 'input-button-group');
+      header.appendChild(form);
 
       input.required = true;
-      input.placeholder = 'Trace ID';
+      input.placeholder = 'Search by Trace ID...';
       form.appendChild(input);
 
       button.textContent = 'Search';
@@ -181,15 +176,6 @@ export class ZipkinSearchModalContent {
 
     // Normal search
     {
-      const container = document.createElement('div');
-      container.classList.add('search-widget', 'search');
-      els.leftContainer.appendChild(container);
-
-      const title = document.createElement('div');
-      title.classList.add('title');
-      title.textContent = 'Search';
-      container.appendChild(title);
-
       const {
         form,
         serviceSelect,
@@ -202,7 +188,7 @@ export class ZipkinSearchModalContent {
         limitInput,
         button,
       } = this.elements.search;
-      container.appendChild(form);
+      els.sidebar.appendChild(form);
 
       const serviceContainer = document.createElement('div');
       serviceContainer.classList.add('field');
@@ -299,19 +285,19 @@ export class ZipkinSearchModalContent {
     {
       const leftContainer = document.createElement('div');
       leftContainer.classList.add('left');
-      els.bottom.container.appendChild(leftContainer);
+      els.footer.container.appendChild(leftContainer);
 
       const rightContainer = document.createElement('div');
       rightContainer.classList.add('right');
-      els.bottom.container.appendChild(rightContainer);
+      els.footer.container.appendChild(rightContainer);
 
-      els.bottom.selectionText.innerHTML = 'No trace selected';
-      rightContainer.appendChild(els.bottom.selectionText);
+      els.footer.selectionText.innerHTML = 'No trace selected';
+      rightContainer.appendChild(els.footer.selectionText);
 
-      els.bottom.addToStageButton.classList.add('primary', 'small');
-      els.bottom.addToStageButton.textContent = 'Add to Stage';
-      els.bottom.addToStageButton.disabled = true;
-      rightContainer.appendChild(els.bottom.addToStageButton);
+      els.footer.addToStageButton.classList.add('primary', 'small');
+      els.footer.addToStageButton.textContent = 'Add to Stage';
+      els.footer.addToStageButton.disabled = true;
+      rightContainer.appendChild(els.footer.addToStageButton);
     }
   }
 
@@ -351,7 +337,7 @@ export class ZipkinSearchModalContent {
       this.binded.onLookbackSelectChange,
       false
     );
-    this.elements.bottom.addToStageButton.addEventListener(
+    this.elements.footer.addToStageButton.addEventListener(
       'click',
       this.binded.onAddToStageButtonClick,
       false
@@ -380,7 +366,7 @@ export class ZipkinSearchModalContent {
     // Traces table
     // In order to get offsetWidth and height, the dom must be rendered
     // So before calling this `init()` method, ensure that dom is rendered.
-    const { tableContainer } = this.elements.right;
+    const { tableContainer } = this.elements.result;
     this.tracesTable.mount(tableContainer);
     this.tracesTable.init({
       width: tableContainer.offsetWidth,
@@ -390,7 +376,7 @@ export class ZipkinSearchModalContent {
     });
 
     // Traces scatter plot
-    const { scatterPlotContainer } = this.elements.right;
+    const { scatterPlotContainer } = this.elements.result;
     this.tracesScatterPlot.mount(scatterPlotContainer);
     this.tracesScatterPlot.init({
       width: scatterPlotContainer.offsetWidth,
@@ -404,11 +390,11 @@ export class ZipkinSearchModalContent {
 
   private initTippyInstances() {
     this.tippyInstaces = {
-      status: tippy(this.elements.statusContainer, {
+      status: tippy(this.elements.header.statusContainer, {
         delay: 0,
         duration: 0,
         updateDuration: 0,
-        content: this.elements.statusContent,
+        content: this.elements.header.statusContent,
         theme: 'tooltip',
         placement: 'top',
       }),
@@ -418,25 +404,38 @@ export class ZipkinSearchModalContent {
   private async testApiAndUpdateStatus() {
     const els = this.elements;
 
-    els.statusContainer.classList.remove('success', 'error');
-    els.statusContainer.innerHTML = SvgCircleMedium;
-    els.statusContent.textContent = 'Testing the API...';
+    els.header.statusContainer.classList.remove('success', 'error');
+    els.header.statusContainer.innerHTML = `<div class="sk-circle">
+      <div class="sk-circle1 sk-child"></div>
+      <div class="sk-circle2 sk-child"></div>
+      <div class="sk-circle3 sk-child"></div>
+      <div class="sk-circle4 sk-child"></div>
+      <div class="sk-circle5 sk-child"></div>
+      <div class="sk-circle6 sk-child"></div>
+      <div class="sk-circle7 sk-child"></div>
+      <div class="sk-circle8 sk-child"></div>
+      <div class="sk-circle9 sk-child"></div>
+      <div class="sk-circle10 sk-child"></div>
+      <div class="sk-circle11 sk-child"></div>
+      <div class="sk-circle12 sk-child"></div>
+    </div>`;
+    els.header.statusContent.textContent = 'Testing the API...';
 
     try {
       await this.api.test();
 
-      els.statusContainer.classList.add('success');
-      els.statusContainer.innerHTML = SvgCheckCircle;
-      els.statusContent.textContent = 'API is OK';
+      els.header.statusContainer.classList.add('success');
+      els.header.statusContainer.innerHTML = SvgCheckCircle;
+      els.header.statusContent.textContent = 'API is OK';
     } catch (err) {
-      els.statusContainer.classList.add('error');
-      els.statusContainer.innerHTML = SvgAlertCircle;
-      els.statusContent.textContent = err.message;
+      els.header.statusContainer.classList.add('error');
+      els.header.statusContainer.innerHTML = SvgAlertCircle;
+      els.header.statusContent.textContent = err.message;
     }
   }
 
   onShow() {
-    const { tableContainer, scatterPlotContainer } = this.elements.right;
+    const { tableContainer, scatterPlotContainer } = this.elements.result;
     this.tracesScatterPlot.resize(
       scatterPlotContainer.offsetWidth,
       scatterPlotContainer.offsetHeight
@@ -620,7 +619,7 @@ export class ZipkinSearchModalContent {
   }
 
   private onWindowResize() {
-    const { tableContainer, scatterPlotContainer } = this.elements.right;
+    const { tableContainer, scatterPlotContainer } = this.elements.result;
     this.tracesScatterPlot.resize(
       scatterPlotContainer.offsetWidth,
       scatterPlotContainer.offsetHeight
@@ -640,8 +639,8 @@ export class ZipkinSearchModalContent {
     this.selectedTraceIds = selectedTraces.map((t) => t.id);
 
     if (selectedTraces.length == 0) {
-      this.elements.bottom.addToStageButton.disabled = true;
-      this.elements.bottom.selectionText.textContent = 'No trace selected';
+      this.elements.footer.addToStageButton.disabled = true;
+      this.elements.footer.selectionText.textContent = 'No trace selected';
       return;
     }
 
@@ -649,8 +648,8 @@ export class ZipkinSearchModalContent {
     if (selectedTraces.length == 1) {
       text = `1 trace`;
     }
-    this.elements.bottom.selectionText.innerHTML = `<strong>${text}</strong> selected`;
-    this.elements.bottom.addToStageButton.disabled = false;
+    this.elements.footer.selectionText.innerHTML = `<strong>${text}</strong> selected`;
+    this.elements.footer.addToStageButton.disabled = false;
   }
 
   private async onTableTraceDoubleClicked(trace: SearchModalTraceRowData) {
@@ -688,7 +687,7 @@ export class ZipkinSearchModalContent {
     type: 'ready' | 'loading' | 'no-results' | 'error' | false,
     errorMessage?: string
   ) {
-    const { overlayContainer } = this.elements.right;
+    const { overlayContainer } = this.elements.result;
 
     if (!type) {
       overlayContainer.style.display = 'none';
@@ -780,7 +779,7 @@ export class ZipkinSearchModalContent {
       this.binded.onLookbackSelectChange,
       false
     );
-    this.elements.bottom.addToStageButton.removeEventListener(
+    this.elements.footer.addToStageButton.removeEventListener(
       'click',
       this.binded.onAddToStageButtonClick,
       false
