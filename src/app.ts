@@ -248,7 +248,7 @@ export class App {
     });
 
     this.widgets[AppWidgetType.SPANS_TABLE] = new WidgetWrapper({
-      title: 'Spans Table View',
+      title: 'Table View',
       onResize: throttle((msg: { width: number; height: number }) => {
         this.spansTable.resize(msg.width, msg.height);
       }, 100),
