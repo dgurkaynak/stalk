@@ -364,7 +364,7 @@ export class LiveCollectorModalContent {
       els.bottom.addToStageButton.disabled = true;
       rightContainer.appendChild(els.bottom.addToStageButton);
 
-      els.bottom.deleteFromCollectorButton.classList.add('small');
+      els.bottom.deleteFromCollectorButton.classList.add('danger', 'small');
       els.bottom.deleteFromCollectorButton.textContent =
         'Delete from Live Collector';
       els.bottom.deleteFromCollectorButton.disabled = true;
