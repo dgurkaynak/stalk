@@ -537,20 +537,21 @@ export class App {
       return;
     }
 
+    const handleTracesAdd = (traces: Trace[]) => {
+      traces.forEach((t) => this.stage.addTrace(t));
+      this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE]);
+    };
+
     let component: JaegerSearch | ZipkinSearch;
     if (dataSource.type == DataSourceType.JAEGER) {
       component = new JaegerSearch({
         dataSource,
-        onTracesAdd: (traces: Trace[]) => {
-          traces.forEach((t) => this.stage.addTrace(t));
-        },
+        onTracesAdd: handleTracesAdd,
       });
     } else if (dataSource.type == DataSourceType.ZIPKIN) {
       component = new ZipkinSearch({
         dataSource,
-        onTracesAdd: (traces: Trace[]) => {
-          traces.forEach((t) => this.stage.addTrace(t));
-        },
+        onTracesAdd: handleTracesAdd,
       });
     } else {
       throw new Error(`Unexpected data source type "${dataSource.type}"`);
