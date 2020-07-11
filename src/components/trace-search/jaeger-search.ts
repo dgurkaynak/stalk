@@ -674,6 +674,7 @@ export class JaegerSearch {
     const traces = this.traceResults.filter((t) => t.id == trace.id);
     this.options.onTracesAdd?.(traces);
     this.tracesTable.selectTrace(null);
+    this.reloadTableData();
   }
 
   private onAddToStageButtonClick() {
@@ -682,6 +683,7 @@ export class JaegerSearch {
     });
     this.options.onTracesAdd?.(traces);
     this.tracesTable.selectTrace(null);
+    this.reloadTableData();
   }
 
   private onTraceScatterPointClick(trace: Trace) {
@@ -691,6 +693,10 @@ export class JaegerSearch {
 
   private onStatusClick() {
     this.testApiAndFetchServices();
+  }
+
+  reloadTableData() {
+    this.tracesTable.reloadData();
   }
 
   private onSearchFormToggleClick() {

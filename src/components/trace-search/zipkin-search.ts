@@ -675,6 +675,7 @@ export class ZipkinSearch {
     const traces = this.traceResults.filter((t) => t.id == trace.id);
     this.options.onTracesAdd?.(traces);
     this.tracesTable.selectTrace(null);
+    this.reloadTableData();
   }
 
   private onAddToStageButtonClick() {
@@ -683,6 +684,7 @@ export class ZipkinSearch {
     });
     this.options.onTracesAdd?.(traces);
     this.tracesTable.selectTrace(null);
+    this.reloadTableData();
   }
 
   private onTraceScatterPointClick(trace: Trace) {
@@ -692,6 +694,10 @@ export class ZipkinSearch {
 
   private onStatusClick() {
     this.testApiAndFetchServices();
+  }
+
+  reloadTableData() {
+    this.tracesTable.reloadData();
   }
 
   private onSearchFormToggleClick() {

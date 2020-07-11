@@ -190,6 +190,10 @@ export class TraceSearchResultsTable extends EventEmitter {
     await this.table.replaceData(this.traceRows);
   }
 
+  async reloadData() {
+    await this.table.replaceData(this.traceRows);
+  }
+
   private rowSelectionChanged(data: any, rows: any) {
     this.emit(TraceSearchResultsTableEvent.SELECTIONS_UPDATED, data);
   }
