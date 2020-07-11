@@ -1,10 +1,10 @@
 import tippy, { Instance as TippyInstance } from 'tippy.js';
-import { ToolbarMenuList, ToolbarMenuListOptions } from './menu-list';
+import { ToolbarMenuList } from './menu-list';
 import {
   DataSourceManager,
   DataSourceManagerEvent,
 } from '../../model/datasource/manager';
-import { DataSourceType, DataSource } from '../../model/datasource/interfaces';
+import { DataSource } from '../../model/datasource/interfaces';
 import { Stage, StageEvent } from '../../model/stage';
 import { Trace } from '../../model/trace';
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
@@ -12,8 +12,6 @@ import { Modal, ModalCloseTriggerType } from '../ui/modal/modal';
 import { ModalManager } from '../ui/modal/modal-manager';
 import { DataSourceFormModalContent } from '../datasource/datasource-form-modal-content';
 import shortid from 'shortid';
-import { JaegerSearchModalContent } from '../trace-search/jaeger-search-modal-content';
-import { ZipkinSearchModalContent } from '../trace-search/zipkin-search-modal-content';
 import { StageTracesModalContent } from '../stage-traces/stage-traces-modal-content';
 import { LiveCollectorModalContent } from '../live-collector/live-collector-modal-content';
 import { remote } from 'electron';
@@ -24,6 +22,10 @@ import SvgSourceBranch from '!!raw-loader!@mdi/svg/svg/source-branch.svg';
 import SvgSatellite from '!!raw-loader!@mdi/svg/svg/satellite-uplink.svg';
 import SvgDeleteEmpty from '!!raw-loader!@mdi/svg/svg/delete-empty.svg';
 import './app-toolbar.css';
+
+export interface AppToolbarOptions {
+  onDataSourceClick: (dataSource: DataSource) => void;
+}
 
 export class AppToolbar {
   private elements = {
@@ -51,12 +53,6 @@ export class AppToolbar {
     clearStagePopConfirm: TippyInstance;
   };
   private dataSourceFormModalContent: DataSourceFormModalContent;
-  private jaegerSearchModalContents: {
-    [key: string]: JaegerSearchModalContent;
-  } = {};
-  private zipkinSearchModalContents: {
-    [key: string]: ZipkinSearchModalContent;
-  } = {};
   private stageTracesModalContent = new StageTracesModalContent();
   private liveCollectorModalContent = new LiveCollectorModalContent();
 
@@ -101,7 +97,7 @@ export class AppToolbar {
     onTextClick: this.binded.onDataSourceMenuListTextClick,
   });
 
-  constructor() {
+  constructor(private options: AppToolbarOptions) {
     const { container: el, btn } = this.elements;
     el.id = 'app-toolbar';
     el.classList.add('app-toolbar');
@@ -511,47 +507,7 @@ export class AppToolbar {
       return;
     }
 
-    let modalContent: JaegerSearchModalContent | ZipkinSearchModalContent;
-    let contentContainerClassName = '';
-    let shouldInitModalContent = false;
-
-    if (ds.type == DataSourceType.JAEGER) {
-      contentContainerClassName = 'jaeger-search-modal-container';
-      modalContent = this.jaegerSearchModalContents[ds.id];
-      if (!modalContent) {
-        modalContent = new JaegerSearchModalContent({
-          dataSource: ds,
-        });
-        shouldInitModalContent = true;
-        this.jaegerSearchModalContents[ds.id] = modalContent;
-      }
-    } else if (ds.type == DataSourceType.ZIPKIN) {
-      contentContainerClassName = 'zipkin-search-modal-container';
-      modalContent = this.zipkinSearchModalContents[ds.id];
-      if (!modalContent) {
-        modalContent = new ZipkinSearchModalContent({
-          dataSource: ds,
-        });
-        shouldInitModalContent = true;
-        this.zipkinSearchModalContents[ds.id] = modalContent;
-      }
-    } else {
-      console.error(
-        `Unknown/unsupported data source type to search: "${ds.type}"`
-      );
-      return;
-    }
-
-    const modal = new Modal({
-      content: modalContent.getElement(),
-      contentContainerClassName,
-      onClose: this.binded.onDataSourceSearchModalClosed,
-      shouldCloseOnEscPress: true,
-      shouldCloseOnOverlayClick: true,
-    });
-    ModalManager.getSingleton().show(modal);
-    shouldInitModalContent && modalContent.init(); // must be inited after render
-    modalContent.onShow();
+    this.options.onDataSourceClick(ds);
     this.tippyInstaces.dataSources.hide();
   }
 
@@ -700,11 +656,6 @@ export class AppToolbar {
       tippy.destroy();
     }
     this.tippyInstaces = null;
-
-    Object.values(this.jaegerSearchModalContents).forEach((c) => c.dispose);
-    this.jaegerSearchModalContents = {};
-    Object.values(this.zipkinSearchModalContents).forEach((c) => c.dispose);
-    this.zipkinSearchModalContents = {};
 
     this.unbindEvents();
     this.elements = null;

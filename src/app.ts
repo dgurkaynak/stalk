@@ -34,6 +34,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import format from 'date-fns/format';
 import { SettingsManager, SettingsKey } from './model/settings-manager';
+import { DataSource, DataSourceType } from './model/datasource/interfaces';
+import { JaegerSearchModalContent } from './components/trace-search/jaeger-search-modal-content';
+import { ZipkinSearchModalContent } from './components/trace-search/zipkin-search-modal-content';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -65,7 +68,6 @@ export class App {
   private stage = Stage.getSingleton();
   private contextMenuManager = ContextMenuManager.getSingleton();
   private settingsManager = SettingsManager.getSingleton();
-  private toolbar = new AppToolbar();
   private timeline = new TimelineWrapper();
   private spanSummary = new SpanSummaryView();
   private spanTags = new SpanTagsView();
@@ -76,6 +78,14 @@ export class App {
   private dockPanel = new DockPanel();
   private widgets: { [key: string]: WidgetWrapper } = {};
   private dropZoneEl = document.createElement('div');
+
+  private dataSourceSearchWidgets: {
+    [key: string]: {
+      dataSource: DataSource;
+      widgetWrapper: WidgetWrapper;
+      component: JaegerSearchModalContent | ZipkinSearchModalContent;
+    };
+  } = {};
 
   private binded = {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
@@ -91,7 +101,12 @@ export class App {
     onKeyDown: this.onKeyDown.bind(this),
     onImportMenuClick: this.onImportMenuClick.bind(this),
     onExportMenuClick: this.onExportMenuClick.bind(this),
+    onToolbarDataSourceClick: this.onToolbarDataSourceClick.bind(this),
   };
+
+  private toolbar = new AppToolbar({
+    onDataSourceClick: this.binded.onToolbarDataSourceClick,
+  });
 
   constructor(private options: AppOptions) {
     // Noop
@@ -512,6 +527,55 @@ export class App {
       e.preventDefault();
       return;
     }
+  }
+
+  private onToolbarDataSourceClick(dataSource: DataSource) {
+    if (this.dataSourceSearchWidgets[dataSource.id]) {
+      const widgetWrapper = this.dataSourceSearchWidgets[dataSource.id]
+        .widgetWrapper;
+      this.dockPanel.activateWidget(widgetWrapper);
+      return;
+    }
+
+    let component: JaegerSearchModalContent | ZipkinSearchModalContent;
+    if (dataSource.type == DataSourceType.JAEGER) {
+      component = new JaegerSearchModalContent({
+        dataSource,
+        onTracesAdd: (traces: Trace[]) => {
+          traces.forEach((t) => this.stage.addTrace(t));
+        },
+      });
+    } else if (dataSource.type == DataSourceType.ZIPKIN) {
+      component = new ZipkinSearchModalContent({
+        dataSource,
+        onTracesAdd: (traces: Trace[]) => {
+          traces.forEach((t) => this.stage.addTrace(t));
+        },
+      });
+    } else {
+      throw new Error(`Unexpected data source type "${dataSource.type}"`);
+    }
+
+    const widgetWrapper = new WidgetWrapper({
+      title: `Search: ${dataSource.name}`,
+      onResize: throttle(() => component.resize(), 100),
+      onAfterShow: () => component.onShow(),
+      closable: true,
+      onClose: () => {
+        component.dispose();
+        delete this.dataSourceSearchWidgets[dataSource.id];
+      },
+    });
+    widgetWrapper.node.appendChild(component.getElement());
+    this.dockPanel.addWidget(widgetWrapper);
+    component.init();
+    this.dockPanel.activateWidget(widgetWrapper);
+
+    this.dataSourceSearchWidgets[dataSource.id] = {
+      dataSource,
+      widgetWrapper,
+      component,
+    };
   }
 
   private setupApplicationMenu() {
