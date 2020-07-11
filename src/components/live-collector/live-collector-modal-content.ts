@@ -25,6 +25,10 @@ import remove from 'lodash/remove';
 
 import './live-collector-modal-content.css';
 
+export interface LiveCollectorModalContentOptions {
+  onCollectedTracesUpdated?: (traces: Trace[]) => void;
+}
+
 export class LiveCollectorModalContent {
   private tracesTable = new TraceSearchResultsTable();
   private spansDB: Span[] = [];
@@ -103,7 +107,7 @@ export class LiveCollectorModalContent {
     ),
   };
 
-  constructor() {
+  constructor(private options?: LiveCollectorModalContentOptions) {
     // Prepare DOM
     const els = this.elements;
     els.container.classList.add('live-collector-modal-content');
@@ -469,7 +473,9 @@ export class LiveCollectorModalContent {
     this.elements.bottom.deleteFromCollectorButton.disabled = false;
   }
 
-  private async onTableTraceDoubleClicked(trace: TraceSearchResultsTableRowData) {
+  private async onTableTraceDoubleClicked(
+    trace: TraceSearchResultsTableRowData
+  ) {
     const traceSpans = this.spansDB.filter((span) => {
       return span.traceId == trace.id;
     });
@@ -522,6 +528,7 @@ export class LiveCollectorModalContent {
     }
 
     this.tracesTable.updateTraces(traces);
+    this.options?.onCollectedTracesUpdated?.(traces);
   }
 
   private onJaegerAgentPortInput() {

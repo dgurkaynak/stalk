@@ -38,6 +38,7 @@ export class AppToolbar {
       clearStage: document.createElement('div'),
     },
     tracesBadgeCount: document.createElement('div'),
+    liveCollectorBadgeCount: document.createElement('div'),
     dataSourceMenuList: {
       header: document.createElement('div'),
       empty: document.createElement('div'),
@@ -54,7 +55,6 @@ export class AppToolbar {
   };
   private dataSourceFormModalContent: DataSourceFormModalContent;
   private stageTracesModalContent = new StageTracesModalContent();
-  private liveCollectorModalContent = new LiveCollectorModalContent();
 
   private binded = {
     onDataSourceManagerAdded: this.onDataSourceManagerAdded.bind(this),
@@ -84,8 +84,12 @@ export class AppToolbar {
     onClearStagePopConfirmButtonClick: this.onClearStagePopConfirmButtonClick.bind(
       this
     ),
+    onLiveCollectorTraceUpdate: this.onLiveCollectorTraceUpdate.bind(this),
   };
 
+  private liveCollectorModalContent = new LiveCollectorModalContent({
+    onCollectedTracesUpdated: this.binded.onLiveCollectorTraceUpdate,
+  });
   private stage = Stage.getSingleton();
   private dsManager = DataSourceManager.getSingleton();
 
@@ -141,7 +145,7 @@ export class AppToolbar {
   init() {
     this.initTooltips();
     this.initTippyInstances();
-    this.initTracesBadgeCount();
+    this.initBadgeCounts();
 
     // Prepare dataSource menu list header
     this.elements.dataSourceMenuList.header.classList.add(
@@ -307,9 +311,13 @@ export class AppToolbar {
     };
   }
 
-  private initTracesBadgeCount() {
-    const el = this.elements.tracesBadgeCount;
-    el.classList.add('toolbar-traces-badge-count');
+  private initBadgeCounts() {
+    const els = this.elements;
+    els.tracesBadgeCount.classList.add('toolbar-badge-count', 'stage');
+    els.liveCollectorBadgeCount.classList.add(
+      'toolbar-badge-count',
+      'live-collector'
+    );
   }
 
   //////////////////////////////////////
@@ -335,6 +343,16 @@ export class AppToolbar {
     if (count > 0) {
       el.textContent = count + '';
       !el.parentElement && this.elements.btn.stageTraces.appendChild(el);
+    } else {
+      el.parentElement?.removeChild(el);
+    }
+  }
+
+  updateLiveCollectorBadgeCount(count: number) {
+    const el = this.elements.liveCollectorBadgeCount;
+    if (count > 0) {
+      el.textContent = count + '';
+      !el.parentElement && this.elements.btn.liveCollector.appendChild(el);
     } else {
       el.parentElement?.removeChild(el);
     }
@@ -586,6 +604,10 @@ export class AppToolbar {
     if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
     if (data?.action != 'addToStage') return;
     (data.traces as Trace[]).forEach((t) => this.stage.addTrace(t));
+  }
+
+  private onLiveCollectorTraceUpdate(traces: Trace[]) {
+    this.updateLiveCollectorBadgeCount(traces.length);
   }
 
   private onNewDataSourceButtonClick() {
