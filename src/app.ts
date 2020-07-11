@@ -309,6 +309,10 @@ export class App {
 
   private onStageTraceRemoved(trace: Trace) {
     this.timeline.removeTrace(trace);
+
+    Object.values(this.dataSourceSearchWidgets).forEach(({ component }) => {
+      component.reloadTableData();
+    });
   }
 
   private onTimelineSpanSelected(spanId: string) {
