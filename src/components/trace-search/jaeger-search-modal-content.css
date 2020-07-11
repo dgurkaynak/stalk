@@ -5,8 +5,8 @@
 }
 
 .jaeger-search-modal-content {
-  --header-height: 50px;
-  --footer-height: 36px;
+  --header-height: 40px;
+  --search-form-width: 220px;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
@@ -29,19 +29,20 @@
 }
 
 .jaeger-search-modal-content .header .title-container {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
   flex-grow: 1;
 }
 
 .jaeger-search-modal-content .header .status {
+  --icon-size: 18px;
   margin-left: 7px;
   cursor: pointer;
 }
 
 .jaeger-search-modal-content .header .status .sk-circle {
-  width: 22px;
-  height: 22px;
+  width: var(--icon-size);
+  height: var(--icon-size);
   position: relative;
   display: inline-block;
   top: 3px;
@@ -49,14 +50,18 @@
 }
 
 .jaeger-search-modal-content .header .status svg {
-  width: 22px;
-  height: 22px;
+  width: var(--icon-size);
+  height: var(--icon-size);
   position: relative;
-  top: 2px;
+  top: 3px;
 }
 
 .jaeger-search-modal-content .header .status.success svg {
   fill: #52c41a;
+}
+
+.jaeger-search-modal-content .header .status.warning svg {
+  fill: #faad14;
 }
 
 .jaeger-search-modal-content .header .status.error svg {
@@ -71,49 +76,65 @@
   top: var(--header-height);
   left: 0;
   right: 0;
-  bottom: var(--footer-height);
-}
-
-.jaeger-search-modal-content .footer {
-  display: flex;
-  height: var(--footer-height);
-  border-top: 1px solid #ccc;
-  padding: 0 1em;
-  background: #eee;
-  position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
 }
 
-.jaeger-search-modal-content .footer .left {
-  display: flex;
-  align-items: center;
-}
-
-.jaeger-search-modal-content .footer .right {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  flex-grow: 1;
-}
-
-.jaeger-search-modal-content .footer .right > div {
-  margin-right: 1em;
-}
-
-.jaeger-search-modal-content .sidebar {
-  width: 280px;
-  min-width: 280px;
+.jaeger-search-modal-content .search-form-container {
+  width: var(--search-form-width);
+  min-width: var(--search-form-width);
   border-right: 1px solid #ccc;
   padding: 10px;
   box-sizing: border-box;
   overflow-y: auto;
 }
 
+.jaeger-search-modal-content .search-form-hidden .search-form-container {
+  display: none;
+}
+
+.jaeger-search-modal-content .search-form-container form .field {
+  margin-bottom: 1em;
+}
+
+.jaeger-search-modal-content .search-form-container form .field-title {
+  font-weight: 400;
+}
+
+.jaeger-search-modal-content .search-form-container form .field input,
+.jaeger-search-modal-content .search-form-container form .field select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.jaeger-search-modal-content .search-form-toggle {
+  position: absolute;
+  z-index: 2;
+  bottom: 2px;
+  left: var(--search-form-width);
+  padding: 5px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.jaeger-search-modal-content .search-form-hidden .search-form-toggle {
+  left: 0;
+}
+
+.jaeger-search-modal-content .search-form-toggle svg {
+  width: 15px;
+  height: 15px;
+  fill: #ccc;
+}
+
+.jaeger-search-modal-content .search-form-toggle:hover svg {
+  fill: #666;
+}
+
 .jaeger-search-modal-content .result {
+  --footer-height: 36px;
+  --scatter-plot-height: 150px;
   flex-grow: 2;
-  overflow-y: auto;
+  overflow: hidden;
   position: relative;
 }
 
@@ -122,17 +143,17 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 200px;
+  height: var(--scatter-plot-height);
   border-bottom: 1px solid #ccc;
   box-sizing: border-box;
 }
 
 .jaeger-search-modal-content .result .table-container {
   position: absolute;
-  top: 200px;
+  top: var(--scatter-plot-height);
   left: 0;
   width: 100%;
-  bottom: 0;
+  bottom: var(--footer-height);
 }
 
 .jaeger-search-modal-content .result .overlay-container {
@@ -140,12 +161,13 @@
   position: absolute;
   top: 0;
   right: 0;
-  bottom: 1px; /* for border */
+  bottom: 0;
   left: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 1);
+  box-sizing: border-box;
 }
 
 .jaeger-search-modal-content .result .overlay-container .message {
@@ -168,24 +190,28 @@
   font-weight: 600;
 }
 
-.jaeger-search-modal-content .sidebar form .field {
-  margin-bottom: 1em;
-}
-
-.jaeger-search-modal-content .sidebar form .field-title {
-  font-weight: 400;
-}
-
-.jaeger-search-modal-content .sidebar form .field input,
-.jaeger-search-modal-content .sidebar form .field select {
-  width: 100%;
-  box-sizing: border-box;
-}
-
 .jaeger-search-modal-content .result .overlay-container .sk-circle {
   width: 40px;
   height: 40px;
   position: relative;
+}
+
+.jaeger-search-modal-content .footer {
+  height: var(--footer-height);
+  border-top: 1px solid #ccc;
+  padding: 0 1em;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.jaeger-search-modal-content .footer > span {
+  margin-right: 10px;
 }
 
 /* Borrowed from https://tobiasahlin.com/spinkit/ */

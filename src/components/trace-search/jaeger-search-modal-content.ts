@@ -1,11 +1,10 @@
-import { DataSourceType, DataSource } from '../../model/datasource/interfaces';
+import { DataSource } from '../../model/datasource/interfaces';
 import { Span } from '../../model/interfaces';
 import { Trace } from '../../model/trace';
 import {
   DataSourceManager,
   DataSourceManagerEvent,
 } from '../../model/datasource/manager';
-import { ModalManager } from '../ui/modal/modal-manager';
 import Noty from 'noty';
 import { JaegerAPI, JaegerAPISearchQuery } from '../../model/jaeger';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
@@ -15,23 +14,27 @@ import {
   SearchModalTraceRowData,
 } from './search-modal-traces-table';
 import parseDuration from 'parse-duration';
-import throttle from 'lodash/throttle';
 import find from 'lodash/find';
 import flatpickr from 'flatpickr';
 import {
   TracesScatterPlot,
   TracesScatterPlotEvent,
 } from '../traces-scatter-plot/traces-scatter-plot';
+import { to } from '../../utils/to';
 
 import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
+import SvgAlert from '!!raw-loader!@mdi/svg/svg/alert.svg';
 import SvgAlertCircle from '!!raw-loader!@mdi/svg/svg/alert-circle.svg';
 import SvgAlertCircleOutline from '!!raw-loader!@mdi/svg/svg/alert-circle-outline.svg';
 import SvgEmoticonSad from '!!raw-loader!@mdi/svg/svg/emoticon-sad-outline.svg';
 import SvgEmoticonCool from '!!raw-loader!@mdi/svg/svg/emoticon-cool-outline.svg';
+import SvgArrowCollapseLeft from '!!raw-loader!@mdi/svg/svg/arrow-collapse-left.svg';
+import SvgArrowCollapseRight from '!!raw-loader!@mdi/svg/svg/arrow-collapse-right.svg';
 import './jaeger-search-modal-content.css';
 
 export interface JaegerSearchModalContentOptions {
   dataSource: DataSource;
+  onTracesAdd?: (traces: Trace[]) => void;
 }
 
 export enum JaegerLookbackValue {
@@ -58,13 +61,14 @@ export class JaegerSearchModalContent {
   private traceResults: Trace[] = [];
   private selectedTraceIds: string[] = [];
   private customLookbackFlatpickr: flatpickr.Instance;
+  private isSearchFormHidden = false;
   private elements = {
     container: document.createElement('div'),
     header: {
       statusContainer: document.createElement('span'),
       statusContent: document.createElement('div'),
     },
-    sidebar: document.createElement('div'),
+    mainContainer: document.createElement('div'),
     result: {
       container: document.createElement('div'),
       scatterPlotContainer: document.createElement('div'),
@@ -73,7 +77,7 @@ export class JaegerSearchModalContent {
     },
     footer: {
       container: document.createElement('div'),
-      selectionText: document.createElement('div'),
+      selectionText: document.createElement('span'),
       addToStageButton: document.createElement('button'),
     },
     searchByTraceId: {
@@ -81,7 +85,9 @@ export class JaegerSearchModalContent {
       input: document.createElement('input'),
       button: document.createElement('button'),
     },
+    searchFormToggle: document.createElement('div'),
     search: {
+      container: document.createElement('div'),
       form: document.createElement('form'),
       serviceSelect: document.createElement('select'),
       operationSelect: document.createElement('select'),
@@ -104,12 +110,12 @@ export class JaegerSearchModalContent {
     onSearcFormSubmit: this.onSearchFormSubmit.bind(this),
     onServiceSelectChange: this.onServiceSelectChange.bind(this),
     onLookbackSelectChange: this.onLookbackSelectChange.bind(this),
-    onWindowResize: throttle(this.onWindowResize.bind(this), 100),
     onTableSelectionUpdated: this.onTableSelectionUpdated.bind(this),
     onTableTraceDoubleClicked: this.onTableTraceDoubleClicked.bind(this),
     onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this),
     onTraceScatterPointClick: this.onTraceScatterPointClick.bind(this),
     onStatusClick: this.onStatusClick.bind(this),
+    onSearchFormToggleClick: this.onSearchFormToggleClick.bind(this),
   };
 
   constructor(private options: JaegerSearchModalContentOptions) {
@@ -123,24 +129,32 @@ export class JaegerSearchModalContent {
     header.classList.add('header');
     els.container.appendChild(header);
 
-    const mainContainer = document.createElement('div');
-    mainContainer.classList.add('main');
-    els.container.appendChild(mainContainer);
+    els.mainContainer.classList.add('main');
+    if (this.isSearchFormHidden) {
+      els.mainContainer.classList.add('search-form-hidden');
+    }
+    els.container.appendChild(els.mainContainer);
 
-    els.footer.container.classList.add('footer');
-    els.container.appendChild(els.footer.container);
+    els.search.container.classList.add('search-form-container');
+    els.mainContainer.appendChild(els.search.container);
 
-    els.sidebar.classList.add('sidebar');
-    mainContainer.appendChild(els.sidebar);
+    els.searchFormToggle.classList.add('search-form-toggle');
+    els.searchFormToggle.innerHTML = this.isSearchFormHidden
+      ? SvgArrowCollapseRight
+      : SvgArrowCollapseLeft;
+    els.mainContainer.appendChild(els.searchFormToggle);
 
     els.result.container.classList.add('result');
-    mainContainer.appendChild(els.result.container);
+    els.mainContainer.appendChild(els.result.container);
 
     els.result.scatterPlotContainer.classList.add('scatter-plot-container');
     els.result.container.appendChild(els.result.scatterPlotContainer);
 
     els.result.tableContainer.classList.add('table-container');
     els.result.container.appendChild(els.result.tableContainer);
+
+    els.footer.container.classList.add('footer');
+    els.result.container.appendChild(els.footer.container);
 
     els.result.overlayContainer.classList.add('overlay-container');
     els.result.container.appendChild(els.result.overlayContainer);
@@ -152,7 +166,7 @@ export class JaegerSearchModalContent {
     header.appendChild(titleContainer);
 
     const title = document.createElement('span');
-    title.textContent = this.options.dataSource.name;
+    title.textContent = `API Status:`;
     titleContainer.appendChild(title);
 
     els.header.statusContainer.classList.add('status');
@@ -164,13 +178,14 @@ export class JaegerSearchModalContent {
       form.classList.add('search-by-trace-id', 'input-button-group');
       header.appendChild(form);
 
+      input.classList.add('small');
       input.required = true;
       input.placeholder = 'Search by Trace ID...';
       form.appendChild(input);
 
       button.textContent = 'Search';
       button.type = 'submit';
-      button.classList.add('secondary');
+      button.classList.add('secondary', 'small');
       form.appendChild(button);
     }
 
@@ -188,7 +203,7 @@ export class JaegerSearchModalContent {
         limitInput,
         button,
       } = this.elements.search;
-      els.sidebar.appendChild(form);
+      els.search.container.appendChild(form);
 
       const serviceContainer = document.createElement('div');
       serviceContainer.classList.add('field');
@@ -197,6 +212,7 @@ export class JaegerSearchModalContent {
       serviceTitleContainer.textContent = 'Service';
       serviceTitleContainer.classList.add('field-title');
       serviceContainer.appendChild(serviceTitleContainer);
+      serviceSelect.classList.add('small');
       serviceSelect.required = true;
       serviceContainer.appendChild(serviceSelect);
 
@@ -207,6 +223,7 @@ export class JaegerSearchModalContent {
       operationTitleContainer.textContent = 'Operation';
       operationTitleContainer.classList.add('field-title');
       operationContainer.appendChild(operationTitleContainer);
+      operationSelect.classList.add('small');
       operationSelect.required = true;
       operationContainer.appendChild(operationSelect);
 
@@ -217,6 +234,7 @@ export class JaegerSearchModalContent {
       tagsTitleContainer.textContent = 'Tags';
       tagsTitleContainer.classList.add('field-title');
       tagsContainer.appendChild(tagsTitleContainer);
+      tagsInput.classList.add('small');
       tagsInput.placeholder = 'http.status_code=200 error=true';
       tagsContainer.appendChild(tagsInput);
 
@@ -227,6 +245,7 @@ export class JaegerSearchModalContent {
       lookbackTitleContainer.textContent = 'Lookback';
       lookbackTitleContainer.classList.add('field-title');
       lookbackContainer.appendChild(lookbackTitleContainer);
+      lookbackSelect.classList.add('small');
       lookbackSelect.required = true;
       lookbackContainer.appendChild(lookbackSelect);
 
@@ -249,6 +268,7 @@ export class JaegerSearchModalContent {
       minDurationTitleContainer.textContent = 'Min Duration';
       minDurationTitleContainer.classList.add('field-title');
       minDurationContainer.appendChild(minDurationTitleContainer);
+      minDurationInput.classList.add('small');
       minDurationInput.placeholder = 'e.g. 1.2s, 100ms, 500us';
       minDurationContainer.appendChild(minDurationInput);
 
@@ -259,6 +279,7 @@ export class JaegerSearchModalContent {
       maxDurationTitleContainer.textContent = 'Max Duration';
       maxDurationTitleContainer.classList.add('field-title');
       maxDurationContainer.appendChild(maxDurationTitleContainer);
+      maxDurationInput.classList.add('small');
       maxDurationInput.placeholder = 'e.g. 1.2s, 100ms, 500us';
       maxDurationContainer.appendChild(maxDurationInput);
 
@@ -269,6 +290,7 @@ export class JaegerSearchModalContent {
       limitTitleContainer.textContent = 'Limit';
       limitTitleContainer.classList.add('field-title');
       limitContainer.appendChild(limitTitleContainer);
+      limitInput.classList.add('small');
       limitInput.type = 'number';
       limitInput.min = '0';
       limitInput.value = '100';
@@ -277,27 +299,19 @@ export class JaegerSearchModalContent {
 
       button.textContent = 'Search';
       button.type = 'submit';
-      button.classList.add('secondary');
+      button.classList.add('secondary', 'small');
       form.appendChild(button);
     }
 
     // Bottom
     {
-      const leftContainer = document.createElement('div');
-      leftContainer.classList.add('left');
-      els.footer.container.appendChild(leftContainer);
-
-      const rightContainer = document.createElement('div');
-      rightContainer.classList.add('right');
-      els.footer.container.appendChild(rightContainer);
-
       els.footer.selectionText.innerHTML = 'No trace selected';
-      rightContainer.appendChild(els.footer.selectionText);
+      els.footer.container.appendChild(els.footer.selectionText);
 
       els.footer.addToStageButton.classList.add('primary', 'small');
       els.footer.addToStageButton.textContent = 'Add to Stage';
       els.footer.addToStageButton.disabled = true;
-      rightContainer.appendChild(els.footer.addToStageButton);
+      els.footer.container.appendChild(els.footer.addToStageButton);
     }
   }
 
@@ -327,6 +341,11 @@ export class JaegerSearchModalContent {
       this.binded.onSearchByTraceIdFormSubmit,
       false
     );
+    this.elements.searchFormToggle.addEventListener(
+      'click',
+      this.binded.onSearchFormToggleClick,
+      false
+    );
     this.elements.search.form.addEventListener(
       'submit',
       this.binded.onSearcFormSubmit,
@@ -347,7 +366,6 @@ export class JaegerSearchModalContent {
       this.binded.onAddToStageButtonClick,
       false
     );
-    window.addEventListener('resize', this.binded.onWindowResize, false);
 
     // Date range picker
     this.customLookbackFlatpickr = flatpickr(
@@ -406,10 +424,10 @@ export class JaegerSearchModalContent {
     };
   }
 
-  private async testApiAndUpdateStatus() {
+  private async testApiAndFetchServices() {
     const els = this.elements;
 
-    els.header.statusContainer.classList.remove('success', 'error');
+    els.header.statusContainer.classList.remove('success', 'error', 'warning');
     els.header.statusContainer.innerHTML = `<div class="sk-circle">
       <div class="sk-circle1 sk-child"></div>
       <div class="sk-circle2 sk-child"></div>
@@ -426,17 +444,46 @@ export class JaegerSearchModalContent {
     </div>`;
     els.header.statusContent.textContent = 'Testing the API...';
 
-    try {
-      await this.api.test();
-
-      els.header.statusContainer.classList.add('success');
-      els.header.statusContainer.innerHTML = SvgCheckCircle;
-      els.header.statusContent.textContent = 'API is OK';
-    } catch (err) {
+    // Test api
+    const [testErr] = await to(this.api.test());
+    if (testErr) {
       els.header.statusContainer.classList.add('error');
       els.header.statusContainer.innerHTML = SvgAlertCircle;
-      els.header.statusContent.textContent = err.message;
+      els.header.statusContent.textContent = testErr.message;
+      return;
     }
+
+    // Get services
+    const [getErr, response] = await to(this.api.getServices());
+    if (getErr) {
+      els.header.statusContainer.classList.add('error');
+      els.header.statusContainer.innerHTML = SvgAlertCircle;
+      els.header.statusContent.textContent = `Could not get services from API: "${getErr.message}"`;
+      return;
+    }
+
+    if (!response.data) {
+      els.header.statusContainer.classList.add('warning');
+      els.header.statusContainer.innerHTML = SvgAlert;
+      els.header.statusContent.textContent = `There is no services found`;
+      return;
+    }
+
+    const serviceNames: string[] = response.data.sort();
+    this.elements.search.serviceSelect.innerHTML = serviceNames
+      .map((s) => `<option value="${s}">${s}</option>`)
+      .join('');
+
+    const currentValue = this.elements.search.serviceSelect.value;
+    if (serviceNames.indexOf(currentValue) > -1) {
+      this.elements.search.serviceSelect.value = currentValue;
+    }
+
+    this.updateOperationsSelect();
+
+    els.header.statusContainer.classList.add('success');
+    els.header.statusContainer.innerHTML = SvgCheckCircle;
+    els.header.statusContent.textContent = 'API is OK';
   }
 
   onShow() {
@@ -451,40 +498,7 @@ export class JaegerSearchModalContent {
     );
     this.tracesTable.redrawTable(true);
 
-    this.testApiAndUpdateStatus();
-    this.updateServicesSelect();
-  }
-
-  private async updateServicesSelect() {
-    const currentValue = this.elements.search.serviceSelect.value;
-
-    try {
-      const response = await this.api.getServices();
-
-      if (!response.data) {
-        new Noty({
-          text: `There is no services found in Jaeger`,
-          type: 'error',
-        }).show();
-        return;
-      }
-
-      const serviceNames: string[] = response.data.sort();
-      this.elements.search.serviceSelect.innerHTML = serviceNames
-        .map((s) => `<option value="${s}">${s}</option>`)
-        .join('');
-
-      if (serviceNames.indexOf(currentValue) > -1) {
-        this.elements.search.serviceSelect.value = currentValue;
-      }
-
-      this.updateOperationsSelect();
-    } catch (err) {
-      new Noty({
-        text: `Could not fetch services from API: "${err.message}"`,
-        type: 'error',
-      }).show();
-    }
+    this.testApiAndFetchServices();
   }
 
   private async updateOperationsSelect() {
@@ -622,7 +636,7 @@ export class JaegerSearchModalContent {
     }
   }
 
-  private onWindowResize() {
+  resize() {
     const { tableContainer, scatterPlotContainer } = this.elements.result;
     this.tracesScatterPlot.resize(
       scatterPlotContainer.offsetWidth,
@@ -658,13 +672,7 @@ export class JaegerSearchModalContent {
 
   private async onTableTraceDoubleClicked(trace: SearchModalTraceRowData) {
     const traces = this.traceResults.filter((t) => t.id == trace.id);
-
-    const modal = ModalManager.getSingleton().findModalFromElement(
-      this.elements.container
-    );
-    if (!modal) throw new Error(`Could not find modal instance`);
-    modal.close({ data: { action: 'addToStage', traces } });
-
+    this.options.onTracesAdd?.(traces);
     this.tracesTable.selectTrace(null);
   }
 
@@ -672,13 +680,7 @@ export class JaegerSearchModalContent {
     const traces = this.selectedTraceIds.map((traceId) => {
       return find(this.traceResults, (t) => t.id == traceId);
     });
-
-    const modal = ModalManager.getSingleton().findModalFromElement(
-      this.elements.container
-    );
-    if (!modal) throw new Error(`Could not find modal instance`);
-    modal.close({ data: { action: 'addToStage', traces } });
-
+    this.options.onTracesAdd?.(traces);
     this.tracesTable.selectTrace(null);
   }
 
@@ -688,8 +690,22 @@ export class JaegerSearchModalContent {
   }
 
   private onStatusClick() {
-    this.testApiAndUpdateStatus();
-    this.updateServicesSelect();
+    this.testApiAndFetchServices();
+  }
+
+  private onSearchFormToggleClick() {
+    const els = this.elements;
+    this.isSearchFormHidden = !this.isSearchFormHidden;
+
+    if (this.isSearchFormHidden) {
+      els.mainContainer.classList.add('search-form-hidden');
+      els.searchFormToggle.innerHTML = SvgArrowCollapseRight;
+    } else {
+      els.mainContainer.classList.remove('search-form-hidden');
+      els.searchFormToggle.innerHTML = SvgArrowCollapseLeft;
+    }
+
+    this.resize();
   }
 
   private toggleRightPanelOverlay(
@@ -798,7 +814,11 @@ export class JaegerSearchModalContent {
       this.binded.onAddToStageButtonClick,
       false
     );
-    window.removeEventListener('resize', this.binded.onWindowResize, false);
+    this.elements.searchFormToggle.removeEventListener(
+      'click',
+      this.binded.onSearchFormToggleClick,
+      false
+    );
     this.tracesScatterPlot.removeListener(
       TracesScatterPlotEvent.POINT_CLICKED,
       this.binded.onTraceScatterPointClick
