@@ -18,6 +18,18 @@ select {
   transition: border-color 0.3s, box-shadow 0.2s;
 }
 
+/* Fix flatpicker's year input */
+.flatpickr-calendar input {
+  -webkit-appearance: inherit !important;
+  box-sizing: inherit !important;
+  border: inherit !important;
+  padding: inherit !important;
+  border-radius: inherit !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  transition: inherit !important;
+}
+
 input:not([type='checkbox']):not([type='radio']):hover,
 select:hover {
   border-color: #1874fb;
