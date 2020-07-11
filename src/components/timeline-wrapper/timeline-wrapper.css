@@ -30,6 +30,10 @@
   font-weight: 500;
 }
 
+.timeline-container .empty-message-container > div {
+  padding: 0 50px;
+}
+
 .empty-message-container .data-sources-text {
   margin-top: 0.7em;
   margin-bottom: 0.7em;
