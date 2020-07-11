@@ -93,7 +93,6 @@
   --height: 30px;
   padding: 0px 10px;
   background: #e5e5e5;
-  flex: 0 1 125px;
   min-height: var(--height);
   max-height: var(--height);
   min-width: 35px;
@@ -193,8 +192,7 @@
 }
 
 .p-TabBar-tabLabel {
-  flex: 1 1 auto;
-  overflow: hidden;
+  margin-right: 5px;
   white-space: nowrap;
 }
 
