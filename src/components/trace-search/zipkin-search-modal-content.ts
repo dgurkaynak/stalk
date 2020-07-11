@@ -110,6 +110,7 @@ export class ZipkinSearchModalContent {
     onTableTraceDoubleClicked: this.onTableTraceDoubleClicked.bind(this),
     onAddToStageButtonClick: this.onAddToStageButtonClick.bind(this),
     onTraceScatterPointClick: this.onTraceScatterPointClick.bind(this),
+    onStatusClick: this.onStatusClick.bind(this),
   };
 
   constructor(private options: ZipkinSearchModalContentOptions) {
@@ -316,6 +317,11 @@ export class ZipkinSearchModalContent {
     this.tracesTable.on(
       SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED,
       this.binded.onTableTraceDoubleClicked
+    );
+    this.elements.header.statusContainer.addEventListener(
+      'click',
+      this.binded.onStatusClick,
+      false
     );
     this.elements.searchByTraceId.form.addEventListener(
       'submit',
@@ -683,6 +689,11 @@ export class ZipkinSearchModalContent {
     this.tracesTable.focusTrace(trace.id);
   }
 
+  private onStatusClick() {
+    this.testApiAndUpdateStatus();
+    this.updateServicesSelect();
+  }
+
   private toggleRightPanelOverlay(
     type: 'ready' | 'loading' | 'no-results' | 'error' | false,
     errorMessage?: string
@@ -758,6 +769,11 @@ export class ZipkinSearchModalContent {
     this.tracesTable.removeListener(
       SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED,
       this.binded.onTableTraceDoubleClicked
+    );
+    this.elements.header.statusContainer.removeEventListener(
+      'click',
+      this.binded.onStatusClick,
+      false
     );
     this.elements.searchByTraceId.form.removeEventListener(
       'submit',
