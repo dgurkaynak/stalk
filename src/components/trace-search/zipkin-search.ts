@@ -6,13 +6,13 @@ import {
   DataSourceManagerEvent,
 } from '../../model/datasource/manager';
 import Noty from 'noty';
-import { JaegerAPI, JaegerAPISearchQuery } from '../../model/jaeger';
+import { ZipkinAPI, ZipkinAPISearchQuery } from '../../model/zipkin';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 import {
-  SearchModalTracesTableView,
-  SearchModalTracesTableViewEvent,
-  SearchModalTraceRowData,
-} from './search-modal-traces-table';
+  TraceSearchResultsTable,
+  TraceSearchResultsTableEvent,
+  TraceSearchResultsTableRowData,
+} from './trace-search-results-table';
 import parseDuration from 'parse-duration';
 import find from 'lodash/find';
 import flatpickr from 'flatpickr';
@@ -30,14 +30,14 @@ import SvgEmoticonSad from '!!raw-loader!@mdi/svg/svg/emoticon-sad-outline.svg';
 import SvgEmoticonCool from '!!raw-loader!@mdi/svg/svg/emoticon-cool-outline.svg';
 import SvgArrowCollapseLeft from '!!raw-loader!@mdi/svg/svg/arrow-collapse-left.svg';
 import SvgArrowCollapseRight from '!!raw-loader!@mdi/svg/svg/arrow-collapse-right.svg';
-import './jaeger-search-modal-content.css';
+import './zipkin-search.css';
 
-export interface JaegerSearchModalContentOptions {
+export interface ZipkinSearchOptions {
   dataSource: DataSource;
   onTracesAdd?: (traces: Trace[]) => void;
 }
 
-export enum JaegerLookbackValue {
+export enum ZipkinLookbackValue {
   LAST_HOUR = '1h',
   LAST_2_HOURS = '2h',
   LAST_3_HOURS = '3h',
@@ -51,10 +51,10 @@ export enum JaegerLookbackValue {
 
 const DATE_RANGE_SEPERATOR = ' - ';
 
-export class JaegerSearchModalContent {
+export class ZipkinSearch {
   private dsManager = DataSourceManager.getSingleton();
-  private api: JaegerAPI;
-  private tracesTable = new SearchModalTracesTableView();
+  private api: ZipkinAPI;
+  private tracesTable = new TraceSearchResultsTable();
   private tracesScatterPlot = new TracesScatterPlot({
     showStageBoundaries: true,
   });
@@ -118,12 +118,12 @@ export class JaegerSearchModalContent {
     onSearchFormToggleClick: this.onSearchFormToggleClick.bind(this),
   };
 
-  constructor(private options: JaegerSearchModalContentOptions) {
-    this.api = this.dsManager.apiFor(this.options.dataSource) as JaegerAPI;
+  constructor(private options: ZipkinSearchOptions) {
+    this.api = this.dsManager.apiFor(this.options.dataSource) as ZipkinAPI;
 
     // Prepare DOM
     const els = this.elements;
-    els.container.classList.add('jaeger-search-modal-content');
+    els.container.classList.add('zipkin-search-modal-content');
 
     const header = document.createElement('div');
     header.classList.add('header');
@@ -235,7 +235,7 @@ export class JaegerSearchModalContent {
       tagsTitleContainer.classList.add('field-title');
       tagsContainer.appendChild(tagsTitleContainer);
       tagsInput.classList.add('small');
-      tagsInput.placeholder = 'http.status_code=200 error=true';
+      tagsInput.placeholder = 'http.uri=/foo and retried';
       tagsContainer.appendChild(tagsInput);
 
       const lookbackContainer = document.createElement('div');
@@ -249,15 +249,15 @@ export class JaegerSearchModalContent {
       lookbackSelect.required = true;
       lookbackContainer.appendChild(lookbackSelect);
 
-      lookbackSelect.innerHTML = `<option value="${JaegerLookbackValue.LAST_HOUR}">Last Hour</option>
-      <option value="${JaegerLookbackValue.LAST_2_HOURS}">Last 2 Hours</option>
-      <option value="${JaegerLookbackValue.LAST_3_HOURS}">Last 3 Hours</option>
-      <option value="${JaegerLookbackValue.LAST_6_HOURS}">Last 6 Hours</option>
-      <option value="${JaegerLookbackValue.LAST_12_HOURS}">Last 12 Hours</option>
-      <option value="${JaegerLookbackValue.LAST_24_HOURS}">Last 24 Hours</option>
-      <option value="${JaegerLookbackValue.LAST_2_DAYS}">Last 2 Days</option>
-      <option value="${JaegerLookbackValue.LAST_7_DAYS}">Last 7 Days</option>
-      <option value="${JaegerLookbackValue.CUSTOM}">Custom</option>`;
+      lookbackSelect.innerHTML = `<option value="${ZipkinLookbackValue.LAST_HOUR}">Last Hour</option>
+      <option value="${ZipkinLookbackValue.LAST_2_HOURS}">Last 2 Hours</option>
+      <option value="${ZipkinLookbackValue.LAST_3_HOURS}">Last 3 Hours</option>
+      <option value="${ZipkinLookbackValue.LAST_6_HOURS}">Last 6 Hours</option>
+      <option value="${ZipkinLookbackValue.LAST_12_HOURS}">Last 12 Hours</option>
+      <option value="${ZipkinLookbackValue.LAST_24_HOURS}">Last 24 Hours</option>
+      <option value="${ZipkinLookbackValue.LAST_2_DAYS}">Last 2 Days</option>
+      <option value="${ZipkinLookbackValue.LAST_7_DAYS}">Last 7 Days</option>
+      <option value="${ZipkinLookbackValue.CUSTOM}">Custom</option>`;
 
       lookbackContainer.appendChild(customLookbackInput);
 
@@ -292,7 +292,7 @@ export class JaegerSearchModalContent {
       limitContainer.appendChild(limitTitleContainer);
       limitInput.classList.add('small');
       limitInput.type = 'number';
-      limitInput.min = '0';
+      limitInput.min = '1';
       limitInput.value = '100';
       limitInput.required = true;
       limitContainer.appendChild(limitInput);
@@ -324,11 +324,11 @@ export class JaegerSearchModalContent {
       this.binded.onDataSourceManagerUpdate
     );
     this.tracesTable.on(
-      SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
+      TraceSearchResultsTableEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
     );
     this.tracesTable.on(
-      SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED,
+      TraceSearchResultsTableEvent.TRACE_DOUBLE_CLICKED,
       this.binded.onTableTraceDoubleClicked
     );
     this.elements.header.statusContainer.addEventListener(
@@ -462,14 +462,14 @@ export class JaegerSearchModalContent {
       return;
     }
 
-    if (!response.data) {
+    if (!response || !response.length) {
       els.header.statusContainer.classList.add('warning');
       els.header.statusContainer.innerHTML = SvgAlert;
       els.header.statusContent.textContent = `There is no services found`;
       return;
     }
 
-    const serviceNames: string[] = response.data.sort();
+    const serviceNames: string[] = response.sort();
     this.elements.search.serviceSelect.innerHTML = serviceNames
       .map((s) => `<option value="${s}">${s}</option>`)
       .join('');
@@ -506,8 +506,8 @@ export class JaegerSearchModalContent {
     const currentValue = this.elements.search.operationSelect.value;
 
     try {
-      const response = await this.api.getOperations(serviceName);
-      const operationNames: string[] = ['all', ...response.data.sort()];
+      const response = await this.api.getSpans(serviceName);
+      const operationNames: string[] = ['all', ...response.sort()];
       this.elements.search.operationSelect.innerHTML = operationNames
         .map((o) => `<option value="${o}">${o}</option>`)
         .join('');
@@ -526,7 +526,7 @@ export class JaegerSearchModalContent {
   private onDataSourceManagerUpdate(ds: DataSource) {
     if (ds.id != this.options.dataSource.id) return;
     this.options.dataSource = ds;
-    this.api = this.dsManager.apiFor(ds) as JaegerAPI;
+    this.api = this.dsManager.apiFor(ds) as ZipkinAPI;
   }
 
   private async onSearchByTraceIdFormSubmit(e: Event) {
@@ -539,8 +539,9 @@ export class JaegerSearchModalContent {
     try {
       const formEl = this.elements.searchByTraceId;
 
-      const traceSpans: Span[][] = await this.api.getTrace(formEl.input.value);
-      this.traceResults = traceSpans.map((spans) => new Trace(spans));
+      const traceSpans: Span[] = await this.api.getTrace(formEl.input.value);
+
+      this.traceResults = traceSpans.length > 0 ? [new Trace(traceSpans)] : [];
       this.tracesScatterPlot.setTraces(this.traceResults);
       this.tracesTable.updateTraces(this.traceResults);
 
@@ -563,41 +564,41 @@ export class JaegerSearchModalContent {
 
     try {
       const formEl = this.elements.search;
-      const query: JaegerAPISearchQuery = {
-        service: formEl.serviceSelect.value,
+      const query: ZipkinAPISearchQuery = {
+        serviceName: formEl.serviceSelect.value,
       };
 
       if (
         formEl.operationSelect.value &&
         formEl.operationSelect.value != 'all'
       ) {
-        query.operation = formEl.operationSelect.value;
+        query.spanName = formEl.operationSelect.value;
       }
 
       if (formEl.tagsInput.value) {
-        query.tags = formEl.tagsInput.value;
+        query.annotationQuery = formEl.tagsInput.value;
       }
 
-      if (formEl.lookbackSelect.value == JaegerLookbackValue.CUSTOM) {
+      if (formEl.lookbackSelect.value == ZipkinLookbackValue.CUSTOM) {
         const dateRangeValue = this.customLookbackFlatpickr.input.value.trim();
         const parts = dateRangeValue.split(DATE_RANGE_SEPERATOR);
         if (parts.length != 2) {
           throw new Error(`Unsupported custom lookback`);
         }
-        query.start = new Date(parts[0]).getTime() * 1000;
-        query.end = new Date(parts[1]).getTime() * 1000;
+        query.endTs = new Date(parts[1]).getTime();
+        query.lookback = query.endTs - new Date(parts[0]).getTime();
       } else {
         const duration = parseDuration(formEl.lookbackSelect.value);
-        query.end = Date.now() * 1000;
-        query.start = query.end - duration * 1000;
+        query.endTs = Date.now();
+        query.lookback = duration;
       }
 
       if (formEl.minDurationInput.value) {
-        query.minDuration = formEl.minDurationInput.value;
+        query.minDuration = parseDuration(formEl.minDurationInput.value) * 1000;
       }
 
       if (formEl.maxDurationInput.value) {
-        query.maxDuration = formEl.maxDurationInput.value;
+        query.maxDuration = parseDuration(formEl.maxDurationInput.value) * 1000;
       }
 
       const limitIntValue = parseInt(formEl.limitInput.value, 10);
@@ -627,7 +628,7 @@ export class JaegerSearchModalContent {
 
   private onLookbackSelectChange() {
     if (
-      this.elements.search.lookbackSelect.value == JaegerLookbackValue.CUSTOM
+      this.elements.search.lookbackSelect.value == ZipkinLookbackValue.CUSTOM
     ) {
       this.customLookbackFlatpickr.altInput.style.display = '';
       this.customLookbackFlatpickr.open();
@@ -649,7 +650,7 @@ export class JaegerSearchModalContent {
   }
 
   private async onTableSelectionUpdated(
-    selectedTraces: SearchModalTraceRowData[]
+    selectedTraces: TraceSearchResultsTableRowData[]
   ) {
     // When we try to redraw tabulator while it's already redrawing,
     // it gives an error. So, we apply the most famous javascript workaround ever.
@@ -670,7 +671,7 @@ export class JaegerSearchModalContent {
     this.elements.footer.addToStageButton.disabled = false;
   }
 
-  private async onTableTraceDoubleClicked(trace: SearchModalTraceRowData) {
+  private async onTableTraceDoubleClicked(trace: TraceSearchResultsTableRowData) {
     const traces = this.traceResults.filter((t) => t.id == trace.id);
     this.options.onTracesAdd?.(traces);
     this.tracesTable.selectTrace(null);
@@ -777,11 +778,11 @@ export class JaegerSearchModalContent {
       this.binded.onDataSourceManagerUpdate
     );
     this.tracesTable.removeListener(
-      SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
+      TraceSearchResultsTableEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
     );
     this.tracesTable.removeListener(
-      SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED,
+      TraceSearchResultsTableEvent.TRACE_DOUBLE_CLICKED,
       this.binded.onTableTraceDoubleClicked
     );
     this.elements.header.statusContainer.removeEventListener(

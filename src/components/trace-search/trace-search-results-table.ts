@@ -11,9 +11,9 @@ import format from 'date-fns/format';
 import SvgCheckCircle from '!!raw-loader!@mdi/svg/svg/check-circle.svg';
 import SvgAlert from '!!raw-loader!@mdi/svg/svg/alert.svg';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import './search-modal-traces-table.css';
+import './trace-search-results-table.css';
 
-export interface SearchModalTraceRowData {
+export interface TraceSearchResultsTableRowData {
   id: string;
   startTime: number;
   finishTime: number;
@@ -24,7 +24,7 @@ export interface SearchModalTraceRowData {
   services: { [key: string]: number };
 }
 
-export interface SearchModalTracesTableOptions {
+export interface TraceSearchResultsTableOptions {
   width: number;
   height: number;
   showInStageColumn?: boolean;
@@ -33,16 +33,16 @@ export interface SearchModalTracesTableOptions {
   placeholderElement?: HTMLElement;
 }
 
-export enum SearchModalTracesTableViewEvent {
+export enum TraceSearchResultsTableEvent {
   SELECTIONS_UPDATED = 'selections_updated',
   TRACE_DOUBLE_CLICKED = 'trace_double_clicked',
 }
 
-export class SearchModalTracesTableView extends EventEmitter {
+export class TraceSearchResultsTable extends EventEmitter {
   private stage = Stage.getSingleton();
-  private options: SearchModalTracesTableOptions;
+  private options: TraceSearchResultsTableOptions;
   private table: Tabulator;
-  private traceRows: SearchModalTraceRowData[] = [];
+  private traceRows: TraceSearchResultsTableRowData[] = [];
 
   private elements = {
     container: document.createElement('div'),
@@ -133,7 +133,7 @@ export class SearchModalTracesTableView extends EventEmitter {
     container.appendChild(loadingContainer);
   }
 
-  init(options: SearchModalTracesTableOptions) {
+  init(options: TraceSearchResultsTableOptions) {
     this.options = options;
     this.viewPropertiesCache = {
       width: options.width,
@@ -191,12 +191,12 @@ export class SearchModalTracesTableView extends EventEmitter {
   }
 
   private rowSelectionChanged(data: any, rows: any) {
-    this.emit(SearchModalTracesTableViewEvent.SELECTIONS_UPDATED, data);
+    this.emit(TraceSearchResultsTableEvent.SELECTIONS_UPDATED, data);
   }
 
   private rowDblClick(e: MouseEvent, row: any) {
-    const data: SearchModalTraceRowData = row.getData();
-    this.emit(SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED, data);
+    const data: TraceSearchResultsTableRowData = row.getData();
+    this.emit(TraceSearchResultsTableEvent.TRACE_DOUBLE_CLICKED, data);
   }
 
   private trace2RowData(trace: Trace) {

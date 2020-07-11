@@ -3,10 +3,10 @@ import { Trace } from '../../model/trace';
 import { ModalManager } from '../ui/modal/modal-manager';
 import Noty from 'noty';
 import {
-  SearchModalTracesTableView,
-  SearchModalTracesTableViewEvent,
-  SearchModalTraceRowData,
-} from '../trace-search/search-modal-traces-table';
+  TraceSearchResultsTable,
+  TraceSearchResultsTableEvent,
+  TraceSearchResultsTableRowData,
+} from '../trace-search/trace-search-results-table';
 import throttle from 'lodash/throttle';
 import groupBy from 'lodash/groupBy';
 import {
@@ -26,7 +26,7 @@ import remove from 'lodash/remove';
 import './live-collector-modal-content.css';
 
 export class LiveCollectorModalContent {
-  private tracesTable = new SearchModalTracesTableView();
+  private tracesTable = new TraceSearchResultsTable();
   private spansDB: Span[] = [];
   private selectedTraceIds: string[] = [];
   private elements = {
@@ -383,11 +383,11 @@ export class LiveCollectorModalContent {
   init() {
     // Bind events
     this.tracesTable.on(
-      SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
+      TraceSearchResultsTableEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
     );
     this.tracesTable.on(
-      SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED,
+      TraceSearchResultsTableEvent.TRACE_DOUBLE_CLICKED,
       this.binded.onTableTraceDoubleClicked
     );
     this.elements.bottom.addToStageButton.addEventListener(
@@ -446,7 +446,7 @@ export class LiveCollectorModalContent {
   }
 
   private async onTableSelectionUpdated(
-    selectedTraces: SearchModalTraceRowData[]
+    selectedTraces: TraceSearchResultsTableRowData[]
   ) {
     // When we try to redraw tabulator while it's already redrawing,
     // it gives an error. So, we apply the most famous javascript workaround ever.
@@ -469,7 +469,7 @@ export class LiveCollectorModalContent {
     this.elements.bottom.deleteFromCollectorButton.disabled = false;
   }
 
-  private async onTableTraceDoubleClicked(trace: SearchModalTraceRowData) {
+  private async onTableTraceDoubleClicked(trace: TraceSearchResultsTableRowData) {
     const traceSpans = this.spansDB.filter((span) => {
       return span.traceId == trace.id;
     });
@@ -706,11 +706,11 @@ export class LiveCollectorModalContent {
 
   dispose() {
     this.tracesTable.removeListener(
-      SearchModalTracesTableViewEvent.SELECTIONS_UPDATED,
+      TraceSearchResultsTableEvent.SELECTIONS_UPDATED,
       this.binded.onTableSelectionUpdated
     );
     this.tracesTable.removeListener(
-      SearchModalTracesTableViewEvent.TRACE_DOUBLE_CLICKED,
+      TraceSearchResultsTableEvent.TRACE_DOUBLE_CLICKED,
       this.binded.onTableTraceDoubleClicked
     );
     this.elements.bottom.addToStageButton.removeEventListener(

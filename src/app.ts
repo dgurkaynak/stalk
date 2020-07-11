@@ -35,8 +35,8 @@ import * as path from 'path';
 import format from 'date-fns/format';
 import { SettingsManager, SettingsKey } from './model/settings-manager';
 import { DataSource, DataSourceType } from './model/datasource/interfaces';
-import { JaegerSearchModalContent } from './components/trace-search/jaeger-search-modal-content';
-import { ZipkinSearchModalContent } from './components/trace-search/zipkin-search-modal-content';
+import { JaegerSearch } from './components/trace-search/jaeger-search';
+import { ZipkinSearch } from './components/trace-search/zipkin-search';
 
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
@@ -83,7 +83,7 @@ export class App {
     [key: string]: {
       dataSource: DataSource;
       widgetWrapper: WidgetWrapper;
-      component: JaegerSearchModalContent | ZipkinSearchModalContent;
+      component: JaegerSearch | ZipkinSearch;
     };
   } = {};
 
@@ -537,16 +537,16 @@ export class App {
       return;
     }
 
-    let component: JaegerSearchModalContent | ZipkinSearchModalContent;
+    let component: JaegerSearch | ZipkinSearch;
     if (dataSource.type == DataSourceType.JAEGER) {
-      component = new JaegerSearchModalContent({
+      component = new JaegerSearch({
         dataSource,
         onTracesAdd: (traces: Trace[]) => {
           traces.forEach((t) => this.stage.addTrace(t));
         },
       });
     } else if (dataSource.type == DataSourceType.ZIPKIN) {
-      component = new ZipkinSearchModalContent({
+      component = new ZipkinSearch({
         dataSource,
         onTracesAdd: (traces: Trace[]) => {
           traces.forEach((t) => this.stage.addTrace(t));
