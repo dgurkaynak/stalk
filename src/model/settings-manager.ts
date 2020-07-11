@@ -1,6 +1,11 @@
 import db from './db';
 
 export enum SettingsKey {
+  /**
+   * Do not use again. If you're going to,
+   * create a new enum and do not forget to version it!
+   * @deprecated
+   */
   DOCK_LAYOUT = 'dock_layout',
 }
 

@@ -91,10 +91,6 @@ export class App {
     onKeyDown: this.onKeyDown.bind(this),
     onImportMenuClick: this.onImportMenuClick.bind(this),
     onExportMenuClick: this.onExportMenuClick.bind(this),
-    onDockPanelLayoutChange: debounce(
-      this.onDockPanelLayoutChange.bind(this),
-      2500
-    ),
   };
 
   constructor(private options: AppOptions) {
@@ -288,26 +284,7 @@ export class App {
       closable: false,
     });
 
-    try {
-      const layout = this.deserializeDockPanelLayout(
-        this.settingsManager.get(SettingsKey.DOCK_LAYOUT) ||
-          this.getDefaultDockPanelLayout(),
-        true
-      );
-      this.dockPanel.restoreLayout(layout);
-    } catch (err) {
-      console.warn(
-        `Unexpected error while loading dockPanel settings, resetting...`,
-        err
-      );
-      const layout = this.deserializeDockPanelLayout(
-        this.getDefaultDockPanelLayout(),
-        true
-      );
-      this.dockPanel.restoreLayout(layout);
-    }
-
-    this.dockPanel.layoutModified.connect(this.binded.onDockPanelLayoutChange);
+    this.dockPanel.restoreLayout(this.getDockPanelLayout() as any);
     DockPanel.attach(this.dockPanel, this.options.element);
   }
 
@@ -709,84 +686,17 @@ export class App {
     });
   }
 
-  private async onDockPanelLayoutChange() {
-    const layout = this.serializeDockPanelLayout();
-    await this.settingsManager.set(SettingsKey.DOCK_LAYOUT, layout);
-  }
-
-  private serializeDockPanelLayout(layout = this.dockPanel.saveLayout()) {
-    const recursiveReplaceWidgets: any = (obj: { [key: string]: any }) => {
-      // If we find target object
-      if (obj.widgets && isArray(obj.widgets)) {
-        const widgets = obj.widgets;
-
-        // Mutate
-        obj.widgets = widgets.map((widget) => {
-          for (const widgetName in this.widgets) {
-            if (this.widgets[widgetName] == widget) {
-              return widgetName;
-            }
-          }
-
-          console.error(`Cannot serialize dock layout, unknown widget`, widget);
-          throw new Error(`Cannot serialize dock layout, unknown widget`);
-        });
-
-        return;
-      }
-
-      if (obj.children && isArray(obj.children)) {
-        obj.children.forEach(recursiveReplaceWidgets);
-        return;
-      }
-    };
-
-    recursiveReplaceWidgets(layout.main);
-    return layout;
-  }
-
-  private deserializeDockPanelLayout(layout: any, resetTabIndex = false) {
-    const recursiveReplaceWidgets: any = (obj: { [key: string]: any }) => {
-      // If we find target object
-      if (obj.widgets && isArray(obj.widgets)) {
-        const widgetNames = obj.widgets;
-
-        if (resetTabIndex) {
-          obj.currentIndex = 0;
-        }
-
-        // Mutate
-        obj.widgets = widgetNames.map((widgetName) => {
-          const widget = this.widgets[widgetName];
-          if (!widget) {
-            throw new Error(
-              `Cannot deserialize dock layout, unknown widget: "${widgetName}"`
-            );
-          }
-          return widget;
-        });
-
-        return;
-      }
-
-      if (obj.children && isArray(obj.children)) {
-        obj.children.forEach(recursiveReplaceWidgets);
-        return;
-      }
-    };
-
-    recursiveReplaceWidgets(layout.main);
-    return layout;
-  }
-
-  private getDefaultDockPanelLayout() {
+  private getDockPanelLayout() {
     return {
       main: {
         children: [
           {
             type: 'tab-area',
             currentIndex: 0,
-            widgets: [AppWidgetType.TIMELINE, AppWidgetType.SPANS_TABLE],
+            widgets: [
+              this.widgets[AppWidgetType.TIMELINE],
+              this.widgets[AppWidgetType.SPANS_TABLE],
+            ],
           },
           {
             type: 'split-area',
@@ -796,20 +706,20 @@ export class App {
               {
                 type: 'tab-area',
                 currentIndex: 0,
-                widgets: [AppWidgetType.SPAN_SUMMARY],
+                widgets: [this.widgets[AppWidgetType.SPAN_SUMMARY]],
               },
               {
                 type: 'tab-area',
                 currentIndex: 0,
                 widgets: [
-                  AppWidgetType.SPAN_TAGS,
-                  AppWidgetType.SPAN_PROCESS_TAGS,
+                  this.widgets[AppWidgetType.SPAN_TAGS],
+                  this.widgets[AppWidgetType.SPAN_PROCESS_TAGS],
                 ],
               },
               {
                 type: 'tab-area',
                 currentIndex: 0,
-                widgets: [AppWidgetType.SPAN_LOGS],
+                widgets: [this.widgets[AppWidgetType.SPAN_LOGS]],
               },
             ],
           },
@@ -843,9 +753,6 @@ export class App {
       this.binded.showSpanInTimelineView
     );
     document.removeEventListener('keydown', this.binded.onKeyDown, false);
-    this.dockPanel.layoutModified.disconnect(
-      this.binded.onDockPanelLayoutChange
-    );
 
     this.toolbar.dispose();
     this.toolbar = null;
