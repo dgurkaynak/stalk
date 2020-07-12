@@ -1051,7 +1051,7 @@ export class TimelineView extends EventEmitter {
   private onWheel(e: WheelEvent) {
     if (this.traces.length === 0) return;
     this.spanTooltipTippy.popperInstance.update();
-    this.zoom(1 - 0.01 * e.deltaY, e.offsetX);
+    this.zoom(1 - 0.0025 * e.deltaY, e.offsetX);
   }
 
   private onClick(e: MouseEvent) {
