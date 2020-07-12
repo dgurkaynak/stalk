@@ -26,13 +26,27 @@
   align-items: center;
 }
 
-.datasource-form-modal-content .form-row > div:first-child {
-  width: 10em;
+.datasource-form-modal-content .form-row > div {
+  width: 145px;
   margin: 0 0.5em;
   text-align: right;
 }
 
+.datasource-form-modal-content .form-row.base-url > div {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.datasource-form-modal-content .form-row.base-url svg {
+  width: 18px;
+  height: 18px;
+  margin-left: 5px;
+  position: relative;
+  top: 1px;
+}
+
 .datasource-form-modal-content .form-row input[type='text'],
 .datasource-form-modal-content .form-row input[type='password'] {
-  width: 20em;
+  flex-grow: 1;
 }

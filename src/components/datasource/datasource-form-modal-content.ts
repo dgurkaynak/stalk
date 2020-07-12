@@ -3,7 +3,9 @@ import { ModalManager } from '../ui/modal/modal-manager';
 import Noty from 'noty';
 import { JaegerAPI } from '../../model/jaeger';
 import { ZipkinAPI } from '../../model/zipkin';
+import tippy, { Instance as TippyInstance } from 'tippy.js';
 
+import SvgInformationOutline from '!!raw-loader!@mdi/svg/svg/information-outline.svg';
 import './datasource-form-modal-content.css';
 
 export interface DataSourceFormModalContentOptions {
@@ -18,7 +20,8 @@ export class DataSourceFormModalContent {
       container: document.createElement('form'),
       typeSelect: document.createElement('select'),
       nameInput: document.createElement('input'),
-      baseUrlLabel: document.createElement('div'),
+      baseUrlLabel: document.createElement('span'),
+      baseUrlInfoIconContainer: document.createElement('span'),
       baseUrlInput: document.createElement('input'),
       basicAuthCheckbox: document.createElement('input'),
       usernameRow: document.createElement('div'),
@@ -30,6 +33,8 @@ export class DataSourceFormModalContent {
       testButton: document.createElement('button'),
     },
   };
+  private baseUrlInfoTooltipContent = document.createElement('span');
+  private baseUrlInfoTooltipTippy: TippyInstance;
 
   private binded = {
     onCancelButtonClick: this.onCancelButtonClick.bind(this),
@@ -64,6 +69,18 @@ export class DataSourceFormModalContent {
       'submit',
       this.binded.onFormSubmit,
       false
+    );
+
+    this.baseUrlInfoTooltipTippy = tippy(
+      this.elements.form.baseUrlInfoIconContainer,
+      {
+        content: this.baseUrlInfoTooltipContent,
+        multiple: true,
+        placement: 'top',
+        duration: 0,
+        updateDuration: 0,
+        maxWidth: '200px',
+      }
     );
   }
 
@@ -180,17 +197,20 @@ export class DataSourceFormModalContent {
 
     // Base url
     const baseUrlRow = document.createElement('div');
-    baseUrlRow.classList.add('form-row');
-    formEl.baseUrlLabel.textContent = `Query API Base URL:`;
-    baseUrlRow.appendChild(formEl.baseUrlLabel);
+    baseUrlRow.classList.add('form-row', 'base-url');
+    const baseUrlLabelContainer = document.createElement('div');
+    baseUrlRow.appendChild(baseUrlLabelContainer);
+    baseUrlLabelContainer.appendChild(formEl.baseUrlLabel);
+    formEl.baseUrlInfoIconContainer.innerHTML = SvgInformationOutline;
+    baseUrlLabelContainer.appendChild(formEl.baseUrlInfoIconContainer);
     formEl.baseUrlInput.type = 'text';
     formEl.baseUrlInput.required = true;
-    formEl.baseUrlInput.placeholder = 'http://0.0.0.0:16686/api';
     if (this.options.dataSource?.baseUrl) {
       formEl.baseUrlInput.value = this.options.dataSource.baseUrl;
     }
     baseUrlRow.appendChild(formEl.baseUrlInput);
     this.elements.form.container.appendChild(baseUrlRow);
+    this.onTypeSelectChange(); // initially update base url input according to selected ds type
 
     // Basic auth
     const basicAuthRow = document.createElement('div');
@@ -284,11 +304,13 @@ export class DataSourceFormModalContent {
     if (formEl.typeSelect.value == DataSourceType.JAEGER) {
       formEl.baseUrlInput.placeholder = 'http://0.0.0.0:16686/api';
       formEl.baseUrlLabel.textContent = `Query API Base URL:`;
+      this.baseUrlInfoTooltipContent.textContent = `Base URL of jaeger-query service, most common form http://x.x.x.x:16686/api`;
     }
 
     if (formEl.typeSelect.value == DataSourceType.ZIPKIN) {
       formEl.baseUrlInput.placeholder = 'http://0.0.0.0:9411/api/v2';
       formEl.baseUrlLabel.textContent = `API Base URL:`;
+      this.baseUrlInfoTooltipContent.textContent = `Base URL of Zipkin's v2 API, most common form http://x.x.x.x:9411/api/v2`;
     }
   }
 
@@ -318,5 +340,6 @@ export class DataSourceFormModalContent {
       this.binded.onTypeSelectChange,
       false
     );
+    this.baseUrlInfoTooltipTippy.destroy();
   }
 }
