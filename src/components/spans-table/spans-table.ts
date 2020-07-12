@@ -145,7 +145,6 @@ export class SpansTableView extends EventEmitter {
   private columnsMultiSelect = new WidgetToolbarMultiSelect({
     width: 200,
     maxItemContainerHeight: 125,
-    showSearch: true,
     onSelect: this.binded.onColumnsMultiSelectSelect,
     onUnselect: this.binded.onColumnsMultiSelectUnselect,
     onSearchInput: this.binded.onColumnsMultiSelectSearchInput,

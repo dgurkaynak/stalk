@@ -204,7 +204,6 @@ export class TimelineWrapper {
   private spanTooltipCustomizationMultiSelect = new WidgetToolbarMultiSelect({
     width: 200,
     maxItemContainerHeight: 125,
-    showSearch: true,
     onSelect: this.binded.onSpanTooltipCustomizationMultiSelectSelect,
     onUnselect: this.binded.onSpanTooltipCustomizationMultiSelectUnselect,
     onSearchInput: this.binded.onSpanTooltipCustomizationMultiSelectSearchInput,
