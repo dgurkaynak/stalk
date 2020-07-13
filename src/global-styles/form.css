@@ -49,6 +49,7 @@ select {
   background-position: calc(100% - 5px) 50%;
   padding-right: 30px;
   cursor: pointer;
+  background-color: #fff; /* in linux, the default is gray */
 }
 
 select:focus {
@@ -58,7 +59,7 @@ select:focus {
 input:not([type='checkbox']):not([type='radio']):disabled,
 select:disabled {
   border-color: #d0d0d0;
-  background: #f2f2f2;
+  background-color: #f2f2f2;
   color: #afafaf;
   cursor: not-allowed;
 }
