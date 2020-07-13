@@ -28,6 +28,7 @@ function createWindow() {
     webPreferences: {
       webSecurity: false,
       nodeIntegration: true,
+      enableRemoteModule: true,
     },
     // this is for motherfucking linux:
     // https://github.com/electron-userland/electron-builder/issues/748#issuecomment-406786917
