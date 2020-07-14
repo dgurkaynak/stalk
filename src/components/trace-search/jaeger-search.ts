@@ -292,7 +292,7 @@ export class JaegerSearch {
       limitContainer.appendChild(limitTitleContainer);
       limitInput.classList.add('small');
       limitInput.type = 'number';
-      limitInput.min = '0';
+      limitInput.min = '1';
       limitInput.value = '100';
       limitInput.required = true;
       limitContainer.appendChild(limitInput);
