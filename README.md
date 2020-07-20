@@ -19,7 +19,7 @@ So that's it, Stalk Studio's goal is to provide an alternative way to inspect di
 
 # Main Features
 
-<img align="left" width="447" height="auto" src="./docs/readme-images/trace-search.png">
+<img align="left" width="350" height="auto" src="./docs/readme-images/trace-search.png">
 <div>
   <h3>:vulcan_salute: Jaeger and Zipkin support</h3>
   <div>
@@ -31,18 +31,15 @@ So that's it, Stalk Studio's goal is to provide an alternative way to inspect di
   <div>
     • Drag & drop JSON trace files that are exported from Jaeger or Zipkin
   </div>
-  <br />
-  <br />
-  <br />
-  <br />
-  <br />
-  <br />
 </div>
+
+<!-- clear-fix: https://gist.github.com/DavidWells/7d2e0e1bc78f4ac59a123ddf8b74932d#gistcomment-3372761  -->
+<table><tbody><tr><th></th></tr></tbody></table>
 
 <hr/>
 
-<img align="right" width="447" height="auto" src="./docs/readme-images/highly-customizability.gif">
 <div>
+  <img align="right" width="350" height="auto" src="./docs/readme-images/highly-customizability.gif">
   <h3>:gear: High Customizability</h3>
   Stalk Studio is built for being as flexible as possible to cover your changing needs when analyzing different traces.
   <br />
@@ -66,7 +63,7 @@ So that's it, Stalk Studio's goal is to provide an alternative way to inspect di
 
 <hr/>
 
-<img align="left" width="447" height="auto" src="./docs/readme-images/live-collector.png">
+<img align="left" width="350" height="auto" src="./docs/readme-images/live-collector.png">
 <div>
   <h3>:satellite: Live Collector</h3>
   Stalk Studio has built-in servers mimicking Jaeger
@@ -85,9 +82,10 @@ So that's it, Stalk Studio's goal is to provide an alternative way to inspect di
     • <strong>Zipkin Collector</strong>: accepts spans in JSON format over HTTP.
   </div>
 </div>
+
 <hr/>
 
-<img align="right" width="447" height="auto" src="./docs/readme-images/custom-code.gif">
+<img align="right" width="350" height="auto" src="./docs/readme-images/custom-code.gif">
 <div>
   <h3>:woman_technologist: Built for developers in mind</h3>
   If the built-in customization options don't fill your needs, you can always write your own
@@ -106,12 +104,7 @@ So that's it, Stalk Studio's goal is to provide an alternative way to inspect di
   <div>
     • Change span coloring
   </div>
-  <br />
-  <br />
-  <br />
 </div>
-
-<!-- <hr/> -->
 
 # Download
 
