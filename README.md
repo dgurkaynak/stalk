@@ -3,91 +3,62 @@
   Stalk Studio
 </h1>
 
-![Demo](./docs/readme-images/screenshot.png)
+**Stalk Studio** is an experimental debugger & profiler built on top of distributed tracing.
 
-**Stalk Studio** is a highly flexible trace analysis tool for Jaeger and Zipkin.
+- Intuitive DevTools-like UI for extracting useful information from complex traces
+- Visualize & inspect multiple traces on the same stage
+- It supports [Jaeger](https://www.jaegertracing.io/) and [Zipkin](https://zipkin.io/) out of the box
 
-- Search & import traces directly from Jaeger and Zipkin services
-- Drag & drop JSON trace files exported from Jaeger and Zipkin
-- Intuitive UI for extracting useful information from complex traces
-- Supports viewing & inspecting multiple traces on the same stage to give you a bigger perspective
-- _and more..._
+![Screenshot](./docs/readme-images/screenshot.png)
+
+# Background & Motivation
+
+At work, we had a nasty bug in a highly event-driven, consensus-based distributed system. And it was occurring randomly on some specific cluster setups that we don't have physical access for debugging. Viewing the plain text dumps of the device logs couldn't help us to analyze the issue. And we thought, why not use distributed tracing for debugging? After a little research, we've decided to go with [OpenTracing](https://opentracing.io/), a vendor-neutral instrumentation specification. So we can try and swap between the most popular open-source distributed tracing solutions, [Jaeger](https://www.jaegertracing.io/) and [Zipkin](https://zipkin.io/). After instrumentation and collecting traces, we've found that Jaeger and Zipkin's built-in UI is quite limiting us since these tools aren't built for this use case. The most common use case of the distributed tracing is tracing just a single request that flows through multiple microservices. But we wanted to have a DevTools-like unified debugging experience since we are interested in the whole cluster's overall behavior, which consists of multiple traces. To simulate a similar scenario, I've also built [a demo app](https://github.com/dgurkaynak/stalk-demo-raft-consensus) that implements [Raft distributed consensus algorithm](https://en.wikipedia.org/wiki/Raft_(computer_science)), instrumented with OpenTracing.
+
+So that's it, Stalk Studio's goal is to provide an alternative way to inspect distributed traces, especially for non-traditional use cases.
 
 # Main Features
 
-<img align="left" width="447" height="auto" src="./docs/readme-images/tabular-view-3.mp4.gif">
-<div>
-  <h3>:book: Tabular Perspective</h3>
-  In addition to the timeline view, Stalk Studio provides table views for spans and logs to
-  pinpoint interesting events quickly.
-  <br />
-  <br />
-  <div>
-    • <strong>Customizable columns</strong>: add/remove columns for span tags, process tags, log fields
-  </div>
-  <div>
-    • <strong>Sortable columns</strong>: sort spans by total time, self time, operation name, or any visible column<br />
-  </div>
-  <div>
-    • <strong>Filter spans & logs</strong>
-  </div>
-  <div>
-    • <strong>Flexible panes</strong>: split views can be handy
-  </div>
-  <br />
-</div>
-
-<hr/>
-
-<img align="right" width="447" height="auto" src="./docs/readme-images/built-in-customization.mp4.gif">
+<img align="right" width="447" height="auto" src="./docs/readme-images/highly-customizability.gif">
 <div>
   <h3>:gear: High Customizability</h3>
   Stalk Studio is built for being as flexible as possible to cover your changing needs when analyzing different traces.
-  You can customize the timeline in the following ways:
   <br />
   <br />
   <div>
-    • <strong>Span Grouping</strong>: The spans in the same group are drawn vertically together.
-    You may think like horizontal lanes separated from each other. Uninteresting groups can be
-    collapsed to prevent visual clutter.
+    • <strong>Flexible panes</strong>: Split views can be handy.
   </div>
   <div>
-    • <strong>Span Coloring</strong>: Change timeline span colors by operation name, service name,
-    however you want.
+    • <strong>Table view</strong>: Pinpoint interesting spans quickly in table view with customizable & sortable columns.
   </div>
   <div>
-    • <strong>Draw Layout</strong>: Change where spans should be rendered vertically.
+    • <strong>Timeline layout</strong>: Change how the spans are grouped and rendered vertically. Uninteresting groups can be collapsed to prevent visual clutter.
   </div>
   <div>
-    • <strong>Span Labelling</strong>: Change the text rendered on a span bar, if it has enough width to display.
+    • <strong>Span coloring & labelling</strong>: Change span bar colors and the text rendered on it.
   </div>
   <div>
-    • <strong>Tooltip Contents</strong>: Change the contents of the tooltip displayed when you hover a span bar.
-    You can add/remove interested span tags and process tags as your need.
+    • <strong>Tooltip</strong>: Change the contents of the tooltip displayed when you hover a span bar. You can add/remove interested span tags, logs, and process tags.
   </div>
 </div>
 
 <hr/>
 
-<img align="left" width="447" height="auto" src="./docs/readme-images/code-customization.mp4.gif">
+<img align="left" width="447" height="auto" src="./docs/readme-images/trace-search.png">
 <div>
-  <h3>:woman_technologist: Built for developers in mind</h3>
-  If the built-in customization options don't fill your needs, you can always write your own
-  custom JavaScript / TypeScript code to do the following:
+  <h3>:vulcan_salute: Jaeger and Zipkin support</h3>
+  <div>
+    • Add & save your Jaeger and Zipkin APIs as data sources
+  </div>
+  <div>
+    • Search & import traces directly from Jaeger and Zipkin
+  </div>
+  <div>
+    • Drag & drop JSON trace files that are exported from Jaeger or Zipkin
+  </div>
   <br />
   <br />
-  <div>
-    • Change span grouping
-  </div>
-  <div>
-    • Change span labeling
-  </div>
-  <div>
-    • Change span coloring
-  </div>
-  <div>
-    • Filter spans & logs in table views
-  </div>
+  <br />
   <br />
   <br />
   <br />
@@ -95,10 +66,10 @@
 
 <hr/>
 
-<img align="right" width="447" height="auto" src="./docs/readme-images/live-collector.mp4.gif">
+<img align="right" width="447" height="auto" src="./docs/readme-images/live-collector.png">
 <div>
   <h3>:satellite: Live Collector</h3>
-  In addition to its analysis capabilities, Stalk Studio has built-in servers mimicking Jaeger
+  Stalk Studio has built-in servers mimicking Jaeger
   and Zipkin collector interface. So if you have services that already instrumented
   with Jaeger and Zipkin, you can quickly capture & inspect low-volume traces just by changing
   the reporting URL of your instrumentations. It can be useful for debugging and development purposes.
@@ -114,12 +85,41 @@
     • <strong>Zipkin Collector</strong>: accepts spans in JSON format over HTTP.
   </div>
 </div>
+<hr/>
+
+<img align="left" width="447" height="auto" src="./docs/readme-images/custom-code.gif">
+<div>
+  <h3>:woman_technologist: Built for developers in mind</h3>
+  If the built-in customization options don't fill your needs, you can always write your own
+  custom JavaScript / TypeScript code to do the following:
+  <br />
+  <br />
+  <div>
+    • Filter spans
+  </div>
+  <div>
+    • Change span grouping
+  </div>
+  <div>
+    • Change span labeling
+  </div>
+  <div>
+    • Change span coloring
+  </div>
+  <br />
+  <br />
+  <br />
+</div>
 
 <!-- <hr/> -->
 
 # Download
 
 Go to [releases page](https://github.com/dgurkaynak/stalk-studio/releases).
+
+# How to use
+
+TODO
 
 # Building & Development
 
