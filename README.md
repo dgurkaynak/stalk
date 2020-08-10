@@ -33,8 +33,11 @@ So that's it, Stalk Studio's goal is to provide an alternative way to inspect di
   </div>
 </div>
 
-<!-- clear-fix: https://gist.github.com/DavidWells/7d2e0e1bc78f4ac59a123ddf8b74932d#gistcomment-3372761  -->
-<table><tbody><tr><th></th></tr></tbody></table>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
 
 <hr/>
 
