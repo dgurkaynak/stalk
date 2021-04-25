@@ -1,7 +1,6 @@
 const path = require('path');
 const fs = require('fs');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin;
@@ -18,6 +17,11 @@ module.exports = {
   devtool: 'source-map',
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
+    fallback: {
+      buffer: require.resolve('buffer'),
+      crypto: false,
+      stream: require.resolve('stream-browserify'),
+    },
   },
   module: {
     rules: [
@@ -51,7 +55,6 @@ module.exports = {
     ],
   },
   plugins: [
-    new HardSourceWebpackPlugin(),
     new MonacoWebpackPlugin({
       // typescriptServices.js causes a warning in webpack
       // Module not found: Error: Can't resolve '@microsoft/typescript-etw'
@@ -79,7 +82,9 @@ module.exports = {
     filename: '[name].js',
     path: path.resolve(__dirname, 'build'),
   },
-  stats: {
-    warningsFilter: ['node_modules/phosphor'],
-  },
+  ignoreWarnings: [
+    {
+      module: /phosphor/,
+    },
+  ],
 };
