@@ -25,6 +25,9 @@ body {
 :not(input):not(textarea)::after,
 :not(input):not(textarea)::before {
   user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }
 
 /* Loading */
