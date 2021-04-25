@@ -453,18 +453,6 @@ export class App {
       throw new Error(`Unrecognized Zipkin format`);
     }
 
-    if (isObject(parsedJson) && (parsedJson as any).kind == 'stalk-studio/v1') {
-      if (isArray((parsedJson as any).traces)) {
-        (parsedJson as any).traces.forEach((spans: any) => {
-          const trace = new Trace(spans);
-          this.stage.addTrace(trace);
-        });
-        return;
-      }
-
-      throw new Error(`Broken Stalk JSON - "traces" field does not exist`);
-    }
-
     throw new Error(`Unrecognized JSON file`);
   }
 
