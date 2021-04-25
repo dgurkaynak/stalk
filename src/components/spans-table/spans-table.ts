@@ -731,6 +731,7 @@ export class SpansTableView extends EventEmitter {
   }
 
   private onRowContext(e: MouseEvent, row: Tabulator.RowComponent) {
+    e.preventDefault();
     const spanRow = row.getData() as SpanRowData;
 
     this.contextMenuManager.show({

@@ -378,6 +378,7 @@ export default class MouseHandler extends EventEmitter {
     onMouseUp: this.onMouseUp.bind(this),
     onMouseLeave: this.onMouseLeave.bind(this),
     onWheel: this.onWheel.bind(this),
+    onContextMenu: this.onContextMenu.bind(this),
   };
 
   constructor(private element: SVGSVGElement) {
@@ -400,6 +401,11 @@ export default class MouseHandler extends EventEmitter {
       false
     );
     this.element.addEventListener('wheel', this.binded.onWheel, false);
+    this.element.addEventListener(
+      'contextmenu',
+      this.binded.onContextMenu,
+      false
+    );
 
     this.service.start();
   }
@@ -422,6 +428,11 @@ export default class MouseHandler extends EventEmitter {
       false
     );
     this.element.removeEventListener('wheel', this.binded.onWheel, false);
+    this.element.removeEventListener(
+      'contextmenu',
+      this.binded.onContextMenu,
+      false
+    );
 
     this.removeAllListeners();
 
@@ -446,5 +457,9 @@ export default class MouseHandler extends EventEmitter {
 
   onWheel(e: WheelEvent) {
     this.emit(MouseHandlerEvent.WHEEL, e);
+  }
+
+  onContextMenu(e: MouseEvent) {
+    e.preventDefault();
   }
 }
