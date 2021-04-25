@@ -8,6 +8,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackInlineSVGPlugin = require('html-webpack-inline-svg-plugin');
 const uglifycss = require('uglifycss');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 
 module.exports = {
   target: 'web',
@@ -63,6 +64,25 @@ module.exports = {
     }),
     new CleanWebpackPlugin(),
     new ForkTsCheckerWebpackPlugin(),
+    new FaviconsWebpackPlugin({
+      logo: './assets/icon.png',
+      cache: true,
+      inject: true,
+      favicons: {
+        icons: {
+          android: false,
+          appleIcon: false,
+          appleStartup: false,
+          coast: false,
+          favicons: true,
+          firefox: false,
+          opengraph: false,
+          twitter: false,
+          yandex: false,
+          windows: false,
+        },
+      },
+    }),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, 'src/index.html'),
       templateParameters: {
