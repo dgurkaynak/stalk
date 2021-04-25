@@ -1,9 +1,9 @@
 {
-  "name": "stalk-studio",
+  "name": "stalk",
   "version": "0.3.1",
   "description": "Highly flexible trace analysis tool for Jaeger and Zipkin",
-  "homepage": "https://github.com/dgurkaynak/stalk-studio",
-  "repository": "github:dgurkaynak/stalk-studio",
+  "homepage": "https://github.com/dgurkaynak/stalk",
+  "repository": "github:dgurkaynak/stalk",
   "private": true,
   "license": "MIT",
   "author": {

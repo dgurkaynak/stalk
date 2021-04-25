@@ -63,7 +63,6 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, 'src/index.html'),
       templateParameters: {
-        title: 'Stalk Studio',
         indexCssInlineStyleTag: `<style>${uglifycss.processString(
           fs.readFileSync('./src/index.css').toString(),
           {}
