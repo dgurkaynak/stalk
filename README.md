@@ -38,6 +38,7 @@ So that's it, Stalk's goal is to provide an alternative way to inspect distribut
 <br/>
 <br/>
 <br/>
+<br/>
 
 <hr/>
 
@@ -85,6 +86,8 @@ So that's it, Stalk's goal is to provide an alternative way to inspect distribut
   <div>
     • Change span coloring
   </div>
+  <br />
+  <br />
 </div>
 
 # Building & Development
