@@ -6,11 +6,6 @@
   align-items: stretch;
 }
 
-.darwin:not(.full-screen) #app-toolbar {
-  -webkit-app-region: drag;
-  padding-left: 75px;
-}
-
 .app-toolbar-pane {
   display: flex;
   align-items: stretch;
@@ -24,9 +19,6 @@
 
 .app-toolbar-divider:first-of-type {
   display: none;
-}
-.darwin:not(.full-screen) .app-toolbar-divider:first-of-type {
-  display: inline-block;
 }
 
 /* Badge count */
@@ -45,13 +37,6 @@
 .toolbar-badge-count.stage {
   background: #f5222d;
   color: #fff;
-}
-.toolbar-badge-count.live-collector {
-  background: rgba(255, 255, 255, 0.85);
-  color: #666;
-  border: 1px solid #d9d9d9;
-  box-sizing: border-box;
-  left: 2em;
 }
 
 /* App toolbar button */
@@ -95,10 +80,6 @@
 }
 .app-toolbar-button.clear-stage svg {
   height: 1.7em;
-}
-/* App toolbar button fine-tuning */
-.app-toolbar-button.live-collector {
-  position: relative;
 }
 
 /* Data sources menu header */

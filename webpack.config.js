@@ -11,7 +11,7 @@ const uglifycss = require('uglifycss');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
-  target: 'electron-renderer',
+  target: 'web',
   entry: {
     index: './src/index.ts',
   },

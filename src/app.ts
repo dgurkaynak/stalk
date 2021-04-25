@@ -17,7 +17,6 @@ import Noty from 'noty';
 import { isJaegerJSON, convertFromJaegerTrace } from './model/jaeger';
 import { isZipkinJSON, convertFromZipkinTrace } from './model/zipkin';
 import { TypeScriptManager } from './components/customization/typescript-manager';
-import { ipcRenderer, remote, shell } from 'electron';
 import { SpanSummaryView } from './components/span-summary/span-summary';
 import { SpanTagsView } from './components/span-tags/span-tags';
 import { SpanProcessTagsView } from './components/span-process-tags/span-process-tags';
@@ -46,8 +45,6 @@ import './global-styles/dock-panel.css';
 import './global-styles/noty.css';
 import './global-styles/flatpickr.css';
 import './global-styles/form.css';
-
-const { Menu } = remote;
 
 // DO NOT change these string, they're used for
 // remembering & saving dock layout!
@@ -99,8 +96,6 @@ export class App {
     showSpanInTableView: this.showSpanInTableView.bind(this),
     showSpanInTimelineView: this.showSpanInTimelineView.bind(this),
     onKeyDown: this.onKeyDown.bind(this),
-    onImportMenuClick: this.onImportMenuClick.bind(this),
-    onExportMenuClick: this.onExportMenuClick.bind(this),
     onToolbarDataSourceClick: this.onToolbarDataSourceClick.bind(this),
   };
 
@@ -204,30 +199,6 @@ export class App {
     );
     document.addEventListener('keydown', this.binded.onKeyDown, false);
 
-    // Add a class named as current platform to body
-    // This is mainlu used for app-toolbar styling just for macOS
-    // Check `app-toolbar.css` for details
-    document.body.classList.add(process.platform);
-
-    // Listen for electron's full-screen events
-    ipcRenderer.on('enter-full-screen', () =>
-      document.body.classList.add('full-screen')
-    );
-    ipcRenderer.on('leave-full-screen', () =>
-      document.body.classList.remove('full-screen')
-    );
-
-    // Listen for electron's `open-file` events
-    ipcRenderer.on('open-file', (event, arg) => {
-      this.openRawTexts([arg]);
-    });
-    ipcRenderer.once('app-initalized-response', (event, arg) => {
-      this.openRawTexts(arg.openFiles);
-    });
-
-    // Application menu
-    this.setupApplicationMenu();
-
     // Hide initial loading
     const loadingEl = document.getElementById(
       'initial-loading'
@@ -242,9 +213,6 @@ export class App {
       );
       loadingEl.classList.add('hidden');
     }
-
-    // Send event to main process that app is done initalizing
-    ipcRenderer.send('app-initalized');
   }
 
   private initDockPanelAndWidgets() {
@@ -581,178 +549,6 @@ export class App {
       widgetWrapper,
       component,
     };
-  }
-
-  private setupApplicationMenu() {
-    const isMac = process.platform === 'darwin';
-    const template = [
-      ...(isMac
-        ? [
-            {
-              label: `Stalk Studio`,
-              submenu: [
-                { role: 'about' },
-                { type: 'separator' },
-                { role: 'services' },
-                { type: 'separator' },
-                { role: 'hide' },
-                { role: 'hideothers' },
-                { role: 'unhide' },
-                { type: 'separator' },
-                { role: 'quit' },
-              ],
-            },
-          ]
-        : []),
-      {
-        label: 'File',
-        submenu: [
-          {
-            label: 'Import Trace(s)',
-            click: this.binded.onImportMenuClick,
-          },
-          {
-            label: 'Export Stage',
-            click: this.binded.onExportMenuClick,
-          },
-          ...(!isMac ? [{ type: 'separator' }, { role: 'quit' }] : []),
-        ],
-      },
-      {
-        label: 'Edit',
-        submenu: [
-          { role: 'undo' },
-          { role: 'redo' },
-          { type: 'separator' },
-          { role: 'cut' },
-          { role: 'copy' },
-          { role: 'paste' },
-          ...(isMac
-            ? [
-                { role: 'pasteAndMatchStyle' },
-                { role: 'delete' },
-                { role: 'selectAll' },
-                { type: 'separator' },
-                {
-                  label: 'Speech',
-                  submenu: [
-                    { role: 'startspeaking' },
-                    { role: 'stopspeaking' },
-                  ],
-                },
-              ]
-            : [
-                { role: 'delete' },
-                { type: 'separator' },
-                { role: 'selectAll' },
-              ]),
-        ],
-      },
-      {
-        label: 'Window',
-        submenu: [{ role: 'minimize' }, { role: 'zoom' }],
-      },
-      {
-        role: 'help',
-        submenu: [
-          {
-            label: 'GitHub Repo',
-            click: async () =>
-              await shell.openExternal(
-                'https://github.com/dgurkaynak/stalk-studio/'
-              ),
-          },
-          {
-            label: 'Report Issue',
-            click: async () =>
-              await shell.openExternal(
-                'https://github.com/dgurkaynak/stalk-studio/issues/new'
-              ),
-          },
-          { type: 'separator' },
-          { role: 'forcereload' },
-          { role: 'toggledevtools' },
-        ],
-      },
-    ];
-
-    const menu = Menu.buildFromTemplate(template as any);
-    Menu.setApplicationMenu(menu);
-  }
-
-  private async onImportMenuClick() {
-    const { canceled, filePaths } = await remote.dialog.showOpenDialog({
-      properties: ['openFile', 'multiSelections'],
-      filters: [{ name: 'JSON', extensions: ['json'] }],
-    });
-    if (canceled) return;
-
-    const readFiles: { name: string; content: string }[] = [];
-    const tasks = filePaths.map((filePath) => {
-      const fileName = path.basename(filePath);
-      return new Promise((resolve) => {
-        fs.readFile(filePath, 'utf8', (err, data) => {
-          if (err) {
-            new Noty({
-              text: `${fileName}: Could not read its content -- ${err.message}`,
-              type: 'error',
-            }).show();
-          } else {
-            readFiles.push({
-              name: path.basename(filePath),
-              content: data,
-            });
-          }
-          resolve();
-        });
-      });
-    });
-    await Promise.all(tasks);
-
-    this.openRawTexts(readFiles);
-  }
-
-  private async onExportMenuClick() {
-    const traces = this.stage.getAllTraces();
-    if (traces.length == 0) {
-      new Noty({
-        text: 'No traces in the stage',
-        type: 'warning',
-      }).show();
-      return;
-    }
-
-    const downloadsFolder = remote.app.getPath('downloads');
-    const fileName = `stalk-stage-${format(
-      new Date(),
-      'yyyy-MM-dd--HH-mm-ss'
-    )}.json`;
-    const { canceled, filePath } = await remote.dialog.showSaveDialog({
-      defaultPath: path.join(downloadsFolder, fileName),
-    });
-    if (canceled) return;
-
-    const fileContent = JSON.stringify(
-      {
-        kind: 'stalk-studio/v1',
-        traces: traces.map((t) => t.spans),
-      },
-      null,
-      2
-    );
-
-    fs.writeFile(filePath, fileContent, (err) => {
-      if (err) {
-        new Noty({
-          text: err.message,
-          type: 'error',
-          timeout: 2500,
-        }).show();
-        return;
-      }
-
-      // Exported, no need to additonal notification
-    });
   }
 
   private getDockPanelLayout() {

@@ -13,8 +13,6 @@ import { ModalManager } from '../ui/modal/modal-manager';
 import { DataSourceFormModalContent } from '../datasource/datasource-form-modal-content';
 import shortid from 'shortid';
 import { StageTracesModalContent } from '../stage-traces/stage-traces-modal-content';
-import { LiveCollectorModalContent } from '../live-collector/live-collector-modal-content';
-import { remote } from 'electron';
 
 import SvgPlus from '!!raw-loader!@mdi/svg/svg/plus.svg';
 import SvgDatabase from '!!raw-loader!@mdi/svg/svg/database.svg';
@@ -33,12 +31,10 @@ export class AppToolbar {
     btn: {
       dataSources: document.createElement('div'),
       newDataSource: document.createElement('div'),
-      liveCollector: document.createElement('div'),
       stageTraces: document.createElement('div'),
       clearStage: document.createElement('div'),
     },
     tracesBadgeCount: document.createElement('div'),
-    liveCollectorBadgeCount: document.createElement('div'),
     dataSourceMenuList: {
       header: document.createElement('div'),
       empty: document.createElement('div'),
@@ -69,7 +65,6 @@ export class AppToolbar {
     onStageTraceAdded: this.onStageTraceAdded.bind(this),
     onStageTraceRemoved: this.onStageTraceRemoved.bind(this),
     onStageTracesButtonClick: this.onStageTracesButtonClick.bind(this),
-    onLiveCollectorButtonClick: this.onLiveCollectorButtonClick.bind(this),
     onNewDataSourceButtonClick: this.onNewDataSourceButtonClick.bind(this),
     onNewDataSourceModalClose: this.onNewDataSourceModalClose.bind(this),
     onDataSourceRemovePopConfirmButtonClick: this.onDataSourceRemovePopConfirmButtonClick.bind(
@@ -79,17 +74,11 @@ export class AppToolbar {
       this
     ),
     onStageTracesModalClose: this.onStageTracesModalClose.bind(this),
-    onLiveCollectorModalClose: this.onLiveCollectorModalClose.bind(this),
-    onContainerDoubleClick: this.onContainerDoubleClick.bind(this),
     onClearStagePopConfirmButtonClick: this.onClearStagePopConfirmButtonClick.bind(
       this
     ),
-    onLiveCollectorTraceUpdate: this.onLiveCollectorTraceUpdate.bind(this),
   };
 
-  private liveCollectorModalContent = new LiveCollectorModalContent({
-    onCollectedTracesUpdated: this.binded.onLiveCollectorTraceUpdate,
-  });
   private stage = Stage.getSingleton();
   private dsManager = DataSourceManager.getSingleton();
 
@@ -127,10 +116,6 @@ export class AppToolbar {
     btn.dataSources.classList.add('app-toolbar-button');
     btn.dataSources.innerHTML = SvgDatabase;
     leftPane.appendChild(btn.dataSources);
-
-    btn.liveCollector.classList.add('app-toolbar-button', 'live-collector');
-    btn.liveCollector.innerHTML = SvgSatellite;
-    leftPane.appendChild(btn.liveCollector);
 
     // Right buttons
     btn.stageTraces.classList.add('app-toolbar-button', 'stage-traces');
@@ -232,13 +217,6 @@ export class AppToolbar {
         },
       ],
       [
-        this.elements.btn.liveCollector,
-        {
-          content: 'Live Collector',
-          multiple: true,
-        },
-      ],
-      [
         this.elements.btn.stageTraces,
         {
           content: 'Traces in the Stage',
@@ -314,10 +292,6 @@ export class AppToolbar {
   private initBadgeCounts() {
     const els = this.elements;
     els.tracesBadgeCount.classList.add('toolbar-badge-count', 'stage');
-    els.liveCollectorBadgeCount.classList.add(
-      'toolbar-badge-count',
-      'live-collector'
-    );
   }
 
   //////////////////////////////////////
@@ -348,29 +322,11 @@ export class AppToolbar {
     }
   }
 
-  updateLiveCollectorBadgeCount(count: number) {
-    const el = this.elements.liveCollectorBadgeCount;
-    if (count > 0) {
-      el.textContent = count + '';
-      !el.parentElement && this.elements.btn.liveCollector.appendChild(el);
-    } else {
-      el.parentElement?.removeChild(el);
-    }
-  }
-
   ///////////////////////////////////////////////
   ////////////////// EVENTS /////////////////////
   ///////////////////////////////////////////////
 
   private bindEvents() {
-    const isMac = process.platform === 'darwin';
-    if (isMac) {
-      this.elements.container.addEventListener(
-        'dblclick',
-        this.binded.onContainerDoubleClick,
-        false
-      );
-    }
     this.dsManager.on(
       DataSourceManagerEvent.ADDED,
       this.binded.onDataSourceManagerAdded
@@ -390,20 +346,10 @@ export class AppToolbar {
       this.binded.onStageTracesButtonClick,
       false
     );
-    this.elements.btn.liveCollector.addEventListener(
-      'click',
-      this.binded.onLiveCollectorButtonClick,
-      false
-    );
   }
 
   private unbindEvents() {
     const { btn } = this.elements;
-    this.elements.container.removeEventListener(
-      'dblclick',
-      this.binded.onContainerDoubleClick,
-      false
-    );
     this.dsManager.removeListener(
       DataSourceManagerEvent.ADDED,
       this.binded.onDataSourceManagerAdded
@@ -437,11 +383,6 @@ export class AppToolbar {
     this.elements.btn.stageTraces.removeEventListener(
       'click',
       this.binded.onStageTracesButtonClick,
-      false
-    );
-    this.elements.btn.liveCollector.removeEventListener(
-      'click',
-      this.binded.onLiveCollectorButtonClick,
       false
     );
     this.elements.clearStagePopConfirmButton.removeEventListener(
@@ -583,33 +524,6 @@ export class AppToolbar {
     this.tippyInstaces.clearStagePopConfirm.hide();
   }
 
-  private onLiveCollectorButtonClick() {
-    const modal = new Modal({
-      content: this.liveCollectorModalContent.getElement(),
-      contentContainerClassName: 'live-collector-modal-container',
-      onClose: this.binded.onLiveCollectorModalClose,
-      shouldCloseOnEscPress: true,
-      shouldCloseOnOverlayClick: true,
-    });
-    ModalManager.getSingleton().show(modal);
-    if (!this.liveCollectorModalContent.inited)
-      this.liveCollectorModalContent.init();
-    this.liveCollectorModalContent.onShow();
-  }
-
-  private onLiveCollectorModalClose(
-    triggerType: ModalCloseTriggerType,
-    data: any
-  ) {
-    if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
-    if (data?.action != 'addToStage') return;
-    (data.traces as Trace[]).forEach((t) => this.stage.addTrace(t));
-  }
-
-  private onLiveCollectorTraceUpdate(traces: Trace[]) {
-    this.updateLiveCollectorBadgeCount(traces.length);
-  }
-
   private onNewDataSourceButtonClick() {
     this.dataSourceFormModalContent = new DataSourceFormModalContent({
       type: 'new',
@@ -657,15 +571,6 @@ export class AppToolbar {
     if (triggerType != ModalCloseTriggerType.CLOSE_METHOD_CALL) return;
     if (data?.action != 'addToStage') return;
     (data.traces as Trace[]).forEach((t) => this.stage.addTrace(t));
-  }
-
-  private onContainerDoubleClick() {
-    const win = remote.getCurrentWindow();
-    if (win.isMaximized()) {
-      win.unmaximize();
-    } else {
-      win.maximize();
-    }
   }
 
   dispose() {

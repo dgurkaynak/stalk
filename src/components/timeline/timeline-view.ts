@@ -43,7 +43,7 @@ import {
   ContextMenuManager,
   ContextMenuEvent,
 } from '../ui/context-menu/context-menu-manager';
-import { clipboard } from 'electron';
+import { copyToClipboard } from '../../utils/copy-to-clipboard';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -1181,7 +1181,7 @@ export class TimelineView extends EventEmitter {
     if (!spanId) return;
     const [groupView, spanView] = this.findSpanView(spanId);
     if (!spanView) return;
-    clipboard.writeText(JSON.stringify(spanView.span, null, 4));
+    copyToClipboard(JSON.stringify(spanView.span, null, 4));
   }
 
   ///////////////////////////////////////

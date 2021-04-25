@@ -13,7 +13,6 @@ import { Span } from '../../model/interfaces';
 import find from 'lodash/find';
 import remove from 'lodash/remove';
 import sampleSize from 'lodash/sampleSize';
-import { clipboard } from 'electron';
 import cloneDeep from 'lodash/cloneDeep';
 import EventEmitter from 'events';
 import {
@@ -27,6 +26,7 @@ import {
   SpanFilteringRawOptions,
 } from '../customization/span-filtering-form-modal-content';
 import Noty from 'noty';
+import { copyToClipboard } from '../../utils/copy-to-clipboard';
 
 import SvgFilter from '!!raw-loader!@mdi/svg/svg/filter.svg';
 import SvgFilterRemove from '!!raw-loader!@mdi/svg/svg/filter-remove.svg';
@@ -765,7 +765,7 @@ export class SpansTableView extends EventEmitter {
     if (!spanId) return;
     const spanRow = find(this.spanRows, (row) => row.span.id == spanId);
     if (!spanRow) return;
-    clipboard.writeText(JSON.stringify(spanRow.spanOriginal, null, 4));
+    copyToClipboard(JSON.stringify(spanRow.spanOriginal, null, 4));
   }
 
   getSelectedSpanId() {
@@ -793,7 +793,7 @@ export class SpansTableView extends EventEmitter {
       if (!this.selectedSpanId) return;
       const span = this.stage.getMainSpanGroup().get(this.selectedSpanId);
       if (!span) return;
-      clipboard.writeText(JSON.stringify(span, null, 4));
+      copyToClipboard(JSON.stringify(span, null, 4));
       return;
     }
   }

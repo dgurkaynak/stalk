@@ -35,9 +35,9 @@ import { SpanLabellingFormModalContent } from '../customization/span-labelling-f
 import { TooltipManager } from '../ui/tooltip/tooltip-manager';
 import { Trace } from '../../model/trace';
 import { Stage } from '../../model/stage';
-import { clipboard } from 'electron';
 import Noty from 'noty';
 import { convertFromJaegerTrace } from '../../model/jaeger';
+import { copyToClipboard } from '../../utils/copy-to-clipboard';
 
 import SvgTextbox from '!!raw-loader!@mdi/svg/svg/textbox.svg';
 import SvgFormatColorFill from '!!raw-loader!@mdi/svg/svg/format-color-fill.svg';
@@ -232,18 +232,13 @@ export class TimelineWrapper {
 
     const dragDropText = document.createElement('div');
     dragDropText.classList.add('drag-drop-text');
-    dragDropText.innerHTML = `• Drag & drop JSON files exported from Jaeger, Zipkin, or Stalk Studio.`;
+    dragDropText.innerHTML = `• Drag & drop JSON files exported from Jaeger, or Zipkin.`;
     innerContainer.appendChild(dragDropText);
 
     const dataSourcesText = document.createElement('div');
     dataSourcesText.classList.add('data-sources-text');
     dataSourcesText.innerHTML = `• Use Data Sources ${SvgDatabase} to search traces in Jaeger and Zipkin services.`;
     innerContainer.appendChild(dataSourcesText);
-
-    const liveCollectorText = document.createElement('div');
-    liveCollectorText.classList.add('live-collector-text');
-    liveCollectorText.innerHTML = `• Use Live Collector ${SvgSatellite} to collect traces directly from Jaeger and Zipkin instrumentations.`;
-    innerContainer.appendChild(liveCollectorText);
 
     const sampleTraceText = document.createElement('div');
     sampleTraceText.classList.add('sample-trace-text');
@@ -537,7 +532,7 @@ export class TimelineWrapper {
         if (!selectedSpanId) return;
         const span = this.stage.getMainSpanGroup().get(selectedSpanId);
         if (!span) return;
-        clipboard.writeText(JSON.stringify(span, null, 4));
+        copyToClipboard(JSON.stringify(span, null, 4));
         return;
       }
 
