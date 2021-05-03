@@ -1,3 +1,5 @@
+import './utils/countly';
+
 /**
  * Just critical javascript allowed here for initial html/css rendering.
  * The real application js file (app) will be load async.
