@@ -6,6 +6,7 @@ import { ZipkinAPI } from '../../model/zipkin';
 import tippy, { Instance as TippyInstance } from 'tippy.js';
 
 import SvgInformationOutline from '!!raw-loader!@mdi/svg/svg/information-outline.svg';
+import AlertCircleOutlineSvg from '!!raw-loader!@mdi/svg/svg/alert-circle-outline.svg';
 import './datasource-form-modal-content.css';
 
 export interface DataSourceFormModalContentOptions {
@@ -253,6 +254,21 @@ export class DataSourceFormModalContent {
     if (!isBasicAuthEnabled) {
       formEl.passwordRow.style.display = 'none';
     }
+
+    // CORS warning
+    const warningContainer = document.createElement('div');
+    warningContainer.classList.add('cors-warning');
+    this.elements.form.container.appendChild(warningContainer);
+
+    warningContainer.innerHTML = `${AlertCircleOutlineSvg}
+      <div class="title">CORS Warning</div>
+      <div class="body">
+        Due to web security, your data source must allow cross-origin
+        requests. If this is not applicable in your case, you can install
+        <strong>Allow CORS</strong> extension to quickly enable/disable CORS.
+        (<a href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf?hl=en" target="_blank">Chrome</a>,
+          <a href="https://addons.mozilla.org/en-US/firefox/addon/access-control-allow-origin/" target="_blank">Firefox</a>)
+      </div>`;
 
     // Buttons
     const buttonsContainer = document.createElement('div');
