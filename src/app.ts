@@ -378,50 +378,6 @@ export class App {
     this.dropZoneEl.style.display = 'none';
   }
 
-  // Sorry for the partial duplication of `onDrop()` method
-  private openRawTexts(
-    files: { name: string; content?: string; error?: string }[]
-  ) {
-    const errorMessages = [] as string[];
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      if (file.error) {
-        errorMessages.push(`${file.name}: ${file.error}`);
-        continue;
-      }
-
-      if (!file.content) {
-        errorMessages.push(`${file.name}: Empty content`);
-        continue;
-      }
-
-      let parsedJson: any;
-      try {
-        parsedJson = JSON.parse(file.content);
-      } catch (err) {
-        errorMessages.push(`${file.name}: Invalid JSON`);
-        continue;
-      }
-
-      try {
-        this.openParsedJSON(parsedJson);
-      } catch (err) {
-        errorMessages.push(`${file.name}: ${err.message}`);
-      }
-    }
-
-    if (errorMessages.length > 0) {
-      const text = `Following errors occured while importing:
-        <ul>${errorMessages.map((m) => `<li>${m}</li>`).join('')}</ul>`;
-      new Noty({
-        text,
-        type: 'error',
-      }).show();
-    }
-  }
-
   private openParsedJSON(parsedJson: any) {
     if (isJaegerJSON(parsedJson)) {
       parsedJson.data.forEach((rawTrace: any) => {
