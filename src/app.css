@@ -50,3 +50,28 @@
   font-size: 2.5em;
   color: #333;
 }
+
+/* Touch device warning modal */
+.touch-device-warning {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1em;
+  text-align: center;
+  width: 300px;
+}
+
+.touch-device-warning svg {
+  width: 6em;
+  height: 6em;
+  fill: #faad14;
+}
+
+.touch-device-warning .message {
+  font-size: 1.75em;
+}
+
+.touch-device-warning button {
+  font-size: 1.25em;
+  margin-top: 1em;
+}

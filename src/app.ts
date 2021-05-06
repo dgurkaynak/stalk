@@ -32,7 +32,10 @@ import { SettingsManager } from './model/settings-manager';
 import { DataSource, DataSourceType } from './model/datasource/interfaces';
 import { JaegerSearch } from './components/trace-search/jaeger-search';
 import { ZipkinSearch } from './components/trace-search/zipkin-search';
+import { Modal } from './components/ui/modal/modal';
+import { ModalManager } from './components/ui/modal/modal-manager';
 
+import AlertSvgText from '!!raw-loader!@mdi/svg/svg/alert.svg';
 import 'tippy.js/dist/tippy.css';
 import 'noty/lib/noty.css';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -210,11 +213,19 @@ export class App {
       loadingEl.classList.add('hidden');
     }
 
-    window.Countly && window.Countly.add_event({
-      key: 'ready',
-      count: 1,
-      segmentation: {},
-    });
+    window.Countly &&
+      window.Countly.add_event({
+        key: 'ready',
+        count: 1,
+        segmentation: {},
+      });
+
+    // Show a warning for touch devices says this app is
+    // optimized for desktop browsers.
+    const isTouchDevice = matchMedia('(hover: none)').matches; // https://stackoverflow.com/a/63666289
+    if (isTouchDevice) {
+      this.showTouchDeviceWarningModal();
+    }
   }
 
   private initDockPanelAndWidgets() {
@@ -370,13 +381,14 @@ export class App {
       }).show();
     }
 
-    window.Countly && window.Countly.add_event({
-      key: 'json_file_dropped',
-      count: 1,
-      segmentation: {
-        errorCount: errorMessages.length,
-      },
-    });
+    window.Countly &&
+      window.Countly.add_event({
+        key: 'json_file_dropped',
+        count: 1,
+        segmentation: {
+          errorCount: errorMessages.length,
+        },
+      });
   }
 
   private onDragOver(e: DragEvent) {
@@ -396,14 +408,15 @@ export class App {
         this.stage.addTrace(trace);
       });
 
-      window.Countly && window.Countly.add_event({
-        key: 'trace_added_from_json_file',
-        count: 1,
-        segmentation: {
-          type: 'jaeger',
-          traceCount: parsedJson.data.length,
-        },
-      });
+      window.Countly &&
+        window.Countly.add_event({
+          key: 'trace_added_from_json_file',
+          count: 1,
+          segmentation: {
+            type: 'jaeger',
+            traceCount: parsedJson.data.length,
+          },
+        });
 
       return;
     }
@@ -416,14 +429,15 @@ export class App {
           this.stage.addTrace(trace);
         });
 
-        window.Countly && window.Countly.add_event({
-          key: 'trace_added_from_json_file',
-          count: 1,
-          segmentation: {
-            type: 'zipkin',
-            traceCount: parsedJson.length,
-          },
-        });
+        window.Countly &&
+          window.Countly.add_event({
+            key: 'trace_added_from_json_file',
+            count: 1,
+            segmentation: {
+              type: 'zipkin',
+              traceCount: parsedJson.length,
+            },
+          });
 
         return;
       }
@@ -433,14 +447,15 @@ export class App {
         const trace = new Trace(spans);
         this.stage.addTrace(trace);
 
-        window.Countly && window.Countly.add_event({
-          key: 'trace_added_from_json_file',
-          count: 1,
-          segmentation: {
-            type: 'zipkin',
-            traceCount: 1,
-          },
-        });
+        window.Countly &&
+          window.Countly.add_event({
+            key: 'trace_added_from_json_file',
+            count: 1,
+            segmentation: {
+              type: 'zipkin',
+              traceCount: 1,
+            },
+          });
 
         return;
       }
@@ -448,11 +463,12 @@ export class App {
       throw new Error(`Unrecognized Zipkin format`);
     }
 
-    window.Countly && window.Countly.add_event({
-      key: 'unrecognized_json_file',
-      count: 1,
-      segmentation: {},
-    });
+    window.Countly &&
+      window.Countly.add_event({
+        key: 'unrecognized_json_file',
+        count: 1,
+        segmentation: {},
+      });
 
     throw new Error(`Unrecognized JSON file`);
   }
@@ -506,14 +522,15 @@ export class App {
           traces.forEach((t) => this.stage.addTrace(t));
           this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE]);
 
-          window.Countly && window.Countly.add_event({
-            key: 'trace_added_from_data_source',
-            count: 1,
-            segmentation: {
-              type: 'jaeger',
-              traceCount: traces.length,
-            },
-          });
+          window.Countly &&
+            window.Countly.add_event({
+              key: 'trace_added_from_data_source',
+              count: 1,
+              segmentation: {
+                type: 'jaeger',
+                traceCount: traces.length,
+              },
+            });
         },
       });
     } else if (dataSource.type == DataSourceType.ZIPKIN) {
@@ -523,14 +540,15 @@ export class App {
           traces.forEach((t) => this.stage.addTrace(t));
           this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE]);
 
-          window.Countly && window.Countly.add_event({
-            key: 'trace_added_from_data_source',
-            count: 1,
-            segmentation: {
-              type: 'zipkin',
-              traceCount: traces.length,
-            },
-          });
+          window.Countly &&
+            window.Countly.add_event({
+              key: 'trace_added_from_data_source',
+              count: 1,
+              segmentation: {
+                type: 'zipkin',
+                traceCount: traces.length,
+              },
+            });
         },
       });
     } else {
@@ -602,6 +620,37 @@ export class App {
         type: 'split-area',
       },
     };
+  }
+
+  private showTouchDeviceWarningModal() {
+    const content = document.createElement('div');
+    content.classList.add('touch-device-warning');
+    content.innerHTML = `
+      <div>
+        <div>${AlertSvgText}</div>
+        <div class="message">
+          Stalk is not optimized for touch devices. Please use a desktop browser for the best experience.
+        </div>
+        <button class="primary">Okay</button>
+      </div>
+    `.trim();
+    const okButton = content.querySelector('button.primary');
+
+    const modal = new Modal({
+      content,
+      shouldCloseOnEscPress: true,
+      shouldCloseOnOverlayClick: true,
+    });
+
+    okButton.addEventListener(
+      'click',
+      () => {
+        modal.close();
+      },
+      { once: true }
+    );
+
+    ModalManager.getSingleton().show(modal);
   }
 
   dispose() {
