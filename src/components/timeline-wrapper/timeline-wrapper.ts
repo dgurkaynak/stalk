@@ -988,7 +988,7 @@ export class TimelineWrapper {
     this.stage.addTrace(trace);
 
     window.Countly && window.Countly.add_event({
-      key: 'sample_trace_loaded',
+      key: 'trace_added_example',
       count: 1,
       segmentation: {
         trace: 'jaeger/hotrod',
@@ -1006,7 +1006,7 @@ export class TimelineWrapper {
     });
 
     window.Countly && window.Countly.add_event({
-      key: 'sample_trace_loaded',
+      key: 'trace_added_example',
       count: 1,
       segmentation: {
         trace: 'raft-concensus',
