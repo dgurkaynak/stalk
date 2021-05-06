@@ -264,7 +264,8 @@ export class DataSourceFormModalContent {
       <div class="title">CORS Warning</div>
       <div class="body">
         Due to web security, your data source must allow cross-origin
-        requests. If this is not applicable in your case, you can install
+        requests. (Zipkin supports CORS by default, but not Jaeger)
+        If this is not applicable in your case, you can install
         <strong>Allow CORS</strong> extension to quickly enable/disable CORS.
         (<a href="https://chrome.google.com/webstore/detail/allow-cors-access-control/lhobafahddgcelffkeicbaginigeejlf?hl=en" target="_blank">Chrome</a>,
           <a href="https://addons.mozilla.org/en-US/firefox/addon/access-control-allow-origin/" target="_blank">Firefox</a>)
