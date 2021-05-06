@@ -549,7 +549,7 @@ export class ZipkinSearch {
         this.traceResults.length == 0 ? 'no-results' : false
       );
 
-      window.Countly.add_event({
+      window.Countly && window.Countly.add_event({
         key: 'trace_searched_by_id',
         count: 1,
         segmentation: {
@@ -560,7 +560,7 @@ export class ZipkinSearch {
     } catch (err) {
       this.toggleRightPanelOverlay('error', err.message);
 
-      window.Countly.add_event({
+      window.Countly && window.Countly.add_event({
         key: 'trace_search_by_id_error',
         count: 1,
         segmentation: {
@@ -634,7 +634,7 @@ export class ZipkinSearch {
         this.traceResults.length == 0 ? 'no-results' : false
       );
 
-      window.Countly.add_event({
+      window.Countly && window.Countly.add_event({
         key: 'trace_searched',
         count: 1,
         segmentation: {
@@ -645,7 +645,7 @@ export class ZipkinSearch {
     } catch (err) {
       this.toggleRightPanelOverlay('error', err.message);
 
-      window.Countly.add_event({
+      window.Countly && window.Countly.add_event({
         key: 'trace_search_error',
         count: 1,
         segmentation: {

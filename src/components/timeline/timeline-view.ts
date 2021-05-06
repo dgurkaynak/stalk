@@ -407,7 +407,7 @@ export class TimelineView extends EventEmitter {
     this.updateAllDecorations();
     this.keepPanelTraslateYInScreen();
 
-    window.Countly.add_event({
+    window.Countly && window.Countly.add_event({
       key: 'draw_layout_changed',
       count: 1,
       segmentation: {
@@ -427,7 +427,7 @@ export class TimelineView extends EventEmitter {
     );
     this.layout();
 
-    window.Countly.add_event({
+    window.Countly && window.Countly.add_event({
       key: 'span_grouping_changed',
       count: 1,
       segmentation: {
@@ -445,7 +445,7 @@ export class TimelineView extends EventEmitter {
       g.getAllSpanViews().forEach((s) => s.updateColors());
     });
 
-    window.Countly.add_event({
+    window.Countly && window.Countly.add_event({
       key: 'span_coloring_changed',
       count: 1,
       segmentation: {
@@ -463,7 +463,7 @@ export class TimelineView extends EventEmitter {
       g.getAllSpanViews().forEach((s) => s.updateLabelText());
     });
 
-    window.Countly.add_event({
+    window.Countly && window.Countly.add_event({
       key: 'span_labeling_changed',
       count: 1,
       segmentation: {

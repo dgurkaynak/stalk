@@ -987,7 +987,7 @@ export class TimelineWrapper {
     const trace = new Trace(spans);
     this.stage.addTrace(trace);
 
-    window.Countly.add_event({
+    window.Countly && window.Countly.add_event({
       key: 'sample_trace_loaded',
       count: 1,
       segmentation: {
@@ -1005,7 +1005,7 @@ export class TimelineWrapper {
       this.stage.addTrace(trace);
     });
 
-    window.Countly.add_event({
+    window.Countly && window.Countly.add_event({
       key: 'sample_trace_loaded',
       count: 1,
       segmentation: {
