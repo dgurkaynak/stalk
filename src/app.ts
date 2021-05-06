@@ -1,6 +1,5 @@
 import { AppToolbar } from './components/app-toolbar/app-toolbar';
 import throttle from 'lodash/throttle';
-import debounce from 'lodash/debounce';
 import isArray from 'lodash/isArray';
 import isObject from 'lodash/isObject';
 import { DataSourceManager } from './model/datasource/manager';
@@ -29,10 +28,7 @@ import {
   ContextMenuManager,
   ContextMenuEvent,
 } from './components/ui/context-menu/context-menu-manager';
-import * as fs from 'fs';
-import * as path from 'path';
-import format from 'date-fns/format';
-import { SettingsManager, SettingsKey } from './model/settings-manager';
+import { SettingsManager } from './model/settings-manager';
 import { DataSource, DataSourceType } from './model/datasource/interfaces';
 import { JaegerSearch } from './components/trace-search/jaeger-search';
 import { ZipkinSearch } from './components/trace-search/zipkin-search';
