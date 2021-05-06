@@ -213,6 +213,12 @@ export class App {
       );
       loadingEl.classList.add('hidden');
     }
+
+    window.Countly.add_event({
+      key: 'ready',
+      count: 1,
+      segmentation: {},
+    });
   }
 
   private initDockPanelAndWidgets() {
@@ -351,7 +357,7 @@ export class App {
       }
 
       try {
-        this.openParsedJSON(parsedJson);
+        this.openDroppedJSONFiles(parsedJson);
       } catch (err) {
         errorMessages.push(`${file.name}: ${err.message}`);
       }
@@ -367,6 +373,14 @@ export class App {
         type: 'error',
       }).show();
     }
+
+    window.Countly.add_event({
+      key: 'json_file_dropped',
+      count: 1,
+      segmentation: {
+        errorCount: errorMessages.length,
+      },
+    });
   }
 
   private onDragOver(e: DragEvent) {
@@ -378,12 +392,21 @@ export class App {
     this.dropZoneEl.style.display = 'none';
   }
 
-  private openParsedJSON(parsedJson: any) {
+  private openDroppedJSONFiles(parsedJson: any) {
     if (isJaegerJSON(parsedJson)) {
       parsedJson.data.forEach((rawTrace: any) => {
         const spans = convertFromJaegerTrace(rawTrace);
         const trace = new Trace(spans);
         this.stage.addTrace(trace);
+      });
+
+      window.Countly.add_event({
+        key: 'trace_added_from_json_file',
+        count: 1,
+        segmentation: {
+          type: 'jaeger',
+          traceCount: parsedJson.data.length,
+        },
       });
 
       return;
@@ -396,6 +419,16 @@ export class App {
           const trace = new Trace(spans);
           this.stage.addTrace(trace);
         });
+
+        window.Countly.add_event({
+          key: 'trace_added_from_json_file',
+          count: 1,
+          segmentation: {
+            type: 'zipkin',
+            traceCount: parsedJson.length,
+          },
+        });
+
         return;
       }
 
@@ -403,11 +436,27 @@ export class App {
         const spans = convertFromZipkinTrace(parsedJson);
         const trace = new Trace(spans);
         this.stage.addTrace(trace);
+
+        window.Countly.add_event({
+          key: 'trace_added_from_json_file',
+          count: 1,
+          segmentation: {
+            type: 'zipkin',
+            traceCount: 1,
+          },
+        });
+
         return;
       }
 
       throw new Error(`Unrecognized Zipkin format`);
     }
+
+    window.Countly.add_event({
+      key: 'unrecognized_json_file',
+      count: 1,
+      segmentation: {},
+    });
 
     throw new Error(`Unrecognized JSON file`);
   }
@@ -453,21 +502,40 @@ export class App {
       return;
     }
 
-    const handleTracesAdd = (traces: Trace[]) => {
-      traces.forEach((t) => this.stage.addTrace(t));
-      this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE]);
-    };
-
     let component: JaegerSearch | ZipkinSearch;
     if (dataSource.type == DataSourceType.JAEGER) {
       component = new JaegerSearch({
         dataSource,
-        onTracesAdd: handleTracesAdd,
+        onTracesAdd: (traces: Trace[]) => {
+          traces.forEach((t) => this.stage.addTrace(t));
+          this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE]);
+
+          window.Countly.add_event({
+            key: 'trace_added_from_data_source',
+            count: 1,
+            segmentation: {
+              type: 'jaeger',
+              traceCount: traces.length,
+            },
+          });
+        },
       });
     } else if (dataSource.type == DataSourceType.ZIPKIN) {
       component = new ZipkinSearch({
         dataSource,
-        onTracesAdd: handleTracesAdd,
+        onTracesAdd: (traces: Trace[]) => {
+          traces.forEach((t) => this.stage.addTrace(t));
+          this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE]);
+
+          window.Countly.add_event({
+            key: 'trace_added_from_data_source',
+            count: 1,
+            segmentation: {
+              type: 'zipkin',
+              traceCount: traces.length,
+            },
+          });
+        },
       });
     } else {
       throw new Error(`Unexpected data source type "${dataSource.type}"`);

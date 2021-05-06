@@ -986,6 +986,14 @@ export class TimelineWrapper {
     const spans = convertFromJaegerTrace(hotrod.default.data[0]);
     const trace = new Trace(spans);
     this.stage.addTrace(trace);
+
+    window.Countly.add_event({
+      key: 'sample_trace_loaded',
+      count: 1,
+      segmentation: {
+        trace: 'jaeger/hotrod',
+      },
+    });
   }
 
   private async onSampleTraceButtonRaftConcensusClick(e: MouseEvent) {
@@ -995,6 +1003,14 @@ export class TimelineWrapper {
     raftConsensus.default.traces.forEach((spans: any) => {
       const trace = new Trace(spans);
       this.stage.addTrace(trace);
+    });
+
+    window.Countly.add_event({
+      key: 'sample_trace_loaded',
+      count: 1,
+      segmentation: {
+        trace: 'raft-concensus',
+      },
     });
   }
 

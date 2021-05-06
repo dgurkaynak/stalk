@@ -96,6 +96,14 @@ export class Stage extends EventEmitter {
     this.updateSpanSelfTimeStats();
 
     this.emit(StageEvent.TRACE_ADDED, trace);
+
+    window.Countly.add_event({
+      key: 'trace_added',
+      count: 1,
+      segmentation: {
+        spanCount: trace.spanCount
+      },
+    });
   }
 
   removeTrace(traceId: string) {

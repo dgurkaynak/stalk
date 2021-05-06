@@ -1,5 +1,5 @@
 //some default pre init
-var Countly: any = window.Countly = window.Countly || {};
+var Countly: any = window['Countly'] = window['Countly'] || {};
 Countly.q = Countly.q || [];
 
 //provide countly initialization parameters

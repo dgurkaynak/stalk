@@ -474,6 +474,12 @@ export class AppToolbar {
     const dsId = (e.target as any).getAttribute('data-datasource-id');
     this.dsManager.remove(dsId);
     this.tippyInstaces.dataSourceRemovePopConfirm.hide();
+
+    window.Countly.add_event({
+      key: 'data_source_removed',
+      count: 1,
+      segmentation: {},
+    });
   }
 
   private onDataSourceManagerAdded(dataSource: DataSource) {
@@ -536,6 +542,12 @@ export class AppToolbar {
     this.dataSourceFormModalContent.init();
     ModalManager.getSingleton().show(modal);
     this.tippyInstaces.dataSources.hide();
+
+    window.Countly.add_event({
+      key: 'new_data_source_modal_opened',
+      count: 1,
+      segmentation: {},
+    });
   }
 
   private async onNewDataSourceModalClose(
@@ -561,6 +573,14 @@ export class AppToolbar {
       // Creating a new ds
       data.dataSource.id = shortid.generate();
       await this.dsManager.add(data.dataSource);
+
+      window.Countly.add_event({
+        key: 'new_data_source_added',
+        count: 1,
+        segmentation: {
+          type: data.dataSource.type,
+        },
+      });
     }
   }
 
