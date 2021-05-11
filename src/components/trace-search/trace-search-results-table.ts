@@ -166,7 +166,9 @@ export class TraceSearchResultsTable extends EventEmitter {
     // Init table
     this.table = new Tabulator(this.elements.tableContainer, {
       autoResize: false, // This causes to lose focus when widget is hidden
-      height: this.viewPropertiesCache.height,
+      height: this.viewPropertiesCache.height || -1, // If tabulator initalizes with 0 height,
+        // it renders in classical mode (whatever the fuck that means) -- which prevents us
+        // from resizing it manually. So the fix is initalizing with -1 height
       data: this.traceRows,
       layout: 'fitDataFill',
       movableColumns: true,
