@@ -987,13 +987,14 @@ export class TimelineWrapper {
     const trace = new Trace(spans);
     this.stage.addTrace(trace);
 
-    window.Countly && window.Countly.add_event({
-      key: 'trace_added_example',
-      count: 1,
-      segmentation: {
-        trace: 'jaeger/hotrod',
-      },
-    });
+    window.Countly &&
+      window.Countly.add_event({
+        key: 'trace_added_example',
+        count: 1,
+        segmentation: {
+          trace: 'jaeger/hotrod',
+        },
+      });
   }
 
   private async onSampleTraceButtonRaftConcensusClick(e: MouseEvent) {
@@ -1005,13 +1006,14 @@ export class TimelineWrapper {
       this.stage.addTrace(trace);
     });
 
-    window.Countly && window.Countly.add_event({
-      key: 'trace_added_example',
-      count: 1,
-      segmentation: {
-        trace: 'raft-concensus',
-      },
-    });
+    window.Countly &&
+      window.Countly.add_event({
+        key: 'trace_added_example',
+        count: 1,
+        segmentation: {
+          trace: 'raft-concensus',
+        },
+      });
   }
 
   addTrace(trace: Trace) {

@@ -407,13 +407,14 @@ export class TimelineView extends EventEmitter {
     this.updateAllDecorations();
     this.keepPanelTraslateYInScreen();
 
-    window.Countly && window.Countly.add_event({
-      key: 'draw_layout_changed',
-      count: 1,
-      segmentation: {
-        type: groupLayoutType,
-      },
-    });
+    window.Countly &&
+      window.Countly.add_event({
+        key: 'draw_layout_changed',
+        count: 1,
+        segmentation: {
+          type: groupLayoutType,
+        },
+      });
   }
 
   // can throw
@@ -427,13 +428,14 @@ export class TimelineView extends EventEmitter {
     );
     this.layout();
 
-    window.Countly && window.Countly.add_event({
-      key: 'span_grouping_changed',
-      count: 1,
-      segmentation: {
-        type: spanGroupingOptions.key,
-      },
-    });
+    window.Countly &&
+      window.Countly.add_event({
+        key: 'span_grouping_changed',
+        count: 1,
+        segmentation: {
+          type: spanGroupingOptions.key,
+        },
+      });
   }
 
   // can throw
@@ -445,13 +447,14 @@ export class TimelineView extends EventEmitter {
       g.getAllSpanViews().forEach((s) => s.updateColors());
     });
 
-    window.Countly && window.Countly.add_event({
-      key: 'span_coloring_changed',
-      count: 1,
-      segmentation: {
-        type: options.key,
-      },
-    });
+    window.Countly &&
+      window.Countly.add_event({
+        key: 'span_coloring_changed',
+        count: 1,
+        segmentation: {
+          type: options.key,
+        },
+      });
   }
 
   // can throw
@@ -463,13 +466,14 @@ export class TimelineView extends EventEmitter {
       g.getAllSpanViews().forEach((s) => s.updateLabelText());
     });
 
-    window.Countly && window.Countly.add_event({
-      key: 'span_labeling_changed',
-      count: 1,
-      segmentation: {
-        type: options.key,
-      },
-    });
+    window.Countly &&
+      window.Countly.add_event({
+        key: 'span_labeling_changed',
+        count: 1,
+        segmentation: {
+          type: options.key,
+        },
+      });
   }
 
   get tool() {

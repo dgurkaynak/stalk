@@ -100,10 +100,7 @@ export class SpanLogsView {
     rightPane.appendChild(btn.collapseAll);
   }
 
-  init(options: {
-    timeline: TimelineView;
-    spansTable: SpansTableView;
-  }) {
+  init(options: { timeline: TimelineView; spansTable: SpansTableView }) {
     this.timeline = options.timeline;
     this.spansTable = options.spansTable;
     this.initTooltips();

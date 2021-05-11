@@ -72,10 +72,7 @@ export class SpanProcessTagsView {
     inputContainer.appendChild(createElementFromHTML(SvgMagnify));
   }
 
-  init(options: {
-    timeline: TimelineView;
-    spansTable: SpansTableView;
-  }) {
+  init(options: { timeline: TimelineView; spansTable: SpansTableView }) {
     this.timeline = options.timeline;
     this.spansTable = options.spansTable;
 

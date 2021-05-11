@@ -39,10 +39,7 @@ export class SpanSummaryView {
     container.classList.add('span-summary');
   }
 
-  init(options: {
-    timeline: TimelineView;
-    spansTable: SpansTableView;
-  }) {
+  init(options: { timeline: TimelineView; spansTable: SpansTableView }) {
     this.timeline = options.timeline;
     this.spansTable = options.spansTable;
 
