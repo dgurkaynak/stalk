@@ -30,7 +30,10 @@ export class Trace implements ITrace {
         }
       }
 
-      if (span.references.length === 0) {
+      const inTraceReferences = span.references.filter(
+        (ref) => ref.traceId == span.traceId
+      );
+      if (inTraceReferences.length === 0) {
         this.rootSpan = span;
       }
 
