@@ -16,9 +16,10 @@
   "scripts": {
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
+    "build:watch": "webpack --mode development --watch",
     "commit": "git-cz",
     "format": "prettier --write .",
-    "start": "webpack serve --port 9000"
+    "start": "webpack serve"
   },
   "devDependencies": {
     "@mdi/js": "^5.3.45",
