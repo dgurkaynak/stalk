@@ -226,6 +226,35 @@ export class App {
     if (isTouchDevice) {
       this.showTouchDeviceWarningModal();
     }
+
+    // If our window is opened by raft-consensus, send an `ready` event to it,
+    // and listen required events so it can export traces.
+    if (window.opener) {
+      window.addEventListener('message', (event) => {
+        try {
+          const tracesObj = JSON.parse(event.data);
+
+          Object.values(tracesObj).forEach((spans: any) => {
+            const trace = new Trace(spans);
+            this.stage.addTrace(trace);
+          });
+
+          window.Countly &&
+            window.Countly.add_event({
+              key: 'trace_added_from_postmessage',
+              count: 1,
+              segmentation: {
+                traceCount: Object.keys(tracesObj).length,
+              },
+            });
+
+        } catch (err) {
+          console.error(`Could not parse incoming message, it must be JSON`, event.data);
+        }
+      });
+
+      window.opener.postMessage('ready');
+    }
   }
 
   private initDockPanelAndWidgets() {
