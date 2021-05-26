@@ -43,9 +43,10 @@
   margin-top: 1.9em;
 }
 
-.empty-message-container .sample-trace-text .add-sample-trace-button {
+.empty-message-container .empty-message-link {
   cursor: pointer;
   text-decoration: underline;
+  color: #999;
 }
 
 .empty-message-container svg {
@@ -56,4 +57,8 @@
   fill: #999;
   padding: 0.3em 0;
   top: 0.7em;
+}
+
+.empty-message-container .raft-consensus-demo-app-text {
+  margin-top: 1.9em;
 }

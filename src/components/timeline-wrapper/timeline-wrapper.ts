@@ -249,7 +249,7 @@ export class TimelineWrapper {
     );
 
     emptyMessage.sampleTraceButtonHotrod.classList.add(
-      'add-sample-trace-button'
+      'empty-message-link'
     );
     emptyMessage.sampleTraceButtonHotrod.textContent = 'jaeger/hotrod';
     emptyMessage.sampleTraceButtonHotrod.addEventListener(
@@ -262,7 +262,7 @@ export class TimelineWrapper {
     sampleTraceText.appendChild(document.createTextNode(', '));
 
     emptyMessage.sampleTraceButtonRaftConsensus.classList.add(
-      'add-sample-trace-button'
+      'empty-message-link'
     );
     emptyMessage.sampleTraceButtonRaftConsensus.textContent = 'raft-consensus';
     emptyMessage.sampleTraceButtonRaftConsensus.addEventListener(
@@ -273,6 +273,13 @@ export class TimelineWrapper {
     sampleTraceText.appendChild(emptyMessage.sampleTraceButtonRaftConsensus);
 
     innerContainer.appendChild(sampleTraceText);
+
+    const raftConsensusSimulation = document.createElement('div');
+    raftConsensusSimulation.classList.add('raft-consensus-demo-app-text');
+    const RAFT_CONSENSUS_DEMO_LINK = `https://deniz.co/raft-consensus`;
+    // const RAFT_CONSENSUS_DEMO_LINK = `http://localhost:8080/raft-consensus`; // for local development
+    raftConsensusSimulation.innerHTML = `• Use <a href="${RAFT_CONSENSUS_DEMO_LINK}" class="empty-message-link" target="_blank">the demo app</a> that simulates raft consensus algorithm and import traces from there.`;
+    innerContainer.appendChild(raftConsensusSimulation);
 
     timelineContainer.appendChild(emptyMessage.container);
   }
