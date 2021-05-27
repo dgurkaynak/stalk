@@ -1,6 +1,6 @@
 {
   "name": "stalk",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Highly flexible trace analysis tool for Jaeger and Zipkin",
   "homepage": "https://github.com/dgurkaynak/stalk",
   "repository": "github:dgurkaynak/stalk",
