@@ -3,92 +3,47 @@
   Stalk
 </h1>
 
-**Stalk** is an experimental, highly-flexible trace analysis tool.
+**Stalk** is an experimental, highly-flexible (distributed) trace analysis tool.
 
-- Intuitive DevTools-like UI for extracting useful information from complex traces
-- Visualize & inspect multiple traces on the same stage
-- It supports [Jaeger](https://www.jaegertracing.io/) and [Zipkin](https://zipkin.io/) out of the box
+- Visualize & inspect **multiple traces** on the same timeline
+- [Jaeger](https://www.jaegertracing.io/) and [Zipkin](https://zipkin.io/) support out of the box
 
 ![Screenshot](./docs/readme-images/screenshot.png)
 
 # Background & Motivation
 
-At work, we had a nasty bug in a highly event-driven, consensus-based distributed system. And it was occurring randomly on some specific cluster setups that we don't have physical access for debugging. Viewing the plain text dumps of the device logs couldn't help us to analyze the issue. And we thought, why not use distributed tracing for debugging? After a little research, we've decided to go with [OpenTracing](https://opentracing.io/), a vendor-neutral instrumentation specification. So we can try and swap between the most popular open-source distributed tracing solutions, [Jaeger](https://www.jaegertracing.io/) and [Zipkin](https://zipkin.io/). After instrumentation and collecting traces, we've found that Jaeger and Zipkin's built-in UI is quite limiting us since these tools aren't built for this use case. The most common use case of the distributed tracing is tracing just a single request that flows through multiple microservices. But we wanted to have a DevTools-like unified debugging experience since we are interested in the whole cluster's overall behavior, which consists of multiple traces. To simulate a similar scenario, I've also built [a demo app](https://github.com/dgurkaynak/stalk-demo-raft-consensus) that implements [Raft distributed consensus algorithm](https://en.wikipedia.org/wiki/Raft_(computer_science)), instrumented with OpenTracing.
+At work, we had a nasty bug in a highly event-driven, consensus-based distributed system. And it was occurring randomly on some specific cluster setups that we don't have physical access for debugging. We thought, why not use distributed tracing for debugging the whole cluster? The main problem was Jaeger and Zipkin's built-in UI are built just for visualizing a single trace, since it's the most common use case of distributed (request) tracing. That's the motivation behind Stalk, providing an alternative way to inspect distributed traces, especially for non-traditional use cases.
 
-So that's it, Stalk's goal is to provide an alternative way to inspect distributed traces, especially for non-traditional use cases.
+Also check out [the demo app](https://github.com/dgurkaynak/stalk-demo-raft-consensus) that I've built simulating [Raft distributed consensus algorithm](https://en.wikipedia.org/wiki/Raft_(computer_science)), instrumented with OpenTelemetry. You can play with it and export generated traces to Stalk.
 
-# Main Features
+## :vulcan_salute: Jaeger and Zipkin support
 
-<img align="left" width="400" height="auto" src="./docs/readme-images/trace-search.png">
-<div>
-  <h3>:vulcan_salute: Jaeger and Zipkin support</h3>
-  <div>
-    • Add & save your Jaeger and Zipkin APIs as data sources
-  </div>
-  <div>
-    • Search & import traces directly from Jaeger and Zipkin
-  </div>
-  <div>
-    • Drag & drop JSON trace files that are exported from Jaeger or Zipkin
-  </div>
-</div>
+![Trace searching in Jaeger and Zipkin backends](./docs/readme-images/trace-search.png)
 
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
+- Add & save your Jaeger and Zipkin APIs as data sources
+- Search & import traces directly from Jaeger and Zipkin
+- Drag & drop JSON trace files that are exported from Jaeger or Zipkin
 
-<hr/>
+## :gear: High Customizability
 
-<div>
-  <img align="right" width="400" height="auto" src="./docs/readme-images/highly-customizability.gif">
-  <h3>:gear: High Customizability</h3>
-  Stalk is built for being as flexible as possible to cover your changing needs when analyzing different traces.
-  <br />
-  <br />
-  <div>
-    • <strong>Flexible panes</strong>: Split views can be handy.
-  </div>
-  <div>
-    • <strong>Table view</strong>: Pinpoint interesting spans quickly in table view with customizable & sortable columns.
-  </div>
-  <div>
-    • <strong>Timeline layout</strong>: Change how the spans are grouped and rendered vertically. Uninteresting groups can be collapsed to prevent visual clutter.
-  </div>
-  <div>
-    • <strong>Span coloring & labelling</strong>: Change span bar colors and the text rendered on it.
-  </div>
-  <div>
-    • <strong>Tooltip</strong>: Change the contents of the tooltip displayed when you hover a span bar. You can add/remove interested span tags, logs, and process tags.
-  </div>
-</div>
+![High Customizability](./docs/readme-images/highly-customizability.gif)
 
-<hr/>
+Stalk is built for being as flexible as possible to cover your changing needs when analyzing different traces.
+- **Flexible panes**: Split views can be handy.
+- **Table view**: Pinpoint interesting spans quickly in table view with customizable & sortable columns.
+- **Timeline layout**: Change how the spans are grouped and rendered vertically. Uninteresting groups can be collapsed to prevent visual clutter.
+- **Span coloring & labelling**: Change span bar colors and the text rendered on it.
+- **Tooltip**: Change the contents of the tooltip displayed when you hover a span bar. You can add/remove interested span tags, logs, and process tags.
 
-<img align="left" width="400" height="auto" src="./docs/readme-images/custom-code.gif">
-<div>
-  <h3>:woman_technologist: Built for developers in mind</h3>
-  If the built-in customization options don't fill your needs, you can always write your own
-  custom JavaScript / TypeScript code to do the following:
-  <br />
-  <br />
-  <div>
-    • Filter spans
-  </div>
-  <div>
-    • Change span grouping
-  </div>
-  <div>
-    • Change span labeling
-  </div>
-  <div>
-    • Change span coloring
-  </div>
-  <br />
-  <br />
-</div>
+## :woman_technologist: Built for developers in mind
+
+![Built for developers in mind](./docs/readme-images/custom-code.gif)
+
+If the built-in customization options don't fill your needs, you can always write your own custom JavaScript / TypeScript code to do the following:
+- Filter spans
+- Change span grouping
+- Change span labeling
+- Change span coloring
 
 # Building & Development
 
