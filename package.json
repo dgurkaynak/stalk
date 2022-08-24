@@ -37,7 +37,7 @@
     "chance": "^1.1.7",
     "chroma-js": "^2.1.1",
     "clean-webpack-plugin": "^4.0.0-alpha.0",
-    "commitizen": "^4.2.3",
+    "commitizen": "^4.2.5",
     "css-loader": "^5.2.4",
     "cz-conventional-changelog": "^3.3.0",
     "date-fns": "^2.21.1",
