@@ -55,7 +55,7 @@ You must have node.js >= 12 installed on your machine.
 
 - Clone the repo
 - Install dependencies: `npm i`
-- Get started with webpack-dev-server w/ live-reload: `npm start`
+- Get started with webpack-dev-server w/ live-reload: `npm run dev`
 
 ### Building
 
