@@ -549,27 +549,17 @@ export class ZipkinSearch {
         this.traceResults.length == 0 ? 'no-results' : false
       );
 
-      window.Countly &&
-        window.Countly.add_event({
-          key: 'trace_searched_by_id',
-          count: 1,
-          segmentation: {
-            type: 'zipkin',
-            resultCount: this.traceResults.length,
-          },
-        });
+      window.olay.addEvent('trace_searched_by_id', {
+        type: 'zipkin',
+        resultCount: this.traceResults.length,
+      });
     } catch (err) {
       this.toggleRightPanelOverlay('error', err.message);
 
-      window.Countly &&
-        window.Countly.add_event({
-          key: 'trace_search_by_id_error',
-          count: 1,
-          segmentation: {
-            type: 'zipkin',
-            message: err.message,
-          },
-        });
+      window.olay.addEvent('trace_search_by_id_error', {
+        type: 'zipkin',
+        message: err.message,
+      });
     }
 
     this.elements.searchByTraceId.button.disabled = false;
@@ -636,27 +626,17 @@ export class ZipkinSearch {
         this.traceResults.length == 0 ? 'no-results' : false
       );
 
-      window.Countly &&
-        window.Countly.add_event({
-          key: 'trace_searched',
-          count: 1,
-          segmentation: {
-            type: 'zipkin',
-            resultCount: this.traceResults.length,
-          },
-        });
+      window.olay.addEvent('trace_searched', {
+        type: 'zipkin',
+        resultCount: this.traceResults.length,
+      });
     } catch (err) {
       this.toggleRightPanelOverlay('error', err.message);
 
-      window.Countly &&
-        window.Countly.add_event({
-          key: 'trace_search_error',
-          count: 1,
-          segmentation: {
-            type: 'zipkin',
-            message: err.message,
-          },
-        });
+      window.olay.addEvent('trace_search_error', {
+        type: 'zipkin',
+        message: err.message,
+      });
     }
 
     this.elements.search.button.disabled = false;

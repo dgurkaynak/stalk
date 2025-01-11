@@ -475,12 +475,7 @@ export class AppToolbar {
     this.dsManager.remove(dsId);
     this.tippyInstaces.dataSourceRemovePopConfirm.hide();
 
-    window.Countly &&
-      window.Countly.add_event({
-        key: 'data_source_removed',
-        count: 1,
-        segmentation: {},
-      });
+    window.olay.addEvent('data_source_removed');
   }
 
   private onDataSourceManagerAdded(dataSource: DataSource) {
@@ -544,12 +539,7 @@ export class AppToolbar {
     ModalManager.getSingleton().show(modal);
     this.tippyInstaces.dataSources.hide();
 
-    window.Countly &&
-      window.Countly.add_event({
-        key: 'new_data_source_modal_opened',
-        count: 1,
-        segmentation: {},
-      });
+    window.olay.addEvent('new_data_source_modal_opened');
   }
 
   private async onNewDataSourceModalClose(
@@ -576,14 +566,9 @@ export class AppToolbar {
       data.dataSource.id = shortid.generate();
       await this.dsManager.add(data.dataSource);
 
-      window.Countly &&
-        window.Countly.add_event({
-          key: 'new_data_source_added',
-          count: 1,
-          segmentation: {
-            type: data.dataSource.type,
-          },
-        });
+      window.olay.addEvent('new_data_source_added', {
+        type: data.dataSource.type,
+      });
     }
   }
 

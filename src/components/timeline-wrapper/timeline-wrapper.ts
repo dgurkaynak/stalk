@@ -248,9 +248,7 @@ export class TimelineWrapper {
       )
     );
 
-    emptyMessage.sampleTraceButtonHotrod.classList.add(
-      'empty-message-link'
-    );
+    emptyMessage.sampleTraceButtonHotrod.classList.add('empty-message-link');
     emptyMessage.sampleTraceButtonHotrod.textContent = 'jaeger/hotrod';
     emptyMessage.sampleTraceButtonHotrod.addEventListener(
       'click',
@@ -994,14 +992,9 @@ export class TimelineWrapper {
     const trace = new Trace(spans);
     this.stage.addTrace(trace);
 
-    window.Countly &&
-      window.Countly.add_event({
-        key: 'trace_added_example',
-        count: 1,
-        segmentation: {
-          trace: 'jaeger/hotrod',
-        },
-      });
+    window.olay.addEvent('trace_added_example', {
+      type: 'jaeger/hotrod',
+    });
   }
 
   private async onSampleTraceButtonRaftConcensusClick(e: MouseEvent) {
@@ -1013,14 +1006,9 @@ export class TimelineWrapper {
       this.stage.addTrace(trace);
     });
 
-    window.Countly &&
-      window.Countly.add_event({
-        key: 'trace_added_example',
-        count: 1,
-        segmentation: {
-          trace: 'raft-concensus',
-        },
-      });
+    window.olay.addEvent('trace_added_example', {
+      type: 'raft-concensus',
+    });
   }
 
   addTrace(trace: Trace) {

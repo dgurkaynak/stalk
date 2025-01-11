@@ -213,12 +213,7 @@ export class App {
       loadingEl.classList.add('hidden');
     }
 
-    window.Countly &&
-      window.Countly.add_event({
-        key: 'ready',
-        count: 1,
-        segmentation: {},
-      });
+    window.olay.addEvent('ready');
 
     // Show a warning for touch devices says this app is
     // optimized for desktop browsers.
@@ -239,17 +234,14 @@ export class App {
             this.stage.addTrace(trace);
           });
 
-          window.Countly &&
-            window.Countly.add_event({
-              key: 'trace_added_from_postmessage',
-              count: 1,
-              segmentation: {
-                traceCount: Object.keys(tracesObj).length,
-              },
-            });
-
+          window.olay.addEvent('trace_added_from_postmessage', {
+            traceCount: Object.keys(tracesObj).length,
+          });
         } catch (err) {
-          console.error(`Could not parse incoming message, it must be JSON`, event.data);
+          console.error(
+            `Could not parse incoming message, it must be JSON`,
+            event.data
+          );
         }
       });
 
@@ -410,14 +402,9 @@ export class App {
       }).show();
     }
 
-    window.Countly &&
-      window.Countly.add_event({
-        key: 'json_file_dropped',
-        count: 1,
-        segmentation: {
-          errorCount: errorMessages.length,
-        },
-      });
+    window.olay.addEvent('json_file_dropped', {
+      errorCount: errorMessages.length,
+    });
   }
 
   private onDragOver(e: DragEvent) {
@@ -437,15 +424,10 @@ export class App {
         this.stage.addTrace(trace);
       });
 
-      window.Countly &&
-        window.Countly.add_event({
-          key: 'trace_added_from_json_file',
-          count: 1,
-          segmentation: {
-            type: 'jaeger',
-            traceCount: parsedJson.data.length,
-          },
-        });
+      window.olay.addEvent('trace_added_from_json_file', {
+        type: 'jaeger',
+        traceCount: parsedJson.data.length,
+      });
 
       return;
     }
@@ -458,15 +440,10 @@ export class App {
           this.stage.addTrace(trace);
         });
 
-        window.Countly &&
-          window.Countly.add_event({
-            key: 'trace_added_from_json_file',
-            count: 1,
-            segmentation: {
-              type: 'zipkin',
-              traceCount: parsedJson.length,
-            },
-          });
+        window.olay.addEvent('trace_added_from_json_file', {
+          type: 'zipkin',
+          traceCount: parsedJson.length,
+        });
 
         return;
       }
@@ -476,15 +453,10 @@ export class App {
         const trace = new Trace(spans);
         this.stage.addTrace(trace);
 
-        window.Countly &&
-          window.Countly.add_event({
-            key: 'trace_added_from_json_file',
-            count: 1,
-            segmentation: {
-              type: 'zipkin',
-              traceCount: 1,
-            },
-          });
+        window.olay.addEvent('trace_added_from_json_file', {
+          type: 'zipkin',
+          traceCount: 1,
+        });
 
         return;
       }
@@ -492,12 +464,7 @@ export class App {
       throw new Error(`Unrecognized Zipkin format`);
     }
 
-    window.Countly &&
-      window.Countly.add_event({
-        key: 'unrecognized_json_file',
-        count: 1,
-        segmentation: {},
-      });
+    window.olay.addEvent('unrecognized_json_file');
 
     throw new Error(`Unrecognized JSON file`);
   }
@@ -551,15 +518,10 @@ export class App {
           traces.forEach((t) => this.stage.addTrace(t));
           this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE]);
 
-          window.Countly &&
-            window.Countly.add_event({
-              key: 'trace_added_from_data_source',
-              count: 1,
-              segmentation: {
-                type: 'jaeger',
-                traceCount: traces.length,
-              },
-            });
+          window.olay.addEvent('trace_added_from_data_source', {
+            type: 'jaeger',
+            traceCount: traces.length,
+          });
         },
       });
     } else if (dataSource.type == DataSourceType.ZIPKIN) {
@@ -569,15 +531,10 @@ export class App {
           traces.forEach((t) => this.stage.addTrace(t));
           this.dockPanel.activateWidget(this.widgets[AppWidgetType.TIMELINE]);
 
-          window.Countly &&
-            window.Countly.add_event({
-              key: 'trace_added_from_data_source',
-              count: 1,
-              segmentation: {
-                type: 'zipkin',
-                traceCount: traces.length,
-              },
-            });
+          window.olay.addEvent('trace_added_from_data_source', {
+            type: 'zipkin',
+            traceCount: traces.length,
+          });
         },
       });
     } else {

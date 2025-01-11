@@ -1,4 +1,4 @@
-import './utils/countly';
+import './utils/olay';
 
 /**
  * Just critical javascript allowed here for initial html/css rendering.
